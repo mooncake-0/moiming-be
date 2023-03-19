@@ -1,13 +1,13 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.Category;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
+import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;

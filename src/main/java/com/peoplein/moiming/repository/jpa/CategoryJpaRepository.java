@@ -2,6 +2,7 @@ package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.enums.CategoryName;
+import com.peoplein.moiming.domain.fixed.QCategory;
 import com.peoplein.moiming.repository.CategoryRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
