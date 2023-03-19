@@ -35,6 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-#File Name
-JwtPropertySetting.java
