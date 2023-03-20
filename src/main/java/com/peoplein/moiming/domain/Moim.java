@@ -15,6 +15,9 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @Entity
 @Getter
@@ -198,6 +201,26 @@ public class Moim extends BaseEntity{
             // 4. 가입 모임 수 제한
             if (ruleJoin.getMoimMaxCount() <= memberMoimLinkers.size() - cntInactiveMoim) {
                 return MoimMemberState.WAIT_BY_MOIM_CNT;
+            }
+        }
+
+        Optional<MemberMoimLinker> historyAboutInactiveWithThisMoim = memberMoimLinkers
+                .stream()
+                .filter(memberMoimLinker -> Objects.equals(memberMoimLinker.getMoim().getId(), this.id))
+                .findFirst();
+
+        if (historyAboutInactiveWithThisMoim.isPresent()) {
+            MemberMoimLinker previousLinker = historyAboutInactiveWithThisMoim.get();
+            // 5. 재가입 방지 (강퇴)
+            if (!ruleJoin.isPossibleReJoinIfExitedByForce() &&
+                    previousLinker.getMemberState().equals(MoimMemberState.IBF)) {
+                return MoimMemberState.WAIT_BY_IBF;
+            }
+
+            // 6. 재가입 방지 (자발적)
+            if (!ruleJoin.isPossibleReJoinIfExitedByWill() &&
+                    previousLinker.getMemberState().equals(MoimMemberState.IBW)) {
+                return MoimMemberState.WAIT_BY_IBW;
             }
         }
 

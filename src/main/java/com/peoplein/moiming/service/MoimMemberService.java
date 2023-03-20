@@ -64,6 +64,9 @@ public class MoimMemberService {
     public MyMoimLinkerDto requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
 
         Moim moim = moimRepository.findWithRulesById(moimJoinRequestDto.getMoimId());
+
+        MemberMoimLinker existedMemberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimJoinRequestDto.getMoimId());
+
         MoimMemberState memberState = MoimMemberState.ACTIVE;
 
         if (moim.isHasRuleJoin()) { // 가입조건 판별한다
