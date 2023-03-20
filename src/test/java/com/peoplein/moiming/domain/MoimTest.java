@@ -160,7 +160,7 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
 
         // birthMax, birthMin
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
@@ -179,7 +179,7 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin-1, 1, 1));
 
         // birthMax, birthMin
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
@@ -198,7 +198,7 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
 
         // birthMax, birthMin
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
@@ -217,7 +217,7 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
 
         // Gender: N
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
@@ -236,7 +236,7 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
 
         // Gender : F
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.F, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.F, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
@@ -255,7 +255,7 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
 
         // moimMaxCount: 1
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 1, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 1, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
@@ -275,7 +275,7 @@ public class MoimTest {
         List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
 
         // moimMaxCount : 1
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 1, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 1, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers);
@@ -296,7 +296,7 @@ public class MoimTest {
         List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
 
         // dupLeaderAvailable : false
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, false, TestUtils.dupManagerAvailable, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, false, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers);
@@ -317,7 +317,7 @@ public class MoimTest {
         List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
 
         // dupManagerAvailable : false
-        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, TestUtils.dupLeaderAvailable, false, moim, member.getUid());
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, TestUtils.dupLeaderAvailable, false, moim, member.getUid(), false, false);
 
         // when
         MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers);
