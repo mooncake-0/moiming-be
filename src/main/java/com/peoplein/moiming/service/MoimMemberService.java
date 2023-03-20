@@ -66,10 +66,10 @@ public class MoimMemberService {
     public MyMoimLinkerDto requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
 
         // default
-        MemberMoimLinker memberMoimLinker;
         MoimMemberState memberState = MoimMemberState.ACTIVE;
 
-        Moim moim = moimRepository.findWithRulesById(moimJoinRequestDto.getMoimId());
+        // moimRepository.findWithRulesById()로 하면, Rule이 없는 경우 null이 반환됨.
+        Moim moim = moimRepository.findById(moimJoinRequestDto.getMoimId());
         List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findByMemberId(curMember.getId());
         Optional<MemberMoimLinker> previousMemberMoimLinker = memberMoimLinkers.stream().filter(existMemberMoimLinker -> existMemberMoimLinker.getMoim().getId().equals(moim.getId())).findFirst();
 
@@ -77,14 +77,9 @@ public class MoimMemberService {
             memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
         }
 
-        if (moim.shouldCreateNewMemberMoimLinker(previousMemberMoimLinker)) {
-            // 신규 가입하는 경우
-            memberMoimLinker = MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, memberState);
+        MemberMoimLinker memberMoimLinker = MemberMoimLinker.processRequestJoin(curMember, moim, memberState, previousMemberMoimLinker);
+        if (memberMoimLinker.shouldPersist()) {
             memberMoimLinkerRepository.save(memberMoimLinker);
-        } else {
-            // 탈퇴 후 재가입 하는 경우
-            memberMoimLinker = previousMemberMoimLinker.get();
-            memberMoimLinker.upDateRoleTypeAndState(MoimRoleType.NORMAL, memberState);
         }
 
         // TODO : createAt, updateAt은 @Transactional이 완료되는 경우에 생성됨.

@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Entity
 @Table(name = "member_moim_linker")
@@ -67,6 +67,22 @@ public class MemberMoimLinker {
         this.moim = moim;
         this.moim.getMemberMoimLinkers().add(this);
         this.moim.addCurMemberCount();
+    }
+
+    public static MemberMoimLinker processRequestJoin(Member curMember, Moim moim, MoimMemberState memberState, Optional<MemberMoimLinker> previousMemberMoimLinker) {
+        if (moim.shouldCreateNewMemberMoimLinker(previousMemberMoimLinker)) {
+            // 신규 가입하는 경우
+            return MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, memberState);
+        } else {
+            // 탈퇴 후 재가입 하는 경우
+            MemberMoimLinker memberMoimLinker = previousMemberMoimLinker.get();
+            memberMoimLinker.upDateRoleTypeAndState(MoimRoleType.NORMAL, memberState);
+            return memberMoimLinker;
+        }
+    }
+
+    public boolean shouldPersist() {
+        return Objects.isNull(this.id);
     }
 
     public void changeMemberState(MoimMemberState memberState) {

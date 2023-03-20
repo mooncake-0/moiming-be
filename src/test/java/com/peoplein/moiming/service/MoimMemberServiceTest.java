@@ -161,39 +161,6 @@ public class MoimMemberServiceTest {
         assertEquals(3, infos.size());
         infos.forEach(Assertions::assertNotNull);
     }
-
-    @Test
-    @DisplayName("성공 @ requestJoin() - RuleJoin 이 없는 모임에 가입 요청")
-    void 가입조건_없는_모임_가입요청() {
-
-        //given (Rule Join 삭제)
-        lenient().when(curMoim.getMoimRules()).thenReturn(new ArrayList<>());
-        lenient().when(curMoim.isHasRuleJoin()).thenReturn(false);
-        lenient().when(curMoim.getRuleJoin()).thenReturn(null);
-        // given (request 정보)
-        MoimJoinRequestDto requestDto = new MoimJoinRequestDto(curMoim.getId());
-        when(moimRepository.findWithRulesById(curMoim.getId())).thenReturn(curMoim);
-
-        //when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, requestMember);
-
-        //then
-        assertEquals(MoimRoleType.NORMAL, myMoimLinkerDto.getMoimRoleType());
-        assertEquals(MoimMemberState.ACTIVE, myMoimLinkerDto.getMemberState());
-        assertNotNull(myMoimLinkerDto.getCreatedAt());
-
-        // MEMO :: 당연히 안되는 것이긴 함. 여기서 Moim 은 그대로기 때문
-        //          Service Tranx 내의 Moim 도 mock 객체이기 때문에 addCurMemberCount 등의 함수를 수행하지 않음.
-        //          그렇다면 이런 연관관계 메소드 테스트는 어디에서? 실제 DB를 거치면서 EntityManager가 역할을 수행하는 모습을 봐야할 듯
-        //          Repository Test 랑도 다르고, Domain Test 랑도 좀 다른 것 같음
-        //          일단 여기서는 Service 에서 수행하는 로직이 잘 수행되는가 결과만 확인하면 되는 것이기 때문에 이런 방식으로 충분할 듯.
-//        assertEquals(2, curMoim.getCurMemberCount());
-//        assertEquals(2, curMoim.getMemberMoimLinkers().size());
-    }
-
-
-
-
     @Test
     @DisplayName("성공 @ decideJoin() - ")
     void WAIT_유저_가입요청_판단() {

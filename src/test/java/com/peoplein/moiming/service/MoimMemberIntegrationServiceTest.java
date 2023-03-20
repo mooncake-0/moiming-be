@@ -19,9 +19,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Transactional
@@ -44,6 +49,28 @@ public class MoimMemberIntegrationServiceTest {
     @Autowired
     EntityManager em;
 
+
+    @Test
+    @DisplayName("성공 @ requestJoin() - RuleJoin이 없는 모임에 가입 요청")
+    void requestJoinTestSuccessWithNoRuleJoin() {
+        // given
+        Member member = TestUtils.initMemberAndMemberInfo();
+        Moim moim = TestUtils.createMoimOnly();
+
+        moimRepository.save(moim);
+        memberRepository.save(member);
+        member.getRoles().forEach(memberRoleLinker -> roleRepository.save(memberRoleLinker.getRole()));
+        flushAndClearEM();
+
+        MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
+
+        // when
+        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+
+        // then
+        assertThat(myMoimLinkerDto.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
+        assertThat(myMoimLinkerDto.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+    }
 
     @Test
     @DisplayName("requestJoin")
