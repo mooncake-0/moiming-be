@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Entity
@@ -153,9 +154,15 @@ public class Moim extends BaseEntity{
     }
 
 
-    public MoimMemberState checkRuleJoinCondition(MemberInfo memberInfo, List<MemberMoimLinker> memberMoimLinkers) {
+    // 똑같은 게 있을 수도 있고, 아닐 수도 있다.
+    public MoimMemberState checkRuleJoinCondition(MemberInfo memberInfo, List<MemberMoimLinker> memberMoimLinkers, Optional<MemberMoimLinker> previousMemberMoimLinker) {
 
         RuleJoin ruleJoin = this.getRuleJoin();
+
+//        Optional<MemberMoimLinker> alreadyExistMoimMemberLinker = memberMoimLinkers
+//                .stream()
+//                .filter(memberMoimLinker -> Objects.equals(memberMoimLinker.getMoim().getId(), this.id))
+//                .findFirst();
 
         // 1. 생년월일 판별
         if (ruleJoin.getBirthMax() != 0 && ruleJoin.getBirthMin() != 0) { // 판별조건이 있다면
@@ -172,6 +179,7 @@ public class Moim extends BaseEntity{
             }
         }
 
+        // count 부분이 자기 자신이라면 항상 빼야한다. 즉, 그 부분을 나눠줘야함. 
         if (!ruleJoin.isDupLeaderAvailable() || !ruleJoin.isDupManagerAvailable() || ruleJoin.getMoimMaxCount() > 0) { // 겸직 조건이 하나라도 있거나 최대 모임 갯수 조건이 있음
             boolean isMemberAnyLeader = false;
             boolean isMemberAnyManager = false;
@@ -204,13 +212,9 @@ public class Moim extends BaseEntity{
             }
         }
 
-        Optional<MemberMoimLinker> historyAboutInactiveWithThisMoim = memberMoimLinkers
-                .stream()
-                .filter(memberMoimLinker -> Objects.equals(memberMoimLinker.getMoim().getId(), this.id))
-                .findFirst();
 
-        if (historyAboutInactiveWithThisMoim.isPresent()) {
-            MemberMoimLinker previousLinker = historyAboutInactiveWithThisMoim.get();
+        if (previousMemberMoimLinker.isPresent()) {
+            MemberMoimLinker previousLinker = previousMemberMoimLinker.get();
             // 5. 재가입 방지 (강퇴)
             if (!ruleJoin.isPossibleReJoinIfExitedByForce() &&
                     previousLinker.getMemberState().equals(MoimMemberState.IBF)) {
@@ -228,4 +232,7 @@ public class Moim extends BaseEntity{
         return MoimMemberState.ACTIVE;
     }
 
+    public boolean shouldCreateNewMemberMoimLinker(Optional<MemberMoimLinker> memberMoimLinker) {
+        return memberMoimLinker.isEmpty();
+    }
 }

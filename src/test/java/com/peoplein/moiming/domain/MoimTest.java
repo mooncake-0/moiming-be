@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.*;
@@ -158,12 +159,15 @@ public class MoimTest {
         int birthMin = 1990;
         Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
+        List<MemberMoimLinker> memberMoimLinkers = List.of();
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
+
 
         // birthMax, birthMin
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.ACTIVE);
@@ -177,12 +181,14 @@ public class MoimTest {
         int birthMin = 1990;
         Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin-1, 1, 1));
+        List<MemberMoimLinker> memberMoimLinkers = List.of();
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
 
         // birthMax, birthMin
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.WAIT_BY_AGE);
@@ -196,12 +202,14 @@ public class MoimTest {
         int birthMin = 1990;
         Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
+        List<MemberMoimLinker> memberMoimLinkers = List.of();
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
 
         // birthMax, birthMin
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.ACTIVE);
@@ -215,12 +223,14 @@ public class MoimTest {
         int birthMin = 1990;
         Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
+        List<MemberMoimLinker> memberMoimLinkers = List.of();
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
 
         // Gender: N
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.ACTIVE);
@@ -234,12 +244,14 @@ public class MoimTest {
         int birthMin = 1990;
         Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
+        List<MemberMoimLinker> memberMoimLinkers = List.of();
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
 
         // Gender : F
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.F, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.WAIT_BY_GENDER);
@@ -253,12 +265,14 @@ public class MoimTest {
         int birthMin = 1990;
         Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
+        List<MemberMoimLinker> memberMoimLinkers = List.of();
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
 
         // moimMaxCount: 1
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 1, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), List.of());
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.ACTIVE);
@@ -273,12 +287,13 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
         MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, dummyMoim1, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
         List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
 
         // moimMaxCount : 1
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 1, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers);
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.WAIT_BY_MOIM_CNT);
@@ -294,12 +309,13 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
         MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, dummyMoim1, MoimRoleType.LEADER, MoimMemberState.ACTIVE);
         List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
 
         // dupLeaderAvailable : false
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, false, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers);
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.WAIT_BY_DUP);
@@ -315,20 +331,21 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
         MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, dummyMoim1, MoimRoleType.MANAGER, MoimMemberState.ACTIVE);
         List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(null);
 
         // dupManagerAvailable : false
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, TestUtils.dupLeaderAvailable, false, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers);
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.WAIT_BY_DUP);
     }
 
     @Test
-    @DisplayName("checkRuleJoin : 강퇴 후 재가입 가능")
-    void checkRuleJoinFailWithIBFCondition() {
+    @DisplayName("checkRuleJoin : 강퇴 후 재가입 대기")
+    void checkRuleJoinFailWithIBFConditionCase1() {
         // given
         int birthMax = 2000;
         int birthMin = 1990;
@@ -336,20 +353,43 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
         MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
         List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(memberMoimLinker1);
 
         // possibleRejoinIfExitedByForce : false
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, TestUtils.dupLeaderAvailable, false, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers);
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.WAIT_BY_IBF);
     }
 
     @Test
-    @DisplayName("checkRuleJoin : 자발적 탈퇴 후 재가입 가능")
-    void checkRuleJoinFailWithIBWCondition() {
+    @DisplayName("checkRuleJoin : 강퇴 후 재가입 가능")
+    void checkRuleJoinFailWithIBFConditionCase2() {
+        // given
+        int birthMax = 2000;
+        int birthMin = 1990;
+        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
+        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
+        MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
+        List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(memberMoimLinker1);
+
+        // possibleRejoinIfExitedByForce : true
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, TestUtils.dupLeaderAvailable, false, moim, member.getUid(), false, true);
+
+        // when
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
+
+        // then
+        assertThat(moimMemberState).isEqualTo(MoimMemberState.ACTIVE);
+    }
+
+    @Test
+    @DisplayName("checkRuleJoin : 자발적 탈퇴 후 재가입 대기")
+    void checkRuleJoinFailWithIBWConditionCase1() {
         // given
         int birthMax = 2000;
         int birthMin = 1990;
@@ -357,17 +397,39 @@ public class MoimTest {
         Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
         MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBW);
         List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(memberMoimLinker1);
 
-        // possibleRejoinIfExitedByForce : false
+        // possibleRejoinIfExitedByWill : false
         RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, TestUtils.dupLeaderAvailable, false, moim, member.getUid(), false, false);
 
         // when
-        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers);
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
 
         // then
         assertThat(moimMemberState).isEqualTo(MoimMemberState.WAIT_BY_IBW);
     }
 
+    @Test
+    @DisplayName("checkRuleJoin : 자발적 탈퇴 후 재가입 대기")
+    void checkRuleJoinFailWithIBWConditionCase2() {
+        // given
+        int birthMax = 2000;
+        int birthMin = 1990;
+        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
+        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
+        MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBW);
+        List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+        Optional<MemberMoimLinker> previousMemberMoimLinker = Optional.ofNullable(memberMoimLinker1);
+
+        // possibleRejoinIfExitedByWill : true
+        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, TestUtils.dupLeaderAvailable, false, moim, member.getUid(), true, false);
+
+        // when
+        MoimMemberState moimMemberState = moim.checkRuleJoinCondition(member.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
+
+        // then
+        assertThat(moimMemberState).isEqualTo(MoimMemberState.ACTIVE);
+    }
 
     Member createMember(MemberGender memberGender, LocalDate memberBirth) {
         MemberInfo memberInfo = new MemberInfo(TestUtils.memberEmail, TestUtils.memberName, memberGender);

@@ -27,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -63,20 +65,29 @@ public class MoimMemberService {
     */
     public MyMoimLinkerDto requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
 
-        Moim moim = moimRepository.findWithRulesById(moimJoinRequestDto.getMoimId());
+        // default
+        MemberMoimLinker memberMoimLinker;
         MoimMemberState memberState = MoimMemberState.ACTIVE;
 
+        Moim moim = moimRepository.findWithRulesById(moimJoinRequestDto.getMoimId());
+        List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findByMemberId(curMember.getId());
+        Optional<MemberMoimLinker> previousMemberMoimLinker = memberMoimLinkers.stream().filter(existMemberMoimLinker -> existMemberMoimLinker.getMoim().getId().equals(moim.getId())).findFirst();
+
         if (moim.isHasRuleJoin()) { // 가입조건 판별한다
-            List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findByMemberId(curMember.getId());
-            memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers);
+            memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
         }
 
-        MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(
-                curMember, moim, MoimRoleType.NORMAL, memberState
-        );
+        if (moim.shouldCreateNewMemberMoimLinker(previousMemberMoimLinker)) {
+            // 신규 가입하는 경우
+            memberMoimLinker = MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, memberState);
+            memberMoimLinkerRepository.save(memberMoimLinker);
+        } else {
+            // 탈퇴 후 재가입 하는 경우
+            memberMoimLinker = previousMemberMoimLinker.get();
+            memberMoimLinker.upDateRoleTypeAndState(MoimRoleType.NORMAL, memberState);
+        }
 
-        memberMoimLinkerRepository.save(memberMoimLinker);
-
+        // TODO : createAt, updateAt은 @Transactional이 완료되는 경우에 생성됨.
         return new MyMoimLinkerDto(
                 memberMoimLinker.getMoimRoleType(),
                 memberMoimLinker.getMemberState(),

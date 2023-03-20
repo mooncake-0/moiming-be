@@ -92,7 +92,12 @@ public class MemberMoimLinker {
     }
 
     public void setBanRejoin(boolean banRejoin) {
-
         this.banRejoin = banRejoin;
     }
+
+    public void upDateRoleTypeAndState(MoimRoleType moimRoleType, MoimMemberState memberState) {
+        this.moimRoleType = moimRoleType;
+        this.memberState = memberState;
+    }
+
 }
