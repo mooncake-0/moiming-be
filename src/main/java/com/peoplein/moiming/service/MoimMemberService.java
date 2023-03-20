@@ -64,11 +64,11 @@ public class MoimMemberService {
     public MyMoimLinkerDto requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
 
         Moim moim = moimRepository.findWithRulesById(moimJoinRequestDto.getMoimId());
-
         MoimMemberState memberState = MoimMemberState.ACTIVE;
 
         if (moim.isHasRuleJoin()) { // 가입조건 판별한다
-            memberState = checkRuleJoinCondition(moim, curMember);
+            List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findByMemberId(curMember.getId());
+            memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers);
         }
 
         MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(
@@ -85,69 +85,6 @@ public class MoimMemberService {
         );
     }
 
-    /*
-     모임 가입조건 판별 함수
-     */
-    private MoimMemberState checkRuleJoinCondition(Moim moim, Member curMember) {
-
-        RuleJoin ruleJoin = moim.getRuleJoin();
-        // MEMO :: 영컨에서 관리되고 있지 않은 curMember 를 영속화하기 위해 다시 조회, join MemberInfo
-//                    SecurityContext 에는 MemberInfo 가 Join 되지 않은 Member 를 가지고 있다.
-        MemberInfo memberInfo = memberRepository.findMemberAndMemberInfoById(curMember.getId()).getMemberInfo();
-
-        // 1. 생년월일 판별
-        if (ruleJoin.getBirthMax() != 0 && ruleJoin.getBirthMin() != 0) { // 판별조건이 있다면
-            if (memberInfo.getMemberBirth().getYear() < ruleJoin.getBirthMin()
-                    || memberInfo.getMemberBirth().getYear() > ruleJoin.getBirthMax()) {
-                return MoimMemberState.WAIT_BY_AGE;
-            }
-        }
-
-        // 2. 성별 판별
-        if (ruleJoin.getGender() != MemberGender.N) { // 판별조건이 있다면
-            if (ruleJoin.getGender() != memberInfo.getMemberGender()) {
-                return MoimMemberState.WAIT_BY_GENDER;
-            }
-        }
-
-        if (!ruleJoin.isDupLeaderAvailable() || !ruleJoin.isDupManagerAvailable() || ruleJoin.getMoimMaxCount() > 0) { // 겸직 조건이 하나라도 있거나 최대 모임 갯수 조건이 있음
-            // 쿼리를 멤버의 모든 모임 상태를 가져온다
-            List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findByMemberId(curMember.getId());
-
-            boolean isMemberAnyLeader = false;
-            boolean isMemberAnyManager = false;
-            int cntInactiveMoim = 0;
-
-            for (MemberMoimLinker memberMoimLinker : memberMoimLinkers) {
-                if (memberMoimLinker.getMoimRoleType().equals(MoimRoleType.LEADER)) {
-                    isMemberAnyLeader = true;
-                }
-                if (memberMoimLinker.getMoimRoleType().equals(MoimRoleType.MANAGER)) {
-                    isMemberAnyManager = true;
-                }
-                if (memberMoimLinker.getMemberState() != MoimMemberState.ACTIVE) {
-                    cntInactiveMoim++;
-                }
-            }
-
-            // 3. 겸직 여부 판별
-            if (!ruleJoin.isDupLeaderAvailable()) { // 모임장 겸직 금지인데
-                if (isMemberAnyLeader) return MoimMemberState.WAIT_BY_DUP;
-            }
-
-            if (!ruleJoin.isDupManagerAvailable()) { // 운영진 겸직 금지인데
-                if (isMemberAnyManager) return MoimMemberState.WAIT_BY_DUP;
-            }
-
-            // 4. 가입 모임 수 제한
-            if (ruleJoin.getMoimMaxCount() <= memberMoimLinkers.size() - cntInactiveMoim) {
-                return MoimMemberState.WAIT_BY_MOIM_CNT;
-            }
-        }
-
-        // 모임 가입 조건 충족시 그냥 가입된다
-        return MoimMemberState.ACTIVE;
-    }
 
     /*
      WAIT 상태인 유저의 요청을 처리한다
