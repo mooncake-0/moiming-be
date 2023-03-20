@@ -10,7 +10,6 @@ import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +51,7 @@ class MemberMoimLinkerJpaRepositoryTest {
     void initInstance() {
 
         member = TestUtils.initMemberAndMemberInfo();
-        moim = TestUtils.initMoim();
+        moim = TestUtils.initMoimAndRuleJoin();
         memberMoimLinker = MemberMoimLinker.memberJoinMoim(
                 member,
                 moim,

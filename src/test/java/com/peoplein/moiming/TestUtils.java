@@ -23,6 +23,7 @@ public class TestUtils {
      */
     public static String uid = "wrock.kang";
     public static String password = "1234";
+    public static String encryptedPassword = new BCryptPasswordEncoder().encode(password);
     public static String refreshToken = "REFRESH_TOKEN";
     public static String fcmToken = "FCM_TOKEN";
 
@@ -42,7 +43,6 @@ public class TestUtils {
     public static boolean isDormant = false;
 
 
-
     public static String moimName = "모이밍";
     public static String moimInfo = "모이밍을 만드는 사람들입니다";
     public static String moimPfImg = "";
@@ -54,6 +54,15 @@ public class TestUtils {
     public static boolean MOIM_DTO_RULE_JOIN = true;
 
 
+    // Moim Rule
+    public static int birthMaxForBigRange = 2020;
+    public static int birthMinForBigRange = 1950;
+
+    public static int moimCountBig = 1000;
+    public static MemberGender memberGenderAny = MemberGender.N;
+
+    public static boolean dupLeaderAvailable = true;
+    public static boolean dupManagerAvailable = true;
 
     // moim post
     public static String postTitle = "postTitle";
@@ -83,6 +92,7 @@ public class TestUtils {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         password = passwordEncoder.encode(password);
         MemberInfo memberInfo = new MemberInfo(memberEmail, memberName, memberGender);
+        memberInfo.setMemberBirth(memberBirth);
         Member member = Member.createMember(uid, password, memberInfo);
 
         Role role = new Role(1L, "admin", RoleType.ADMIN);
@@ -90,10 +100,14 @@ public class TestUtils {
         return member;
     }
 
-    public static Moim initMoim() {
+    public static Moim initMoimAndRuleJoin() {
         Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
         RuleJoin ruleJoin = new RuleJoin(1, 1, MemberGender.F, 1, true, true, moim, createdUid);
         return moim;
+    }
+
+    public static Moim createMoimOnly() {
+        return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
     }
 
     public static MoimPost initMoimPost(Moim moim, Member member) {

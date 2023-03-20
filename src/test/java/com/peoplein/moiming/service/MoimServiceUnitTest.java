@@ -5,13 +5,11 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
-import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
 import com.peoplein.moiming.service.core.MoimServiceCore;
 import com.peoplein.moiming.service.input.MoimServiceInput;
 import com.peoplein.moiming.service.output.MoimServiceOutput;
-import com.peoplein.moiming.service.shell.MoimServiceShell;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +32,7 @@ public class MoimServiceUnitTest {
     @BeforeEach
     void initInstance() {
         baseMember = TestUtils.initMemberAndMemberInfo();
-        baseMoim = TestUtils.initMoim();
+        baseMoim = TestUtils.initMoimAndRuleJoin();
     }
 
 

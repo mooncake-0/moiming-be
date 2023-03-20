@@ -7,7 +7,6 @@ import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
 import com.peoplein.moiming.service.core.MoimPostServiceCore;
 import com.peoplein.moiming.service.input.MoimPostServiceInput;
 import com.peoplein.moiming.service.output.MoimPostServiceOutput;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +29,7 @@ public class MoimPostServiceUnitTest {
     void createMoimPostTestPass() {
         // given
 
-        Moim moim = TestUtils.initMoim();
+        Moim moim = TestUtils.initMoimAndRuleJoin();
         Member member = TestUtils.initMemberAndMemberInfo();
         MoimPostRequestDto moimPostRequestDto = TestUtils.initMoimPostRequestDto();
         MoimPostServiceInput input = MoimPostServiceInput.builder()

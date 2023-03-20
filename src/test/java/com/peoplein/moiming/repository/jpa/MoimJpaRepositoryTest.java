@@ -35,7 +35,7 @@ public class MoimJpaRepositoryTest {
 
     @BeforeEach
     void initInstance() {
-        moim = TestUtils.initMoim();
+        moim = TestUtils.initMoimAndRuleJoin();
         moimRule = moim.getMoimRules().get(0);
     }
 
