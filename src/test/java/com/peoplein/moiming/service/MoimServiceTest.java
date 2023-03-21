@@ -8,7 +8,6 @@ import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
-import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
 import com.peoplein.moiming.model.dto.request.MoimRequestDto;
@@ -16,21 +15,16 @@ import com.peoplein.moiming.model.dto.response.MoimResponseDto;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.query.MoimJpaQueryRepository;
 import com.peoplein.moiming.service.core.MoimServiceCore;
-import com.peoplein.moiming.service.input.MoimServiceInput;
-import com.peoplein.moiming.service.output.MoimServiceOutput;
 import com.peoplein.moiming.service.shell.MoimServiceShell;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -92,7 +86,7 @@ class MoimServiceTest {
                 moimServiceCore);
 
         baseMember = TestUtils.initMemberAndMemberInfo();
-        baseMoim = TestUtils.initMoim();
+        baseMoim = TestUtils.initMoimAndRuleJoin();
     }
 
     // TODO : 통합 테스트로 업데이트 필요함. 그 때 까지 사용하지 않음.
@@ -101,7 +95,7 @@ class MoimServiceTest {
 
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
-        Moim moim = TestUtils.initMoim();
+        Moim moim = TestUtils.initMoimAndRuleJoin();
         MoimDto moimDto = new MoimDto(moim);
         RuleJoinDto ruleJoinDto = new RuleJoinDto(moim.getRuleJoin());
 

@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Entity
 @Table(name = "member_moim_linker")
@@ -69,6 +69,22 @@ public class MemberMoimLinker {
         this.moim.addCurMemberCount();
     }
 
+    public static MemberMoimLinker processRequestJoin(Member curMember, Moim moim, MoimMemberState memberState, Optional<MemberMoimLinker> previousMemberMoimLinker) {
+        if (moim.shouldCreateNewMemberMoimLinker(previousMemberMoimLinker)) {
+            // 신규 가입하는 경우
+            return MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, memberState);
+        } else {
+            // 탈퇴 후 재가입 하는 경우
+            MemberMoimLinker memberMoimLinker = previousMemberMoimLinker.get();
+            memberMoimLinker.upDateRoleTypeAndState(MoimRoleType.NORMAL, memberState);
+            return memberMoimLinker;
+        }
+    }
+
+    public boolean shouldPersist() {
+        return Objects.isNull(this.id);
+    }
+
     public void changeMemberState(MoimMemberState memberState) {
         if(!memberState.equals(MoimMemberState.ACTIVE)) {
             this.moim.minusCurMemberCount();
@@ -92,7 +108,15 @@ public class MemberMoimLinker {
     }
 
     public void setBanRejoin(boolean banRejoin) {
-
         this.banRejoin = banRejoin;
+    }
+
+    public void upDateRoleTypeAndState(MoimRoleType moimRoleType, MoimMemberState memberState) {
+        this.moimRoleType = moimRoleType;
+        this.memberState = memberState;
+    }
+
+    public boolean canRejoin() {
+        return banRejoin;
     }
 }

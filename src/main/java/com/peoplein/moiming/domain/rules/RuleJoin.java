@@ -25,6 +25,46 @@ public class RuleJoin extends MoimRule {
     private int moimMaxCount;
     private boolean dupLeaderAvailable;
     private boolean dupManagerAvailable;
+    private boolean possibleReJoinIfExitedByWill;
+    private boolean possibleReJoinIfExitedByForce;
+
+    // TODO : DTO 수정 후, 가장 아래에 있는 생성자 삭제 및 나머지 코드 수정이 필요함.
+    public RuleJoin(int birthMax,
+                    int birthMin,
+                    MemberGender gender,
+                    int moimMaxCount,
+                    boolean dupLeaderAvailable,
+                    boolean dupManagerAvailable,
+                    Moim moim,
+                    String createdUid,
+                    boolean possibleReJoinIfExitedByWill,
+                    boolean possibleReJoinIfExitedByForce) {
+
+        DomainChecker.checkWrongObjectParams(this.getClass().getName(), gender, moim);
+        DomainChecker.checkRightString(this.getClass().getName(), false, createdUid);
+
+        this.birthMax = birthMax;
+        this.birthMin = birthMin;
+        this.gender = gender;
+        this.moimMaxCount = moimMaxCount;
+        this.dupLeaderAvailable = dupLeaderAvailable;
+        this.dupManagerAvailable = dupManagerAvailable;
+        this.possibleReJoinIfExitedByWill = possibleReJoinIfExitedByWill;
+        this.possibleReJoinIfExitedByForce = possibleReJoinIfExitedByForce;
+
+        /*
+         초기화
+         */
+        this.createdAt = LocalDateTime.now();
+        this.ruleType = "J";
+
+        /*
+         연관관계 매핑 및 편의 메소드
+         */
+        this.moim = moim;
+        this.moim.setHasRuleJoin(true);
+        this.moim.getMoimRules().add(this);
+    }
 
     public RuleJoin(int birthMax, int birthMin, MemberGender gender, int moimMaxCount, boolean dupLeaderAvailable, boolean dupManagerAvailable,
                     Moim moim, String createdUid) {

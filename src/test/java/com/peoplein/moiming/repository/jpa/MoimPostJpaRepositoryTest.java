@@ -40,7 +40,7 @@ class MoimPostJpaRepositoryTest {
 
     @BeforeEach
     void initInstance() {
-        moim = TestUtils.initMoim();
+        moim = TestUtils.initMoimAndRuleJoin();
 
         member = TestUtils.initMemberAndMemberInfo();
         memberRepository.save(member);

@@ -16,13 +16,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"uid"}, name = "unique_uid")})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends BaseEntity{
 
     /*
      Member Columns
@@ -42,11 +43,6 @@ public class Member {
 
     private String fcmToken;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
     private LocalDateTime logonAt;
 
     /*
@@ -64,19 +60,23 @@ public class Member {
      */
     private Member(String uid, String password, MemberInfo memberInfo) {
 
-        DomainChecker.checkRightString("Member Entity", false, uid, password);
-        DomainChecker.checkWrongObjectParams("Member Entity", memberInfo);
+        // TODO : 에러 메세지를 필요하다면 수정해야함.
+        if (!StringUtils.hasText(uid) || !StringUtils.hasText(password)) {
+            throw new IllegalArgumentException("잘못된 입력 발생");
+        }
+
+        if (Objects.isNull(memberInfo)) {
+            throw new NullPointerException("잘못된 객체가 전달되었습니다.");
+        }
 
         this.uid = uid;
         this.password = password;
         this.memberInfo = memberInfo;
 
-        this.createdAt = LocalDateTime.now();
     }
 
     public static Member createMember(String uid, String password, MemberInfo memberInfo) {
-        Member member = new Member(uid, password, memberInfo);
-        return member;
+        return new Member(uid, password, memberInfo);
     }
 
 
