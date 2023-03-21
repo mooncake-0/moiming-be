@@ -116,7 +116,7 @@ public class MoimMemberService {
         if (moimMemberActionRequestDto.getStateAction().equals(MoimMemberStateAction.PERMIT)) {
 
             memberMoimLinker.changeMemberState(MoimMemberState.ACTIVE);
-            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
+//            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
 
             moimMemberInfoDto = new MoimMemberInfoDto(
                     memberMoimLinker.getMember().getId(), memberMoimLinker.getMember().getUid()
@@ -148,7 +148,7 @@ public class MoimMemberService {
             // 요청한 유저의 MemberMoimLinker
 
             memberMoimLinker.changeMemberState(MoimMemberState.IBW);
-            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
+//            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
 
             // TODO : MoimRoleType 이 Normal 일 겨우만 수월하게 진행?
 
@@ -175,7 +175,7 @@ public class MoimMemberService {
                 memberMoimLinker.changeMemberState(MoimMemberState.IBF);
             }
 
-            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
+//            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
 
         } else { // 여기 들어오면 안되는 에러 요청
             // TODO :: ERROR
@@ -201,7 +201,7 @@ public class MoimMemberService {
 
         // 모임의 역할 변경된다
         memberMoimLinker.setMoimRoleType(moimMemberActionRequestDto.getRoleAction());
-        memberMoimLinker.setUpdatedAt(LocalDateTime.now());
+//        memberMoimLinker.setUpdatedAt(LocalDateTime.now());
 
         // 그 Member 의 MoimMemberInfo 를 전달
         return MoimMemberInfoDto.createMemberInfoDto(memberMoimLinker);

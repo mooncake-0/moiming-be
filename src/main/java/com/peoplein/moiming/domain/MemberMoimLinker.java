@@ -15,7 +15,7 @@ import java.util.Optional;
 @Table(name = "member_moim_linker")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberMoimLinker {
+public class MemberMoimLinker extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,8 +39,6 @@ public class MemberMoimLinker {
     private String inactiveReason;
     private boolean banRejoin;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     public static MemberMoimLinker memberJoinMoim(Member member, Moim moim, MoimRoleType moimRoleType, MoimMemberState memberState) {
         MemberMoimLinker memberMoimLinker = new MemberMoimLinker(member, moim, moimRoleType, memberState);
@@ -58,7 +56,6 @@ public class MemberMoimLinker {
         /*
          초기화
          */
-        this.createdAt = LocalDateTime.now();
         this.banRejoin = false;
 
         /*
@@ -99,9 +96,6 @@ public class MemberMoimLinker {
         this.moimRoleType = moimRoleType;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
     public void setInactiveReason(String inactiveReason) {
         this.inactiveReason = inactiveReason;
