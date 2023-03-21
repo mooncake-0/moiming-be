@@ -63,11 +63,11 @@ public class MoimMemberIntegrationServiceTest {
         MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
 
         // when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+        MemberMoimLinker memberMoimLinker = moimMemberService.requestJoin(requestDto, member);
 
         // then
-        assertThat(myMoimLinkerDto.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
-        assertThat(myMoimLinkerDto.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        assertThat(memberMoimLinker.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
+        assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
     }
 
     @Test
@@ -86,11 +86,11 @@ public class MoimMemberIntegrationServiceTest {
         MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
 
         // when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+        MemberMoimLinker memberMoimLinker = moimMemberService.requestJoin(requestDto, member);
 
         // then
-        assertThat(myMoimLinkerDto.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
-        assertThat(myMoimLinkerDto.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        assertThat(memberMoimLinker.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
+        assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
     }
 
     @Test
@@ -111,12 +111,12 @@ public class MoimMemberIntegrationServiceTest {
         MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
 
         // when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+        MemberMoimLinker result = moimMemberService.requestJoin(requestDto, member);
 
         // then
         List<MemberMoimLinker> findMoimLinker = memberMoimLinkerRepository.findByMemberId(member.getId());
 
-        assertThat(myMoimLinkerDto.getMemberState()).isEqualTo(MoimMemberState.WAIT_BY_BAN);
+        assertThat(result.getMemberState()).isEqualTo(MoimMemberState.WAIT_BY_BAN);
         assertThat(findMoimLinker.size()).isEqualTo(1);
     }
 
@@ -138,10 +138,10 @@ public class MoimMemberIntegrationServiceTest {
         MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
 
         // when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+        MemberMoimLinker result = moimMemberService.requestJoin(requestDto, member);
 
         // then
-        assertThat(myMoimLinkerDto).isNull();
+        assertThat(result).isNull();
     }
 
     void flushAndClearEM() {

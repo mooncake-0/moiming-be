@@ -67,7 +67,7 @@ public class MoimMemberService {
      *  - null : 재가입 불가능하게 강퇴당한 경우
      *  - MyMoimLinkerDto : 재가입이 아닌 경우.
      */
-    public MyMoimLinkerDto requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
+    public MemberMoimLinker requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
 
         // default
         MoimMemberState memberState = MoimMemberState.ACTIVE;
@@ -100,13 +100,7 @@ public class MoimMemberService {
             memberMoimLinkerRepository.save(memberMoimLinker);
         }
 
-        // TODO : createAt, updateAt은 @Transactional이 완료되는 경우에 생성됨. 해결하려면 MemberMoimLinker를 return 한 후, Controller에서 랩핑해야 할 듯.
-        return new MyMoimLinkerDto(
-                memberMoimLinker.getMoimRoleType(),
-                memberMoimLinker.getMemberState(),
-                memberMoimLinker.getCreatedAt(),
-                memberMoimLinker.getUpdatedAt()
-        );
+        return memberMoimLinker;
     }
 
 
