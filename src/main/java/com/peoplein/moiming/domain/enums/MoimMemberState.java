@@ -8,14 +8,12 @@ public enum MoimMemberState {
     IBF_BY_VIOLATION,
     IBF_BY_NO_GREETING,
 
-
     WAIT, // 그냥 대기 (없을 듯)
     WAIT_BY_AGE, // 나이 조건 미충족
     WAIT_BY_GENDER, // 성별 조건 미충족
     WAIT_BY_MOIM_CNT, // 모임 갯수 제한 미충족
     WAIT_BY_DUP, // 겸직 미충족
-    WAIT_BY_IBW, // 자발적 탈퇴 이후 재가입 대기
-    WAIT_BY_IBF, // 강퇴 이후 재가입 대기
+    WAIT_BY_BAN,
 
     DORMANT,
     NOTFOUND // 탈퇴

@@ -59,10 +59,14 @@ public class MoimMemberService {
         return moimMemberInfoDto;
     }
 
-    /*
-    특정 유저의 모임 가입 요청을 처리한다
-    TODO : 다시 요청하는 경우일 수도 있는데 이거에 따른 경우 처리 필요
-    */
+    /**
+     * 특정 유저의 모임 가입 요청을 처리한다
+     * @param moimJoinRequestDto : Moim 가입 요청 관련 데이터
+     * @param curMember : 현재 요청하는 Member 정보 (Security에서 확인)
+     * @return
+     *  - null : 재가입 불가능하게 강퇴당한 경우
+     *  - MyMoimLinkerDto : 재가입이 아닌 경우.
+     */
     public MyMoimLinkerDto requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
 
         // default
@@ -73,8 +77,22 @@ public class MoimMemberService {
         List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findByMemberId(curMember.getId());
         Optional<MemberMoimLinker> previousMemberMoimLinker = memberMoimLinkers.stream().filter(existMemberMoimLinker -> existMemberMoimLinker.getMoim().getId().equals(moim.getId())).findFirst();
 
-        if (moim.isHasRuleJoin()) { // 가입조건 판별한다
-            memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers, previousMemberMoimLinker);
+        // 재가입 요청
+        if (previousMemberMoimLinker.isPresent()) {
+            MemberMoimLinker previousLinker = previousMemberMoimLinker.get();
+
+            if (previousLinker.canRejoin()) {
+                memberState = MoimMemberState.WAIT_BY_BAN;
+            } else {
+                return null; // 재가입 불가능할 경우, null값 반환.
+            }
+
+        }else{
+
+            if (moim.isHasRuleJoin()) { // 가입조건 판별한다
+                memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers);
+            }
+
         }
 
         MemberMoimLinker memberMoimLinker = MemberMoimLinker.processRequestJoin(curMember, moim, memberState, previousMemberMoimLinker);
@@ -82,7 +100,7 @@ public class MoimMemberService {
             memberMoimLinkerRepository.save(memberMoimLinker);
         }
 
-        // TODO : createAt, updateAt은 @Transactional이 완료되는 경우에 생성됨.
+        // TODO : createAt, updateAt은 @Transactional이 완료되는 경우에 생성됨. 해결하려면 MemberMoimLinker를 return 한 후, Controller에서 랩핑해야 할 듯.
         return new MyMoimLinkerDto(
                 memberMoimLinker.getMoimRoleType(),
                 memberMoimLinker.getMemberState(),

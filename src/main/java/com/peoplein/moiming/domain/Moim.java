@@ -155,14 +155,9 @@ public class Moim extends BaseEntity{
 
 
     // 똑같은 게 있을 수도 있고, 아닐 수도 있다.
-    public MoimMemberState checkRuleJoinCondition(MemberInfo memberInfo, List<MemberMoimLinker> memberMoimLinkers, Optional<MemberMoimLinker> previousMemberMoimLinker) {
+    public MoimMemberState checkRuleJoinCondition(MemberInfo memberInfo, List<MemberMoimLinker> memberMoimLinkers) {
 
         RuleJoin ruleJoin = this.getRuleJoin();
-
-//        Optional<MemberMoimLinker> alreadyExistMoimMemberLinker = memberMoimLinkers
-//                .stream()
-//                .filter(memberMoimLinker -> Objects.equals(memberMoimLinker.getMoim().getId(), this.id))
-//                .findFirst();
 
         // 1. 생년월일 판별
         if (ruleJoin.getBirthMax() != 0 && ruleJoin.getBirthMin() != 0) { // 판별조건이 있다면
@@ -209,22 +204,6 @@ public class Moim extends BaseEntity{
             // 4. 가입 모임 수 제한
             if (ruleJoin.getMoimMaxCount() <= memberMoimLinkers.size() - cntInactiveMoim) {
                 return MoimMemberState.WAIT_BY_MOIM_CNT;
-            }
-        }
-
-
-        if (previousMemberMoimLinker.isPresent()) {
-            MemberMoimLinker previousLinker = previousMemberMoimLinker.get();
-            // 5. 재가입 방지 (강퇴)
-            if (!ruleJoin.isPossibleReJoinIfExitedByForce() &&
-                    previousLinker.getMemberState().equals(MoimMemberState.IBF)) {
-                return MoimMemberState.WAIT_BY_IBF;
-            }
-
-            // 6. 재가입 방지 (자발적)
-            if (!ruleJoin.isPossibleReJoinIfExitedByWill() &&
-                    previousLinker.getMemberState().equals(MoimMemberState.IBW)) {
-                return MoimMemberState.WAIT_BY_IBW;
             }
         }
 

@@ -116,4 +116,7 @@ public class MemberMoimLinker {
         this.memberState = memberState;
     }
 
+    public boolean canRejoin() {
+        return banRejoin;
+    }
 }
