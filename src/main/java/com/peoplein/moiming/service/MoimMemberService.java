@@ -80,19 +80,15 @@ public class MoimMemberService {
         // 재가입 요청
         if (previousMemberMoimLinker.isPresent()) {
             MemberMoimLinker previousLinker = previousMemberMoimLinker.get();
-
             if (previousLinker.canRejoin()) {
                 memberState = MoimMemberState.WAIT_BY_BAN;
             } else {
                 return null; // 재가입 불가능할 경우, null값 반환.
             }
-
         }else{
-
             if (moim.isHasRuleJoin()) { // 가입조건 판별한다
                 memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers);
             }
-
         }
 
         MemberMoimLinker memberMoimLinker = MemberMoimLinker.processRequestJoin(curMember, moim, memberState, previousMemberMoimLinker);

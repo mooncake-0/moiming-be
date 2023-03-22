@@ -41,6 +41,7 @@ public class MemberMoimLinker extends BaseEntity {
     private String inactiveReason;
     private boolean banRejoin;
 
+    // 생성자
 
     public static MemberMoimLinker memberJoinMoim(Member member, Moim moim, MoimRoleType moimRoleType, MoimMemberState memberState) {
         MemberMoimLinker memberMoimLinker = new MemberMoimLinker(member, moim, moimRoleType, memberState);
@@ -68,31 +69,10 @@ public class MemberMoimLinker extends BaseEntity {
         this.moim.addCurMemberCount();
     }
 
-    public static MemberMoimLinker processRequestJoin(Member curMember, Moim moim, MoimMemberState memberState, Optional<MemberMoimLinker> previousMemberMoimLinker) {
-        if (moim.shouldCreateNewMemberMoimLinker(previousMemberMoimLinker)) {
-            // 신규 가입하는 경우
-            return MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, memberState);
-        } else {
-            // 탈퇴 후 재가입 하는 경우
-            MemberMoimLinker memberMoimLinker = previousMemberMoimLinker.get();
-            memberMoimLinker.upDateRoleTypeAndState(MoimRoleType.NORMAL, memberState);
-            return memberMoimLinker;
-        }
-    }
-
     public boolean shouldPersist() {
         return Objects.isNull(this.id);
     }
 
-    public void changeMemberState(MoimMemberState memberState) {
-        if(!memberState.equals(MoimMemberState.ACTIVE)) {
-            this.moim.minusCurMemberCount();
-        }else{ // 기존에 INACTIVE 상태 쪽이던 회원이 다시 ACTIVE 하게 됨
-            this.moim.addCurMemberCount();
-        }
-        // 이미 있던 모임 상태이므로
-        this.memberState = memberState;
-    }
 
     public void setMoimRoleType(MoimRoleType moimRoleType) {
         this.moimRoleType = moimRoleType;
@@ -115,6 +95,30 @@ public class MemberMoimLinker extends BaseEntity {
     public boolean canRejoin() {
         return banRejoin;
     }
+
+    // 비즈니스 로직
+    public static MemberMoimLinker processRequestJoin(Member curMember, Moim moim, MoimMemberState memberState, Optional<MemberMoimLinker> previousMemberMoimLinker) {
+        if (moim.shouldCreateNewMemberMoimLinker(previousMemberMoimLinker)) {
+            // 신규 가입하는 경우
+            return MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, memberState);
+        } else {
+            // 탈퇴 후 재가입 하는 경우
+            MemberMoimLinker memberMoimLinker = previousMemberMoimLinker.get();
+            memberMoimLinker.upDateRoleTypeAndState(MoimRoleType.NORMAL, memberState);
+            return memberMoimLinker;
+        }
+    }
+
+    public void changeMemberState(MoimMemberState memberState) {
+        if(!memberState.equals(MoimMemberState.ACTIVE)) {
+            this.moim.minusCurMemberCount();
+        }else{ // 기존에 INACTIVE 상태 쪽이던 회원이 다시 ACTIVE 하게 됨
+            this.moim.addCurMemberCount();
+        }
+        // 이미 있던 모임 상태이므로
+        this.memberState = memberState;
+    }
+
 
     public void judgeJoin(MoimMemberStateAction stateAction) {
         if (stateAction.equals(MoimMemberStateAction.PERMIT)) {
