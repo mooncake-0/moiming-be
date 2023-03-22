@@ -107,35 +107,10 @@ public class MoimMemberService {
     /*
      WAIT 상태인 유저의 요청을 처리한다
      */
-    public MoimMemberInfoDto decideJoin(MoimMemberActionRequestDto moimMemberActionRequestDto, Member curMember) {
-
-        // 영속화
+    public MemberMoimLinker decideJoin(MoimMemberActionRequestDto moimMemberActionRequestDto) {
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoByMemberAndMoimId(moimMemberActionRequestDto.getMemberId(), moimMemberActionRequestDto.getMoimId());
-        MoimMemberInfoDto moimMemberInfoDto = null;
-
-        if (moimMemberActionRequestDto.getStateAction().equals(MoimMemberStateAction.PERMIT)) {
-
-            memberMoimLinker.changeMemberState(MoimMemberState.ACTIVE);
-//            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
-
-            moimMemberInfoDto = new MoimMemberInfoDto(
-                    memberMoimLinker.getMember().getId(), memberMoimLinker.getMember().getUid()
-                    , memberMoimLinker.getMember().getMemberInfo().getMemberName(), memberMoimLinker.getMember().getMemberInfo().getMemberEmail()
-                    , memberMoimLinker.getMember().getMemberInfo().getMemberGender(), memberMoimLinker.getMember().getMemberInfo().getMemberPfImg()
-                    , memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState()
-                    , memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt()
-            );
-
-        } else if (moimMemberActionRequestDto.getStateAction().equals(MoimMemberStateAction.DECLINE)) {
-
-            // TODO :: 이 멤버에게 [해당 모임에서 까였다고] 알림을 보내야 한다 (MEMBERINFO 를 JOIN 한 이유)
-            memberMoimLinkerRepository.remove(memberMoimLinker);
-
-        } else { // 여기 들어오면 안되는 에러 요청
-            // TODO :: ERROR
-        }
-
-        return moimMemberInfoDto;
+        memberMoimLinker.judgeJoin(moimMemberActionRequestDto.getStateAction());
+        return memberMoimLinker;
     }
 
     public MoimMemberInfoDto exitMoim(MoimMemberActionRequestDto moimMemberActionRequestDto, Member curMember) {

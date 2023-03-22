@@ -51,7 +51,8 @@ public class MoimMemberController {
     @PatchMapping("/decideJoin")
     public ResponseModel<MoimMemberInfoDto> decideJoin(@RequestBody MoimMemberActionRequestDto moimMemberActionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimMemberInfoDto moimMemberInfoDto = moimMemberService.decideJoin(moimMemberActionRequestDto, curMember);
+        MemberMoimLinker memberMoimLinker = moimMemberService.decideJoin(moimMemberActionRequestDto);
+        MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(memberMoimLinker);
         return ResponseModel.createResponse(moimMemberInfoDto);
     }
 

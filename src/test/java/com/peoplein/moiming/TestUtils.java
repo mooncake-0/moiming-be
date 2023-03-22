@@ -8,6 +8,7 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
+import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -179,4 +180,10 @@ public class TestUtils {
                 postTitle, postContent, isNotice, MoimPostCategory.EXTRA);
         return moimPostRequestDto;
     }
+
+    public static MoimMemberActionRequestDto createActionRequestDto(Long moimId, Long memberId, MoimMemberStateAction moimMemberStateAction) {
+        return new MoimMemberActionRequestDto(
+                moimId, memberId, moimMemberStateAction, MoimRoleType.NORMAL, "", true);
+    }
+
 }

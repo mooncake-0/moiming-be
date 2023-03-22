@@ -47,6 +47,27 @@ public class MoimMemberInfoDto {
         this.memberPfImg = memberPfImg;
     }
 
+    public MoimMemberInfoDto(MemberMoimLinker memberMoimLinker) {
+        this.memberId = memberMoimLinker.getMember().getId();
+        this.memberUid = memberMoimLinker.getMember().getUid();
+        this.memberName = memberMoimLinker.getMember().getMemberInfo().getMemberName();
+        this.memberEmail = memberMoimLinker.getMember().getMemberInfo().getMemberEmail();
+        this.memberGender = memberMoimLinker.getMember().getMemberInfo().getMemberGender();
+        this.memberPfImg = memberMoimLinker.getMember().getMemberInfo().getMemberPfImg();
+        this.moimRoleType = memberMoimLinker.getMoimRoleType();
+        this.moimMemberState = memberMoimLinker.getMemberState();
+        this.createdAt = memberMoimLinker.getCreatedAt();
+
+        if (updatedAt == null) {
+            // 강퇴당한 경우 updateAt 생성되지 않음.
+            this.updatedAt = LocalDateTime.now();
+        } else {
+            this.updatedAt = memberMoimLinker.getUpdatedAt();
+        }
+
+    }
+
+
     /*
      MemberMoimLinker 정보 세팅을 위한 setter open
      */

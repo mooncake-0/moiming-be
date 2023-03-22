@@ -1,7 +1,9 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.MoimMemberState;
+import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
+import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -112,5 +114,17 @@ public class MemberMoimLinker extends BaseEntity {
 
     public boolean canRejoin() {
         return banRejoin;
+    }
+
+    public void judgeJoin(MoimMemberStateAction stateAction) {
+        if (stateAction.equals(MoimMemberStateAction.PERMIT)) {
+            this.memberState = MoimMemberState.ACTIVE;
+        } else if (stateAction.equals(MoimMemberStateAction.DECLINE)) {
+            // TODO :: 이 멤버에게 [해당 모임에서 까였다고] 알림을 보내야 한다 (MEMBERINFO 를 JOIN 한 이유)
+            this.memberState = MoimMemberState.DECLINE;
+        } else { // 여기 들어오면 안되는 에러 요청
+            // TODO :: ERROR
+            throw new IllegalArgumentException("unexpected State");
+        }
     }
 }

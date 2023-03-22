@@ -5,10 +5,12 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
+import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
 import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
+import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.repository.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -143,6 +145,30 @@ public class MoimMemberIntegrationServiceTest {
         // then
         assertThat(result).isNull();
     }
+
+    @Test
+    void decideJoinTestSuccess() {
+        // given
+        Member member = TestUtils.initMemberAndMemberInfo();
+        Moim moim = TestUtils.createMoimOnly();
+        MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
+        memberMoimLinker.setBanRejoin(true);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+
+        moimRepository.save(moim);
+        memberRepository.save(member);
+        member.getRoles().forEach(memberRoleLinker -> roleRepository.save(memberRoleLinker.getRole()));
+        flushAndClearEM();
+
+        MoimMemberActionRequestDto actionRequestDto = TestUtils.createActionRequestDto(moim.getId(), member.getId(), MoimMemberStateAction.PERMIT);
+
+        // when
+        MemberMoimLinker result = moimMemberService.decideJoin(actionRequestDto);
+
+        // then
+        assertThat(result.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+    }
+
 
     void flushAndClearEM() {
         em.flush();

@@ -16,5 +16,6 @@ public enum MoimMemberState {
     WAIT_BY_BAN,
 
     DORMANT,
-    NOTFOUND // 탈퇴
+    NOTFOUND, // 탈퇴
+    DECLINE
 }
