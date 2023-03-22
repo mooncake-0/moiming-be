@@ -138,6 +138,10 @@ public class TestUtils {
         return MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
     }
 
+    public static MemberMoimLinker createNormalMemberMoimLinkerWithWait(Member member, Moim moim) {
+        return MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.WAIT_BY_MOIM_CNT);
+    }
+
 
     public static List<CategoryName> initCategoryName() {
         return List.of(CategoryName.ALCOHOL);

@@ -91,8 +91,11 @@ public class MoimMemberIntegrationServiceTest {
         MemberMoimLinker memberMoimLinker = moimMemberService.requestJoin(requestDto, member);
 
         // then
+        Moim findMoim = moimRepository.findById(moim.getId());
+
         assertThat(memberMoimLinker.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
         assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        assertThat(findMoim.getCurMemberCount()).isEqualTo(1);
     }
 
     @Test
@@ -117,9 +120,11 @@ public class MoimMemberIntegrationServiceTest {
 
         // then
         List<MemberMoimLinker> findMoimLinker = memberMoimLinkerRepository.findByMemberId(member.getId());
+        Moim findMoim = moimRepository.findById(moim.getId());
 
         assertThat(result.getMemberState()).isEqualTo(MoimMemberState.WAIT_BY_BAN);
         assertThat(findMoimLinker.size()).isEqualTo(1);
+        assertThat(findMoim.getCurMemberCount()).isEqualTo(0);
     }
 
     @Test
@@ -143,7 +148,10 @@ public class MoimMemberIntegrationServiceTest {
         MemberMoimLinker result = moimMemberService.requestJoin(requestDto, member);
 
         // then
+        Moim findMoim = moimRepository.findById(moim.getId());
+
         assertThat(result).isNull();
+        assertThat(findMoim.getCurMemberCount()).isEqualTo(0);
     }
 
     @Test
@@ -167,6 +175,7 @@ public class MoimMemberIntegrationServiceTest {
 
         // then
         assertThat(result.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        assertThat(result.getMoim().getCurMemberCount()).isEqualTo(1);
     }
 
 

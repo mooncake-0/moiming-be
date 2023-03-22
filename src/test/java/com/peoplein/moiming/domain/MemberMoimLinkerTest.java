@@ -16,7 +16,7 @@ class MemberMoimLinkerTest {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
         Moim moim = TestUtils.initMoimAndRuleJoin();
-        MemberMoimLinker memberMoimLinker = TestUtils.createNormalMemberMoimLinker(member, moim);
+        MemberMoimLinker memberMoimLinker = TestUtils.createNormalMemberMoimLinkerWithWait(member, moim);
         MoimMemberStateAction input = MoimMemberStateAction.PERMIT;
 
         // when
@@ -24,6 +24,7 @@ class MemberMoimLinkerTest {
 
         // then
         assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        assertThat(memberMoimLinker.getMoim().getCurMemberCount()).isEqualTo(1);
     }
 
     @Test
@@ -31,7 +32,7 @@ class MemberMoimLinkerTest {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
         Moim moim = TestUtils.initMoimAndRuleJoin();
-        MemberMoimLinker memberMoimLinker = TestUtils.createNormalMemberMoimLinker(member, moim);
+        MemberMoimLinker memberMoimLinker = TestUtils.createNormalMemberMoimLinkerWithWait(member, moim);
         MoimMemberStateAction input = MoimMemberStateAction.DECLINE;
 
         // when
@@ -39,6 +40,7 @@ class MemberMoimLinkerTest {
 
         // then
         assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.DECLINE);
+        assertThat(memberMoimLinker.getMoim().getCurMemberCount()).isEqualTo(0);
     }
 
     @Test

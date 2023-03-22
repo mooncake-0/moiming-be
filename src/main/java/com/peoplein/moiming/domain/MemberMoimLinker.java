@@ -66,7 +66,10 @@ public class MemberMoimLinker extends BaseEntity {
          */
         this.moim = moim;
         this.moim.getMemberMoimLinkers().add(this);
-        this.moim.addCurMemberCount();
+
+        if (memberState.equals(MoimMemberState.ACTIVE)) {
+            this.moim.addCurMemberCount();
+        }
     }
 
     public boolean shouldPersist() {
@@ -122,7 +125,7 @@ public class MemberMoimLinker extends BaseEntity {
 
     public void judgeJoin(MoimMemberStateAction stateAction) {
         if (stateAction.equals(MoimMemberStateAction.PERMIT)) {
-            this.memberState = MoimMemberState.ACTIVE;
+            doActiveMemberState();
         } else if (stateAction.equals(MoimMemberStateAction.DECLINE)) {
             // TODO :: 이 멤버에게 [해당 모임에서 까였다고] 알림을 보내야 한다 (MEMBERINFO 를 JOIN 한 이유)
             this.memberState = MoimMemberState.DECLINE;
@@ -130,5 +133,15 @@ public class MemberMoimLinker extends BaseEntity {
             // TODO :: ERROR
             throw new IllegalArgumentException("unexpected State");
         }
+    }
+
+    private void doActiveMemberState() {
+        this.moim.addCurMemberCount();
+        this.memberState = MoimMemberState.ACTIVE;
+    }
+
+    private void doInactiveMemberState(MoimMemberState moimMemberState) {
+        this.moim.minusCurMemberCount();
+        this.memberState = moimMemberState;
     }
 }
