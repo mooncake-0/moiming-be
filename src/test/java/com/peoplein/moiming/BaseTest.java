@@ -24,17 +24,9 @@ public class BaseTest {
                 .withExposedPorts(3306);
 
         genericContainer.start();
+
         Integer mappedPort = genericContainer.getFirstMappedPort();
         System.setProperty("MYSQL_PORT", mappedPort.toString());
-
-//        MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:8.0.26")
-//                .withDatabaseName("test")
-//                .withUsername("testuser")
-//                .withPassword("testpass")
-//                .withExposedPorts(3304)
-//                .withEnv("MYSQL_PORT", "3304");
-
-//        mySQLContainer.start();
     }
 
 
