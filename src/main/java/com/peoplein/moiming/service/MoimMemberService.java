@@ -67,7 +67,7 @@ public class MoimMemberService {
      *  - null : 재가입 불가능하게 강퇴당한 경우
      *  - MyMoimLinkerDto : 재가입이 아닌 경우.
      */
-    public MyMoimLinkerDto requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
+    public MemberMoimLinker requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
 
         // default
         MoimMemberState memberState = MoimMemberState.ACTIVE;
@@ -80,19 +80,15 @@ public class MoimMemberService {
         // 재가입 요청
         if (previousMemberMoimLinker.isPresent()) {
             MemberMoimLinker previousLinker = previousMemberMoimLinker.get();
-
             if (previousLinker.canRejoin()) {
                 memberState = MoimMemberState.WAIT_BY_BAN;
             } else {
                 return null; // 재가입 불가능할 경우, null값 반환.
             }
-
         }else{
-
             if (moim.isHasRuleJoin()) { // 가입조건 판별한다
                 memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers);
             }
-
         }
 
         MemberMoimLinker memberMoimLinker = MemberMoimLinker.processRequestJoin(curMember, moim, memberState, previousMemberMoimLinker);
@@ -100,48 +96,17 @@ public class MoimMemberService {
             memberMoimLinkerRepository.save(memberMoimLinker);
         }
 
-        // TODO : createAt, updateAt은 @Transactional이 완료되는 경우에 생성됨. 해결하려면 MemberMoimLinker를 return 한 후, Controller에서 랩핑해야 할 듯.
-        return new MyMoimLinkerDto(
-                memberMoimLinker.getMoimRoleType(),
-                memberMoimLinker.getMemberState(),
-                memberMoimLinker.getCreatedAt(),
-                memberMoimLinker.getUpdatedAt()
-        );
+        return memberMoimLinker;
     }
 
 
     /*
      WAIT 상태인 유저의 요청을 처리한다
      */
-    public MoimMemberInfoDto decideJoin(MoimMemberActionRequestDto moimMemberActionRequestDto, Member curMember) {
-
-        // 영속화
+    public MemberMoimLinker decideJoin(MoimMemberActionRequestDto moimMemberActionRequestDto) {
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoByMemberAndMoimId(moimMemberActionRequestDto.getMemberId(), moimMemberActionRequestDto.getMoimId());
-        MoimMemberInfoDto moimMemberInfoDto = null;
-
-        if (moimMemberActionRequestDto.getStateAction().equals(MoimMemberStateAction.PERMIT)) {
-
-            memberMoimLinker.changeMemberState(MoimMemberState.ACTIVE);
-            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
-
-            moimMemberInfoDto = new MoimMemberInfoDto(
-                    memberMoimLinker.getMember().getId(), memberMoimLinker.getMember().getUid()
-                    , memberMoimLinker.getMember().getMemberInfo().getMemberName(), memberMoimLinker.getMember().getMemberInfo().getMemberEmail()
-                    , memberMoimLinker.getMember().getMemberInfo().getMemberGender(), memberMoimLinker.getMember().getMemberInfo().getMemberPfImg()
-                    , memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState()
-                    , memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt()
-            );
-
-        } else if (moimMemberActionRequestDto.getStateAction().equals(MoimMemberStateAction.DECLINE)) {
-
-            // TODO :: 이 멤버에게 [해당 모임에서 까였다고] 알림을 보내야 한다 (MEMBERINFO 를 JOIN 한 이유)
-            memberMoimLinkerRepository.remove(memberMoimLinker);
-
-        } else { // 여기 들어오면 안되는 에러 요청
-            // TODO :: ERROR
-        }
-
-        return moimMemberInfoDto;
+        memberMoimLinker.judgeJoin(moimMemberActionRequestDto.getStateAction());
+        return memberMoimLinker;
     }
 
     public MoimMemberInfoDto exitMoim(MoimMemberActionRequestDto moimMemberActionRequestDto, Member curMember) {
@@ -154,7 +119,7 @@ public class MoimMemberService {
             // 요청한 유저의 MemberMoimLinker
 
             memberMoimLinker.changeMemberState(MoimMemberState.IBW);
-            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
+//            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
 
             // TODO : MoimRoleType 이 Normal 일 겨우만 수월하게 진행?
 
@@ -181,7 +146,7 @@ public class MoimMemberService {
                 memberMoimLinker.changeMemberState(MoimMemberState.IBF);
             }
 
-            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
+//            memberMoimLinker.setUpdatedAt(LocalDateTime.now());
 
         } else { // 여기 들어오면 안되는 에러 요청
             // TODO :: ERROR
@@ -207,7 +172,7 @@ public class MoimMemberService {
 
         // 모임의 역할 변경된다
         memberMoimLinker.setMoimRoleType(moimMemberActionRequestDto.getRoleAction());
-        memberMoimLinker.setUpdatedAt(LocalDateTime.now());
+//        memberMoimLinker.setUpdatedAt(LocalDateTime.now());
 
         // 그 Member 의 MoimMemberInfo 를 전달
         return MoimMemberInfoDto.createMemberInfoDto(memberMoimLinker);

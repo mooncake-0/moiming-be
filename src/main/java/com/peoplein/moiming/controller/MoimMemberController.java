@@ -2,6 +2,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
@@ -39,8 +40,9 @@ public class MoimMemberController {
     @PostMapping("/requestJoin")
     public ResponseModel<MyMoimLinkerDto> requestJoin(@RequestBody MoimJoinRequestDto moimJoinRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MyMoimLinkerDto responseData = moimMemberService.requestJoin(moimJoinRequestDto, curMember);
-        return ResponseModel.createResponse(responseData);
+        MemberMoimLinker memberMoimLinker = moimMemberService.requestJoin(moimJoinRequestDto, curMember);
+        MyMoimLinkerDto myMoimLinkerDto = new MyMoimLinkerDto(memberMoimLinker);
+        return ResponseModel.createResponse(myMoimLinkerDto);
     }
 
     /*
@@ -49,7 +51,8 @@ public class MoimMemberController {
     @PatchMapping("/decideJoin")
     public ResponseModel<MoimMemberInfoDto> decideJoin(@RequestBody MoimMemberActionRequestDto moimMemberActionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimMemberInfoDto moimMemberInfoDto = moimMemberService.decideJoin(moimMemberActionRequestDto, curMember);
+        MemberMoimLinker memberMoimLinker = moimMemberService.decideJoin(moimMemberActionRequestDto);
+        MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(memberMoimLinker);
         return ResponseModel.createResponse(moimMemberInfoDto);
     }
 

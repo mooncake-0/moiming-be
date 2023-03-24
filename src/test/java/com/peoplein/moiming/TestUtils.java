@@ -8,6 +8,7 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
+import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -137,6 +138,10 @@ public class TestUtils {
         return MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
     }
 
+    public static MemberMoimLinker createNormalMemberMoimLinkerWithWait(Member member, Moim moim) {
+        return MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.WAIT_BY_MOIM_CNT);
+    }
+
 
     public static List<CategoryName> initCategoryName() {
         return List.of(CategoryName.ALCOHOL);
@@ -179,4 +184,10 @@ public class TestUtils {
                 postTitle, postContent, isNotice, MoimPostCategory.EXTRA);
         return moimPostRequestDto;
     }
+
+    public static MoimMemberActionRequestDto createActionRequestDto(Long moimId, Long memberId, MoimMemberStateAction moimMemberStateAction) {
+        return new MoimMemberActionRequestDto(
+                moimId, memberId, moimMemberStateAction, MoimRoleType.NORMAL, "", true);
+    }
+
 }

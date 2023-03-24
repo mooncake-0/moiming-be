@@ -5,10 +5,12 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
+import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
 import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
+import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.repository.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,11 +65,11 @@ public class MoimMemberIntegrationServiceTest {
         MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
 
         // when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+        MemberMoimLinker memberMoimLinker = moimMemberService.requestJoin(requestDto, member);
 
         // then
-        assertThat(myMoimLinkerDto.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
-        assertThat(myMoimLinkerDto.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        assertThat(memberMoimLinker.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
+        assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
     }
 
     @Test
@@ -86,11 +88,14 @@ public class MoimMemberIntegrationServiceTest {
         MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
 
         // when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+        MemberMoimLinker memberMoimLinker = moimMemberService.requestJoin(requestDto, member);
 
         // then
-        assertThat(myMoimLinkerDto.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
-        assertThat(myMoimLinkerDto.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        Moim findMoim = moimRepository.findById(moim.getId());
+
+        assertThat(memberMoimLinker.getMoimRoleType()).isEqualTo(MoimRoleType.NORMAL);
+        assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        assertThat(findMoim.getCurMemberCount()).isEqualTo(1);
     }
 
     @Test
@@ -111,13 +116,15 @@ public class MoimMemberIntegrationServiceTest {
         MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
 
         // when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+        MemberMoimLinker result = moimMemberService.requestJoin(requestDto, member);
 
         // then
         List<MemberMoimLinker> findMoimLinker = memberMoimLinkerRepository.findByMemberId(member.getId());
+        Moim findMoim = moimRepository.findById(moim.getId());
 
-        assertThat(myMoimLinkerDto.getMemberState()).isEqualTo(MoimMemberState.WAIT_BY_BAN);
+        assertThat(result.getMemberState()).isEqualTo(MoimMemberState.WAIT_BY_BAN);
         assertThat(findMoimLinker.size()).isEqualTo(1);
+        assertThat(findMoim.getCurMemberCount()).isEqualTo(0);
     }
 
     @Test
@@ -138,11 +145,39 @@ public class MoimMemberIntegrationServiceTest {
         MoimJoinRequestDto requestDto = new MoimJoinRequestDto(moim.getId());
 
         // when
-        MyMoimLinkerDto myMoimLinkerDto = moimMemberService.requestJoin(requestDto, member);
+        MemberMoimLinker result = moimMemberService.requestJoin(requestDto, member);
 
         // then
-        assertThat(myMoimLinkerDto).isNull();
+        Moim findMoim = moimRepository.findById(moim.getId());
+
+        assertThat(result).isNull();
+        assertThat(findMoim.getCurMemberCount()).isEqualTo(0);
     }
+
+    @Test
+    void decideJoinTestSuccess() {
+        // given
+        Member member = TestUtils.initMemberAndMemberInfo();
+        Moim moim = TestUtils.createMoimOnly();
+        MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
+        memberMoimLinker.setBanRejoin(true);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+
+        moimRepository.save(moim);
+        memberRepository.save(member);
+        member.getRoles().forEach(memberRoleLinker -> roleRepository.save(memberRoleLinker.getRole()));
+        flushAndClearEM();
+
+        MoimMemberActionRequestDto actionRequestDto = TestUtils.createActionRequestDto(moim.getId(), member.getId(), MoimMemberStateAction.PERMIT);
+
+        // when
+        MemberMoimLinker result = moimMemberService.decideJoin(actionRequestDto);
+
+        // then
+        assertThat(result.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
+        assertThat(result.getMoim().getCurMemberCount()).isEqualTo(1);
+    }
+
 
     void flushAndClearEM() {
         em.flush();
