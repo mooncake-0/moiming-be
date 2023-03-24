@@ -1,5 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
+import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.rules.MoimRule;
@@ -10,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -19,7 +22,8 @@ import static org.junit.Assert.assertEquals;
 
 @SpringBootTest
 @Transactional
-public class MoimJpaRepositoryTest {
+@Rollback(value = false)
+public class MoimJpaRepositoryTest extends BaseTest {
 
     @Autowired
     private EntityManager em;
@@ -30,11 +34,14 @@ public class MoimJpaRepositoryTest {
     @Autowired
     MoimRepository moimRepository;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
     private Moim moim;
     private MoimRule moimRule;
 
     @BeforeEach
     void initInstance() {
+        TestUtils.truncateAllTable(jdbcTemplate);
         moim = TestUtils.initMoimAndRuleJoin();
         moimRule = moim.getMoimRules().get(0);
     }

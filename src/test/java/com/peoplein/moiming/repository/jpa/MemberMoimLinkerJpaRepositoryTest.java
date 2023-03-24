@@ -1,5 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
+import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -24,7 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-class MemberMoimLinkerJpaRepositoryTest {
+@Rollback(value = false)
+class MemberMoimLinkerJpaRepositoryTest extends BaseTest {
 
 
     @Autowired
@@ -42,6 +46,8 @@ class MemberMoimLinkerJpaRepositoryTest {
     @Autowired
     EntityManager em;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     Member member;
     Moim moim;
@@ -49,7 +55,7 @@ class MemberMoimLinkerJpaRepositoryTest {
 
     @BeforeEach
     void initInstance() {
-
+        TestUtils.truncateAllTable(jdbcTemplate);
         member = TestUtils.initMemberAndMemberInfo();
         moim = TestUtils.initMoimAndRuleJoin();
         memberMoimLinker = MemberMoimLinker.memberJoinMoim(
@@ -62,6 +68,10 @@ class MemberMoimLinkerJpaRepositoryTest {
 
     @Test
     void saveTest() {
+
+        Long memberId = memberRepository.save(member);
+        Long moimId = moimRepository.save(moim);
+        Long roleId = roleRepository.save(member.getRoles().get(0).getRole());
 
         Long savedId = moimLinkerRepository.save(memberMoimLinker);
 

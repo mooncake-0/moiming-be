@@ -55,14 +55,19 @@ dependencies {
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 
 	// Test 환경
-	runtimeOnly 'com.h2database:h2'
+//	runtimeOnly 'com.h2database:h2'
 
 
 	// https://mvnrepository.com/artifact/org.mockito/mockito-core
 	testImplementation 'org.mockito:mockito-core:4.10.0'
 	testImplementation 'org.mockito:mockito-junit-jupiter:4.10.0'
 
+	// https://mvnrepository.com/artifact/org.testcontainers/junit-jupiter
+	testImplementation 'org.testcontainers:junit-jupiter:1.17.6'
+	testImplementation 'org.testcontainers:mysql:1.17.6'
 
+	testRuntimeOnly 'com.mysql:mysql-connector-j'
+//	untimeOnly 'com.mysql:mysql-connector-j'
 }
 
 tasks.named('test') {

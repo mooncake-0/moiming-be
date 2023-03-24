@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -48,7 +49,7 @@ import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Transactional
-public class MoimIntegrationTest {
+public class MoimIntegrationTest extends BaseTest {
 
     @LocalServerPort
     private int port;
@@ -68,9 +69,13 @@ public class MoimIntegrationTest {
     @Autowired
     InitDatabaseQuery initDatabase;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     @BeforeEach
     void be() {
         // for test, Init DB
+        TestUtils.truncateAllTable(jdbcTemplate);
         TestUtils.initDatabase(initDatabase);
 
         mockMvc = MockMvcBuilders

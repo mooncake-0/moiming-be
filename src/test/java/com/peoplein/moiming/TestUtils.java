@@ -10,6 +10,7 @@ import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
 import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -188,6 +189,36 @@ public class TestUtils {
     public static MoimMemberActionRequestDto createActionRequestDto(Long moimId, Long memberId, MoimMemberStateAction moimMemberStateAction) {
         return new MoimMemberActionRequestDto(
                 moimId, memberId, moimMemberStateAction, MoimRoleType.NORMAL, "", true);
+    }
+
+    public static void truncateAllTable(JdbcTemplate jdbcTemplate) {
+
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+
+        List<String> tableNames = List.of(
+                "category",
+                "moim_rule",
+                "rule_join",
+                "rule_persist",
+                "member",
+                "member_info",
+                "member_moim_linker",
+                "member_role_linker",
+                "member_schedule_linker",
+                "moim",
+                "moim_category_linker",
+                "moim_post",
+                "moim_review",
+                "post_comment",
+                "post_file",
+                "review_answer",
+                "schedule",
+                "role");
+
+        tableNames.forEach(tableName ->
+                jdbcTemplate.execute("TRUNCATE TABLE " + tableName));
+
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
     }
 
 }

@@ -1,5 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
+import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberInfo;
@@ -7,13 +8,17 @@ import com.peoplein.moiming.domain.MemberRoleLinker;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.MemberRoleLinkerRepository;
 import com.peoplein.moiming.repository.RoleRepository;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MySQLContainer;
 
 import javax.persistence.EntityManager;
 
@@ -21,8 +26,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@Transactional(readOnly = true)
-public class MemberJpaRepositoryTest {
+@Transactional
+@Rollback(value = false)
+public class MemberJpaRepositoryTest extends BaseTest{
 
     @Autowired
     MemberRepository repository;
@@ -33,12 +39,17 @@ public class MemberJpaRepositoryTest {
     @Autowired
     EntityManager em;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     private Member member;
     private MemberInfo memberInfo;
 
 
     @BeforeEach
     void initInstance() {
+        TestUtils.truncateAllTable(jdbcTemplate);
+
         member = TestUtils.initMemberAndMemberInfo();
         memberInfo = member.getMemberInfo();
         MemberRoleLinker memberRoleLinker = member.getRoles().get(0);
