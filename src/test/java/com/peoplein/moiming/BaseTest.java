@@ -21,10 +21,10 @@ public class BaseTest {
                 .withDatabaseName("test")
                 .withUsername("testuser")
                 .withPassword("testpass")
-                .withExposedPorts(3306);
+                .withExposedPorts(55001);
 
         genericContainer.start();
-        Integer mappedPort = genericContainer.getMappedPort(3306);
+        Integer mappedPort = genericContainer.getMappedPort(55001);
         System.setProperty("MYSQL_PORT", mappedPort.toString());
 
 //        MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:8.0.26")
