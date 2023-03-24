@@ -1,5 +1,6 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestHelper;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;

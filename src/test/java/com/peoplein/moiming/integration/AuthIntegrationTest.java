@@ -3,10 +3,7 @@ package com.peoplein.moiming.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.peoplein.moiming.InitDatabaseQuery;
-import com.peoplein.moiming.NetworkSetting;
-import com.peoplein.moiming.TestHelper;
-import com.peoplein.moiming.TestUtils;
+import com.peoplein.moiming.*;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ErrorResponse;
 import com.peoplein.moiming.model.ResponseModel;
@@ -24,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -40,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Transactional
-public class AuthIntegrationTest {
+public class AuthIntegrationTest extends BaseTest {
 
     @LocalServerPort
     private int port;
@@ -53,9 +51,13 @@ public class AuthIntegrationTest {
     @Autowired
     InitDatabaseQuery initDatabase;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     @BeforeEach
     void be() {
         // for test, Init DB
+        TestUtils.truncateAllTable(jdbcTemplate);
         TestUtils.initDatabase(initDatabase);
 
         mockMvc = MockMvcBuilders

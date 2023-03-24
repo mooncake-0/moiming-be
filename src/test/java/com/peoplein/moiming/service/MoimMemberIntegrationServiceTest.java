@@ -1,5 +1,6 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -30,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @Transactional
-public class MoimMemberIntegrationServiceTest {
+public class MoimMemberIntegrationServiceTest extends BaseTest {
 
 
     @Autowired
@@ -49,6 +51,13 @@ public class MoimMemberIntegrationServiceTest {
     @Autowired
     EntityManager em;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void init() {
+        TestUtils.truncateAllTable(jdbcTemplate);
+    }
 
     @Test
     @DisplayName("성공 @ requestJoin() - RuleJoin이 없는 모임에 가입 요청")

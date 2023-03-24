@@ -1,5 +1,6 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
@@ -48,6 +49,8 @@ public class MoimRulesServiceTest {
     private MemberMoimLinker curLinker;
     @Mock
     private MemberMoimLinker requestLinker;
+
+
 
     @BeforeEach
     void be() {
