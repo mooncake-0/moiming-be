@@ -1,5 +1,6 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 //@Transactional
-class MoimServiceTest {
+class MoimServiceTest extends BaseTest {
 
 
     @Mock
