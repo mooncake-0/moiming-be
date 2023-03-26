@@ -3,10 +3,7 @@ package com.peoplein.moiming;
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.*;
-import com.peoplein.moiming.domain.fixed.Category;
-import com.peoplein.moiming.domain.fixed.QuestionChoice;
-import com.peoplein.moiming.domain.fixed.ReviewQuestion;
-import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.fixed.*;
 import com.peoplein.moiming.domain.rules.MoimRule;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.domain.rules.RulePersist;
@@ -432,6 +429,20 @@ public class InitDatabaseQuery {
         em.persist(moimReview1);
         em.persist(moimReview2);
         em.persist(moimReview3);
+    }
+
+    public void initSessionCategories() {
+        SessionCategory sessionCategory1 = SessionCategory.createSessionCategory(SessionCategoryType.ACTIVITY);
+        SessionCategory sessionCategory2= SessionCategory.createSessionCategory(SessionCategoryType.FOOD);
+        SessionCategory sessionCategory3 = SessionCategory.createSessionCategory(SessionCategoryType.ALCOHOL);
+        SessionCategory sessionCategory4 = SessionCategory.createSessionCategory(SessionCategoryType.DRINKS);
+        SessionCategory sessionCategory5 = SessionCategory.createSessionCategory(SessionCategoryType.EXTRA);
+
+        em.persist(sessionCategory1);
+        em.persist(sessionCategory2);
+        em.persist(sessionCategory3);
+        em.persist(sessionCategory4);
+        em.persist(sessionCategory5);
     }
 
     private ReviewQuestion findReviewQuestion(List<ReviewQuestion> reviewQuestions, QuestionName questionName) {

@@ -1,6 +1,7 @@
 package com.peoplein.moiming.domain.fixed;
 
 
+import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -29,5 +30,20 @@ public class SessionCategory {
 
     private LocalDateTime updatedAt;
 
+    public static SessionCategory createSessionCategory(SessionCategoryType categoryType) {
+        SessionCategory sessionCategory = new SessionCategory(categoryType);
+        return sessionCategory;
+    }
+
+    private SessionCategory(SessionCategoryType categoryType) {
+
+        DomainChecker.checkWrongObjectParams(this.getClass().getName(), categoryType);
+        this.categoryType = categoryType;
+
+        // 초기화
+        this.isUsing = true;
+        this.createdAt = LocalDateTime.now();
+
+    }
 
 }

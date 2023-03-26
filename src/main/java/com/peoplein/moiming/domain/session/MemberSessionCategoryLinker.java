@@ -1,6 +1,7 @@
 package com.peoplein.moiming.domain.session;
 
 
+import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.fixed.SessionCategory;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +20,6 @@ public class MemberSessionCategoryLinker {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-
     /*
      관리 대상이 아니므로,
      create, update 에 관한 필드도 불필요
@@ -32,5 +32,15 @@ public class MemberSessionCategoryLinker {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_category_id")
     private SessionCategory sessionCategory;
+
+
+    public MemberSessionCategoryLinker(MemberSessionLinker memberSessionLinker, SessionCategory sessionCategory) {
+        DomainChecker.checkWrongObjectParams(this.getClass().getName(), memberSessionLinker, sessionCategory);
+
+        this.memberSessionLinker = memberSessionLinker;
+        this.sessionCategory = sessionCategory;
+        this.memberSessionLinker.getMemberSessionCategoryLinkers().add(this);
+    }
+
 
 }

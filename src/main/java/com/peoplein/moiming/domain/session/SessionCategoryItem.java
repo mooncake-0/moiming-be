@@ -1,6 +1,7 @@
 package com.peoplein.moiming.domain.session;
 
 
+import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
 import com.peoplein.moiming.domain.fixed.SessionCategory;
 import lombok.AccessLevel;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SessionCategoryItem {
 
-    public final String DEFAULT_ITEM_NAME = "DEFAULT";
+    public static final String DEFAULT_ITEM_NAME = "DEFAULT";
 
     @Id
     @Column(name = "session_category_item_id")
@@ -39,5 +40,30 @@ public class SessionCategoryItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_category_id")
     private SessionCategory sessionCategory;
+
+    public static SessionCategoryItem createSessionCategoryItem(String itemName, int itemCost, MoimSession moimSession, SessionCategory sessionCategory) {
+
+        SessionCategoryItem sessionCategoryItem = new SessionCategoryItem(itemName, itemCost, moimSession, sessionCategory);
+        return sessionCategoryItem;
+    }
+
+
+    private SessionCategoryItem(String itemName, int itemCost, MoimSession moimSession, SessionCategory sessionCategory) {
+
+        //NN 체킹
+        DomainChecker.checkRightString(this.getClass().getName(), false, itemName);
+        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moimSession, sessionCategory);
+
+        this.itemName = itemName;
+        this.itemCost = itemCost;
+
+        // 초기화
+        this.createdAt = LocalDateTime.now();
+
+        // 연관관계 매핑
+        this.moimSession = moimSession;
+        this.sessionCategory = sessionCategory;
+        this.moimSession.getSessionCategoryItems().add(this);
+    }
 
 }
