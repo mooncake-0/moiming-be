@@ -12,6 +12,8 @@ public interface MoimPostRepository {
 
     MoimPost findWithMemberById(Long moimPostId);
 
+    MoimPost findWithMemberId(Long moimPostId, Long memberId);
+
     MoimPost findWithMoimAndMemberById(Long moimPostId);
     MoimPost findWithMoimAndMemberInfoById(Long moimPostId);
 

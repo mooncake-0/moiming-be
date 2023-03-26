@@ -59,6 +59,22 @@ public class MoimPostDto {
 
     }
 
+    public static MoimPostDto createMoimPostDto(MoimPost moimPost,boolean isCreatorCurMember) {
+        return new MoimPostDto(moimPost.getId()
+                , moimPost.getPostTitle()
+                , moimPost.getPostContent()
+                , moimPost.getMoimPostCategory()
+                , moimPost.isNotice()
+                , moimPost.getCreatedAt()
+                , moimPost.getUpdatedAt()
+                , moimPost.getUpdatedUid()
+                , moimPost.isHasFiles()
+                , isCreatorCurMember
+                , null
+        );
+    }
+
+
     /*
      Constructor -2
      MoimPost Entity 전달을 통한 Dto 형성

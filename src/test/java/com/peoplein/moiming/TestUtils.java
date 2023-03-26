@@ -71,6 +71,7 @@ public class TestUtils {
     public static String postContent = "postContent";
     public static boolean isNotice = false;
     public static boolean hasFiles = false;
+    public static MoimPostCategory moimPostCategory = MoimPostCategory.GREETING;
 
 
     // moimService
@@ -89,14 +90,20 @@ public class TestUtils {
 
 
 
+    public static Member initOtherMemberAndMemberInfo() {
+        Role role = initUserRole();
+
+        Member member = Member.createMember("other" + uid
+                , "other" + password
+                , "other" + memberEmail
+                , "other" + memberName
+                , memberGender, role);
+        member.getMemberInfo().setMemberBirth(memberBirth);
+
+        return member;
+    }
 
     public static Member initMemberAndMemberInfo() {
-//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-//        password = passwordEncoder.encode(password);
-//        MemberInfo memberInfo = new MemberInfo(memberEmail, memberName, memberGender);
-//        memberInfo.setMemberBirth(memberBirth);
-//        Member member = Member.createMember(uid, password, memberInfo);
-
         Role role = initAdminRole();
 
         Member member = Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
@@ -104,14 +111,16 @@ public class TestUtils {
 
         return member;
 
-//        Role role = new Role(1L, "admin", RoleType.ADMIN);
-//        MemberRoleLinker memberRoleLinker = MemberRoleLinker.grantRoleToMember(member, role);
-//        return member;
     }
 
     public static Role initAdminRole() {
         return new Role(1L, "admin", RoleType.ADMIN);
     }
+
+    public static Role initUserRole() {
+        return new Role(2L, "admin", RoleType.USER);
+    }
+
 
 
     public static Moim initMoimAndRuleJoin() {
@@ -125,7 +134,7 @@ public class TestUtils {
     }
 
     public static MoimPost initMoimPost(Moim moim, Member member) {
-        return MoimPost.createMoimPost(postTitle, postContent, MoimPostCategory.EXTRA, isNotice, hasFiles, moim, member);
+        return MoimPost.createMoimPost(postTitle, postContent, moimPostCategory, isNotice, hasFiles, moim, member);
     }
 
     public static MoimDto initMoimDto() {

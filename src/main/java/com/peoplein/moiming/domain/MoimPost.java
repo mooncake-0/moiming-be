@@ -5,11 +5,13 @@ import com.peoplein.moiming.model.dto.domain.PostCommentDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -42,10 +44,10 @@ public class MoimPost extends BaseEntity{
     private Member member;
 
     @OneToMany(mappedBy = "moimPost", cascade = CascadeType.ALL)
-    private List<PostComment> postComments = new ArrayList<>();
+    private final List<PostComment> postComments = new ArrayList<>();
 
     @OneToMany(mappedBy = "moimPost", cascade = CascadeType.ALL)
-    private List<PostFile> postFiles = new ArrayList<>();
+    private final List<PostFile> postFiles = new ArrayList<>();
 
     public static MoimPost createMoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean isNotice, boolean hasFiles, Moim moim, Member member) {
         return new MoimPost(postTitle, postContent, moimPostCategory, isNotice, hasFiles, moim, member);
@@ -66,6 +68,8 @@ public class MoimPost extends BaseEntity{
         this.moim = moim;
         this.member = member;
 
+        // 초기화.
+        this.updatedUid = member.getUid();
     }
 
     public void addPostComment(PostComment postComment) {
@@ -99,7 +103,52 @@ public class MoimPost extends BaseEntity{
     }
 
 
-    public void setUpdatedUid(String updatedUid) {
+    // 업데이트 했을 때, UID 바뀌는지
+    // 업데이트 안했을 때, UID 안 바뀌는지
+    public boolean update(String postTitle,
+                       String postContent,
+                       boolean isNotice,
+                       MoimPostCategory moimPostCategory,
+                       String updatedUid) {
+
+        checkWrongArgument(postTitle, postContent, isNotice, moimPostCategory, updatedUid);
+
+        if (!isChangedAny(postTitle, postContent, isNotice, moimPostCategory)) {
+            return false;
+        }
+
+        this.postTitle = postTitle;
+        this.postContent = postContent;
+        this.isNotice = isNotice;
+        this.moimPostCategory = moimPostCategory;
         this.updatedUid = updatedUid;
+
+        return true;
     }
+
+    public void checkWrongArgument(String postTitle,
+                                    String postContent,
+                                    boolean isNotice,
+                                    MoimPostCategory moimPostCategory,
+                                    String updatedUid) {
+
+        if (!StringUtils.hasText(postTitle) ||
+                !StringUtils.hasText(postContent) ||
+                !StringUtils.hasText(updatedUid) ||
+                Objects.isNull(moimPostCategory)) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private boolean isChangedAny(String postTitle,
+                                 String postContent,
+                                 boolean isNotice,
+                                 MoimPostCategory moimPostCategory) {
+
+        return !this.postTitle.equals(postTitle) ||
+                !this.postContent.equals(postContent) ||
+                this.isNotice != isNotice ||
+                !this.moimPostCategory.equals(moimPostCategory);
+    }
+
 }

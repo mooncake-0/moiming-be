@@ -51,6 +51,14 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     }
 
     @Override
+    public MoimPost findWithMemberId(Long moimPostId, Long memberId) {
+        return queryFactory
+                .selectFrom(moimPost)
+                .where(moimPost.id.eq(moimPostId).and(moimPost.member.id.eq(memberId)))
+                .fetchOne();
+    }
+
+    @Override
     public MoimPost findWithMoimAndMemberById(Long moimPostId) {
         /*
          JPQL Query : select mp from MoimPost mp
