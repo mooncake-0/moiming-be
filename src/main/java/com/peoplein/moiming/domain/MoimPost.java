@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 @Table(name = "moim_post")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MoimPost {
+public class MoimPost extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -28,8 +28,6 @@ public class MoimPost {
     private boolean isNotice;
     private boolean hasFiles;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private String updatedUid;
 
     /*
@@ -68,8 +66,6 @@ public class MoimPost {
         this.moim = moim;
         this.member = member;
 
-        // 초기화
-        this.createdAt = LocalDateTime.now();
     }
 
     public void addPostComment(PostComment postComment) {
@@ -102,9 +98,6 @@ public class MoimPost {
         this.isNotice = notice;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
     public void setUpdatedUid(String updatedUid) {
         this.updatedUid = updatedUid;

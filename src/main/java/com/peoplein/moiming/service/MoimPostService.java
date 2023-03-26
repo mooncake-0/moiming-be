@@ -198,7 +198,7 @@ public class MoimPostService {
 
         if (isAnyUpdated) {
 
-            moimPost.setUpdatedAt(LocalDateTime.now());
+//            moimPost.setUpdatedAt(LocalDateTime.now());
             moimPost.setUpdatedUid(curMember.getUid());
 
             return new MoimPostDto(moimPost.getId()

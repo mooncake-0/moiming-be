@@ -56,7 +56,6 @@ public class MoimPostTest {
         assertEquals(moimPostCategory, moimPost.getMoimPostCategory());
         assertEquals(isNotice, moimPost.isNotice());
         assertEquals(hasFiles, moimPost.isHasFiles());
-        assertNotNull(moimPost.getCreatedAt());
         assertNotNull(moimPost.getPostComments());
 
         // 메모리 할당 받은 객체들 그대로 반환
