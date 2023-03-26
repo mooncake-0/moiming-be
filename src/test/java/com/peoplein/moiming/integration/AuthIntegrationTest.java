@@ -36,6 +36,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * 인증 테스트는 SpringSecurityFilter에서 처리됨.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Transactional
 public class AuthIntegrationTest extends BaseTest {
@@ -62,6 +65,7 @@ public class AuthIntegrationTest extends BaseTest {
                 .build();
 
         url = "http://localhost:8080" + NetworkSetting.API_SERVER + NetworkSetting.API_AUTH_VER + NetworkSetting.API_AUTH;
+        // http://localhost:8080/api/v0/auth
     }
 
     private ObjectMapper om = new ObjectMapper()
@@ -161,7 +165,8 @@ public class AuthIntegrationTest extends BaseTest {
     @DisplayName("성공 @ /login")
     void 로그인() throws Exception {
         //given
-        MemberLoginDto memberLoginDto = new MemberLoginDto("wrock.kang", "1234");
+        MemberLoginDto memberLoginDto = new MemberLoginDto(TestUtils.uid,
+                TestUtils.password);
 
         //when
         url += "/login";

@@ -91,16 +91,28 @@ public class TestUtils {
 
 
     public static Member initMemberAndMemberInfo() {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        password = passwordEncoder.encode(password);
-        MemberInfo memberInfo = new MemberInfo(memberEmail, memberName, memberGender);
-        memberInfo.setMemberBirth(memberBirth);
-        Member member = Member.createMember(uid, password, memberInfo);
+//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//        password = passwordEncoder.encode(password);
+//        MemberInfo memberInfo = new MemberInfo(memberEmail, memberName, memberGender);
+//        memberInfo.setMemberBirth(memberBirth);
+//        Member member = Member.createMember(uid, password, memberInfo);
 
-        Role role = new Role(1L, "admin", RoleType.ADMIN);
-        MemberRoleLinker memberRoleLinker = MemberRoleLinker.grantRoleToMember(member, role);
+        Role role = initAdminRole();
+
+        Member member = Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
+        member.getMemberInfo().setMemberBirth(memberBirth);
+
         return member;
+
+//        Role role = new Role(1L, "admin", RoleType.ADMIN);
+//        MemberRoleLinker memberRoleLinker = MemberRoleLinker.grantRoleToMember(member, role);
+//        return member;
     }
+
+    public static Role initAdminRole() {
+        return new Role(1L, "admin", RoleType.ADMIN);
+    }
+
 
     public static Moim initMoimAndRuleJoin() {
         Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);

@@ -32,7 +32,6 @@ import java.util.Objects;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
@@ -40,6 +39,18 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final MoimingTokenProvider moimingTokenProvider;
     private final MemberJpaQueryRepository memberJpaQueryRepository;
+
+    public AuthService(PasswordEncoder passwordEncoder,
+                       MemberRepository memberRepository,
+                       RoleRepository roleRepository,
+                       MoimingTokenProvider moimingTokenProvider,
+                       MemberJpaQueryRepository memberJpaQueryRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.memberRepository = memberRepository;
+        this.roleRepository = roleRepository;
+        this.moimingTokenProvider = moimingTokenProvider;
+        this.memberJpaQueryRepository = memberJpaQueryRepository;
+    }
 
     public boolean checkUidAvailable(String uid) {
         Member memberByUid = memberRepository.findMemberByUid(uid);
@@ -60,32 +71,25 @@ public class AuthService {
 
         checkUniqueColumnDuplication(memberSigninDto.getUid(), memberSigninDto.getEmail());
 
-        MemberInfo memberInfo = new MemberInfo(memberSigninDto.getEmail(), "TEMP", MemberGender.N);
-
-        Member signInMember = Member.createMember(memberSigninDto.getUid()
-                , passwordEncoder.encode(memberSigninDto.getPassword())
-                , memberInfo);
-
+        // TODO : 이거 TEMP로 생성하는게 맞는건가?
+        String encodedPassword = passwordEncoder.encode(memberSigninDto.getPassword());
         Role roleUser = roleRepository.findByRoleType(RoleType.USER);
-        MemberRoleLinker.grantRoleToMember(signInMember, roleUser);
+
+        Member signInMember = Member.createMember(
+                memberSigninDto.getUid(),
+                encodedPassword,
+                memberSigninDto.getEmail(),
+                "TEMP",
+                MemberGender.N,
+                roleUser);
 
         memberRepository.save(signInMember);
-
         provideTokenBySignin(signInMember, response);
 
-        MemberDto memberDto = MemberDto.builder().id(signInMember.getId())
-                .uid(signInMember.getUid())
-                .createdAt(signInMember.getCreatedAt())
-                .build();
 
-        memberDto.convertLinkerToDto(signInMember.getRoles());
-
-        MemberInfoDto memberInfoDto = MemberInfoDto.builder().memberName(memberInfo.getMemberName())
-                .memberEmail(memberInfo.getMemberEmail())
-                .memberGender(memberInfo.getMemberGender())
-                .createdAt(memberInfo.getCreatedAt())
-                .build();
-
+        // Response 객체 생성
+        MemberDto memberDto = MemberDto.createMemberDtoWhenSignIn(signInMember);
+        MemberInfoDto memberInfoDto = MemberInfoDto.createMemberInfoDtoWhenSignIn(signInMember.getMemberInfo());
         return ResponseModel.createResponse(new MemberResponseDto(memberDto, memberInfoDto));
     }
 
