@@ -46,6 +46,8 @@ public class MemberTest {
         // then
         assertThat(member.getUid()).isEqualTo(TestUtils.uid);
         assertThat(passwordEncoder.matches(expectedPassword, member.getPassword())).isTrue();
+        assertThat(role.getRoleType()).isEqualTo(role.getRoleType());
+        assertThat(member.getMemberInfo().getMemberName()).isEqualTo(TestUtils.memberName);
     }
 
     @Test
