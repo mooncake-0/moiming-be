@@ -56,14 +56,7 @@ public class UtilsRepository {
 
 
     public static Member initMemberAndMemberInfo() {
-//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-//        password = passwordEncoder.encode(password);
-//        MemberInfo memberInfo = new MemberInfo(memberEmail, memberName, memberGender);
-//        Member member = Member.createMember(uid, password, memberInfo);
-
         Role role = new Role(1L, "admin", RoleType.ADMIN);
-//        MemberRoleLinker memberRoleLinker = MemberRoleLinker.grantRoleToMember(member, role);
-
         return Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
     }
 
