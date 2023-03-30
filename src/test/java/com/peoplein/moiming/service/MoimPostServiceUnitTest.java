@@ -55,4 +55,33 @@ public class MoimPostServiceUnitTest extends BaseTest {
         assertThat(output.getCreatedMoimPost().getMoim().getMoimName()).isEqualTo(moim.getMoimName());
         assertThat(output.getCreatedMoimPost().getMember().getUid()).isEqualTo(member.getUid());
     }
+
+    @Test
+    void deleteMoimPostTestPass() {
+        // given
+
+        Moim moim = TestUtils.initMoimAndRuleJoin();
+        Member member = TestUtils.initMemberAndMemberInfo();
+        MoimPostRequestDto moimPostRequestDto = TestUtils.initMoimPostRequestDto();
+        MoimPostServiceInput input = MoimPostServiceInput.builder()
+                .postTitleAboutNewMoimPost(moimPostRequestDto.getPostTitle())
+                .postContentAboutNewMoimPost(moimPostRequestDto.getPostContent())
+                .moimPostCategoryAboutNewMoimPost(moimPostRequestDto.getMoimPostCategory())
+                .isNoticeAboutNewMoimPost(moimPostRequestDto.isNotice())
+                .hasFilesAboutNewMoimPost(false)
+                .moimAboutNewMoimPost(moim)
+                .memberAboutNewMoimPost(member)
+                .build();
+
+        // when
+        MoimPostServiceOutput output = moimPostServiceCore.createMoimPost(input);
+
+        // then
+        assertThat(output.getCreatedMoimPost().getPostContent()).isEqualTo(input.getPostContentAboutNewMoimPost());
+        assertThat(output.getCreatedMoimPost().getPostTitle()).isEqualTo(input.getPostTitleAboutNewMoimPost());
+        assertThat(output.getCreatedMoimPost().getMoimPostCategory()).isEqualTo(input.getMoimPostCategoryAboutNewMoimPost());
+        assertThat(output.getCreatedMoimPost().getMoim().getMoimName()).isEqualTo(moim.getMoimName());
+        assertThat(output.getCreatedMoimPost().getMember().getUid()).isEqualTo(member.getUid());
+    }
+
 }

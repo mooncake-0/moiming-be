@@ -25,4 +25,6 @@ public interface MoimPostRepository {
 
     void remove(MoimPost moimPost);
 
+    void removeMoimPostExecute(MoimPost moimPost);
+
 }

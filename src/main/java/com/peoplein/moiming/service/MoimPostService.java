@@ -8,10 +8,7 @@ import com.peoplein.moiming.model.dto.domain.PostCommentDto;
 import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
 import com.peoplein.moiming.model.query.QueryMoimPostDetails;
 import com.peoplein.moiming.model.query.QueryPostCommentDetails;
-import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
-import com.peoplein.moiming.repository.MoimPostRepository;
-import com.peoplein.moiming.repository.MoimRepository;
-import com.peoplein.moiming.repository.PostCommentRepository;
+import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.query.MoimPostJpaQueryRepository;
 import com.peoplein.moiming.repository.jpa.query.PostCommentJpaQueryRepository;
 import com.peoplein.moiming.service.core.MoimPostServiceCore;
@@ -45,6 +42,7 @@ public class MoimPostService {
 
     private final MoimPostServiceShell moimPostServiceShell;
     private final MoimPostServiceCore moimPostServiceCore;
+    private final PostFileRepository postFileRepository;
 
     /*
      게시물 생성 요청을 처리한다
@@ -192,23 +190,14 @@ public class MoimPostService {
         if (Objects.isNull(moimPost)) {
             log.error("해당 PK 의 게시물을 찾을 수 없습니다");
             throw new RuntimeException("해당 PK 의 게시물을 찾을 수 없습니다");
-        } else {
-
-            MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimPost.getMoim().getId());
-
-            if (!moimPost.getMember().getId().equals(curMember.getId())) {
-                // 작성자가 아니라면, 관리자인가?
-                if (!memberMoimLinker.getMoimRoleType().equals(MoimRoleType.LEADER) && !memberMoimLinker.getMoimRoleType().equals(MoimRoleType.MANAGER)) {
-                    log.error("삭제할 권한이 없는 유저의 요청입니다");
-                    throw new RuntimeException("삭제할 권한이 없는 유저의 요청입니다");
-                }
-            }
-
-            // TODO :: POST FILE 연결자들 삭제 필요
-            postCommentRepository.removeAllByMoimPostId(moimPostId);
-            moimPostRepository.remove(moimPost);
-
         }
+
+        // 여기서 Member, Moim, MemberMoimLinker에 대한 3개 쿼리가 나감. --> MemberMoimLinker의 Member, Moim이 Eager이기 때문에 N+1 문제 발생
+        MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimPost.getMoim().getId());
+        moimPost.delete(memberMoimLinker);
+
+
+        moimPostRepository.removeMoimPostExecute(moimPost);
     }
 }
 

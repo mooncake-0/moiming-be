@@ -1,10 +1,12 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
@@ -17,6 +19,7 @@ import java.util.Objects;
 @Getter
 @Table(name = "moim_post")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Slf4j
 public class MoimPost extends BaseEntity{
 
     @Id
@@ -43,10 +46,10 @@ public class MoimPost extends BaseEntity{
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "moimPost", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "moimPost", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private final List<PostComment> postComments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "moimPost", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "moimPost", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private final List<PostFile> postFiles = new ArrayList<>();
 
     public static MoimPost createMoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean isNotice, boolean hasFiles, Moim moim, Member member) {
@@ -149,6 +152,24 @@ public class MoimPost extends BaseEntity{
                 !this.postContent.equals(postContent) ||
                 this.isNotice != isNotice ||
                 !this.moimPostCategory.equals(moimPostCategory);
+    }
+
+    public void delete(MemberMoimLinker memberMoimLinker) {
+
+        System.out.println("HERE1");
+        if (!canDelete(memberMoimLinker)) {
+            log.error("삭제할 권한이 없는 유저의 요청입니다");
+            throw new RuntimeException("삭제할 권한이 없는 유저의 요청입니다");
+        }
+
+        this.moim = null;
+        this.member = null;
+    }
+
+    private boolean canDelete(MemberMoimLinker memberMoimLinker) {
+        MoimRoleType moimRoleType = memberMoimLinker.getMoimRoleType();
+        return moimRoleType.equals(MoimRoleType.LEADER) ||
+                moimRoleType.equals(MoimRoleType.MANAGER);
     }
 
 }

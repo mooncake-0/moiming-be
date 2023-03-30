@@ -2,6 +2,7 @@ package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.repository.MoimPostRepository;
+import com.peoplein.moiming.repository.PostFileRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -22,6 +23,7 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     private final EntityManager em;
 
     private final JPAQueryFactory queryFactory;
+    private final PostFileRepository postFileRepository;
 
     @Override
     public Long save(MoimPost moimPost) {
@@ -125,6 +127,13 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     @Override
     public void remove(MoimPost moimPost) {
         em.remove(moimPost);
+    }
+
+
+    @Override
+    public void removeMoimPostExecute(MoimPost moimPost) {
+        postFileRepository.removeWithMoimPostId(moimPost.getId());
+        remove(moimPost);
     }
 
 }

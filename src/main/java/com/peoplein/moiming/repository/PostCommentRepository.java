@@ -14,6 +14,8 @@ public interface PostCommentRepository {
 
     PostComment findWithMoimPostAndMoimById(Long postCommentId);
 
+    List<PostComment> findWithMoimPostId(Long moimPostId);
+
     void remove(PostComment postComment);
 
     Long removeAllByMoimPostId(Long moimPostId);
