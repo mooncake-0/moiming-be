@@ -1,6 +1,9 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.TestUtils;
+import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.exception.BadAuthParameterInputException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,30 +37,46 @@ public class MemberTest {
         // given
         String expectedPassword = TestUtils.password;
         String encryptedPassword = passwordEncoder.encode(TestUtils.password);
+        Role role = new Role(1L, "admin", RoleType.ADMIN);
 
         // when
-        Member member = Member.createMember(TestUtils.uid, encryptedPassword, memberInfo);
+        Member member = Member.createMember(TestUtils.uid, encryptedPassword, TestUtils.memberEmail,
+                TestUtils.memberName, TestUtils.memberGender, role);
 
         // then
         assertThat(member.getUid()).isEqualTo(TestUtils.uid);
         assertThat(passwordEncoder.matches(expectedPassword, member.getPassword())).isTrue();
+        assertThat(role.getRoleType()).isEqualTo(role.getRoleType());
+        assertThat(member.getMemberInfo().getMemberName()).isEqualTo(TestUtils.memberName);
     }
 
     @Test
     void constructorFail() {
+        // given
+        Role role = TestUtils.initAdminRole();
+
         // when + then
-        assertThatThrownBy(() -> Member.createMember(null, password, memberInfo)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> Member.createMember("", password, memberInfo)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> Member.createMember(TestUtils.uid, null, memberInfo)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> Member.createMember(TestUtils.uid, "", memberInfo)).isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> Member.createMember(TestUtils.uid, password, null)).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> Member.createMember(
+                null, password, TestUtils.memberEmail, TestUtils.memberName, TestUtils.memberGender, role)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Member.createMember(
+                TestUtils.uid, null, TestUtils.memberEmail, TestUtils.memberName, TestUtils.memberGender, role)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Member.createMember(
+                TestUtils.uid, TestUtils.encryptedPassword, null, TestUtils.memberName, TestUtils.memberGender, role)).isInstanceOf(BadAuthParameterInputException.class);
+        assertThatThrownBy(() -> Member.createMember(
+                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, null, TestUtils.memberGender, role)).isInstanceOf(BadAuthParameterInputException.class);
+        assertThatThrownBy(() -> Member.createMember(
+                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, TestUtils.memberName, null, role)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Member.createMember(
+                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, TestUtils.memberName, TestUtils.memberGender, null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void refreshTokenSuccess() {
         // given
         String changedToken = "NEW_REFRESH_TOKEN";
-        Member member = Member.createMember(TestUtils.uid, password, memberInfo);
+        Role role = new Role(1L, "admin", RoleType.ADMIN);
+        Member member = Member.createMember(TestUtils.uid, TestUtils.password, TestUtils.memberEmail,
+                TestUtils.memberName, TestUtils.memberGender, role);
 
         // when
         member.changeRefreshToken(changedToken);
@@ -70,7 +89,9 @@ public class MemberTest {
     void refreshSameTokenSuccess() {
         // given
         String sameToken = TestUtils.refreshToken;
-        Member member = Member.createMember(TestUtils.uid, password, memberInfo);
+        Role role = new Role(1L, "admin", RoleType.ADMIN);
+        Member member = Member.createMember(TestUtils.uid, TestUtils.password, TestUtils.memberEmail,
+                TestUtils.memberName, TestUtils.memberGender, role);
 
         // when
         member.changeRefreshToken(sameToken);

@@ -1,21 +1,26 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
 @Table(name = "moim_post")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MoimPost {
+@Slf4j
+public class MoimPost extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -28,8 +33,6 @@ public class MoimPost {
     private boolean isNotice;
     private boolean hasFiles;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private String updatedUid;
 
     /*
@@ -43,11 +46,11 @@ public class MoimPost {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "moimPost", cascade = CascadeType.ALL)
-    private List<PostComment> postComments = new ArrayList<>();
+    @OneToMany(mappedBy = "moimPost", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private final List<PostComment> postComments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "moimPost", cascade = CascadeType.ALL)
-    private List<PostFile> postFiles = new ArrayList<>();
+    @OneToMany(mappedBy = "moimPost", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private final List<PostFile> postFiles = new ArrayList<>();
 
     public static MoimPost createMoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean isNotice, boolean hasFiles, Moim moim, Member member) {
         return new MoimPost(postTitle, postContent, moimPostCategory, isNotice, hasFiles, moim, member);
@@ -68,8 +71,8 @@ public class MoimPost {
         this.moim = moim;
         this.member = member;
 
-        // 초기화
-        this.createdAt = LocalDateTime.now();
+        // 초기화.
+        this.updatedUid = member.getUid();
     }
 
     public void addPostComment(PostComment postComment) {
@@ -102,11 +105,71 @@ public class MoimPost {
         this.isNotice = notice;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+
+    // 업데이트 했을 때, UID 바뀌는지
+    // 업데이트 안했을 때, UID 안 바뀌는지
+    public boolean update(String postTitle,
+                       String postContent,
+                       boolean isNotice,
+                       MoimPostCategory moimPostCategory,
+                       String updatedUid) {
+
+        checkWrongArgument(postTitle, postContent, isNotice, moimPostCategory, updatedUid);
+
+        if (!isChangedAny(postTitle, postContent, isNotice, moimPostCategory)) {
+            return false;
+        }
+
+        this.postTitle = postTitle;
+        this.postContent = postContent;
+        this.isNotice = isNotice;
+        this.moimPostCategory = moimPostCategory;
+        this.updatedUid = updatedUid;
+
+        return true;
     }
 
-    public void setUpdatedUid(String updatedUid) {
-        this.updatedUid = updatedUid;
+    public void checkWrongArgument(String postTitle,
+                                    String postContent,
+                                    boolean isNotice,
+                                    MoimPostCategory moimPostCategory,
+                                    String updatedUid) {
+
+        if (!StringUtils.hasText(postTitle) ||
+                !StringUtils.hasText(postContent) ||
+                !StringUtils.hasText(updatedUid) ||
+                Objects.isNull(moimPostCategory)) {
+            throw new IllegalArgumentException();
+        }
     }
+
+    private boolean isChangedAny(String postTitle,
+                                 String postContent,
+                                 boolean isNotice,
+                                 MoimPostCategory moimPostCategory) {
+
+        return !this.postTitle.equals(postTitle) ||
+                !this.postContent.equals(postContent) ||
+                this.isNotice != isNotice ||
+                !this.moimPostCategory.equals(moimPostCategory);
+    }
+
+    public void delete(MemberMoimLinker memberMoimLinker) {
+
+        System.out.println("HERE1");
+        if (!canDelete(memberMoimLinker)) {
+            log.error("삭제할 권한이 없는 유저의 요청입니다");
+            throw new RuntimeException("삭제할 권한이 없는 유저의 요청입니다");
+        }
+
+        this.moim = null;
+        this.member = null;
+    }
+
+    private boolean canDelete(MemberMoimLinker memberMoimLinker) {
+        MoimRoleType moimRoleType = memberMoimLinker.getMoimRoleType();
+        return moimRoleType.equals(MoimRoleType.LEADER) ||
+                moimRoleType.equals(MoimRoleType.MANAGER);
+    }
+
 }

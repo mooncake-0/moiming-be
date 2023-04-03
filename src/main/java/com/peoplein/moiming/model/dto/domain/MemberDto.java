@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberRoleLinker;
 import lombok.*;
 
@@ -32,6 +33,16 @@ public class MemberDto {
         this.roles = memberRoleLinkers.stream()
                 .map(MemberRoleDto::new)
                 .collect(Collectors.toList());
+    }
+
+    public static MemberDto createMemberDtoWhenSignIn(Member signInMember) {
+        MemberDto memberDto = MemberDto.builder().id(signInMember.getId())
+                .uid(signInMember.getUid())
+                .createdAt(signInMember.getCreatedAt())
+                .build();
+
+        memberDto.convertLinkerToDto(signInMember.getRoles());
+        return memberDto;
     }
 
 }

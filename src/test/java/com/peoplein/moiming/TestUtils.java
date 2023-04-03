@@ -10,6 +10,7 @@ import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
 import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -70,6 +71,7 @@ public class TestUtils {
     public static String postContent = "postContent";
     public static boolean isNotice = false;
     public static boolean hasFiles = false;
+    public static MoimPostCategory moimPostCategory = MoimPostCategory.GREETING;
 
 
     // moimService
@@ -88,18 +90,38 @@ public class TestUtils {
 
 
 
+    public static Member initOtherMemberAndMemberInfo() {
+        Role role = initUserRole();
 
-    public static Member initMemberAndMemberInfo() {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        password = passwordEncoder.encode(password);
-        MemberInfo memberInfo = new MemberInfo(memberEmail, memberName, memberGender);
-        memberInfo.setMemberBirth(memberBirth);
-        Member member = Member.createMember(uid, password, memberInfo);
+        Member member = Member.createMember("other" + uid
+                , "other" + password
+                , "other" + memberEmail
+                , "other" + memberName
+                , memberGender, role);
+        member.getMemberInfo().setMemberBirth(memberBirth);
 
-        Role role = new Role(1L, "admin", RoleType.ADMIN);
-        MemberRoleLinker memberRoleLinker = MemberRoleLinker.grantRoleToMember(member, role);
         return member;
     }
+
+    public static Member initMemberAndMemberInfo() {
+        Role role = initAdminRole();
+
+        Member member = Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
+        member.getMemberInfo().setMemberBirth(memberBirth);
+
+        return member;
+
+    }
+
+    public static Role initAdminRole() {
+        return new Role(1L, "admin", RoleType.ADMIN);
+    }
+
+    public static Role initUserRole() {
+        return new Role(2L, "admin", RoleType.USER);
+    }
+
+
 
     public static Moim initMoimAndRuleJoin() {
         Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
@@ -112,7 +134,7 @@ public class TestUtils {
     }
 
     public static MoimPost initMoimPost(Moim moim, Member member) {
-        return MoimPost.createMoimPost(postTitle, postContent, MoimPostCategory.EXTRA, isNotice, hasFiles, moim, member);
+        return MoimPost.createMoimPost(postTitle, postContent, moimPostCategory, isNotice, hasFiles, moim, member);
     }
 
     public static MoimDto initMoimDto() {
@@ -188,6 +210,36 @@ public class TestUtils {
     public static MoimMemberActionRequestDto createActionRequestDto(Long moimId, Long memberId, MoimMemberStateAction moimMemberStateAction) {
         return new MoimMemberActionRequestDto(
                 moimId, memberId, moimMemberStateAction, MoimRoleType.NORMAL, "", true);
+    }
+
+    public static void truncateAllTable(JdbcTemplate jdbcTemplate) {
+
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+
+        List<String> tableNames = List.of(
+                "category",
+                "moim_rule",
+                "rule_join",
+                "rule_persist",
+                "member",
+                "member_info",
+                "member_moim_linker",
+                "member_role_linker",
+                "member_schedule_linker",
+                "moim",
+                "moim_category_linker",
+                "moim_post",
+                "moim_review",
+                "post_comment",
+                "post_file",
+                "review_answer",
+                "schedule",
+                "role");
+
+        tableNames.forEach(tableName ->
+                jdbcTemplate.execute("TRUNCATE TABLE " + tableName));
+
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
     }
 
 }

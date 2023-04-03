@@ -4,6 +4,8 @@ package com.peoplein.moiming.domain;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.domain.fixed.Role;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -75,8 +77,22 @@ public class Member extends BaseEntity{
 
     }
 
-    public static Member createMember(String uid, String password, MemberInfo memberInfo) {
-        return new Member(uid, password, memberInfo);
+//    public static Member createMember(String uid, String password, MemberInfo memberInfo) {
+//        return new Member(uid, password, memberInfo);
+//    }
+
+    // Password should be always encrypted.
+    public static Member createMember(String uid,
+                                      String encryptedPassword,
+                                      String email,
+                                      String memberName,
+                                      MemberGender memberGender,
+                                      Role role
+                                      ) {
+        MemberInfo memberInfo = new MemberInfo(email, memberName, memberGender);
+        Member createdMember = new Member(uid, encryptedPassword, memberInfo);
+        MemberRoleLinker.grantRoleToMember(createdMember, role);
+        return createdMember;
     }
 
 

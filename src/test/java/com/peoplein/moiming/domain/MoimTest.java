@@ -336,12 +336,18 @@ public class MoimTest {
 
 
     Member createMember(MemberGender memberGender, LocalDate memberBirth) {
-        MemberInfo memberInfo = new MemberInfo(TestUtils.memberEmail, TestUtils.memberName, memberGender);
-        memberInfo.setMemberBirth(memberBirth);
-        Member member = Member.createMember(TestUtils.uid, TestUtils.encryptedPassword, memberInfo);
+//        MemberInfo memberInfo = new MemberInfo(TestUtils.memberEmail, TestUtils.memberName, memberGender);
+//        memberInfo.setMemberBirth(memberBirth);
+//        Member member = Member.createMember(TestUtils.uid, TestUtils.encryptedPassword, memberInfo);
 
         Role role = new Role(1L, "admin", RoleType.USER);
-        MemberRoleLinker memberRoleLinker = MemberRoleLinker.grantRoleToMember(member, role);
+
+        Member member = Member.createMember(TestUtils.uid, TestUtils.password, TestUtils.memberEmail,
+                TestUtils.memberName, TestUtils.memberGender, role);
+
+        member.getMemberInfo().setMemberBirth(memberBirth);
+
+
         return member;
     }
 }

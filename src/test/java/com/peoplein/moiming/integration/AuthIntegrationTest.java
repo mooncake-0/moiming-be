@@ -3,10 +3,7 @@ package com.peoplein.moiming.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.peoplein.moiming.InitDatabaseQuery;
-import com.peoplein.moiming.NetworkSetting;
-import com.peoplein.moiming.TestHelper;
-import com.peoplein.moiming.TestUtils;
+import com.peoplein.moiming.*;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ErrorResponse;
 import com.peoplein.moiming.model.ResponseModel;
@@ -24,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -38,9 +36,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * 인증 테스트는 SpringSecurityFilter에서 처리됨.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Transactional
-public class AuthIntegrationTest {
+public class AuthIntegrationTest extends BaseTest {
 
     @LocalServerPort
     private int port;
@@ -64,6 +65,7 @@ public class AuthIntegrationTest {
                 .build();
 
         url = "http://localhost:8080" + NetworkSetting.API_SERVER + NetworkSetting.API_AUTH_VER + NetworkSetting.API_AUTH;
+        // http://localhost:8080/api/v0/auth
     }
 
     private ObjectMapper om = new ObjectMapper()
@@ -163,7 +165,8 @@ public class AuthIntegrationTest {
     @DisplayName("성공 @ /login")
     void 로그인() throws Exception {
         //given
-        MemberLoginDto memberLoginDto = new MemberLoginDto("wrock.kang", "1234");
+        MemberLoginDto memberLoginDto = new MemberLoginDto(TestUtils.uid,
+                TestUtils.password);
 
         //when
         url += "/login";

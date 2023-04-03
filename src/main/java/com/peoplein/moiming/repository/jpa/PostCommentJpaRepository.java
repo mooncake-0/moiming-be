@@ -52,6 +52,14 @@ public class PostCommentJpaRepository implements PostCommentRepository {
     }
 
     @Override
+    public List<PostComment> findWithMoimPostId(Long moimPostId) {
+        return queryFactory
+                .selectFrom(postComment)
+                .where(postComment.moimPost.id.eq(moimPostId))
+                .fetch();
+    }
+
+    @Override
     public void remove(PostComment postComment) {
         em.remove(postComment);
     }

@@ -10,10 +10,7 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.rules.MoimRule;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.domain.rules.RulePersist;
-import com.peoplein.moiming.repository.CategoryRepository;
-import com.peoplein.moiming.repository.MemberRepository;
-import com.peoplein.moiming.repository.MoimRepository;
-import com.peoplein.moiming.repository.MoimReviewRepository;
+import com.peoplein.moiming.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -30,7 +27,6 @@ import java.util.List;
 
 
 @Component
-@RequiredArgsConstructor
 public class InitDatabaseQuery {
 
     private final EntityManager em;
@@ -39,7 +35,23 @@ public class InitDatabaseQuery {
     private final MemberRepository memberRepository;
     private final MoimRepository moimRepository;
     private final MoimReviewRepository moimReviewRepository;
+    private final RoleRepository roleRepository;
 
+    public InitDatabaseQuery(EntityManager em,
+                             PasswordEncoder passwordEncoder,
+                             CategoryRepository categoryRepository,
+                             MemberRepository memberRepository,
+                             MoimRepository moimRepository,
+                             MoimReviewRepository moimReviewRepository,
+                             RoleRepository roleRepository) {
+        this.em = em;
+        this.passwordEncoder = passwordEncoder;
+        this.categoryRepository = categoryRepository;
+        this.memberRepository = memberRepository;
+        this.moimRepository = moimRepository;
+        this.moimReviewRepository = moimReviewRepository;
+        this.roleRepository = roleRepository;
+    }
 
     private Long moim1Id;
     private Long moimPostId;
@@ -53,72 +65,50 @@ public class InitDatabaseQuery {
     }
 
     public void initMemberWithAdminGrant() {
-        MemberInfo mi = new MemberInfo(
-                InitConstant.WOOSEOK_EMAIL,
-                InitConstant.WOOSEOK_NAME,
-                InitConstant.WOOSEOK_GENDER
-        );
+
+        Role role = roleRepository.findByRoleType(RoleType.ADMIN);
 
         Member member = Member.createMember(
                 InitConstant.WOOSEOK_UID,
                 passwordEncoder.encode(InitConstant.WOOSEOK_PASS),
-                mi
-        );
+                InitConstant.WOOSEOK_EMAIL,
+                InitConstant.WOOSEOK_NAME,
+                InitConstant.WOOSEOK_GENDER,
+                role);
 
-        Role role = em.createQuery("select r from Role r where r.roleType = :roleType", Role.class)
-                .setParameter("roleType", RoleType.ADMIN)
-                .getSingleResult();
-
-        MemberRoleLinker.grantRoleToMember(member, role);
         em.persist(member);
     }
 
     public void initMemberWithUserGrant() {
-        MemberInfo mi = new MemberInfo(
-                InitConstant.WOOJIN_EMAIL,
-                InitConstant.WOOJIN_NAME,
-                InitConstant.WOOJIN_GENDER
-        );
 
-        MemberInfo mi2 = new MemberInfo(
-                InitConstant.BYUNGHO_EMAIL,
-                InitConstant.BYUNGHO_NAME,
-                InitConstant.BYUNGHO_GENDER
-        );
+        Role role = roleRepository.findByRoleType(RoleType.USER);
 
-        MemberInfo mi3 = new MemberInfo(
-                InitConstant.JUBIN_EMAIL,
-                InitConstant.JUBIN_NAME,
-                InitConstant.JUBIN_GENDER
-        );
-
-        Member member = Member.createMember(
+        Member member1 = Member.createMember(
                 InitConstant.WOOJIN_UID,
                 passwordEncoder.encode(InitConstant.WOOJIN_PASS),
-                mi
-        );
+                InitConstant.WOOJIN_EMAIL,
+                InitConstant.WOOJIN_NAME,
+                InitConstant.WOOJIN_GENDER,
+                role);
 
         Member member2 = Member.createMember(
                 InitConstant.BYUNGHO_UID,
                 passwordEncoder.encode(InitConstant.BYUNGHO_PASS),
-                mi2
-        );
+                InitConstant.BYUNGHO_EMAIL,
+                InitConstant.BYUNGHO_NAME,
+                InitConstant.BYUNGHO_GENDER,
+                role);
 
         Member member3 = Member.createMember(
                 InitConstant.JUBIN_UID,
                 passwordEncoder.encode(InitConstant.JUBIN_PASS),
-                mi3
-        );
+                InitConstant.JUBIN_EMAIL,
+                InitConstant.JUBIN_NAME,
+                InitConstant.JUBIN_GENDER,
+                role);
 
-        Role role = em.createQuery("select r from Role r where r.roleType = :roleType", Role.class)
-                .setParameter("roleType", RoleType.USER)
-                .getSingleResult();
 
-        MemberRoleLinker.grantRoleToMember(member, role);
-        MemberRoleLinker.grantRoleToMember(member2, role);
-        MemberRoleLinker.grantRoleToMember(member3, role);
-
-        em.persist(member);
+        em.persist(member1);
         em.persist(member2);
         em.persist(member3);
 

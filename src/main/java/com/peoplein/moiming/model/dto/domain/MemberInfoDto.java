@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.peoplein.moiming.domain.MemberInfo;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import lombok.*;
 
@@ -26,6 +27,17 @@ public class MemberInfoDto {
 //    private String memberBankNumber;
 
     private LocalDateTime createdAt;
+
 //    private LocalDateTime updatedAt;
+
+
+    public static MemberInfoDto createMemberInfoDtoWhenSignIn(MemberInfo memberInfo) {
+        return MemberInfoDto.builder().memberName(memberInfo.getMemberName())
+                .memberEmail(memberInfo.getMemberEmail())
+                .memberGender(memberInfo.getMemberGender())
+                .createdAt(memberInfo.getCreatedAt())
+                .build();
+    }
+
 
 }

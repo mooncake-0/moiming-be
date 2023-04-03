@@ -1,5 +1,6 @@
 package com.peoplein.moiming.domain;
 
+import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,7 +57,6 @@ public class MoimPostTest {
         assertEquals(moimPostCategory, moimPost.getMoimPostCategory());
         assertEquals(isNotice, moimPost.isNotice());
         assertEquals(hasFiles, moimPost.isHasFiles());
-        assertNotNull(moimPost.getCreatedAt());
         assertNotNull(moimPost.getPostComments());
 
         // 메모리 할당 받은 객체들 그대로 반환
@@ -138,5 +138,69 @@ public class MoimPostTest {
         assertThatThrownBy(() -> moimPost.addPostComment(postComment)).isInstanceOf(RuntimeException.class);
 
     }
+
+    @Test
+    void updateSuccessTestCase1() {
+        // given
+        Member member = TestUtils.initMemberAndMemberInfo();
+        Moim moim = TestUtils.createMoimOnly();
+        MoimPost moimPost = TestUtils.initMoimPost(moim, member);
+        Member updateMember = TestUtils.initOtherMemberAndMemberInfo();
+        String changedTitle = TestUtils.postTitle + "fixed";
+
+        // when
+        boolean update = moimPost.update(changedTitle,
+                TestUtils.postContent,
+                TestUtils.isNotice,
+                TestUtils.moimPostCategory,
+                updateMember.getUid());
+
+        // then
+        assertThat(update).isTrue();
+        assertThat(moimPost.getPostTitle()).isEqualTo(changedTitle);
+        assertThat(moimPost.getUpdatedUid()).isEqualTo(updateMember.getUid());
+    }
+
+    @Test
+    void updateSuccessTestCase2() {
+        // given
+        Member member = TestUtils.initMemberAndMemberInfo();
+        Moim moim = TestUtils.createMoimOnly();
+        MoimPost moimPost = TestUtils.initMoimPost(moim, member);
+        Member updateMember = TestUtils.initOtherMemberAndMemberInfo();
+
+        // when
+        boolean update = moimPost.update(TestUtils.postTitle,
+                TestUtils.postContent,
+                TestUtils.isNotice,
+                TestUtils.moimPostCategory,
+                updateMember.getUid());
+
+        // then
+        assertThat(update).isFalse();
+        assertThat(moimPost.getPostTitle()).isEqualTo(TestUtils.postTitle);
+        assertThat(moimPost.getUpdatedUid()).isEqualTo(member.getUid());
+    }
+
+    @Test
+    void updateFailTestCase1() {
+        // given
+        Member member = TestUtils.initMemberAndMemberInfo();
+        Moim moim = TestUtils.createMoimOnly();
+        MoimPost moimPost = TestUtils.initMoimPost(moim, member);
+
+        // when + then
+        assertThatThrownBy(() -> moimPost.update(null, null, false, null, null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> moimPost.update(TestUtils.postTitle, null, false, null, null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> moimPost.update(null, TestUtils.postContent, false, null, null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> moimPost.update(null, null, false, TestUtils.moimPostCategory, null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> moimPost.update(null, null, false, null, TestUtils.uid + "updated"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
 
 }

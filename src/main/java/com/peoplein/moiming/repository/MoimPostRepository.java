@@ -12,6 +12,8 @@ public interface MoimPostRepository {
 
     MoimPost findWithMemberById(Long moimPostId);
 
+    MoimPost findWithMemberId(Long moimPostId, Long memberId);
+
     MoimPost findWithMoimAndMemberById(Long moimPostId);
     MoimPost findWithMoimAndMemberInfoById(Long moimPostId);
 
@@ -22,5 +24,7 @@ public interface MoimPostRepository {
     void removeAll(List<Long> scheduleIds);
 
     void remove(MoimPost moimPost);
+
+    void removeMoimPostExecute(MoimPost moimPost);
 
 }
