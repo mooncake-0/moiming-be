@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Transactional
@@ -28,18 +30,9 @@ public class MoimSessionService {
 
     public MoimSessionResponseDto createMoimSession(MoimSessionRequestDto moimSessionRequestDto, Member curMember) {
 
-
         // moimSessionRequestDto 를 전달하여 Repository 단에서 통신 준비를 마치고, 준비된 애들을 가지고 와준다.
         MoimSessionServiceInput entityInputs = moimSessionServiceShell.createInputForNewMoimSesion(moimSessionRequestDto);
 
-        /** 순서
-         *
-         * Moim Session 을 우선적으로 생성
-         * SessionCategoryItem 생성
-         * MemberSessionLinker 를 생성
-         * MemberSessionCategoryLinker 생성
-         *
-         */
         MoimSessionDto moimSessionDto = moimSessionRequestDto.getMoimSessionDto();
         MoimSession moimSession = MoimSession.createMoimSession(
                 moimSessionDto.getSessionName(), moimSessionDto.getSessionInfo()
@@ -94,4 +87,28 @@ public class MoimSessionService {
 
         return moimSessionServiceShell.buildAllResponeModel(moimSession, curMember);
     }
+
+    public List<MoimSessionDto> getAllMoimSessions(Long moimId, Member curMember) {
+
+        /*
+         1. MoimId 를 통해 모임을 조회
+         2. MoimSession 을 조회할 수 있도록 한다
+         3. MoimSession 들의 기본 정보 형성 및 전달을 위해선?
+         */
+        List<MoimSession> moimSessions = moimSessionServiceShell.getAllMoimSessions(moimId);
+        List<MoimSessionDto> moimSessionDtos = new ArrayList<>();
+
+        moimSessions.forEach(moimSession -> {
+            moimSessionDtos.add(new MoimSessionDto(moimSession));
+        });
+
+        return moimSessionDtos;
+    }
+
+    public MoimSessionResponseDto getMoimSession(Long moimSessionId, Member curMember) {
+        // MoimSession 을 가지고 와서 ResponseModel 을 만든다
+        MoimSession moimSession = moimSessionServiceShell.getMoimSession(moimSessionId);
+        return moimSessionServiceShell.buildAllResponeModel(moimSession, curMember);
+    }
+
 }

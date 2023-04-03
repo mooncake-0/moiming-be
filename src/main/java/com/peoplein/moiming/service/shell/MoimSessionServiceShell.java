@@ -57,8 +57,13 @@ public class MoimSessionServiceShell {
         return moimSessionRepository.save(moimSession);
     }
 
-    public void buildDefaultResponseModel(MoimSession moimSession) {
+    public List<MoimSession> getAllMoimSessions(Long moimId) {
+        return moimSessionRepository.findAllByMoimId(moimId);
+    }
 
+    public MoimSession getMoimSession(Long moimSessionId) {
+//        moimSessionId 로 우선 조회하되,
+        return moimSessionRepository.findOptionalById(moimSessionId).orElseThrow(() -> new RuntimeException("해당 MoimSession 을 찾을 수 없습니다"));
     }
 
     public MoimSessionResponseDto buildAllResponeModel(MoimSession moimSession
@@ -78,13 +83,13 @@ public class MoimSessionServiceShell {
         // 돌면서 SessionCategoryType 인 애들에 맞춰서 분류한다
         moimSession.getSessionCategoryItems().forEach(sessionCategoryItem -> {
 
-            if (tempMap.containsKey(sessionCategoryItem.getSessionCategory().getCategoryType())) {
-                tempMap.get(sessionCategoryItem.getSessionCategory().getCategoryType()).add(sessionCategoryItem);
-            } else {
-                List<SessionCategoryItem> categoryItemList = new ArrayList();
-                categoryItemList.add(sessionCategoryItem);
-                tempMap.put(sessionCategoryItem.getSessionCategory().getCategoryType(), categoryItemList);
+            if (!tempMap.containsKey(sessionCategoryItem.getSessionCategory().getCategoryType())) {
+                tempMap.put(sessionCategoryItem.getSessionCategory().getCategoryType(), new ArrayList<>());
             }
+
+            List<SessionCategoryItem> categoryItemList = tempMap.get(sessionCategoryItem.getSessionCategory().getCategoryType());
+            categoryItemList.add(sessionCategoryItem);
+            tempMap.put(sessionCategoryItem.getSessionCategory().getCategoryType(), categoryItemList);
         });
 
         List<SessionCategoryDetailsDto> sessionCategoryDetailsDtos = new ArrayList<>();
@@ -116,9 +121,6 @@ public class MoimSessionServiceShell {
         List<MemberSessionLinkerDto> memberSessionLinkerDtos = new ArrayList<>();
 
         moimSession.getMemberSessionLinkers().forEach(memberSessionLinker -> {
-
-            // TODO: 각 정산활동의 참여 멤버들을 확인한다
-            //       참여 멤버들을 조회 & 확인 후, Moim 에서의 관계 확인 후 보내준다
 
             // 이미 Member, MemberInfo 까지 영컨에 올라온 상태
             MemberMoimLinker thisMemberMoimLinker = sessionMembersMoimLinkers.stream().filter(

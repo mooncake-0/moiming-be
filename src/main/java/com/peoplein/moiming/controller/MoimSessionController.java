@@ -4,16 +4,16 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ResponseModel;
+import com.peoplein.moiming.model.dto.domain.MoimSessionDto;
 import com.peoplein.moiming.model.dto.request.MoimSessionRequestDto;
 import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
 import com.peoplein.moiming.service.MoimSessionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,12 +34,22 @@ public class MoimSessionController {
     }
 
     /*
-     모임 내 모든 정산활동 기본 정보 조회 - moim/session/moimId={}
+     모임 내 모든 정산활동 기본 정보 조회 - moim/session?moimId={}
      */
+    @GetMapping("")
+    public List<MoimSessionDto> getAllMoimSessions(@RequestParam(name = "moimId") Long moimId) {
+        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return moimSessionService.getAllMoimSessions(moimId, curMember);
+    }
 
-    /*
+    /*s
      특정 정산활동 세부조회 - moim/session/{sessionId}
      */
+    @GetMapping("/{sessionId}")
+    public MoimSessionResponseDto getMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
+        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return moimSessionService.getMoimSession(sessionId, curMember);
+    }
 
     /*
      정산활동 수정

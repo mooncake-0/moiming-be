@@ -7,9 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.domain.session.QMoimSession.*;
+import static com.peoplein.moiming.domain.QSchedule.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -28,7 +30,15 @@ public class MoimSessionJpaRepository implements MoimSessionRepository {
     @Override
     public Optional<MoimSession> findOptionalById(Long sessionId) {
         return Optional.ofNullable(queryFactory.selectFrom(moimSession)
+                .join(moimSession.schedule, schedule).fetchJoin()
                 .where(moimSession.id.eq(sessionId))
                 .fetchOne());
+    }
+
+    @Override
+    public List<MoimSession> findAllByMoimId(Long moimId) {
+        return queryFactory.selectFrom(moimSession)
+                .where(moimSession.moim.id.eq(moimId))
+                .fetch();
     }
 }
