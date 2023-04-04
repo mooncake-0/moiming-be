@@ -242,4 +242,12 @@ public class TestUtils {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
     }
 
+
+    public static Area createAreaForTest() {
+        return new Area(TestUtils.areaState, TestUtils.areaCity);
+    }
+
+    public static Category createCategoryForTest() {
+        return new Category();
+    }
 }
