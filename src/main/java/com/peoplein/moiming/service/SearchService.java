@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.repository.MoimRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,5 +35,10 @@ public class SearchService {
         if (matcher.find()) {
             throw new IllegalArgumentException("자음 불가능");
         }
+
+        if (!StringUtils.hasText(keywords)) {
+            throw new IllegalArgumentException("공백 불가능");
+        }
+
     }
 }

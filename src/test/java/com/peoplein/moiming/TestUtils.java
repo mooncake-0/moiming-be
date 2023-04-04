@@ -133,6 +133,10 @@ public class TestUtils {
         return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
     }
 
+    public static Moim createOtherMoimOnly(String moimName, Area area) {
+        return Moim.createMoim(moimName, "other" + moimInfo, "other" + moimPfImg, area, createdUid);
+    }
+
     public static MoimPost initMoimPost(Moim moim, Member member) {
         return MoimPost.createMoimPost(postTitle, postContent, moimPostCategory, isNotice, hasFiles, moim, member);
     }
@@ -166,7 +170,7 @@ public class TestUtils {
 
 
     public static List<CategoryName> initCategoryName() {
-        return List.of(CategoryName.ALCOHOL);
+        return List.of(CategoryName.ALCOHOL, CategoryName.CODING);
     }
 
 
@@ -181,6 +185,18 @@ public class TestUtils {
         newCategory.setCategoryName(categoryNames.get(0));
         return List.of(newCategory);
     }
+
+    public static List<Category> createMoimCategoriesWithTwo() {
+        List<CategoryName> categoryNames = TestUtils.initCategoryName();
+        Category newCategory1 = new Category();
+        newCategory1.setCategoryName(categoryNames.get(0));
+
+        Category newCategory2 = new Category();
+        newCategory2.setCategoryName(categoryNames.get(1));
+
+        return List.of(newCategory1, newCategory2);
+    }
+
 
     public static void initDatabase(InitDatabaseQuery initDatabase) {
         initDatabase.initUserRole();
