@@ -1,5 +1,6 @@
 package com.peoplein.moiming.model.dto.domain;
 
+import com.peoplein.moiming.domain.Schedule;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,4 +22,21 @@ public class ScheduleDto {
     private String createdUid;
     private LocalDateTime updatedAt;
     private String updatedUid;
+
+    /*
+     Constructor 1
+     Entity 로 Domain Dto 만들기
+     */
+    public ScheduleDto(Schedule schedule) {
+        this.scheduleId = schedule.getId();
+        this.scheduleTitle = schedule.getScheduleTitle();
+        this.scheduleLocation = schedule.getScheduleLocation();
+        this.scheduleDate = schedule.getScheduleDate();
+        this.maxCount = schedule.getMaxCount();
+        this.isClosed = schedule.isClosed();
+        this.createdAt = schedule.getCreatedAt();
+        this.createdUid = schedule.getCreatedUid();
+        this.updatedAt = schedule.getUpdatedAt();
+        this.updatedUid = schedule.getUpdatedUid();
+    }
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QSchedule.*;
 import static com.peoplein.moiming.domain.QMoim.*;
@@ -29,6 +30,15 @@ public class ScheduleJpaRepository implements ScheduleRepository {
     @Override
     public Schedule findById(Long scheduleId) {
         return em.find(Schedule.class, scheduleId);
+    }
+
+    @Override
+    public Optional<Schedule> findOptionalById(Long scheduleId) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(schedule)
+                        .where(schedule.id.eq(scheduleId))
+                        .fetchOne()
+        );
     }
 
     @Override

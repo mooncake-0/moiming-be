@@ -111,4 +111,11 @@ public class MemberJpaRepository implements MemberRepository {
                 .fetchOne();
     }
 
+    @Override
+    public List<Member> findMembersByIds(List<Long> memberIds) {
+        return queryFactory.selectFrom(member)
+                .where(member.id.in(memberIds))
+                .fetch();
+    }
+
 }

@@ -1,0 +1,76 @@
+{
+  "moimSessionDto":{
+    "moimId":15,
+    "scheduleId":26,
+    "sessionName":"3월 회식 정산",
+    "sessionInfo":"1,2차 나눠서 정산합니다",
+    "totalCost":30000,
+    "totalSenderCount":10
+  },
+
+  "sessionCategoryDetailsDtos":[
+    {
+      "sessionCategoryType": "ACTIVITY",
+      "categoryTotalCost": 10000,
+      "sessionCategoryItems": [
+        {
+          "itemName":"룸대여",
+          "itemCost":"5000"
+        },
+        {
+          "itemName": "",
+          "itemCost": "5000"
+        }
+      ]
+    },
+    {
+      "sessionCategoryType": "FOOD",
+      "categoryTotalCost": 10000,
+      "sessionCategoryItems": [
+        {
+          "itemName":"1차치킨",
+          "itemCost":"7000"
+        },
+        {
+          "itemName": "",
+          "itemCost": "3000"
+        }
+      ]
+    },
+    {
+      "sessionCategoryType": "ALCOHOL",
+      "categoryTotalCost": 10000,
+      "sessionCategoryItems": [
+        {
+          "itemName":"소주값",
+          "itemCost":"10000"
+        }
+      ]
+    }
+  ],
+  "memberSessionLinkerDtos":
+  [
+    {
+      "memberId":1,
+      "singleCost": 10000,
+      "sessionCategoryTypes": [
+        "ACTIVITY", "FOOD"
+      ]
+    },
+    {
+      "memberId":4,
+      "singleCost": 10000,
+      "sessionCategoryTypes": [
+        "ACTIVITY", "FOOD", "ALCOHOL"
+      ]
+    },
+    {
+      "memberId":7,
+      "singleCost": 10000,
+      "sessionCategoryTypes": [
+        "FOOD", "ALCOHOL"
+      ]
+    }
+
+  ]
+}

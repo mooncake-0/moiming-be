@@ -4,12 +4,15 @@ import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.Schedule;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ScheduleRepository {
 
     Long save(Schedule schedule);
 
     Schedule findById(Long scheduleId);
+
+    Optional<Schedule> findOptionalById(Long scheduleId);
 
     Schedule findWithMoimById(Long scheduleId);
 

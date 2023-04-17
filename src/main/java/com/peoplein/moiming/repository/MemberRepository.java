@@ -22,4 +22,6 @@ public interface MemberRepository {
 
     Member findMemberAndMemberInfoWithRolesById(Long id);
 
+    List<Member> findMembersByIds(List<Long> memberIds);
+
 }

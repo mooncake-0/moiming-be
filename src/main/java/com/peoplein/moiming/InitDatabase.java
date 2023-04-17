@@ -137,5 +137,11 @@ public class InitDatabase {
     public void initReviewAnswers() {
         initDatabaseQuery.initReviewAnswers();
     }
+
+    @EventListener(ApplicationReadyEvent.class)
+    @Order(16)
+    public void initSessionCategories() {
+        initDatabaseQuery.initSessionCategories();
+    }
 }
 
