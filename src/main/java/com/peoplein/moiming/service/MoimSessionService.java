@@ -111,4 +111,11 @@ public class MoimSessionService {
         return moimSessionServiceShell.buildAllResponeModel(moimSession, curMember);
     }
 
+    public void updateMoimSession(MoimSessionRequestDto moimSessionRequestDto, Member curMember) {
+
+        // Long sessionId 에 val 이 하나 건너와야 한다
+
+
+    }
+
 }

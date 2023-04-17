@@ -54,13 +54,14 @@ public class MoimSessionController {
     /*
      정산활동 수정
      */
+    @PatchMapping("/update")
+    public void updateMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
+        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        moimSessionService.updateMoimSession(moimSessionRequestDto, curMember);
+    }
 
     /*
      정산활동 삭제
-     */
-
-    /*
-
      */
 
 
