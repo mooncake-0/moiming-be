@@ -57,6 +57,9 @@ dependencies {
 	// Test 환경
 //	runtimeOnly 'com.h2database:h2'
 
+	// FCM 환경
+	implementation 'com.google.firebase:firebase-admin:9.1.1'
+
 
 	// https://mvnrepository.com/artifact/org.mockito/mockito-core
 	testImplementation 'org.mockito:mockito-core:4.10.0'
@@ -68,6 +71,7 @@ dependencies {
 
 	testRuntimeOnly 'com.mysql:mysql-connector-j'
 //	untimeOnly 'com.mysql:mysql-connector-j'
+
 }
 
 tasks.named('test') {
