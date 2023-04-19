@@ -84,7 +84,7 @@ public class MoimPostController {
                             }),
             }
     )
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseModel<List<MoimPostDto>> viewAllMoimPost(@RequestParam(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseModel.createResponse(moimPostService.viewAllMoimPost(moimId, curMember));
