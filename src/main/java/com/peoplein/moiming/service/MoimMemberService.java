@@ -4,14 +4,12 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberInfo;
 import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
-import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
-import com.peoplein.moiming.domain.enums.MoimMemberState;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
+import com.peoplein.moiming.model.dto.domain.NotificationDto;
 import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
@@ -37,8 +35,8 @@ public class MoimMemberService {
 
     private final MoimRepository moimRepository;
     private final MemberMoimLinkerRepository memberMoimLinkerRepository;
-
     private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
 
     /*
      모임 내 모든 회원 및 상태 조회
@@ -61,11 +59,11 @@ public class MoimMemberService {
 
     /**
      * 특정 유저의 모임 가입 요청을 처리한다
+     *
      * @param moimJoinRequestDto : Moim 가입 요청 관련 데이터
-     * @param curMember : 현재 요청하는 Member 정보 (Security에서 확인)
-     * @return
-     *  - null : 재가입 불가능하게 강퇴당한 경우
-     *  - MyMoimLinkerDto : 재가입이 아닌 경우.
+     * @param curMember          : 현재 요청하는 Member 정보 (Security에서 확인)
+     * @return - null : 재가입 불가능하게 강퇴당한 경우
+     * - MyMoimLinkerDto : 재가입이 아닌 경우.
      */
     public MemberMoimLinker requestJoin(MoimJoinRequestDto moimJoinRequestDto, Member curMember) {
 
@@ -85,7 +83,7 @@ public class MoimMemberService {
             } else {
                 return null; // 재가입 불가능할 경우, null값 반환.
             }
-        }else{
+        } else {
             if (moim.isHasRuleJoin()) { // 가입조건 판별한다
                 memberState = moim.checkRuleJoinCondition(curMember.getMemberInfo(), memberMoimLinkers);
             }
@@ -103,9 +101,27 @@ public class MoimMemberService {
     /*
      WAIT 상태인 유저의 요청을 처리한다
      */
-    public MemberMoimLinker decideJoin(MoimMemberActionRequestDto moimMemberActionRequestDto) {
+    public MemberMoimLinker decideJoin(MoimMemberActionRequestDto moimMemberActionRequestDto, Member curMember) {
+
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoByMemberAndMoimId(moimMemberActionRequestDto.getMemberId(), moimMemberActionRequestDto.getMoimId());
         memberMoimLinker.judgeJoin(moimMemberActionRequestDto.getStateAction());
+
+        NotificationDto notificationDto
+                = new NotificationDto(null, curMember.getId()
+                , "", ""
+                , memberMoimLinker.getMoim().getId(), NotificationDomain.MOIM, null);
+
+        // UPDATE 되었을 테니, 정보를 통해 알림을 진행한다
+        if (memberMoimLinker.getMemberState().equals(MoimMemberState.DECLINE)) { // 거절
+            notificationDto.setNotiCategory(NotificationDomainCategory.MOIM_DECLINE_MEMBER);
+        } else if (memberMoimLinker.getMemberState().equals(MoimMemberState.ACTIVE)) { // 수락
+            notificationDto.setNotiCategory(NotificationDomainCategory.MOIM_NEW_MEMBER);
+        }
+
+        // 대상자에게 알림을 보낸다
+        notificationService.createNotification(notificationDto, memberMoimLinker.getMember());
+
+
         return memberMoimLinker;
     }
 

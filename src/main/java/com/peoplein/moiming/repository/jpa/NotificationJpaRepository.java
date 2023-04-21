@@ -1,6 +1,7 @@
 package com.peoplein.moiming.repository.jpa;
 
 
+import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.repository.NotificationRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
@@ -19,5 +20,9 @@ public class NotificationJpaRepository implements NotificationRepository {
     }
 
 
-
+    @Override
+    public Long save(Notification notification) {
+        em.persist(notification);
+        return notification.getId();
+    }
 }

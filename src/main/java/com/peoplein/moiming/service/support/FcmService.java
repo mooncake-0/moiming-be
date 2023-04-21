@@ -1,5 +1,6 @@
 package com.peoplein.moiming.service.support;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.peoplein.moiming.model.FcmMessageDto;
@@ -44,7 +45,7 @@ public class FcmService {
     }
 
 
-    public String buildMessage(String receiverToken, String title, String body) throws IOException {
+    public String buildMessage(String receiverToken, String title, String body) throws JsonProcessingException {
 
         FcmMessageDto.Notification notification = FcmMessageDto.Notification.builder()
                 .title(title)
@@ -64,27 +65,35 @@ public class FcmService {
 
     }
 
-    public void sendSingleMessageTo(String receiverToken, String title, String body) throws IOException {
+    public void sendSingleMessageTo(String receiverToken, String title, String body) {
 
-        if (!StringUtils.hasText(appAccessToken)) {
-            initAccessToken();
+        try {
+
+            if (!StringUtils.hasText(appAccessToken)) {
+                initAccessToken();
+            }
+
+            String message = buildMessage(receiverToken, title, body);
+
+            OkHttpClient client = new OkHttpClient();
+            RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
+
+            Request request = new Request.Builder()
+                    .url(API_URL)
+                    .post(requestBody)
+                    .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + appAccessToken)
+                    .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
+                    .build();
+
+            Response response = client.newCall(request).execute();
+
+            log.info("FCM SENT:: RESPONSE:: {}", response.body().string());
+
+        } catch (IOException exception) {
+
+            log.error("CREATE FCM ERROR :: {}", exception.getMessage());
+
         }
-
-        String message = buildMessage(receiverToken, title, body);
-
-        OkHttpClient client = new OkHttpClient();
-        RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(API_URL)
-                .post(requestBody)
-                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + appAccessToken)
-                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
-                .build();
-
-        Response response = client.newCall(request).execute();
-
-        log.info("FCM SENT:: RESPONSE:: {}", response.body().string());
-
     }
 
     public void sendBatchMessageTo(List<String> receiverToken, String title, String body) throws IOException {
