@@ -65,7 +65,7 @@ public class AuthService {
      4. 토큰 발급, Response 헤더 세팅
      5. ResponseDto 모델 세팅
      */
-    public ResponseModel<MemberResponseDto> signin(MemberSigninRequestDto memberSigninDto, HttpServletResponse response) {
+    public MemberResponseDto signin(MemberSigninRequestDto memberSigninDto, HttpServletResponse response) {
 
         DomainChecker.checkRightString("Member Signin Request Dto", true, memberSigninDto.getUid(), memberSigninDto.getPassword(), memberSigninDto.getEmail());
         checkUniqueColumnDuplication(memberSigninDto.getUid(), memberSigninDto.getEmail());
@@ -90,7 +90,7 @@ public class AuthService {
         // Response 객체 생성
         MemberDto memberDto = MemberDto.createMemberDtoWhenSignIn(signInMember);
         MemberInfoDto memberInfoDto = MemberInfoDto.createMemberInfoDtoWhenSignIn(signInMember.getMemberInfo());
-        return ResponseModel.createResponse(new MemberResponseDto(memberDto, memberInfoDto));
+        return new MemberResponseDto(memberDto, memberInfoDto);
     }
 
 

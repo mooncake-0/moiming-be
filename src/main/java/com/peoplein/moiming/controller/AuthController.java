@@ -64,8 +64,7 @@ public class AuthController {
             }
     )
     private ResponseModel<MemberResponseDto> signinMember(@RequestBody MemberSigninRequestDto requestDto, HttpServletResponse response) {
-
-        return authService.signin(requestDto, response);
+        MemberResponseDto dto = authService.signin(requestDto, response);
+        return ResponseModel.createResponse(dto);
     }
-
 }
