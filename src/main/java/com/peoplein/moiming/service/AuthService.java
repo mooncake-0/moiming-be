@@ -68,7 +68,6 @@ public class AuthService {
     public ResponseModel<MemberResponseDto> signin(MemberSigninRequestDto memberSigninDto, HttpServletResponse response) {
 
         DomainChecker.checkRightString("Member Signin Request Dto", true, memberSigninDto.getUid(), memberSigninDto.getPassword(), memberSigninDto.getEmail());
-
         checkUniqueColumnDuplication(memberSigninDto.getUid(), memberSigninDto.getEmail());
 
         // TODO : 이거 TEMP로 생성하는게 맞는건가?
@@ -80,6 +79,7 @@ public class AuthService {
                 encodedPassword,
                 memberSigninDto.getEmail(),
                 "TEMP",
+                memberSigninDto.getFcmToken(),
                 MemberGender.N,
                 roleUser);
 

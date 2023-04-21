@@ -80,7 +80,7 @@ public class AuthIntegrationTest extends BaseTest {
     void 회원가입() throws Exception {
 
         //given
-        MemberSigninRequestDto signinRequestDto = new MemberSigninRequestDto("jypark1234", "1234", "j@moiming.net");
+        MemberSigninRequestDto signinRequestDto = new MemberSigninRequestDto("jypark1234", "1234", "j@moiming.net", TestUtils.fcmToken);
 
         //when
         url += "/signin";
@@ -113,7 +113,7 @@ public class AuthIntegrationTest extends BaseTest {
     void 회원가입_실패_중복_UID() throws Exception {
 
         //given
-        MemberSigninRequestDto signinRequestDto = new MemberSigninRequestDto("wrock.kang", "1234", "kws8643@naver.com");
+        MemberSigninRequestDto signinRequestDto = new MemberSigninRequestDto("wrock.kang", "1234", "kws8643@naver.com", TestUtils.fcmToken);
 
         //when
         url += "/signin";
@@ -139,7 +139,7 @@ public class AuthIntegrationTest extends BaseTest {
     void 회원가입_실패_중복_EMAIL() throws Exception {
 
         //given
-        MemberSigninRequestDto signinRequestDto = new MemberSigninRequestDto("jypark1234", "1234", "a@moiming.net");
+        MemberSigninRequestDto signinRequestDto = new MemberSigninRequestDto("jypark1234", "1234", "a@moiming.net", TestUtils.fcmToken);
 
         //when
         url += "/signin";

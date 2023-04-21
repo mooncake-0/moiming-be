@@ -59,6 +59,7 @@ dependencies {
 
 	// FCM 환경
 	implementation 'com.google.firebase:firebase-admin:9.1.1'
+	implementation 'com.google.firebase:firebase-messaging'
 
 
 	// https://mvnrepository.com/artifact/org.mockito/mockito-core
