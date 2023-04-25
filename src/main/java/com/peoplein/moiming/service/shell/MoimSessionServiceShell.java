@@ -4,8 +4,11 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.Schedule;
+import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
 import com.peoplein.moiming.domain.fixed.SessionCategory;
+import com.peoplein.moiming.domain.session.MemberSessionCategoryLinker;
+import com.peoplein.moiming.domain.session.MemberSessionLinker;
 import com.peoplein.moiming.domain.session.MoimSession;
 import com.peoplein.moiming.domain.session.SessionCategoryItem;
 import com.peoplein.moiming.model.dto.SessionCategoryDetailsDto;
@@ -30,6 +33,9 @@ public class MoimSessionServiceShell {
     private final ScheduleRepository scheduleRepository;
     private final MoimSessionRepository moimSessionRepository;
     private final SessionCategoryRepository sessionCategoryRepository;
+    private final MemberSessionLinkerRepository memberSessionLinkerRepository;
+    private final SessionCategoryItemRepository sessionCategoryItemRepository;
+
 
     public MoimSessionServiceInput createInputForNewMoimSesion(MoimSessionRequestDto moimSessionRequestDto) {
 
@@ -141,6 +147,26 @@ public class MoimSessionServiceShell {
         return new MoimSessionResponseDto(moimSessionDto, scheduleDto
                 , sessionCategoryDetailsDtos
                 , memberSessionLinkerDtos);
+    }
+
+    // 정산활동 관리는 오직 리더나 관리자
+    public void checkAuthority(String path, Long moimId, Member curMember) {
+        MemberMoimLinker mml = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimId);
+        if (!mml.getMoimRoleType().equals(MoimRoleType.MANAGER) && !mml.getMoimRoleType().equals(MoimRoleType.LEADER)) {
+            throw new RuntimeException("정산활동 관여 권한이 없는 유저입니다");
+        }
+    }
+
+    public void processDelete(MoimSession moimSession) {
+        // 2. Session Category Item 을 모두 삭제
+        sessionCategoryItemRepository.removeAll(moimSession.getId());
+
+        // 3. Member Session Linker 를 모두 삭제
+        // TODO:: Cascade 속성에 의해 MemberSessionCategoryLinker 들도 모두 삭제 >> 이거 지난번에 에러났는데 될까?
+        memberSessionLinkerRepository.removeAll(moimSession.getId());
+
+        moimSessionRepository.remove(moimSession);
+
     }
 
 }

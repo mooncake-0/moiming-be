@@ -63,6 +63,12 @@ public class MoimSessionController {
     /*
      정산활동 삭제
      */
+    @DeleteMapping("/{sessionId}")
+    public ResponseModel<String> deleteMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
+        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        moimSessionService.deleteMoimSession(sessionId, curMember);
+        return ResponseModel.createResponse("OK");
+    }
 
 
     /*

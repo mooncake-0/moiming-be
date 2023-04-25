@@ -30,6 +30,9 @@ public class MoimSessionService {
 
     public MoimSessionResponseDto createMoimSession(MoimSessionRequestDto moimSessionRequestDto, Member curMember) {
 
+        // 생성 자체는 일반 유저가 불가능
+        moimSessionServiceShell.checkAuthority("CREATE", moimSessionRequestDto.getMoimSessionDto().getMoimId(), curMember);
+
         // moimSessionRequestDto 를 전달하여 Repository 단에서 통신 준비를 마치고, 준비된 애들을 가지고 와준다.
         MoimSessionServiceInput entityInputs = moimSessionServiceShell.createInputForNewMoimSesion(moimSessionRequestDto);
 
@@ -46,7 +49,9 @@ public class MoimSessionService {
                     int costCnt = 0;
 
                     for (SessionCategoryItemDto item : categoryDetails.getSessionCategoryItems()) {
-                        // 전송하는 기본 Data Set 지정 필요 > 그 항목으로 들어올 경우, DEFAUL 로 저장됨
+
+                        // TODO :: 전송하는 기본 Data Set 지정 필요 > 그 항목으로 들어올 경우, DEFAULT 로 저장됨
+
                         String itemName = item.getItemName();
                         if (itemName.equals("기본") || itemName.equals("")) {
                             itemName = SessionCategoryItem.DEFAULT_ITEM_NAME;
@@ -95,6 +100,7 @@ public class MoimSessionService {
          2. MoimSession 을 조회할 수 있도록 한다
          3. MoimSession 들의 기본 정보 형성 및 전달을 위해선?
          */
+
         List<MoimSession> moimSessions = moimSessionServiceShell.getAllMoimSessions(moimId);
         List<MoimSessionDto> moimSessionDtos = new ArrayList<>();
 
@@ -115,6 +121,15 @@ public class MoimSessionService {
 
         // Long sessionId 에 val 이 하나 건너와야 한다
 
+
+    }
+
+    public void deleteMoimSession(Long sessionId, Member curMember) {
+
+        // moimSession 을 삭제하기 위해선 권한 확인
+        MoimSession moimSession = moimSessionServiceShell.getMoimSession(sessionId);
+        moimSessionServiceShell.checkAuthority("UPDATE", moimSession.getMoim().getId(), curMember);
+        moimSessionServiceShell.processDelete(moimSession);
 
     }
 

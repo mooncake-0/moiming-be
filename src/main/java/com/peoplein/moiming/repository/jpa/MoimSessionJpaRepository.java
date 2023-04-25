@@ -41,4 +41,9 @@ public class MoimSessionJpaRepository implements MoimSessionRepository {
                 .where(moimSession.moim.id.eq(moimId))
                 .fetch();
     }
+
+    @Override
+    public void remove(MoimSession moimSession) {
+        em.remove(moimSession);
+    }
 }
