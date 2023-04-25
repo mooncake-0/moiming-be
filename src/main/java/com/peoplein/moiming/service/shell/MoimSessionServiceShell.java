@@ -72,7 +72,7 @@ public class MoimSessionServiceShell {
         return moimSessionRepository.findOptionalById(moimSessionId).orElseThrow(() -> new RuntimeException("해당 MoimSession 을 찾을 수 없습니다"));
     }
 
-    public MoimSessionResponseDto buildAllResponeModel(MoimSession moimSession
+    public MoimSessionResponseDto buildAllResponseModel(MoimSession moimSession
             , Member curMember) {
 
         // MoimSession 정보를 기준으로 다 만들어낸다

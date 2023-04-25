@@ -90,7 +90,7 @@ public class MoimSessionService {
         // DB 에 푸시 후 RETURN Model 준비
         moimSessionServiceShell.saveMoimSession(moimSession);
 
-        return moimSessionServiceShell.buildAllResponeModel(moimSession, curMember);
+        return moimSessionServiceShell.buildAllResponseModel(moimSession, curMember);
     }
 
     public List<MoimSessionDto> getAllMoimSessions(Long moimId, Member curMember) {
@@ -114,13 +114,26 @@ public class MoimSessionService {
     public MoimSessionResponseDto getMoimSession(Long moimSessionId, Member curMember) {
         // MoimSession 을 가지고 와서 ResponseModel 을 만든다
         MoimSession moimSession = moimSessionServiceShell.getMoimSession(moimSessionId);
-        return moimSessionServiceShell.buildAllResponeModel(moimSession, curMember);
+        return moimSessionServiceShell.buildAllResponseModel(moimSession, curMember);
     }
 
-    public void updateMoimSession(MoimSessionRequestDto moimSessionRequestDto, Member curMember) {
+    public MoimSessionResponseDto updateMoimSession(MoimSessionRequestDto moimSessionRequestDto, Member curMember) {
 
         // Long sessionId 에 val 이 하나 건너와야 한다
+        MoimSession moimSession = moimSessionServiceShell.getMoimSession(moimSessionRequestDto.getMoimSessionDto().getSessionId());
+        moimSessionServiceShell.checkAuthority("UPDATE", moimSession.getMoim().getId(), curMember);
 
+
+        // TODO :: 생각해볼 사항
+        //         정산활동 같은 경우 여러 도메인들이 엮여 있음
+        //         가령, 특정한 Category 내 CategoryItem 이 완전히 바뀌는 것을 "수정"이라고 해보면,
+        //         거의 새로운 정산활동을 만들어줘야 하는 것 > 수정의 요소를 판단하기 어려움
+        //         또한, 금액 수정도 서로 연관이 되어 있음. 하나만 바꿔줘도, 다 바꿔줘야 할 수도 있음
+        //         수정이 꽤나 복잡한 로직을 탈 수 있을 것으로 보임
+        //         일단 들어온 것 삭제 후, 재생성 로직 진행하는 것으로 구현해 두었다.
+
+        deleteMoimSession(moimSessionRequestDto.getMoimSessionDto().getSessionId(), curMember);
+        return createMoimSession(moimSessionRequestDto, curMember);
 
     }
 
@@ -128,7 +141,7 @@ public class MoimSessionService {
 
         // moimSession 을 삭제하기 위해선 권한 확인
         MoimSession moimSession = moimSessionServiceShell.getMoimSession(sessionId);
-        moimSessionServiceShell.checkAuthority("UPDATE", moimSession.getMoim().getId(), curMember);
+        moimSessionServiceShell.checkAuthority("DELETE", moimSession.getMoim().getId(), curMember);
         moimSessionServiceShell.processDelete(moimSession);
 
     }

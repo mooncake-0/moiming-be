@@ -55,9 +55,10 @@ public class MoimSessionController {
      정산활동 수정
      */
     @PatchMapping("/update")
-    public void updateMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
+    public ResponseModel<MoimSessionResponseDto> updateMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        moimSessionService.updateMoimSession(moimSessionRequestDto, curMember);
+        MoimSessionResponseDto moimSessionResponseDto = moimSessionService.updateMoimSession(moimSessionRequestDto, curMember);
+        return ResponseModel.createResponse(moimSessionResponseDto);
     }
 
     /*

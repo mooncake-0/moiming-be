@@ -17,7 +17,7 @@ public class MoimSessionRequestDto {
     // Session 기본 정보
     private MoimSessionDto moimSessionDto;
 
-    //
+
     // 정산 항목을 받아야 하고 * MoimSessionCategoryLinker
     // 정산 항목 내부에 하위 카테고리로 정산 품목들이 List 로 들어와있어야 한다
     private List<SessionCategoryDetailsDto> sessionCategoryDetailsDtos = new ArrayList<>();
