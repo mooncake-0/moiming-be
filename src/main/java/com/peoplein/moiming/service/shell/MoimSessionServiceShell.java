@@ -152,7 +152,8 @@ public class MoimSessionServiceShell {
     // 정산활동 관리는 오직 리더나 관리자
     public void checkAuthority(String path, Long moimId, Member curMember) {
         MemberMoimLinker mml = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimId);
-        if (!mml.getMoimRoleType().equals(MoimRoleType.MANAGER) && !mml.getMoimRoleType().equals(MoimRoleType.LEADER)) {
+        if (!mml.getMoimRoleType().equals(MoimRoleType.MANAGER) && !mml.getMoimRoleType().equals(MoimRoleType.LEADER) &&
+                !mml.getMoimRoleType().equals(MoimRoleType.CREATOR)) {
             throw new RuntimeException("정산활동 관여 권한이 없는 유저입니다");
         }
     }

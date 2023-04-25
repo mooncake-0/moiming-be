@@ -143,5 +143,11 @@ public class InitDatabase {
     public void initSessionCategories() {
         initDatabaseQuery.initSessionCategories();
     }
+
+    @EventListener(ApplicationReadyEvent.class)
+    @Order(17)
+    public void initSampleSession() {
+        initDatabaseQuery.initSampleSession();
+    }
 }
 
