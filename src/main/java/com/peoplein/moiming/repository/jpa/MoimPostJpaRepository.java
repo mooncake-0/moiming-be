@@ -3,6 +3,7 @@ package com.peoplein.moiming.repository.jpa;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.PostFileRepository;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -115,6 +116,15 @@ public class MoimPostJpaRepository implements MoimPostRepository {
                 .join(moimPost.member, member).fetchJoin()
                 .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(moimPost.moim.id.eq(moimId))
+                .fetch();
+    }
+
+    @Override
+    public List<MoimPost> findNoticesLatest3ByMoimIds(List<Long> moimIds) {
+        return queryFactory.selectFrom(moimPost)
+                .where(moimPost.moim.id.in(moimIds).and(moimPost.isNotice.eq(true)))
+                .orderBy(moimPost.updatedAt.desc())
+                .limit(3)
                 .fetch();
     }
 
