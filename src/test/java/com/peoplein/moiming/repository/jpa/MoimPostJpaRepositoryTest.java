@@ -192,6 +192,7 @@ public class MoimPostJpaRepositoryTest extends BaseTest {
 
         List<Long> moimIds = List.of(moim1.getId(), moim2.getId(), moim3.getId());
 
+        System.out.println("HERE======================================");
         // When :
         List<MoimPost> result = moimPostRepository.findNoticesLatest3ByMoimIds(moimIds);
 
@@ -298,7 +299,6 @@ public class MoimPostJpaRepositoryTest extends BaseTest {
 
     private void saveEntities(Object... objects) {
         for (Object object : objects) {
-            System.out.println(object.toString());
             em.persist(object);
         }
         em.flush();
