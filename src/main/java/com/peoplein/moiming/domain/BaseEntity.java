@@ -3,6 +3,7 @@ package com.peoplein.moiming.domain;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -14,11 +15,11 @@ import java.time.LocalDateTime;
 @Getter
 public class BaseEntity {
 
-    @Column(nullable = false, updatable = true, insertable = true)
+    @Column(nullable = false, updatable = false, insertable = true)
     private LocalDateTime createdAt;
 
 
-    @Column(updatable = true, insertable = false)
+    @Column(updatable = true, insertable = true, nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist
