@@ -25,6 +25,7 @@ public class MoimSessionDto {
      생성 요청 시에는 부재인 정보들
      */
     private Long sessionId;
+    private boolean isFinished;
     private int curCost;
     private int curSenderCount;
     private LocalDateTime createdAt;
@@ -55,6 +56,7 @@ public class MoimSessionDto {
         this.createdUid = moimSession.getCreatedUid();
         this.updatedAt = moimSession.getUpdatedAt();
         this.updatedUid = moimSession.getUpdatedUid();
+        this.isFinished = moimSession.isFinished();
     }
 
 //    /*

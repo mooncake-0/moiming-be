@@ -1,14 +1,18 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.enums.MemberSessionState;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
 import com.peoplein.moiming.domain.session.MemberSessionCategoryLinker;
 import com.peoplein.moiming.domain.session.MemberSessionLinker;
 import com.peoplein.moiming.domain.session.MoimSession;
 import com.peoplein.moiming.domain.session.SessionCategoryItem;
+import com.peoplein.moiming.model.dto.domain.MemberSessionLinkerDto;
+import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MoimSessionDto;
 import com.peoplein.moiming.model.dto.domain.SessionCategoryItemDto;
+import com.peoplein.moiming.model.dto.request.MemberSessionStateRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimSessionRequestDto;
 import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
 import com.peoplein.moiming.service.input.MoimSessionServiceInput;
@@ -20,6 +24,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -51,7 +56,6 @@ public class MoimSessionService {
     }
 
 
-
     public List<MoimSessionDto> getAllMoimSessions(Long moimId, Member curMember) {
 
         /*
@@ -71,14 +75,11 @@ public class MoimSessionService {
     }
 
 
-
     public MoimSessionResponseDto getMoimSession(Long moimSessionId, Member curMember) {
         // MoimSession 을 가지고 와서 ResponseModel 을 만든다
         MoimSession moimSession = moimSessionServiceShell.getMoimSession(moimSessionId);
         return moimSessionServiceShell.buildAllResponseModel(moimSession);
     }
-
-
 
 
     // TODO :: 생각해볼 사항
@@ -136,8 +137,6 @@ public class MoimSessionService {
     }
 
 
-
-
     public void deleteMoimSession(Long sessionId, Member curMember) {
 
         // moimSession 을 삭제하기 위해선 권한 확인
@@ -146,7 +145,6 @@ public class MoimSessionService {
         moimSessionServiceShell.processDelete(moimSession);
 
     }
-
 
 
     /*
@@ -196,6 +194,47 @@ public class MoimSessionService {
                 );
             });
         });
+    }
 
+
+    public MemberSessionLinkerDto changeSessionMemberStatus(Long moimId, Long sessionId, Long memberId, MemberSessionStateRequestDto memberSessionStateRequestDto, Member curMember) {
+
+        // 해당 요청에 대한 권한 체킹 및 MML 준비
+        moimSessionServiceShell.checkAuthority("STATUS", moimId, curMember);
+
+        // 해당 Linker 를 찾는다
+        MemberSessionLinker moimSessionLinker = moimSessionServiceShell.findMoimSessionLinker(sessionId, memberId);
+
+        if (moimSessionLinker.getMoimSession().isFinished()) {
+            throw new RuntimeException("완료된 정산활동에 대해서는 변경할 수 없습니다");
+        }
+
+        // 해당 Linker 에 대한 state 을 변경한다
+        // 보냈음을 확인처리
+        if (moimSessionLinker.getMemberSessionState().equals(MemberSessionState.UNSENT)) {
+            if (memberSessionStateRequestDto.getMemberSessionState().equals(MemberSessionState.SENT)) {
+                // 바꿨다고 해주는 경우에는, Session 정보도 업데이트를 해준다
+                moimSessionLinker.changeMemberStateSent(curMember);
+            }
+        }
+
+        // 보냈던걸 취소처리
+        if (moimSessionLinker.getMemberSessionState().equals(MemberSessionState.SENT)) {
+            if (memberSessionStateRequestDto.getMemberSessionState().equals(MemberSessionState.UNSENT)) {
+                moimSessionLinker.changeMemberStateUnsent(curMember);
+            }
+        }
+
+        // categoryTypes 반환 ....
+        List<SessionCategoryType> categoryTypes = moimSessionLinker.getMemberSessionCategoryLinkers().stream().map(mscl -> mscl.getSessionCategory().getCategoryType()).collect(Collectors.toList());
+
+
+        // 해당 유저의 정보 반환
+        MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(moimSessionServiceShell.findMemberMoimLinker(memberId, moimId));
+
+        // 변경 정보를 반환한다
+        return new MemberSessionLinkerDto(memberId, moimSessionLinker.getSingleCost(), categoryTypes
+                , moimMemberInfoDto, moimSessionLinker.getMemberSessionState()
+                , moimSessionLinker.getCreatedAt(), moimSessionLinker.getUpdatedAt());
     }
 }

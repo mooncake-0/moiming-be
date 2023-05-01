@@ -140,7 +140,9 @@ public class MoimSessionServiceShell {
                     memberSessionLinker.getMember().getId(), memberSessionLinker.getSingleCost()
                     , memberSessionLinker.getMemberSessionCategoryTypes()
                     , moimMemberInfoDto
+                    , memberSessionLinker.getMemberSessionState(), memberSessionLinker.getCreatedAt(), memberSessionLinker.getUpdatedAt()
             );
+
             memberSessionLinkerDtos.add(memberSessionLinkerDto);
         });
 
@@ -151,12 +153,13 @@ public class MoimSessionServiceShell {
     }
 
     // 정산활동 관리는 오직 리더나 관리자
-    public void checkAuthority(String path, Long moimId, Member curMember) {
+    public MemberMoimLinker checkAuthority(String path, Long moimId, Member curMember) {
         MemberMoimLinker mml = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimId);
         if (!mml.getMoimRoleType().equals(MoimRoleType.MANAGER) && !mml.getMoimRoleType().equals(MoimRoleType.LEADER) &&
                 !mml.getMoimRoleType().equals(MoimRoleType.CREATOR)) {
             throw new RuntimeException("정산활동 관여 권한이 없는 유저입니다");
         }
+        return mml;
     }
 
     public void processDelete(MoimSession moimSession) {
@@ -174,4 +177,20 @@ public class MoimSessionServiceShell {
 
     }
 
+    public MemberMoimLinker findMemberMoimLinker(Long memberId, Long moimId) {
+
+        Optional<MemberMoimLinker> optionalMml = memberMoimLinkerRepository.findOptionalByMemberAndMoimId(memberId, moimId);
+        if (optionalMml.isEmpty()) {
+            throw new RuntimeException("대상 유저는 해당 모임에 속하지 않습니다");
+        }
+        return optionalMml.get();
+    }
+
+    public MemberSessionLinker findMoimSessionLinker(Long sessionId, Long memberId) {
+        Optional<MemberSessionLinker> optionalMsl = memberSessionLinkerRepository.findOptionalByMemberAndSessionId(memberId, sessionId);
+        if (optionalMsl.isEmpty()) {
+            throw new RuntimeException("해당 ID의 MemberSessionLinker 를 찾을 수 없습니다");
+        }
+        return optionalMsl.get();
+    }
 }

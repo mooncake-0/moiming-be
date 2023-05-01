@@ -4,7 +4,9 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ResponseModel;
+import com.peoplein.moiming.model.dto.domain.MemberSessionLinkerDto;
 import com.peoplein.moiming.model.dto.domain.MoimSessionDto;
+import com.peoplein.moiming.model.dto.request.MemberSessionStateRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimSessionRequestDto;
 import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
 import com.peoplein.moiming.service.MoimSessionService;
@@ -71,6 +73,22 @@ public class MoimSessionController {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimSessionService.deleteMoimSession(sessionId, curMember);
         return ResponseModel.createResponse("OK");
+    }
+
+    /*
+     정산활동 멤버 상태변경
+     */
+    @PatchMapping("/{sessionId}/member/{memberId}/status")
+    public ResponseModel<MemberSessionLinkerDto> changeSessionMemberStatus(@PathVariable(name = "sessionId") Long sessionId
+            , @PathVariable(name = "memberId") Long memberId
+            , @RequestParam(name = "moimId") Long moimId
+            , @RequestBody MemberSessionStateRequestDto memberSessionStateRequestDto) {
+
+        // 내가 나에 대한 변경을 요청하는 것일 수도, 관리자가 하는 것일 수도 있음
+        // 일단은 "완료" / "미완료" 만 변경할 수 있으므로 only 관리자일 뿐인듯
+        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MemberSessionLinkerDto responseDto = moimSessionService.changeSessionMemberStatus(moimId, sessionId, memberId, memberSessionStateRequestDto, curMember);
+        return ResponseModel.createResponse(responseDto);
     }
 
 

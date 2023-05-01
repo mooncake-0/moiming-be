@@ -34,6 +34,8 @@ public class MoimSession {
 
     private int curSenderCount;
 
+    private boolean isFinished;
+
     private LocalDateTime createdAt;
     private String createdUid;
 
@@ -87,6 +89,7 @@ public class MoimSession {
         this.createdUid = createdUid;
 
         // 초기화
+        this.isFinished = false;
         this.curCost = 0;
         this.curSenderCount = 0;
         this.createdAt = LocalDateTime.now();
@@ -102,12 +105,31 @@ public class MoimSession {
         this.createdAt = createdAt;
     }
 
-    public void setCurCost(int curCost) {
-        this.curCost = curCost;
+    public void addCurCost(int sentCost) {
+        this.curCost += sentCost;
+        if (this.curCost == this.totalCost) {
+            //  정산완료
+            this.isFinished = true;
+        }
     }
 
-    public void setCurSenderCount(int curSenderCount) {
-        this.curSenderCount = curSenderCount;
+    public void addCurSenderCount() {
+        this.curSenderCount += 1;
+    }
+
+    // 보냈던걸 취소할 경우
+    public void removalCurCost(int removalCurCost) {
+        if (curCost - removalCurCost < 0) {
+            throw new RuntimeException("계산이 맞지 않습니다 (curCost < 0)");
+        }
+        this.curCost -= removalCurCost;
+    }
+
+    public void removalCurSenderCount() {
+        if (this.curSenderCount == 0) {
+            throw new RuntimeException("인원이 맞지 않습니다 (curSenderCount < 0)");
+        }
+        this.curSenderCount -= 1;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {

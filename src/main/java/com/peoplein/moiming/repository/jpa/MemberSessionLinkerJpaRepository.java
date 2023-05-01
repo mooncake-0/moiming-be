@@ -8,7 +8,11 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 
+import java.util.Optional;
+
 import static com.peoplein.moiming.domain.session.QMemberSessionLinker.*;
+import static com.peoplein.moiming.domain.session.QMoimSession.*;
+
 @Repository
 @RequiredArgsConstructor
 public class MemberSessionLinkerJpaRepository implements MemberSessionLinkerRepository {
@@ -20,6 +24,16 @@ public class MemberSessionLinkerJpaRepository implements MemberSessionLinkerRepo
     public Long save(MemberSessionLinker memberSessionLinker) {
         em.persist(memberSessionLinker);
         return memberSessionLinker.getId();
+    }
+
+    @Override
+    public Optional<MemberSessionLinker> findOptionalByMemberAndSessionId(Long memberId, Long sessionId) {
+
+        return Optional.ofNullable(queryFactory.selectFrom(memberSessionLinker)
+                .join(memberSessionLinker.moimSession, moimSession).fetchJoin()
+                .where(memberSessionLinker.member.id.eq(memberId)
+                        , memberSessionLinker.moimSession.id.eq(sessionId))
+                .fetchOne());
     }
 
     @Override
