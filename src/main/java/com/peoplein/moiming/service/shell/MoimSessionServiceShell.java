@@ -35,6 +35,7 @@ public class MoimSessionServiceShell {
     private final SessionCategoryRepository sessionCategoryRepository;
     private final MemberSessionLinkerRepository memberSessionLinkerRepository;
     private final SessionCategoryItemRepository sessionCategoryItemRepository;
+    private final MemberSessionCategoryLinkerRepository memberSessionCategoryLinkerRepository;
 
 
     public MoimSessionServiceInput createInputForNewMoimSesion(MoimSessionRequestDto moimSessionRequestDto) {
@@ -72,8 +73,7 @@ public class MoimSessionServiceShell {
         return moimSessionRepository.findOptionalById(moimSessionId).orElseThrow(() -> new RuntimeException("해당 MoimSession 을 찾을 수 없습니다"));
     }
 
-    public MoimSessionResponseDto buildAllResponseModel(MoimSession moimSession
-            , Member curMember) {
+    public MoimSessionResponseDto buildAllResponseModel(MoimSession moimSession) {
 
         // MoimSession 정보를 기준으로 다 만들어낸다
         MoimSessionDto moimSessionDto = new MoimSessionDto(moimSession);
@@ -81,6 +81,7 @@ public class MoimSessionServiceShell {
         // MoimSession 내 Schedule 정보로 ScheduleDto 를 만들어준다
         ScheduleDto scheduleDto = null;
         if (moimSession.getSchedule() != null) {
+            // Schedule 은 Join 되어 있지 않으므로, get 하는 순간 쿼리가 발생한다
             scheduleDto = new ScheduleDto(moimSession.getSchedule());
         }
 
@@ -159,13 +160,16 @@ public class MoimSessionServiceShell {
     }
 
     public void processDelete(MoimSession moimSession) {
+
+        // 해당 MoimSesion 에 관련된 모든 MemberSessionLinker 객체들을 가져온다
+        List<Long> mslIds = moimSession.getMemberSessionLinkers().stream().map(MemberSessionLinker::getId).collect(Collectors.toList());
+
         // 2. Session Category Item 을 모두 삭제
         sessionCategoryItemRepository.removeAll(moimSession.getId());
 
         // 3. Member Session Linker 를 모두 삭제
-        // TODO:: Cascade 속성에 의해 MemberSessionCategoryLinker 들도 모두 삭제 >> 이거 지난번에 에러났는데 될까?
+        memberSessionCategoryLinkerRepository.removeAll(mslIds); // MSL 들을 삭제하기 위해선 MemberSessionCategoryLinker 들을 모두 삭제해야 한다
         memberSessionLinkerRepository.removeAll(moimSession.getId());
-
         moimSessionRepository.remove(moimSession);
 
     }

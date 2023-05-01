@@ -246,9 +246,11 @@ public class InitDatabaseQuery {
         Moim moim = moimRepository.findById(moim1Id);
         Member curMember = memberRepository.findMemberByUid(InitConstant.WOOJIN_UID);
         Member curMember2 = memberRepository.findMemberByUid(InitConstant.BYUNGHO_UID);
+        Member curMember3 = memberRepository.findMemberByUid(InitConstant.JUBIN_UID);
 
         MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
         MemberMoimLinker.memberJoinMoim(curMember2, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
+        MemberMoimLinker.memberJoinMoim(curMember3, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
     }
 
 
@@ -433,7 +435,7 @@ public class InitDatabaseQuery {
         SessionCategory sessionCategory1 = SessionCategory.createSessionCategory(SessionCategoryType.ACTIVITY);
         SessionCategory sessionCategory2 = SessionCategory.createSessionCategory(SessionCategoryType.FOOD);
         SessionCategory sessionCategory3 = SessionCategory.createSessionCategory(SessionCategoryType.ALCOHOL);
-        SessionCategory sessionCategory4 = SessionCategory.createSessionCategory(SessionCategoryType.DRINKS);
+        SessionCategory sessionCategory4 = SessionCategory.createSessionCategory(SessionCategoryType.DRINK);
         SessionCategory sessionCategory5 = SessionCategory.createSessionCategory(SessionCategoryType.EXTRA);
 
         em.persist(sessionCategory1);

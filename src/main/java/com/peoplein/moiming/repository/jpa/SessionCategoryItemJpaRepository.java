@@ -13,8 +13,8 @@ import static com.peoplein.moiming.domain.session.QSessionCategoryItem.*;
 @RequiredArgsConstructor
 public class SessionCategoryItemJpaRepository implements SessionCategoryItemRepository {
 
-    private EntityManager em;
-    private JPAQueryFactory queryFactory;
+    private final EntityManager em;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public Long save(SessionCategoryItem sessionCategoryItem) {

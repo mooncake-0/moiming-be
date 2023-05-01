@@ -27,10 +27,12 @@ public class MoimSessionJpaRepository implements MoimSessionRepository {
         return moimSession.getId();
     }
 
+    // Schedule Join 된 상태로 조회하면, Schedule 이 없을시 조회되지 않는다
+    // session 에 schedule 이 있을 때 조회하는걸로 하자
     @Override
     public Optional<MoimSession> findOptionalById(Long sessionId) {
         return Optional.ofNullable(queryFactory.selectFrom(moimSession)
-                .join(moimSession.schedule, schedule).fetchJoin()
+//                .join(moimSession.schedule, schedule).fetchJoin()
                 .where(moimSession.id.eq(sessionId))
                 .fetchOne());
     }

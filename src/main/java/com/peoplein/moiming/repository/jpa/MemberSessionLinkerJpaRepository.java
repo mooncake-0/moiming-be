@@ -13,8 +13,8 @@ import static com.peoplein.moiming.domain.session.QMemberSessionLinker.*;
 @RequiredArgsConstructor
 public class MemberSessionLinkerJpaRepository implements MemberSessionLinkerRepository {
 
-    private EntityManager em;
-    private JPAQueryFactory queryFactory;
+    private final EntityManager em;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public Long save(MemberSessionLinker memberSessionLinker) {

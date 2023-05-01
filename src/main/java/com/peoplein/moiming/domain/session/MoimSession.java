@@ -55,10 +55,10 @@ public class MoimSession {
     /*
      다대다 연관관계 매핑
      */
-    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.PERSIST)
     private List<SessionCategoryItem> sessionCategoryItems = new ArrayList<>();
 
-    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.PERSIST)
     private List<MemberSessionLinker> memberSessionLinkers = new ArrayList<>();
 
 
@@ -97,4 +97,24 @@ public class MoimSession {
     }
 
 
+    public void changeCreatedAt(LocalDateTime createdAt) {
+        DomainChecker.checkWrongObjectParams(getClass().getName(), createdAt);
+        this.createdAt = createdAt;
+    }
+
+    public void setCurCost(int curCost) {
+        this.curCost = curCost;
+    }
+
+    public void setCurSenderCount(int curSenderCount) {
+        this.curSenderCount = curSenderCount;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setUpdatedUid(String updatedUid) {
+        this.updatedUid = updatedUid;
+    }
 }

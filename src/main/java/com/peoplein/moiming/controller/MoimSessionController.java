@@ -37,9 +37,9 @@ public class MoimSessionController {
      모임 내 모든 정산활동 기본 정보 조회 - moim/session?moimId={}
      */
     @GetMapping("")
-    public List<MoimSessionDto> getAllMoimSessions(@RequestParam(name = "moimId") Long moimId) {
+    public ResponseModel<List<MoimSessionDto>> getAllMoimSessions(@RequestParam(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return moimSessionService.getAllMoimSessions(moimId, curMember);
+        return ResponseModel.createResponse(moimSessionService.getAllMoimSessions(moimId, curMember));
     }
 
     /*s
@@ -48,13 +48,15 @@ public class MoimSessionController {
     @GetMapping("/{sessionId}")
     public MoimSessionResponseDto getMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println(sessionId);
         return moimSessionService.getMoimSession(sessionId, curMember);
     }
 
     /*
      정산활동 수정
      */
-    @PatchMapping("/update")
+    // Patch 가 아닌 PUT 으로 업데이트 진행
+    @PutMapping("/update")
     public ResponseModel<MoimSessionResponseDto> updateMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimSessionResponseDto moimSessionResponseDto = moimSessionService.updateMoimSession(moimSessionRequestDto, curMember);

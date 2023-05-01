@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -36,6 +37,13 @@ public class MoimSessionDto {
      MoimSession 도메인 정보를 가지고 DTO 를 만들어내는 Constructor
      */
     public MoimSessionDto(MoimSession moimSession) {
+        // ID 만 조회하는 것은 QUERY 에 영향을 주지 않는다
+        // 생성 요청시 NULL
+        this.moimId = moimSession.getMoim().getId();
+        if (!Objects.isNull(moimSession.getSchedule())) { // 없을 수도 있음
+            this.scheduleId = moimSession.getSchedule().getId();
+        }
+        //
         this.sessionId = moimSession.getId();
         this.sessionName = moimSession.getSessionName();
         this.sessionInfo = moimSession.getSessionInfo();

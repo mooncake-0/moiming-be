@@ -1,15 +1,18 @@
 {
   "moimSessionDto": {
+    "sessionId": 93,
     "moimId": 15,
+    "scheduleId": 26,
     "sessionName": "3월 회식 정산",
     "sessionInfo": "1,2차 나눠서 정산합니다",
     "totalCost": 300000,
-    "totalSenderCount": 3
+    "totalSenderCount": 4
   },
+
   "sessionCategoryDetailsDtos": [
     {
       "sessionCategoryType": "ACTIVITY",
-      "categoryTotalCost": 150000,
+      "categoryTotalCost": 160000,
       "sessionCategoryItems": [
         {
           "itemName": "룸대여",
@@ -17,7 +20,7 @@
         },
         {
           "itemName": "",
-          "itemCost": "50000"
+          "itemCost": "60000"
         }
       ]
     },
@@ -37,11 +40,11 @@
     },
     {
       "sessionCategoryType": "ALCOHOL",
-      "categoryTotalCost": 30000,
+      "categoryTotalCost": 20000,
       "sessionCategoryItems": [
         {
           "itemName": "소주값",
-          "itemCost": "30000"
+          "itemCost": "20000"
         }
       ]
     },
@@ -77,7 +80,7 @@
   "memberSessionLinkerDtos": [
     {
       "memberId": 1,
-      "singleCost": 99000,
+      "singleCost": 75000,
       "sessionCategoryTypes": [
         "ACTIVITY",
         "FOOD",
@@ -87,7 +90,7 @@
     },
     {
       "memberId": 4,
-      "singleCost": 93000,
+      "singleCost": 75000,
       "sessionCategoryTypes": [
         "ACTIVITY",
         "FOOD",
@@ -97,11 +100,20 @@
     },
     {
       "memberId": 7,
-      "singleCost": 108000,
+      "singleCost": 75000,
       "sessionCategoryTypes": [
         "ACTIVITY",
         "FOOD",
         "DRINK",
+        "EXTRA"
+      ]
+    },
+    {
+      "memberId": 10,
+      "singleCost": 75000,
+      "sessionCategoryTypes": [
+        "ACTIVITY",
+        "FOOD",
         "ALCOHOL",
         "EXTRA"
       ]
