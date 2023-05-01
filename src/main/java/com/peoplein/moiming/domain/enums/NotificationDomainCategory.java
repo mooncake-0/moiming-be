@@ -18,4 +18,8 @@ public enum NotificationDomainCategory {
 
     // 댓글 달림
     POST_COMMENT,
+
+
+    // 기타
+    DEFAULT
 }

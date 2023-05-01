@@ -29,9 +29,9 @@ import java.util.List;
 @Slf4j
 public class FcmService {
 
-    // 초기화 이후 앱 내에서 지속 사용 가능
+    // 초기화 이후 앱 내에서 지속 사용 가능, 단 해당 클래스 내에서만 사용됨
     private String appAccessToken;
-    private String API_URL = "https://fcm.googleapis.com/v1/projects/moiming-b2ae3/messages:send";
+    private static final String API_URL = "https://fcm.googleapis.com/v1/projects/moiming-b2ae3/messages:send";
 
     private final ObjectMapper om = new ObjectMapper();
 
@@ -91,6 +91,7 @@ public class FcmService {
 
         } catch (IOException exception) {
 
+            // TODO : FCM SEND FAILURE HANDLING NEEDED
             log.error("CREATE FCM ERROR :: {}", exception.getMessage());
 
         }

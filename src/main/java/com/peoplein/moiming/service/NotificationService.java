@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.enums.NotificationDomain;
 import com.peoplein.moiming.domain.enums.NotificationDomainCategory;
 import com.peoplein.moiming.model.dto.domain.NotificationDto;
+import com.peoplein.moiming.model.inner.NotificationInput;
 import com.peoplein.moiming.repository.NotificationRepository;
 import com.peoplein.moiming.service.shell.NotificationServiceShell;
 import com.peoplein.moiming.service.support.FcmService;
@@ -34,15 +35,16 @@ public class NotificationService {
 
     }
 
-    public void createNotification(NotificationDto notificationDto, Member receiver) {
+    //
+    public void createNotification(NotificationInput notificationInput, Member receiver) {
 
         // 1. 수신된 notificationDto 를 가지고 어떤 noti 인지 파악한다
-        List<String> info = buildTitleAndBody(notificationDto);
+        List<String> info = buildTitleAndBody(notificationInput);
 
         // 2. Notification Entity 를 만들어 저장한다
-        Notification notification = Notification.createNotification(notificationDto.getSenderId()
+        Notification notification = Notification.createNotification(notificationInput.getSenderId()
                 , info.get(0), info.get(1)
-                , notificationDto.getDomainId(), notificationDto.getNotiDomain(), notificationDto.getNotiCategory()
+                , notificationInput.getDomainId(), notificationInput.getNotiDomain(), notificationInput.getNotiDomainCategory()
                 , receiver);
 
         notificationRepository.save(notification);
@@ -57,28 +59,28 @@ public class NotificationService {
 
 
     // Noti 에 대한 정보를 토대로 제목과 내용을 작성한다
-    private List<String> buildTitleAndBody(NotificationDto notificationDto) {
+    private List<String> buildTitleAndBody(NotificationInput notificationInput) {
 
         List<String> res = new ArrayList<>();
+
         String title = "";
         String body = "";
 
         // NotificationDomain 과 Category 에 다른 종류별 MSG BUILD
-        if (notificationDto.getNotiDomain().equals(NotificationDomain.MOIM)) {
+        if (notificationInput.getNotiDomain().equals(NotificationDomain.MOIM)) {
 
-            notificationServiceShell.initMoim(notificationDto.getDomainId());
+            notificationServiceShell.initMoim(notificationInput.getDomainId());
             Moim moim = notificationServiceShell.getMoim();
 
-            if (notificationDto.getNotiCategory().equals(NotificationDomainCategory.MOIM_NEW_MEMBER)) {
+            if (notificationInput.getNotiDomainCategory().equals(NotificationDomainCategory.MOIM_NEW_MEMBER)) {
                 title = "모임 가입 수락 알림";
                 body = moim.getMoimName() + " 모임에서 가입을 수락하였습니다. 지금 바로 모임활동에 참여해보세요";
             }
 
-            if (notificationDto.getNotiCategory().equals(NotificationDomainCategory.MOIM_DECLINE_MEMBER)) {
+            if (notificationInput.getNotiDomainCategory().equals(NotificationDomainCategory.MOIM_DECLINE_MEMBER)) {
                 title = "모임 가입 거절 알림";
                 body = moim.getMoimName() + " 모임에서 가입을 거절하였습니다. 거절 사유를 확인해보세요";
             }
-
         }
 
         res.add(title);

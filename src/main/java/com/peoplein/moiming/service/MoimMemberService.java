@@ -12,6 +12,7 @@ import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
 import com.peoplein.moiming.model.dto.domain.NotificationDto;
 import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
+import com.peoplein.moiming.model.inner.NotificationInput;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
@@ -106,20 +107,22 @@ public class MoimMemberService {
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoByMemberAndMoimId(moimMemberActionRequestDto.getMemberId(), moimMemberActionRequestDto.getMoimId());
         memberMoimLinker.judgeJoin(moimMemberActionRequestDto.getStateAction());
 
-        NotificationDto notificationDto
-                = new NotificationDto(null, curMember.getId()
-                , "", ""
-                , memberMoimLinker.getMoim().getId(), NotificationDomain.MOIM, null);
+        NotificationDomainCategory notificationDomainCategory = NotificationDomainCategory.DEFAULT;
 
         // UPDATE 되었을 테니, 정보를 통해 알림을 진행한다
         if (memberMoimLinker.getMemberState().equals(MoimMemberState.DECLINE)) { // 거절
-            notificationDto.setNotiCategory(NotificationDomainCategory.MOIM_DECLINE_MEMBER);
+            notificationDomainCategory = NotificationDomainCategory.MOIM_DECLINE_MEMBER;
         } else if (memberMoimLinker.getMemberState().equals(MoimMemberState.ACTIVE)) { // 수락
-            notificationDto.setNotiCategory(NotificationDomainCategory.MOIM_NEW_MEMBER);
+            notificationDomainCategory = NotificationDomainCategory.MOIM_NEW_MEMBER;
+        } else {
+            throw new RuntimeException("ERROR : 해당 요청으로는 [" + memberMoimLinker.getMemberState() + "] 상태로 반환될 수 없습니다");
         }
 
+        NotificationInput notificationInput = new NotificationInput(curMember.getId(), memberMoimLinker.getMoim().getId()
+                , NotificationDomain.MOIM, notificationDomainCategory);
+
         // 대상자에게 알림을 보낸다
-        notificationService.createNotification(notificationDto, memberMoimLinker.getMember());
+        notificationService.createNotification(notificationInput, memberMoimLinker.getMember());
 
 
         return memberMoimLinker;
