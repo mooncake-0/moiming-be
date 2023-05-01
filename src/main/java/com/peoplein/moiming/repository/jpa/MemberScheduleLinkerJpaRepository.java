@@ -57,4 +57,14 @@ public class MemberScheduleLinkerJpaRepository implements MemberScheduleLinkerRe
     public void removeAllByScheduleIds(List<Long> scheduleIds) {
         queryFactory.delete(memberScheduleLinker).where(memberScheduleLinker.schedule.id.in(scheduleIds)).execute();
     }
+
+    @Override
+    public List<MemberScheduleLinker> findMemberScheduleLatest5ByMemberId(Long memberId) {
+        return queryFactory
+                .selectFrom(memberScheduleLinker)
+                .where(memberScheduleLinker.member.id.eq(memberId))
+                .orderBy(memberScheduleLinker.schedule.scheduleDate.desc())
+                .limit(5)
+                .fetch();
+    }
 }
