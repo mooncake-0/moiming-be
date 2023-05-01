@@ -36,61 +36,21 @@ public class MoimSessionService {
 
         // moimSessionRequestDto 를 전달하여 Repository 단에서 통신 준비를 마치고, 준비된 애들을 가지고 와준다.
         MoimSessionServiceInput entityInputs = moimSessionServiceShell.createInputForNewMoimSesion(moimSessionRequestDto);
-
-        MoimSessionDto moimSessionDto = moimSessionRequestDto.getMoimSessionDto();
         MoimSession moimSession = MoimSession.createMoimSession(
-                moimSessionDto.getSessionName(), moimSessionDto.getSessionInfo()
-                , moimSessionDto.getTotalCost(), moimSessionDto.getTotalSenderCount(), curMember.getUid()
+                moimSessionRequestDto.getMoimSessionDto().getSessionName(), moimSessionRequestDto.getMoimSessionDto().getSessionInfo()
+                , moimSessionRequestDto.getMoimSessionDto().getTotalCost(), moimSessionRequestDto.getMoimSessionDto().getTotalSenderCount(), curMember.getUid()
                 , entityInputs.getMoimOfNewMoimSession(), entityInputs.getScheduleOfNewMoimSession()
         );
 
-        moimSessionRequestDto.getSessionCategoryDetailsDtos().forEach(categoryDetails -> {
-                    SessionCategoryType sessionCategoryType = categoryDetails.getSessionCategoryType();
-
-                    int costCnt = 0;
-
-                    for (SessionCategoryItemDto item : categoryDetails.getSessionCategoryItems()) {
-
-                        // TODO :: 전송하는 기본 Data Set 지정 필요 > 그 항목으로 들어올 경우, DEFAULT 로 저장됨
-
-                        String itemName = item.getItemName();
-                        if (itemName.equals("기본") || itemName.equals("")) {
-                            itemName = SessionCategoryItem.DEFAULT_ITEM_NAME;
-                        }
-
-                        // CASCADE 로 moimSession 저장시 자동 저장
-                        SessionCategoryItem sessionCategoryItem = SessionCategoryItem.createSessionCategoryItem(
-                                itemName, item.getItemCost(), moimSession,
-                                entityInputs.getSessionCategoryByType(sessionCategoryType)
-                        );
-
-                        costCnt += item.getItemCost();
-                    }
-                }
-        );
-
-        moimSessionRequestDto.getMemberSessionLinkerDtos().forEach(memberSessionLinkerDto -> {
-
-            // MoimSession push 시 cascade
-            MemberSessionLinker memberSessionLinker = MemberSessionLinker.createMemberSessionLinker(
-                    memberSessionLinkerDto.getSingleCost(), MemberSessionState.UNSENT
-                    , entityInputs.getMemberById(memberSessionLinkerDto.getMemberId())
-                    , moimSession
-            );
-
-            // MemberSessionLinker push 시 cascade
-            memberSessionLinkerDto.getSessionCategoryTypes().forEach(categoryType -> {
-                MemberSessionCategoryLinker memberSessionCategoryLinker = new MemberSessionCategoryLinker(
-                        memberSessionLinker, entityInputs.getSessionCategoryByType(categoryType)
-                );
-            });
-        });
+        createMoimSessionInfos(moimSession, moimSessionRequestDto, entityInputs);
 
         // DB 에 푸시 후 RETURN Model 준비
         moimSessionServiceShell.saveMoimSession(moimSession);
 
         return moimSessionServiceShell.buildAllResponseModel(moimSession);
     }
+
+
 
     public List<MoimSessionDto> getAllMoimSessions(Long moimId, Member curMember) {
 
@@ -110,11 +70,16 @@ public class MoimSessionService {
         return moimSessionDtos;
     }
 
+
+
     public MoimSessionResponseDto getMoimSession(Long moimSessionId, Member curMember) {
         // MoimSession 을 가지고 와서 ResponseModel 을 만든다
         MoimSession moimSession = moimSessionServiceShell.getMoimSession(moimSessionId);
         return moimSessionServiceShell.buildAllResponseModel(moimSession);
     }
+
+
+
 
     // TODO :: 생각해볼 사항
     //         정산활동 같은 경우 여러 도메인들이 엮여 있음
@@ -141,58 +106,16 @@ public class MoimSessionService {
         moimSessionServiceShell.processDelete(moimSession);
 
         // DTO 를 통한 생성 진행한다
-        // TODO 위 CREATE 로직과 동일하나, 생성시 UPDATE 용 추가 정보들로 RESET 진행한다
         MoimSessionServiceInput entityInputs = moimSessionServiceShell.createInputForNewMoimSesion(moimSessionRequestDto);
 
-        MoimSessionDto moimSessionDto = moimSessionRequestDto.getMoimSessionDto();
-
         MoimSession updatingMoimSession = MoimSession.createMoimSession(
-                moimSessionDto.getSessionName(), moimSessionDto.getSessionInfo()
-                , moimSessionDto.getTotalCost(), moimSessionDto.getTotalSenderCount(), preCreatedUid
+                moimSessionRequestDto.getMoimSessionDto().getSessionName(), moimSessionRequestDto.getMoimSessionDto().getSessionInfo()
+                , moimSessionRequestDto.getMoimSessionDto().getTotalCost(), moimSessionRequestDto.getMoimSessionDto().getTotalSenderCount(), preCreatedUid
                 , entityInputs.getMoimOfNewMoimSession(), entityInputs.getScheduleOfNewMoimSession()
         );
 
-        moimSessionRequestDto.getSessionCategoryDetailsDtos().forEach(categoryDetails -> {
-                    SessionCategoryType sessionCategoryType = categoryDetails.getSessionCategoryType();
-
-                    int costCnt = 0;
-
-                    for (SessionCategoryItemDto item : categoryDetails.getSessionCategoryItems()) {
-
-                        // TODO :: 전송하는 기본 Data Set 지정 필요 > 그 항목으로 들어올 경우, DEFAULT 로 저장됨
-
-                        String itemName = item.getItemName();
-                        if (itemName.equals("기본") || itemName.equals("")) {
-                            itemName = SessionCategoryItem.DEFAULT_ITEM_NAME;
-                        }
-
-                        // CASCADE 로 moimSession 저장시 자동 저장
-                        SessionCategoryItem sessionCategoryItem = SessionCategoryItem.createSessionCategoryItem(
-                                itemName, item.getItemCost(), updatingMoimSession,
-                                entityInputs.getSessionCategoryByType(sessionCategoryType)
-                        );
-
-                        costCnt += item.getItemCost();
-                    }
-                }
-        );
-
-        moimSessionRequestDto.getMemberSessionLinkerDtos().forEach(memberSessionLinkerDto -> {
-
-            // MoimSession push 시 cascade
-            MemberSessionLinker memberSessionLinker = MemberSessionLinker.createMemberSessionLinker(
-                    memberSessionLinkerDto.getSingleCost(), MemberSessionState.UNSENT
-                    , entityInputs.getMemberById(memberSessionLinkerDto.getMemberId())
-                    , updatingMoimSession
-            );
-
-            // MemberSessionLinker push 시 cascade
-            memberSessionLinkerDto.getSessionCategoryTypes().forEach(categoryType -> {
-                MemberSessionCategoryLinker memberSessionCategoryLinker = new MemberSessionCategoryLinker(
-                        memberSessionLinker, entityInputs.getSessionCategoryByType(categoryType)
-                );
-            });
-        });
+        // TODO 위 CREATE 로직과 동일하나, 생성시 UPDATE 용 추가 정보들로 RESET 진행한다
+        createMoimSessionInfos(updatingMoimSession, moimSessionRequestDto, entityInputs);
 
         // 초기화 정보 update 적용
         // 정산활동이 시작된 이후 (보낸사람이 존재하기 시작) 로는 수정이 불가능하다, 따라서, curCost, curSenderCnt 를 안바꿔줘도 된다
@@ -213,6 +136,8 @@ public class MoimSessionService {
     }
 
 
+
+
     public void deleteMoimSession(Long sessionId, Member curMember) {
 
         // moimSession 을 삭제하기 위해선 권한 확인
@@ -222,4 +147,55 @@ public class MoimSessionService {
 
     }
 
+
+
+    /*
+     MoimSession 과 필요 정보들을 토대로
+     SessionCategoryType, SessionCategoryItem, MemberSessionLinker, MemberSessionCategoryLinker 객체들을 형성한다
+     */
+    private void createMoimSessionInfos(MoimSession tgSession, MoimSessionRequestDto requestDto, MoimSessionServiceInput entityInputs) {
+
+        requestDto.getSessionCategoryDetailsDtos().forEach(categoryDetails -> {
+                    SessionCategoryType sessionCategoryType = categoryDetails.getSessionCategoryType();
+
+                    int costCnt = 0;
+
+                    for (SessionCategoryItemDto item : categoryDetails.getSessionCategoryItems()) {
+
+                        // TODO :: 전송하는 기본 Data Set 지정 필요 > 그 항목으로 들어올 경우, DEFAULT 로 저장됨
+
+                        String itemName = item.getItemName();
+                        if (itemName.equals("기본") || itemName.equals("")) {
+                            itemName = SessionCategoryItem.DEFAULT_ITEM_NAME;
+                        }
+
+                        // CASCADE 로 moimSession 저장시 자동 저장
+                        SessionCategoryItem sessionCategoryItem = SessionCategoryItem.createSessionCategoryItem(
+                                itemName, item.getItemCost(), tgSession,
+                                entityInputs.getSessionCategoryByType(sessionCategoryType)
+                        );
+
+                        costCnt += item.getItemCost();
+                    }
+                }
+        );
+
+        requestDto.getMemberSessionLinkerDtos().forEach(memberSessionLinkerDto -> {
+
+            // MoimSession push 시 cascade
+            MemberSessionLinker memberSessionLinker = MemberSessionLinker.createMemberSessionLinker(
+                    memberSessionLinkerDto.getSingleCost(), MemberSessionState.UNSENT
+                    , entityInputs.getMemberById(memberSessionLinkerDto.getMemberId())
+                    , tgSession
+            );
+
+            // MemberSessionLinker push 시 cascade
+            memberSessionLinkerDto.getSessionCategoryTypes().forEach(categoryType -> {
+                MemberSessionCategoryLinker memberSessionCategoryLinker = new MemberSessionCategoryLinker(
+                        memberSessionLinker, entityInputs.getSessionCategoryByType(categoryType)
+                );
+            });
+        });
+
+    }
 }
