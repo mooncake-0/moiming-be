@@ -6,6 +6,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.peoplein.moiming.model.FcmMessageDto;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -31,14 +32,17 @@ public class FcmService {
 
     // 초기화 이후 앱 내에서 지속 사용 가능, 단 해당 클래스 내에서만 사용됨
     private String appAccessToken;
+
     private static final String API_URL = "https://fcm.googleapis.com/v1/projects/moiming-b2ae3/messages:send";
+
+    @Value("${app_files.fcm_path}")
+    private String fcmFilePath;
 
     private final ObjectMapper om = new ObjectMapper();
 
     private void initAccessToken() throws IOException {
-        String firebaseConfigPath = "src/main/resources/fcm/moiming-b2ae3-firebase-adminsdk-21zjr-11c77c69f7.json";
         GoogleCredentials googleCredentials = GoogleCredentials
-                .fromStream(new ClassPathResource(firebaseConfigPath).getInputStream())
+                .fromStream(new ClassPathResource(fcmFilePath).getInputStream())
                 .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
         googleCredentials.refreshIfExpired();
         appAccessToken = googleCredentials.getAccessToken().getTokenValue();

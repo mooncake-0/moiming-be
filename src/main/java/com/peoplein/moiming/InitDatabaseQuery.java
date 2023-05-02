@@ -70,6 +70,7 @@ public class InitDatabaseQuery {
                 passwordEncoder.encode(InitConstant.WOOSEOK_PASS),
                 InitConstant.WOOSEOK_EMAIL,
                 InitConstant.WOOSEOK_NAME,
+                "",
                 InitConstant.WOOSEOK_GENDER,
                 role);
 
@@ -85,6 +86,7 @@ public class InitDatabaseQuery {
                 passwordEncoder.encode(InitConstant.WOOJIN_PASS),
                 InitConstant.WOOJIN_EMAIL,
                 InitConstant.WOOJIN_NAME,
+                "",
                 InitConstant.WOOJIN_GENDER,
                 role);
 
@@ -93,6 +95,7 @@ public class InitDatabaseQuery {
                 passwordEncoder.encode(InitConstant.BYUNGHO_PASS),
                 InitConstant.BYUNGHO_EMAIL,
                 InitConstant.BYUNGHO_NAME,
+                "",
                 InitConstant.BYUNGHO_GENDER,
                 role);
 
@@ -101,6 +104,7 @@ public class InitDatabaseQuery {
                 passwordEncoder.encode(InitConstant.JUBIN_PASS),
                 InitConstant.JUBIN_EMAIL,
                 InitConstant.JUBIN_NAME,
+                "",
                 InitConstant.JUBIN_GENDER,
                 role);
 

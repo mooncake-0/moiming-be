@@ -25,6 +25,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    google()
 }
 
 dependencies {
@@ -59,7 +60,7 @@ dependencies {
 
     // FCM 환경
     implementation 'com.google.firebase:firebase-admin:9.1.1'
-    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-messaging:22.0.0'
 
     // Http 요청 Library (OkHttp)
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'

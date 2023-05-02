@@ -32,3 +32,6 @@ spring:
     defer-datasource-initialization: true
     generate-ddl: true
     open-in-view: false
+
+app_files:
+  fcm_path: src/main/resources/fcm/moiming-b2ae3-firebase-adminsdk-21zjr-11c77c69f7.json

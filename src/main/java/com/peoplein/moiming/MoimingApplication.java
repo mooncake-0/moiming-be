@@ -4,6 +4,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -15,6 +16,8 @@ import java.io.IOException;
 
 @SpringBootApplication
 public class MoimingApplication {
+    @Value("${app_files.fcm_path}")
+    private String fcmFilePath;
 
     public static void main(String[] args) {
         SpringApplication.run(MoimingApplication.class, args);
@@ -27,7 +30,7 @@ public class MoimingApplication {
     public void initFirebaseApp() throws IOException {
 
         FileInputStream serviceAccount =
-                new FileInputStream("src/main/resources/fcm/moiming-b2ae3-firebase-adminsdk-21zjr-11c77c69f7.json");
+                new FileInputStream(fcmFilePath);
 
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
