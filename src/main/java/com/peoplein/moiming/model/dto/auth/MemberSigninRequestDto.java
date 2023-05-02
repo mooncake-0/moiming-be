@@ -10,5 +10,6 @@ public class MemberSigninRequestDto {
     private String uid;
     private String password;
     private String email;
+    private String fcmToken;
 
 }

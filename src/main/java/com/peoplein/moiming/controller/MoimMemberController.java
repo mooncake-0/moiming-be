@@ -3,12 +3,14 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
+import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
 import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.service.MoimMemberService;
+import com.peoplein.moiming.service.NotificationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequiredArgsConstructor
 @Tag(name = "Moim 내부 회원 관리 관련")
+@RequiredArgsConstructor
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MEMBER)
 public class MoimMemberController {
 
@@ -51,7 +53,7 @@ public class MoimMemberController {
     @PatchMapping("/decideJoin")
     public ResponseModel<MoimMemberInfoDto> decideJoin(@RequestBody MoimMemberActionRequestDto moimMemberActionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MemberMoimLinker memberMoimLinker = moimMemberService.decideJoin(moimMemberActionRequestDto);
+        MemberMoimLinker memberMoimLinker = moimMemberService.decideJoin(moimMemberActionRequestDto, curMember);
         MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(memberMoimLinker);
         return ResponseModel.createResponse(moimMemberInfoDto);
     }

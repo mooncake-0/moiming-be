@@ -57,7 +57,7 @@ public class UtilsRepository {
 
     public static Member initMemberAndMemberInfo() {
         Role role = new Role(1L, "admin", RoleType.ADMIN);
-        return Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
+        return Member.createMember(uid, password, memberEmail, memberName, fcmToken, memberGender, role);
     }
 
     public static Moim initMoim() {

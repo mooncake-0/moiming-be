@@ -41,7 +41,7 @@ public class MemberTest {
 
         // when
         Member member = Member.createMember(TestUtils.uid, encryptedPassword, TestUtils.memberEmail,
-                TestUtils.memberName, TestUtils.memberGender, role);
+                TestUtils.memberName, TestUtils.fcmToken, TestUtils.memberGender, role);
 
         // then
         assertThat(member.getUid()).isEqualTo(TestUtils.uid);
@@ -57,17 +57,17 @@ public class MemberTest {
 
         // when + then
         assertThatThrownBy(() -> Member.createMember(
-                null, password, TestUtils.memberEmail, TestUtils.memberName, TestUtils.memberGender, role)).isInstanceOf(IllegalArgumentException.class);
+                null, password, TestUtils.memberEmail, TestUtils.memberName, TestUtils.fcmToken, TestUtils.memberGender, role)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> Member.createMember(
-                TestUtils.uid, null, TestUtils.memberEmail, TestUtils.memberName, TestUtils.memberGender, role)).isInstanceOf(IllegalArgumentException.class);
+                TestUtils.uid, null, TestUtils.memberEmail, TestUtils.memberName, TestUtils.fcmToken, TestUtils.memberGender, role)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> Member.createMember(
-                TestUtils.uid, TestUtils.encryptedPassword, null, TestUtils.memberName, TestUtils.memberGender, role)).isInstanceOf(BadAuthParameterInputException.class);
+                TestUtils.uid, TestUtils.encryptedPassword, null, TestUtils.memberName, TestUtils.fcmToken, TestUtils.memberGender, role)).isInstanceOf(BadAuthParameterInputException.class);
         assertThatThrownBy(() -> Member.createMember(
-                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, null, TestUtils.memberGender, role)).isInstanceOf(BadAuthParameterInputException.class);
+                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, null, TestUtils.fcmToken, TestUtils.memberGender, role)).isInstanceOf(BadAuthParameterInputException.class);
         assertThatThrownBy(() -> Member.createMember(
-                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, TestUtils.memberName, null, role)).isInstanceOf(IllegalArgumentException.class);
+                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, TestUtils.memberName, TestUtils.fcmToken, null, role)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> Member.createMember(
-                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, TestUtils.memberName, TestUtils.memberGender, null)).isInstanceOf(NullPointerException.class);
+                TestUtils.uid, TestUtils.encryptedPassword, TestUtils.memberEmail, TestUtils.memberName, TestUtils.fcmToken, TestUtils.memberGender, null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -76,7 +76,7 @@ public class MemberTest {
         String changedToken = "NEW_REFRESH_TOKEN";
         Role role = new Role(1L, "admin", RoleType.ADMIN);
         Member member = Member.createMember(TestUtils.uid, TestUtils.password, TestUtils.memberEmail,
-                TestUtils.memberName, TestUtils.memberGender, role);
+                TestUtils.memberName, TestUtils.fcmToken, TestUtils.memberGender, role);
 
         // when
         member.changeRefreshToken(changedToken);
@@ -91,7 +91,7 @@ public class MemberTest {
         String sameToken = TestUtils.refreshToken;
         Role role = new Role(1L, "admin", RoleType.ADMIN);
         Member member = Member.createMember(TestUtils.uid, TestUtils.password, TestUtils.memberEmail,
-                TestUtils.memberName, TestUtils.memberGender, role);
+                TestUtils.memberName, TestUtils.fcmToken, TestUtils.memberGender, role);
 
         // when
         member.changeRefreshToken(sameToken);
