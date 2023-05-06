@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Transactional
 @Service
 public class MemberService {
@@ -21,6 +20,18 @@ public class MemberService {
     private final MemberScheduleLinkerRepository memberScheduleLinkerRepository;
     private final MoimRepository moimRepository;
     private final ScheduleRepository scheduleRepository;
+
+    public MemberService(MemberMoimLinkerRepository memberMoimLinkerRepository,
+                         MoimPostRepository moimPostRepository,
+                         MemberScheduleLinkerRepository memberScheduleLinkerRepository,
+                         MoimRepository moimRepository,
+                         ScheduleRepository scheduleRepository) {
+        this.memberMoimLinkerRepository = memberMoimLinkerRepository;
+        this.moimPostRepository = moimPostRepository;
+        this.memberScheduleLinkerRepository = memberScheduleLinkerRepository;
+        this.moimRepository = moimRepository;
+        this.scheduleRepository = scheduleRepository;
+    }
 
 
     // TODO : MemberSchdule은 Attended 일 때만 가져오는지?
@@ -103,12 +114,7 @@ public class MemberService {
 
         private Schedule decideValue(Schedule value) {
             Moim key = value.getMoim();
-
-            if (isFirstData(key)) {
-                return value;
-            } else {
-                return getLatestSchedule(value);
-            }
+            return isFirstData(key) ? value : getLatestSchedule(value);
         }
 
         private Schedule getLatestSchedule(Schedule value) {
