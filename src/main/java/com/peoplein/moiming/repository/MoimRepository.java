@@ -19,4 +19,6 @@ public interface MoimRepository {
     void remove(Moim moim);
 
     List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category);
+
+    List<Moim> findAllMoim();
 }

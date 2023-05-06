@@ -85,6 +85,13 @@ public class MoimJpaRepository implements MoimRepository {
         return query.fetch();
     }
 
+    @Override
+    public List<Moim> findAllMoim() {
+        return queryFactory
+                .selectFrom(moim)
+                .fetch();
+    }
+
     private void addJoinQuery(JPAQuery<Moim> query, Category category) {
         if (category == null)
             return;

@@ -44,21 +44,9 @@ public class MoimMemberService {
      모임 내 모든 회원 및 상태 조회
      */
     public List<MoimMemberInfoDto> viewMoimMember(Long moimId, Member curMember) {
-
         List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findWithMemberInfoAndMoimByMoimId(moimId);
-        List<MoimMemberInfoDto> moimMemberInfoDto = new ArrayList<>();
-        memberMoimLinkers.forEach(mml -> {
-            moimMemberInfoDto.add(new MoimMemberInfoDto(
-                    mml.getMember().getId(), mml.getMember().getUid()
-                    , mml.getMember().getMemberInfo().getMemberName(), mml.getMember().getMemberInfo().getMemberEmail()
-                    , mml.getMember().getMemberInfo().getMemberGender(), mml.getMember().getMemberInfo().getMemberPfImg()
-                    , mml.getMoimRoleType(), mml.getMemberState()
-                    , mml.getCreatedAt(), mml.getUpdatedAt()
-            ));
-        });
-        return moimMemberInfoDto;
+        return getMoimMemberInfos(memberMoimLinkers);
     }
-
     /**
      * 특정 유저의 모임 가입 요청을 처리한다
      * @param moimJoinRequestDto : Moim 가입 요청 관련 데이터
@@ -103,12 +91,12 @@ public class MoimMemberService {
     /*
      WAIT 상태인 유저의 요청을 처리한다
      */
+
     public MemberMoimLinker decideJoin(MoimMemberActionRequestDto moimMemberActionRequestDto) {
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoByMemberAndMoimId(moimMemberActionRequestDto.getMemberId(), moimMemberActionRequestDto.getMoimId());
         memberMoimLinker.judgeJoin(moimMemberActionRequestDto.getStateAction());
         return memberMoimLinker;
     }
-
     public MoimMemberInfoDto exitMoim(MoimMemberActionRequestDto moimMemberActionRequestDto, Member curMember) {
 
         // 영속화
@@ -176,5 +164,11 @@ public class MoimMemberService {
 
         // 그 Member 의 MoimMemberInfo 를 전달
         return MoimMemberInfoDto.createMemberInfoDto(memberMoimLinker);
+    }
+
+    private List<MoimMemberInfoDto> getMoimMemberInfos(List<MemberMoimLinker> memberMoimLinkers) {
+        return memberMoimLinkers.stream()
+                .map(MoimMemberInfoDto::new)
+                .collect(Collectors.toList());
     }
 }

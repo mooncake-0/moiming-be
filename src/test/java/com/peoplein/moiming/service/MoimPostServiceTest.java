@@ -143,6 +143,9 @@ public class MoimPostServiceTest extends BaseTest {
     }
 
     void persist(Object ... objects) {
+        for (Object object : objects) {
+
+        }
         Arrays.stream(objects).forEach(o -> em.persist(o));
     }
 }
