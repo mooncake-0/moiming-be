@@ -25,7 +25,7 @@ import java.util.Objects;
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"uid"}, name = "unique_uid")})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member extends BaseEntity{
+public class Member extends BaseEntity {
 
     /*
      Member Columns
@@ -60,7 +60,7 @@ public class Member extends BaseEntity{
     /*
      생성자는 Private 으로, 생성 방식을 create 함수로만 제어한다
      */
-    private Member(String uid, String password, MemberInfo memberInfo) {
+    private Member(String uid, String password, String fcmToken, MemberInfo memberInfo) {
 
         // TODO : 에러 메세지를 필요하다면 수정해야함.
         if (!StringUtils.hasText(uid) || !StringUtils.hasText(password)) {
@@ -73,6 +73,7 @@ public class Member extends BaseEntity{
 
         this.uid = uid;
         this.password = password;
+        this.fcmToken = fcmToken;
         this.memberInfo = memberInfo;
 
     }
@@ -86,11 +87,12 @@ public class Member extends BaseEntity{
                                       String encryptedPassword,
                                       String email,
                                       String memberName,
+                                      String fcmToken,
                                       MemberGender memberGender,
                                       Role role
-                                      ) {
+    ) {
         MemberInfo memberInfo = new MemberInfo(email, memberName, memberGender);
-        Member createdMember = new Member(uid, encryptedPassword, memberInfo);
+        Member createdMember = new Member(uid, encryptedPassword, fcmToken, memberInfo);
         MemberRoleLinker.grantRoleToMember(createdMember, role);
         return createdMember;
     }
@@ -120,5 +122,11 @@ public class Member extends BaseEntity{
         this.password = password;
     }
 
+    /*
+     필요 Setter Open
+     */
 
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 }

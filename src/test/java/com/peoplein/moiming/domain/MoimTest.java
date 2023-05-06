@@ -343,7 +343,7 @@ public class MoimTest {
         Role role = new Role(1L, "admin", RoleType.USER);
 
         Member member = Member.createMember(TestUtils.uid, TestUtils.password, TestUtils.memberEmail,
-                TestUtils.memberName, TestUtils.memberGender, role);
+                TestUtils.memberName, TestUtils.fcmToken, TestUtils.memberGender, role);
 
         member.getMemberInfo().setMemberBirth(memberBirth);
 

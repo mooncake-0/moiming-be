@@ -172,7 +172,7 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         MoimMemberActionRequestDto actionRequestDto = TestUtils.createActionRequestDto(moim.getId(), member.getId(), MoimMemberStateAction.PERMIT);
 
         // when
-        MemberMoimLinker result = moimMemberService.decideJoin(actionRequestDto);
+        MemberMoimLinker result = moimMemberService.decideJoin(actionRequestDto, member);
 
         // then
         assertThat(result.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);

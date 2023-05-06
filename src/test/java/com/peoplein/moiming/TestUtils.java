@@ -89,8 +89,8 @@ public class TestUtils {
     public static boolean DUPLICATED_MANAGER_ENABLE = true;
 
 
-    public static final Role role = initAdminRole();
 
+    public static final Role role = initAdminRole();
 
     public static Member initOtherMemberAndMemberInfo() {
         Role role = initUserRole();
@@ -99,6 +99,7 @@ public class TestUtils {
                 , "other" + password
                 , "other" + memberEmail
                 , "other" + memberName
+                , "other" + fcmToken
                 , memberGender, role);
         member.getMemberInfo().setMemberBirth(memberBirth);
 
@@ -113,7 +114,7 @@ public class TestUtils {
     }
 
     public static Member initMemberAndMemberInfo(String memberName, String memberEmail) {
-        Member member = Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
+        Member member = Member.createMember(uid, password, memberEmail, memberName, fcmToken, memberGender, role);
         member.getMemberInfo().setMemberBirth(memberBirth);
 
         return member;
@@ -134,7 +135,6 @@ public class TestUtils {
     public static Role initUserRole() {
         return new Role(2L, "admin", RoleType.USER);
     }
-
 
 
     public static Moim initMoimAndRuleJoin() {

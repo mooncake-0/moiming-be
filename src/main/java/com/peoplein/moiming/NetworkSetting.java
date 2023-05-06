@@ -11,6 +11,7 @@ public interface NetworkSetting {
 
     String API_MOIM_VER = "/v0";
     String API_MEMBER = "/member";
+
     String API_MOIM = "/moim";
     String API_MOIM_POST = "/post";
     String API_MOIM_POST_COMMENT = "/comment";
@@ -19,5 +20,6 @@ public interface NetworkSetting {
     String API_MOIM_RULES = "/rules";
     String API_MOIM_SESSION = "/session";
 
-
+    String API_NOTI_VER = "/v0";
+    String API_NOTI = "/notification";
 }
