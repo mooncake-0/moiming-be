@@ -48,7 +48,7 @@ public class MemberSessionLinker {
      멤버가 해당 정산에 참여해야 하는 정산 Category 들과의 연결자들
      TODO 바로 List<Category> 가 될 수 있는 방법은 ..
      */
-    @OneToMany(mappedBy = "memberSessionLinker", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "memberSessionLinker", cascade = CascadeType.PERSIST)
     private List<MemberSessionCategoryLinker> memberSessionCategoryLinkers = new ArrayList<>();
 
     public static MemberSessionLinker createMemberSessionLinker(int singleCost, MemberSessionState memberSessionState, Member member, MoimSession moimSession) {

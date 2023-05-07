@@ -5,9 +5,9 @@ import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.Schedule;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
+import com.peoplein.moiming.domain.enums.DomainRequestType;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
 import com.peoplein.moiming.domain.fixed.SessionCategory;
-import com.peoplein.moiming.domain.session.MemberSessionCategoryLinker;
 import com.peoplein.moiming.domain.session.MemberSessionLinker;
 import com.peoplein.moiming.domain.session.MoimSession;
 import com.peoplein.moiming.domain.session.SessionCategoryItem;
@@ -153,13 +153,17 @@ public class MoimSessionServiceShell {
     }
 
     // 정산활동 관리는 오직 리더나 관리자
-    public MemberMoimLinker checkAuthority(String path, Long moimId, Member curMember) {
+    // REQUEST TYPE 확인 불필요 (정산활동은 생성~삭제 권한 모두 일정)
+    // 요구사항 변경 가능성으로 일단 유지
+    public void checkAuthority(DomainRequestType requestType, Long moimId, Member curMember) {
         MemberMoimLinker mml = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimId);
-        if (!mml.getMoimRoleType().equals(MoimRoleType.MANAGER) && !mml.getMoimRoleType().equals(MoimRoleType.LEADER) &&
-                !mml.getMoimRoleType().equals(MoimRoleType.CREATOR)) {
+        if (hasAuthority(mml, MoimRoleType.NORMAL)) {
             throw new RuntimeException("정산활동 관여 권한이 없는 유저입니다");
         }
-        return mml;
+    }
+
+    private boolean hasAuthority(MemberMoimLinker mml, MoimRoleType moimRoleType) {
+        return mml.getMoimRoleType().equals(moimRoleType);
     }
 
     public void processDelete(MoimSession moimSession) {
@@ -180,17 +184,11 @@ public class MoimSessionServiceShell {
     public MemberMoimLinker findMemberMoimLinker(Long memberId, Long moimId) {
 
         Optional<MemberMoimLinker> optionalMml = memberMoimLinkerRepository.findOptionalByMemberAndMoimId(memberId, moimId);
-        if (optionalMml.isEmpty()) {
-            throw new RuntimeException("대상 유저는 해당 모임에 속하지 않습니다");
-        }
-        return optionalMml.get();
+        return optionalMml.orElseThrow(() -> new RuntimeException("대상 유저는 해당 모임에 속하지 않습니다"));
     }
 
     public MemberSessionLinker findMoimSessionLinker(Long sessionId, Long memberId) {
         Optional<MemberSessionLinker> optionalMsl = memberSessionLinkerRepository.findOptionalByMemberAndSessionId(memberId, sessionId);
-        if (optionalMsl.isEmpty()) {
-            throw new RuntimeException("해당 ID의 MemberSessionLinker 를 찾을 수 없습니다");
-        }
-        return optionalMsl.get();
+        return optionalMsl.orElseThrow(() -> new RuntimeException("대상 유저는 해당 정산활동에 속하지 않습니다"));
     }
 }

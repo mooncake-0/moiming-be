@@ -1,8 +1,8 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.enums.MemberSessionState;
+import com.peoplein.moiming.domain.enums.DomainRequestType;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
 import com.peoplein.moiming.domain.session.MemberSessionCategoryLinker;
 import com.peoplein.moiming.domain.session.MemberSessionLinker;
@@ -37,13 +37,14 @@ public class MoimSessionService {
     public MoimSessionResponseDto createMoimSession(MoimSessionRequestDto moimSessionRequestDto, Member curMember) {
 
         // 생성 자체는 일반 유저가 불가능
-        moimSessionServiceShell.checkAuthority("CREATE", moimSessionRequestDto.getMoimSessionDto().getMoimId(), curMember);
+        moimSessionServiceShell.checkAuthority(DomainRequestType.CREATE, moimSessionRequestDto.getMoimSessionDto().getMoimId(), curMember);
 
         // moimSessionRequestDto 를 전달하여 Repository 단에서 통신 준비를 마치고, 준비된 애들을 가지고 와준다.
         MoimSessionServiceInput entityInputs = moimSessionServiceShell.createInputForNewMoimSesion(moimSessionRequestDto);
+        MoimSessionDto moimSessionDto = moimSessionRequestDto.getMoimSessionDto();
         MoimSession moimSession = MoimSession.createMoimSession(
-                moimSessionRequestDto.getMoimSessionDto().getSessionName(), moimSessionRequestDto.getMoimSessionDto().getSessionInfo()
-                , moimSessionRequestDto.getMoimSessionDto().getTotalCost(), moimSessionRequestDto.getMoimSessionDto().getTotalSenderCount(), curMember.getUid()
+                moimSessionDto.getSessionName(), moimSessionDto.getSessionInfo()
+                , moimSessionDto.getTotalCost(), moimSessionDto.getTotalSenderCount(), curMember.getUid()
                 , entityInputs.getMoimOfNewMoimSession(), entityInputs.getScheduleOfNewMoimSession()
         );
 
@@ -97,7 +98,7 @@ public class MoimSessionService {
 
         // created 정보는 멤버 매핑도 아니고, uid 와 at 이므로 기존 정보 이어간다\
         MoimSession moimSession = moimSessionServiceShell.getMoimSession(moimSessionRequestDto.getMoimSessionDto().getSessionId());
-        moimSessionServiceShell.checkAuthority("UPDATE", moimSession.getMoim().getId(), updateRequestMember);
+        moimSessionServiceShell.checkAuthority(DomainRequestType.UPDATE, moimSession.getMoim().getId(), updateRequestMember);
 
         // 삭제하기에 앞서, 필요한 정보들은 선추출한다
         LocalDateTime preCreatedAt = moimSession.getCreatedAt();
@@ -108,10 +109,11 @@ public class MoimSessionService {
 
         // DTO 를 통한 생성 진행한다
         MoimSessionServiceInput entityInputs = moimSessionServiceShell.createInputForNewMoimSesion(moimSessionRequestDto);
+        MoimSessionDto moimSessionDto = moimSessionRequestDto.getMoimSessionDto();
 
         MoimSession updatingMoimSession = MoimSession.createMoimSession(
-                moimSessionRequestDto.getMoimSessionDto().getSessionName(), moimSessionRequestDto.getMoimSessionDto().getSessionInfo()
-                , moimSessionRequestDto.getMoimSessionDto().getTotalCost(), moimSessionRequestDto.getMoimSessionDto().getTotalSenderCount(), preCreatedUid
+                moimSessionDto.getSessionName(), moimSessionDto.getSessionInfo()
+                , moimSessionDto.getTotalCost(), moimSessionDto.getTotalSenderCount(), preCreatedUid
                 , entityInputs.getMoimOfNewMoimSession(), entityInputs.getScheduleOfNewMoimSession()
         );
 
@@ -141,7 +143,7 @@ public class MoimSessionService {
 
         // moimSession 을 삭제하기 위해선 권한 확인
         MoimSession moimSession = moimSessionServiceShell.getMoimSession(sessionId);
-        moimSessionServiceShell.checkAuthority("DELETE", moimSession.getMoim().getId(), curMember);
+        moimSessionServiceShell.checkAuthority(DomainRequestType.DELETE, moimSession.getMoim().getId(), curMember);
         moimSessionServiceShell.processDelete(moimSession);
 
     }
@@ -152,6 +154,10 @@ public class MoimSessionService {
      SessionCategoryType, SessionCategoryItem, MemberSessionLinker, MemberSessionCategoryLinker 객체들을 형성한다
      */
     private void createMoimSessionInfos(MoimSession tgSession, MoimSessionRequestDto requestDto, MoimSessionServiceInput entityInputs) {
+
+        /*
+         요청받은 정보를 통해서 생성하려는 정산활동내 각각 Category 에 해당하는 ITEM 들을 구별하여 생성해준다
+         */
 
         requestDto.getSessionCategoryDetailsDtos().forEach(categoryDetails -> {
                     SessionCategoryType sessionCategoryType = categoryDetails.getSessionCategoryType();
@@ -178,6 +184,10 @@ public class MoimSessionService {
                 }
         );
 
+        /*
+         요청받은 정보를 통해 정산활동 참여 인원들을 생성한다
+         참여 인원들이 어떤 Category 에 대한 정산활동을 해야하는지에 대한 정보도 (MemberSessionCategoryLinker) 생성한다
+         */
         requestDto.getMemberSessionLinkerDtos().forEach(memberSessionLinkerDto -> {
 
             // MoimSession push 시 cascade
@@ -200,41 +210,47 @@ public class MoimSessionService {
     public MemberSessionLinkerDto changeSessionMemberStatus(Long moimId, Long sessionId, Long memberId, MemberSessionStateRequestDto memberSessionStateRequestDto, Member curMember) {
 
         // 해당 요청에 대한 권한 체킹 및 MML 준비
-        moimSessionServiceShell.checkAuthority("STATUS", moimId, curMember);
+        moimSessionServiceShell.checkAuthority(DomainRequestType.READ, moimId, curMember);
 
         // 해당 Linker 를 찾는다
-        MemberSessionLinker moimSessionLinker = moimSessionServiceShell.findMoimSessionLinker(sessionId, memberId);
+        MemberSessionLinker memberSessionLinker = moimSessionServiceShell.findMoimSessionLinker(sessionId, memberId);
 
-        if (moimSessionLinker.getMoimSession().isFinished()) {
+        if (memberSessionLinker.getMoimSession().isFinished()) {
             throw new RuntimeException("완료된 정산활동에 대해서는 변경할 수 없습니다");
         }
 
         // 해당 Linker 에 대한 state 을 변경한다
         // 보냈음을 확인처리
-        if (moimSessionLinker.getMemberSessionState().equals(MemberSessionState.UNSENT)) {
+        if (memberSessionLinker.getMemberSessionState().equals(MemberSessionState.UNSENT)) {
             if (memberSessionStateRequestDto.getMemberSessionState().equals(MemberSessionState.SENT)) {
                 // 바꿨다고 해주는 경우에는, Session 정보도 업데이트를 해준다
-                moimSessionLinker.changeMemberStateSent(curMember);
+                memberSessionLinker.changeMemberStateSent(curMember);
             }
         }
 
         // 보냈던걸 취소처리
-        if (moimSessionLinker.getMemberSessionState().equals(MemberSessionState.SENT)) {
+        if (memberSessionLinker.getMemberSessionState().equals(MemberSessionState.SENT)) {
             if (memberSessionStateRequestDto.getMemberSessionState().equals(MemberSessionState.UNSENT)) {
-                moimSessionLinker.changeMemberStateUnsent(curMember);
+                memberSessionLinker.changeMemberStateUnsent(curMember);
             }
         }
 
-        // categoryTypes 반환 ....
-        List<SessionCategoryType> categoryTypes = moimSessionLinker.getMemberSessionCategoryLinkers().stream().map(mscl -> mscl.getSessionCategory().getCategoryType()).collect(Collectors.toList());
-
+        List<SessionCategoryType> categoryTypes = changeSessionCategoryLinkerToType(memberSessionLinker);
 
         // 해당 유저의 정보 반환
         MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(moimSessionServiceShell.findMemberMoimLinker(memberId, moimId));
 
         // 변경 정보를 반환한다
-        return new MemberSessionLinkerDto(memberId, moimSessionLinker.getSingleCost(), categoryTypes
-                , moimMemberInfoDto, moimSessionLinker.getMemberSessionState()
-                , moimSessionLinker.getCreatedAt(), moimSessionLinker.getUpdatedAt());
+        return new MemberSessionLinkerDto(memberId, memberSessionLinker.getSingleCost(), categoryTypes
+                , moimMemberInfoDto, memberSessionLinker.getMemberSessionState()
+                , memberSessionLinker.getCreatedAt(), memberSessionLinker.getUpdatedAt());
+    }
+
+    /*
+     MemberSessionLinker 객체의 MemberSessionCategoryLinker List 를 통해 > SessionCategoryType List 를 반환해준다
+     - 해당 멤버가 포함된 정산활동 종류를 반환환다
+     */
+    private List<SessionCategoryType> changeSessionCategoryLinkerToType(MemberSessionLinker memberSessionLinker) {
+        return memberSessionLinker.getMemberSessionCategoryLinkers().stream().map(mscl -> mscl.getSessionCategory().getCategoryType()).collect(Collectors.toList());
     }
 }
