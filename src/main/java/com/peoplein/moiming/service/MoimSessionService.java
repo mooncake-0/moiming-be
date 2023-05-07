@@ -221,18 +221,13 @@ public class MoimSessionService {
 
         // 해당 Linker 에 대한 state 을 변경한다
         // 보냈음을 확인처리
-        if (memberSessionLinker.getMemberSessionState().equals(MemberSessionState.UNSENT)) {
-            if (memberSessionStateRequestDto.getMemberSessionState().equals(MemberSessionState.SENT)) {
-                // 바꿨다고 해주는 경우에는, Session 정보도 업데이트를 해준다
-                memberSessionLinker.changeMemberStateSent(curMember);
-            }
+        if (memberSessionStateRequestDto.getMemberSessionState().equals(MemberSessionState.SENT)) {
+            memberSessionLinker.changeMemberStateSent(curMember);
         }
 
         // 보냈던걸 취소처리
-        if (memberSessionLinker.getMemberSessionState().equals(MemberSessionState.SENT)) {
-            if (memberSessionStateRequestDto.getMemberSessionState().equals(MemberSessionState.UNSENT)) {
-                memberSessionLinker.changeMemberStateUnsent(curMember);
-            }
+        if (memberSessionStateRequestDto.getMemberSessionState().equals(MemberSessionState.UNSENT)) {
+            memberSessionLinker.changeMemberStateUnsent(curMember);
         }
 
         List<SessionCategoryType> categoryTypes = changeSessionCategoryLinkerToType(memberSessionLinker);

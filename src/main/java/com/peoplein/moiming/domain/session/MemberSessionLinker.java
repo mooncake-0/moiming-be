@@ -78,27 +78,29 @@ public class MemberSessionLinker {
 
     // 연관관계 편의 메소드
     public void changeMemberStateSent(Member curMember) {
-        this.memberSessionState = MemberSessionState.SENT;
-        this.updatedAt = LocalDateTime.now();
+        if (this.memberSessionState.equals(MemberSessionState.UNSENT)) { // UNSENT → SENT 요청일 경우에만 VALID
+            this.memberSessionState = MemberSessionState.SENT;
+            this.updatedAt = LocalDateTime.now();
 
-        // SESSION 정보 변경
-        this.moimSession.addCurCost(singleCost);
-        this.moimSession.addCurSenderCount();
-        this.moimSession.setUpdatedAt(LocalDateTime.now());
-        this.moimSession.setUpdatedUid(curMember.getUid());
-
+            // SESSION 정보 변경
+            this.moimSession.addCurCost(singleCost);
+            this.moimSession.addCurSenderCount();
+            this.moimSession.setUpdatedAt(LocalDateTime.now());
+            this.moimSession.setUpdatedUid(curMember.getUid());
+        }
     }
 
     public void changeMemberStateUnsent(Member curMember) {
-        this.memberSessionState = MemberSessionState.UNSENT;
-        this.updatedAt = LocalDateTime.now();
+        if (this.memberSessionState.equals(MemberSessionState.SENT)) { // SENT → UNSENT 요청일 경우에만 VALID
+            this.memberSessionState = MemberSessionState.UNSENT;
+            this.updatedAt = LocalDateTime.now();
 
-        // SESSION 정보 변경
-        this.moimSession.removalCurCost(singleCost);
-        this.moimSession.removalCurSenderCount();
-        this.moimSession.setUpdatedAt(LocalDateTime.now());
-        this.moimSession.setUpdatedUid(curMember.getUid());
-
+            // SESSION 정보 변경
+            this.moimSession.removalCurCost(singleCost);
+            this.moimSession.removalCurSenderCount();
+            this.moimSession.setUpdatedAt(LocalDateTime.now());
+            this.moimSession.setUpdatedUid(curMember.getUid());
+        }
     }
 
 }
