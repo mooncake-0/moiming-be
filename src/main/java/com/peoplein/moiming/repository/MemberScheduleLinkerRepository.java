@@ -18,4 +18,6 @@ public interface MemberScheduleLinkerRepository {
 
     void removeAllByScheduleIds(List<Long> scheduleIds);
 
+    List<MemberScheduleLinker> findMemberScheduleLatest5ByMemberId(Long memberId);
+
 }

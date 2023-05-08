@@ -84,5 +84,10 @@ public class ScheduleJpaRepository implements ScheduleRepository {
         em.remove(schedule);
     }
 
+    @Override
+    public List<Schedule> findAllSchedule() {
+        return queryFactory.selectFrom(schedule)
+                .fetch();
+    }
 
 }

@@ -2,6 +2,7 @@ package com.peoplein.moiming.repository;
 
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.Schedule;
+import com.querydsl.core.Tuple;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,4 +25,5 @@ public interface ScheduleRepository {
 
     void remove(Schedule schedule);
 
+    List<Schedule> findAllSchedule();
 }

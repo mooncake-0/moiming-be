@@ -89,6 +89,9 @@ public class TestUtils {
     public static boolean DUPLICATED_MANAGER_ENABLE = true;
 
 
+
+    public static final Role role = initAdminRole();
+
     public static Member initOtherMemberAndMemberInfo() {
         Role role = initUserRole();
 
@@ -104,14 +107,26 @@ public class TestUtils {
     }
 
     public static Member initMemberAndMemberInfo() {
-        Role role = initAdminRole();
+        Member member = Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
+        member.getMemberInfo().setMemberBirth(memberBirth);
 
+        return member;
+    }
+
+    public static Member initMemberAndMemberInfo(String memberName, String memberEmail) {
         Member member = Member.createMember(uid, password, memberEmail, memberName, fcmToken, memberGender, role);
         member.getMemberInfo().setMemberBirth(memberBirth);
 
         return member;
-
     }
+
+    public static Member initMemberAndMemberInfo(String uid, String memberName, String memberEmail) {
+        Member member = Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
+        member.getMemberInfo().setMemberBirth(memberBirth);
+
+        return member;
+    }
+
 
     public static Role initAdminRole() {
         return new Role(1L, "admin", RoleType.ADMIN);
@@ -132,12 +147,20 @@ public class TestUtils {
         return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
     }
 
+    public static Moim createMoimOnly(String moimName) {
+        return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
+    }
+
     public static Moim createOtherMoimOnly(String moimName, Area area) {
         return Moim.createMoim(moimName, "other" + moimInfo, "other" + moimPfImg, area, createdUid);
     }
 
     public static MoimPost initMoimPost(Moim moim, Member member) {
         return MoimPost.createMoimPost(postTitle, postContent, moimPostCategory, isNotice, hasFiles, moim, member);
+    }
+
+    public static MoimPost initNoticeMoimPost(Moim moim, Member member) {
+        return MoimPost.createMoimPost(postTitle, postContent, moimPostCategory, true, hasFiles, moim, member);
     }
 
     public static MoimDto initMoimDto() {

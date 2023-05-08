@@ -27,4 +27,6 @@ public interface MoimPostRepository {
 
     void removeMoimPostExecute(MoimPost moimPost);
 
+    List<MoimPost> findNoticesLatest3ByMoimIds(List<Long> moimIds);
+
 }
