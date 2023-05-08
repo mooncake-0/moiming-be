@@ -5,6 +5,6 @@ public enum SessionCategoryType {
     ACTIVITY, // 활동
     FOOD, // 음식
     ALCOHOL, // 주류
-    DRINKS, // 음료
+    DRINK, // 음료
     EXTRA
 }

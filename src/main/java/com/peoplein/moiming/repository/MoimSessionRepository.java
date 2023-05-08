@@ -10,4 +10,5 @@ public interface MoimSessionRepository {
     Long save(MoimSession moimSession);
     Optional<MoimSession> findOptionalById(Long sessionId);
     List<MoimSession> findAllByMoimId(Long moimId);
+    void remove(MoimSession moimSession);
 }

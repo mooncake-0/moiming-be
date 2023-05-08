@@ -34,6 +34,8 @@ public class MoimSession {
 
     private int curSenderCount;
 
+    private boolean isFinished;
+
     private LocalDateTime createdAt;
     private String createdUid;
 
@@ -55,10 +57,10 @@ public class MoimSession {
     /*
      다대다 연관관계 매핑
      */
-    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.PERSIST)
     private List<SessionCategoryItem> sessionCategoryItems = new ArrayList<>();
 
-    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.PERSIST)
     private List<MemberSessionLinker> memberSessionLinkers = new ArrayList<>();
 
 
@@ -87,6 +89,7 @@ public class MoimSession {
         this.createdUid = createdUid;
 
         // 초기화
+        this.isFinished = false;
         this.curCost = 0;
         this.curSenderCount = 0;
         this.createdAt = LocalDateTime.now();
@@ -97,4 +100,43 @@ public class MoimSession {
     }
 
 
+    public void changeCreatedAt(LocalDateTime createdAt) {
+        DomainChecker.checkWrongObjectParams(getClass().getName(), createdAt);
+        this.createdAt = createdAt;
+    }
+
+    public void addCurCost(int sentCost) {
+        this.curCost += sentCost;
+        if (this.curCost == this.totalCost) {
+            //  정산완료
+            this.isFinished = true;
+        }
+    }
+
+    public void addCurSenderCount() {
+        this.curSenderCount += 1;
+    }
+
+    // 보냈던걸 취소할 경우
+    public void removalCurCost(int removalCurCost) {
+        if (curCost - removalCurCost < 0) {
+            throw new RuntimeException("계산이 맞지 않습니다 (curCost < 0)");
+        }
+        this.curCost -= removalCurCost;
+    }
+
+    public void removalCurSenderCount() {
+        if (this.curSenderCount == 0) {
+            throw new RuntimeException("인원이 맞지 않습니다 (curSenderCount < 0)");
+        }
+        this.curSenderCount -= 1;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setUpdatedUid(String updatedUid) {
+        this.updatedUid = updatedUid;
+    }
 }

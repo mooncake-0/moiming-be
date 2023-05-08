@@ -30,7 +30,7 @@ public class MoimSessionJpaRepository implements MoimSessionRepository {
     @Override
     public Optional<MoimSession> findOptionalById(Long sessionId) {
         return Optional.ofNullable(queryFactory.selectFrom(moimSession)
-                .join(moimSession.schedule, schedule).fetchJoin()
+                .innerJoin(moimSession.schedule, schedule).fetchJoin()
                 .where(moimSession.id.eq(sessionId))
                 .fetchOne());
     }
@@ -40,5 +40,10 @@ public class MoimSessionJpaRepository implements MoimSessionRepository {
         return queryFactory.selectFrom(moimSession)
                 .where(moimSession.moim.id.eq(moimId))
                 .fetch();
+    }
+
+    @Override
+    public void remove(MoimSession moimSession) {
+        em.remove(moimSession);
     }
 }

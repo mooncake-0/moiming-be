@@ -48,7 +48,7 @@ public class MemberSessionLinker {
      멤버가 해당 정산에 참여해야 하는 정산 Category 들과의 연결자들
      TODO 바로 List<Category> 가 될 수 있는 방법은 ..
      */
-    @OneToMany(mappedBy = "memberSessionLinker", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "memberSessionLinker", cascade = CascadeType.PERSIST)
     private List<MemberSessionCategoryLinker> memberSessionCategoryLinkers = new ArrayList<>();
 
     public static MemberSessionLinker createMemberSessionLinker(int singleCost, MemberSessionState memberSessionState, Member member, MoimSession moimSession) {
@@ -74,6 +74,33 @@ public class MemberSessionLinker {
 
     public List<SessionCategoryType> getMemberSessionCategoryTypes() {
         return this.getMemberSessionCategoryLinkers().stream().map(mscl -> mscl.getSessionCategory().getCategoryType()).collect(Collectors.toList());
+    }
+
+    // 연관관계 편의 메소드
+    public void changeMemberStateSent(Member curMember) {
+        if (this.memberSessionState.equals(MemberSessionState.UNSENT)) { // UNSENT → SENT 요청일 경우에만 VALID
+            this.memberSessionState = MemberSessionState.SENT;
+            this.updatedAt = LocalDateTime.now();
+
+            // SESSION 정보 변경
+            this.moimSession.addCurCost(singleCost);
+            this.moimSession.addCurSenderCount();
+            this.moimSession.setUpdatedAt(LocalDateTime.now());
+            this.moimSession.setUpdatedUid(curMember.getUid());
+        }
+    }
+
+    public void changeMemberStateUnsent(Member curMember) {
+        if (this.memberSessionState.equals(MemberSessionState.SENT)) { // SENT → UNSENT 요청일 경우에만 VALID
+            this.memberSessionState = MemberSessionState.UNSENT;
+            this.updatedAt = LocalDateTime.now();
+
+            // SESSION 정보 변경
+            this.moimSession.removalCurCost(singleCost);
+            this.moimSession.removalCurSenderCount();
+            this.moimSession.setUpdatedAt(LocalDateTime.now());
+            this.moimSession.setUpdatedUid(curMember.getUid());
+        }
     }
 
 }

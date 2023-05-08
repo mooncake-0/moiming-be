@@ -7,6 +7,10 @@ import com.peoplein.moiming.domain.fixed.*;
 import com.peoplein.moiming.domain.rules.MoimRule;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.domain.rules.RulePersist;
+import com.peoplein.moiming.domain.session.MemberSessionCategoryLinker;
+import com.peoplein.moiming.domain.session.MemberSessionLinker;
+import com.peoplein.moiming.domain.session.MoimSession;
+import com.peoplein.moiming.domain.session.SessionCategoryItem;
 import com.peoplein.moiming.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,7 @@ public class InitDatabaseQuery {
     private final MoimRepository moimRepository;
     private final MoimReviewRepository moimReviewRepository;
     private final RoleRepository roleRepository;
+    private final SessionCategoryRepository sessionCategoryRepository;
 
     public InitDatabaseQuery(EntityManager em,
                              PasswordEncoder passwordEncoder,
@@ -40,7 +45,8 @@ public class InitDatabaseQuery {
                              MemberRepository memberRepository,
                              MoimRepository moimRepository,
                              MoimReviewRepository moimReviewRepository,
-                             RoleRepository roleRepository) {
+                             RoleRepository roleRepository,
+                             SessionCategoryRepository sessionCategoryRepository) {
         this.em = em;
         this.passwordEncoder = passwordEncoder;
         this.categoryRepository = categoryRepository;
@@ -48,6 +54,7 @@ public class InitDatabaseQuery {
         this.moimRepository = moimRepository;
         this.moimReviewRepository = moimReviewRepository;
         this.roleRepository = roleRepository;
+        this.sessionCategoryRepository = sessionCategoryRepository;
     }
 
     private Long moim1Id;
@@ -243,9 +250,11 @@ public class InitDatabaseQuery {
         Moim moim = moimRepository.findById(moim1Id);
         Member curMember = memberRepository.findMemberByUid(InitConstant.WOOJIN_UID);
         Member curMember2 = memberRepository.findMemberByUid(InitConstant.BYUNGHO_UID);
+        Member curMember3 = memberRepository.findMemberByUid(InitConstant.JUBIN_UID);
 
         MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
         MemberMoimLinker.memberJoinMoim(curMember2, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
+        MemberMoimLinker.memberJoinMoim(curMember3, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
     }
 
 
@@ -426,10 +435,11 @@ public class InitDatabaseQuery {
     }
 
     public void initSessionCategories() {
+
         SessionCategory sessionCategory1 = SessionCategory.createSessionCategory(SessionCategoryType.ACTIVITY);
-        SessionCategory sessionCategory2= SessionCategory.createSessionCategory(SessionCategoryType.FOOD);
+        SessionCategory sessionCategory2 = SessionCategory.createSessionCategory(SessionCategoryType.FOOD);
         SessionCategory sessionCategory3 = SessionCategory.createSessionCategory(SessionCategoryType.ALCOHOL);
-        SessionCategory sessionCategory4 = SessionCategory.createSessionCategory(SessionCategoryType.DRINKS);
+        SessionCategory sessionCategory4 = SessionCategory.createSessionCategory(SessionCategoryType.DRINK);
         SessionCategory sessionCategory5 = SessionCategory.createSessionCategory(SessionCategoryType.EXTRA);
 
         em.persist(sessionCategory1);
@@ -439,8 +449,99 @@ public class InitDatabaseQuery {
         em.persist(sessionCategory5);
     }
 
+    public void initSampleSession() {
+
+        Moim moim = moimRepository.findById(moim1Id);
+
+        Member member1 = memberRepository.findMemberByUid(InitConstant.WOOSEOK_UID);
+        Member member2 = memberRepository.findMemberByUid(InitConstant.WOOJIN_UID);
+        Member member3 = memberRepository.findMemberByUid(InitConstant.BYUNGHO_UID);
+
+        List<SessionCategory> sessionCategories = sessionCategoryRepository.findAllSessionCategories();
+
+        MoimSession moimSession = MoimSession.createMoimSession("예제 정산활동입니다", "예제를 좋아하는 개발자의 예제입니다", 200000, 3, InitConstant.WOOSEOK_UID, moim, null);
+
+        SessionCategoryItem itemActivityRent = SessionCategoryItem.createSessionCategoryItem("렌트비", 60000
+                , moimSession, findSessionCategory(sessionCategories, SessionCategoryType.ACTIVITY));
+
+        SessionCategoryItem itemActivityDrink = SessionCategoryItem.createSessionCategoryItem("음료비", 30000
+                , moimSession, findSessionCategory(sessionCategories, SessionCategoryType.ACTIVITY));
+
+
+        SessionCategoryItem itemFoodChicken = SessionCategoryItem.createSessionCategoryItem("치킨", 30000
+                , moimSession, findSessionCategory(sessionCategories, SessionCategoryType.FOOD));
+        SessionCategoryItem itemFoodPot = SessionCategoryItem.createSessionCategoryItem("감자", 20000
+                , moimSession, findSessionCategory(sessionCategories, SessionCategoryType.FOOD));
+        // DEFAULT 는 FE 에서 자동으로 생성해서 보내준 항목
+        SessionCategoryItem itemFoodDefault = SessionCategoryItem.createSessionCategoryItem("기타", 10000
+                , moimSession, findSessionCategory(sessionCategories, SessionCategoryType.FOOD));
+
+        SessionCategoryItem itemAlcSoju = SessionCategoryItem.createSessionCategoryItem("소주", 30000
+                , moimSession, findSessionCategory(sessionCategories, SessionCategoryType.ALCOHOL));
+        SessionCategoryItem itemAlcBeer = SessionCategoryItem.createSessionCategoryItem("맥주", 10000
+                , moimSession, findSessionCategory(sessionCategories, SessionCategoryType.ALCOHOL));
+
+        // EXTRA 는 FE 에서 자동으로 생성해서 보내준 항목
+        SessionCategoryItem itemExtraDefault = SessionCategoryItem.createSessionCategoryItem("기타", 10000
+                , moimSession, findSessionCategory(sessionCategories, SessionCategoryType.EXTRA));
+
+
+        /// 해당 유저와 정산활동을 연결 (인원별 총 금액에 대하여)
+        MemberSessionLinker wsLinker = MemberSessionLinker.createMemberSessionLinker(70000, MemberSessionState.UNSENT, member1, moimSession);
+        MemberSessionLinker bhLinker = MemberSessionLinker.createMemberSessionLinker(70000, MemberSessionState.UNSENT, member2, moimSession);
+        MemberSessionLinker wjLinker = MemberSessionLinker.createMemberSessionLinker(60000, MemberSessionState.UNSENT, member3, moimSession);
+
+        // 각각 무슨 항목에 해당하는지 연결
+        new MemberSessionCategoryLinker(wsLinker, findSessionCategory(sessionCategories, SessionCategoryType.ACTIVITY));
+        new MemberSessionCategoryLinker(bhLinker, findSessionCategory(sessionCategories, SessionCategoryType.ACTIVITY));
+        new MemberSessionCategoryLinker(wjLinker, findSessionCategory(sessionCategories, SessionCategoryType.ACTIVITY));
+
+        new MemberSessionCategoryLinker(wsLinker, findSessionCategory(sessionCategories, SessionCategoryType.FOOD));
+        new MemberSessionCategoryLinker(bhLinker, findSessionCategory(sessionCategories, SessionCategoryType.FOOD));
+        new MemberSessionCategoryLinker(wjLinker, findSessionCategory(sessionCategories, SessionCategoryType.FOOD));
+
+        new MemberSessionCategoryLinker(wsLinker, findSessionCategory(sessionCategories, SessionCategoryType.ALCOHOL));
+        new MemberSessionCategoryLinker(bhLinker, findSessionCategory(sessionCategories, SessionCategoryType.ALCOHOL));
+
+        new MemberSessionCategoryLinker(wjLinker, findSessionCategory(sessionCategories, SessionCategoryType.EXTRA));
+
+        em.persist(moimSession);
+
+        // 정산 예제 //
+        // 총 정산 금액 200,000
+        // 정산 카테고리  > 정산 내역
+
+        // Front 단 자동 로직 >> 아무 Item 이 없을시 DEFAULT 로 Item 하나 생성
+        //                 >> 아무 정산 Category 없을시 ALL EXTRA 로> Extra 의 DEFAULT
+
+        // ACTIVITY 90,000 > 참여자 강우석, 김우진, 박병호
+        // 렌트비 60,000
+        // 음료비 30,000
+
+        // FOOD 60,000 > 강우석, 김우진, 박병호
+        // 치킨 30,000
+        // 감자 20,000
+        // 기타 10,000
+
+        // ALCOHOL 40,000 > 강우석, 박병호
+        // 소주 30,000
+        // 맥주 10,000
+
+        // EXTRA  10,000 > 김우진
+
+        // 강우석 7
+        // 박병호 7
+        // 김우진 6
+
+
+    }
+
     private ReviewQuestion findReviewQuestion(List<ReviewQuestion> reviewQuestions, QuestionName questionName) {
         return reviewQuestions.stream().filter(q -> q.getQuestionName().equals(questionName)).findAny().orElseThrow(() -> new RuntimeException(questionName + " 이런 질문 없습니다"));
+    }
+
+    private SessionCategory findSessionCategory(List<SessionCategory> sessionCategories, SessionCategoryType sessionCategoryType) {
+        return sessionCategories.stream().filter(sc -> sc.getCategoryType().equals(sessionCategoryType)).findAny().orElseThrow(() -> new RuntimeException("정산 카테고리를 찾을 수 없습니다"));
     }
 
 
