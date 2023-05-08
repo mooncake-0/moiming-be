@@ -107,7 +107,7 @@ public class TestUtils {
     }
 
     public static Member initMemberAndMemberInfo() {
-        Member member = Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
+        Member member = Member.createMember(uid, password, memberEmail, memberName, fcmToken, memberGender, role);
         member.getMemberInfo().setMemberBirth(memberBirth);
 
         return member;
@@ -121,7 +121,7 @@ public class TestUtils {
     }
 
     public static Member initMemberAndMemberInfo(String uid, String memberName, String memberEmail) {
-        Member member = Member.createMember(uid, password, memberEmail, memberName, memberGender, role);
+        Member member = Member.createMember(uid, password, memberEmail, memberName, fcmToken, memberGender, role);
         member.getMemberInfo().setMemberBirth(memberBirth);
 
         return member;
