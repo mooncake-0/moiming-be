@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberScheduleLinker {
+public class MemberScheduleLinker extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -20,8 +20,6 @@ public class MemberScheduleLinker {
 
     @Enumerated(value = EnumType.STRING)
     private ScheduleMemberState memberState;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id")
@@ -46,7 +44,6 @@ public class MemberScheduleLinker {
         /*
          초기화
          */
-        this.createdAt = LocalDateTime.now();
 
         /*
          연관관계 및 편의 메소드
@@ -62,7 +59,4 @@ public class MemberScheduleLinker {
     }
 
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

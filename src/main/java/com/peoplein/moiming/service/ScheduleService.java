@@ -176,7 +176,6 @@ public class ScheduleService {
 
         if (isAnyUpdate) {
 
-            schedule.setUpdatedAt(LocalDateTime.now());
             schedule.setUpdatedUid(curMember.getUid());
 
             return buildScheduleResponseDto(schedule);
@@ -326,12 +325,12 @@ public class ScheduleService {
             if (isJoin) {
                 if (memberScheduleLinker.getMemberState() != ScheduleMemberState.ATTEND) {
                     memberScheduleLinker.changeMemberState(ScheduleMemberState.ATTEND);
-                    memberScheduleLinker.setUpdatedAt(LocalDateTime.now());
+                    // memberScheduleLinker.setUpdatedAt(LocalDateTime.now());
                 }
             } else {
                 if (memberScheduleLinker.getMemberState() != ScheduleMemberState.NONATTEND) {
                     memberScheduleLinker.changeMemberState(ScheduleMemberState.NONATTEND);
-                    memberScheduleLinker.setUpdatedAt(LocalDateTime.now());
+                    // memberScheduleLinker.setUpdatedAt(LocalDateTime.now());
                 }
             }
 

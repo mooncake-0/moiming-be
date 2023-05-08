@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Schedule {
+public class Schedule extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -24,9 +24,7 @@ public class Schedule {
     private LocalDateTime scheduleDate;
     private int maxCount;
     private boolean isClosed;
-    private LocalDateTime createdAt;
     private String createdUid;
-    private LocalDateTime updatedAt;
     private String updatedUid;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -56,7 +54,6 @@ public class Schedule {
          초기화
          */
         this.isClosed = false;
-        this.createdAt = LocalDateTime.now();
 
         /*
          연관관계 및 편의 메소드
@@ -88,7 +85,4 @@ public class Schedule {
         this.updatedUid = updatedUid;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }
