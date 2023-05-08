@@ -42,15 +42,10 @@ public class MemberScheduleLinker extends BaseEntity{
         this.memberState = memberState;
 
         /*
-         초기화
-         */
-
-        /*
          연관관계 및 편의 메소드
          */
         this.schedule = schedule;
-        this.schedule.getMemberScheduleLinkers().add(this);
-
+        this.schedule.addScheduleLinker(this);
     }
 
     public void changeMemberState(ScheduleMemberState memberState) {

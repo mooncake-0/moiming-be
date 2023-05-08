@@ -85,4 +85,11 @@ public class Schedule extends BaseEntity{
         this.updatedUid = updatedUid;
     }
 
+    public void addScheduleLinker(MemberScheduleLinker memberScheduleLinker) {
+        if (this.maxCount < this.memberScheduleLinkers.size() + 1) {
+            throw new RuntimeException("모임 스케쥴의 최대값을 넘는 값입니다.");
+        }
+        memberScheduleLinkers.add(memberScheduleLinker);
+    }
+
 }
