@@ -123,7 +123,9 @@ public class ScheduleService {
         // When repository does not have such schedule in DB.
         String errorMessage = "요청한 일정을 찾을 수 없는 경우";
         throwIfObjectIsNull(schedule, errorMessage);
-        checkAuthorityForUpdate(curMember, schedule);
+
+        String authorityFailMessage = "일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님";
+        checkAuthority(curMember, schedule, authorityFailMessage);
 
         boolean isAnyUpdated = updateSchedule(scheduleRequestDto, schedule, curMember.getUid());
 
@@ -306,16 +308,6 @@ public class ScheduleService {
                 requestDto.getMaxCount(),
                 moim,
                 curMember);
-    }
-
-    // 변경할 권한 유저 체킹 - 생성자, 리더, 운영진 가능
-    // 요청한 유저와 이 Schedule 의 Moim Id 확보 필요
-    private void checkAuthorityForUpdate(Member curMember, Schedule schedule) {
-        MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
-        if (!hasPermissionForUpdateSchedule(curMember, schedule, memberMoimLinker)) { // 일정 생성자가 아니다
-            log.error("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
-            throw new RuntimeException("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
-        }
     }
 
     // 변경할 권한 유저 체킹 - 생성자, 리더, 운영진 가능
