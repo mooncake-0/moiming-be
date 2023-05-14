@@ -173,7 +173,7 @@ public class ScheduleService {
         scheduleRepository.remove(schedule);
     }
 
-    public ScheduleMemberDto changeMemberState(Long scheduleId, boolean isJoin, Member curMember) {
+    public ChangeMemberTuple changeMemberState(Long scheduleId, boolean isJoin, Member curMember) {
 
         Schedule schedule = scheduleRepository.findById(scheduleId);
         String errorMessageForSchedule = "잘못된 요청 : 해당 PK의 일정이 존재하지 않습니다";
@@ -183,62 +183,20 @@ public class ScheduleService {
         String errorMessageForLinker = "잘못된 요청 : 모임원이 아닙니다";
         throwIfObjectIsNull(curMemberMoimLinker, errorMessageForLinker);
 
-        MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(
-                curMemberMoimLinker.getMember().getId(), curMemberMoimLinker.getMember().getUid()
-                , curMemberMoimLinker.getMember().getMemberInfo().getMemberName()
-                , curMemberMoimLinker.getMember().getMemberInfo().getMemberEmail()
-                , curMemberMoimLinker.getMember().getMemberInfo().getMemberGender()
-                , curMemberMoimLinker.getMember().getMemberInfo().getMemberPfImg()
-                , curMemberMoimLinker.getMoimRoleType(), curMemberMoimLinker.getMemberState()
-                , curMemberMoimLinker.getCreatedAt(), curMemberMoimLinker.getUpdatedAt()
-        );
-
-
         // 해당 멤버에 대한 ScheduleLinker 가 있는지 우선 조회
         MemberScheduleLinker memberScheduleLinker = memberScheduleLinkerRepository.findWithScheduleByMemberAndScheduleId(curMember.getId(), scheduleId);
 
         if (Objects.isNull(memberScheduleLinker)) {
-
-            MemberScheduleLinker curMemberScheduleLinker = null;
-
-            // 새로 생성후 저장한다
-            if (isJoin) {
-                curMemberScheduleLinker = MemberScheduleLinker.memberJoinSchedule(curMember, schedule, ScheduleMemberState.ATTEND);
-            } else {
-                curMemberScheduleLinker = MemberScheduleLinker.memberJoinSchedule(curMember, schedule, ScheduleMemberState.NONATTEND);
-            }
-
-            ScheduleMemberDto scheduleMemberDto = new ScheduleMemberDto(
-                    curMemberScheduleLinker.getMemberState(), curMemberScheduleLinker.getCreatedAt(), curMemberScheduleLinker.getUpdatedAt()
-            );
-
-            scheduleMemberDto.setMoimMemberInfoDto(moimMemberInfoDto);
-
-            return scheduleMemberDto;
-
+            memberScheduleLinker =
+                    isJoin ?
+                    MemberScheduleLinker.memberJoinSchedule(curMember, schedule, ScheduleMemberState.ATTEND) :
+                    MemberScheduleLinker.memberJoinSchedule(curMember, schedule, ScheduleMemberState.NONATTEND);
         } else {
-            // 해당 scheduleLinker 의 상태를 변경한다
-            if (isJoin) {
-                if (memberScheduleLinker.getMemberState() != ScheduleMemberState.ATTEND) {
-                    memberScheduleLinker.changeMemberState(ScheduleMemberState.ATTEND);
-                    // memberScheduleLinker.setUpdatedAt(LocalDateTime.now());
-                }
-            } else {
-                if (memberScheduleLinker.getMemberState() != ScheduleMemberState.NONATTEND) {
-                    memberScheduleLinker.changeMemberState(ScheduleMemberState.NONATTEND);
-                    // memberScheduleLinker.setUpdatedAt(LocalDateTime.now());
-                }
-            }
-
-            ScheduleMemberDto scheduleMemberDto = new ScheduleMemberDto(
-                    memberScheduleLinker.getMemberState(), memberScheduleLinker.getCreatedAt(), memberScheduleLinker.getUpdatedAt()
-            );
-
-            scheduleMemberDto.setMoimMemberInfoDto(moimMemberInfoDto);
-
-            return scheduleMemberDto;
+            memberScheduleLinker.changeMemberStateWithJoin(isJoin);
         }
 
+        MoimMemberInfoDto moimMemberInfoDto = MoimMemberInfoDto.createWithMemberMoimLinker(curMemberMoimLinker);
+        return new ChangeMemberTuple(memberScheduleLinker, moimMemberInfoDto);
     }
 
     private boolean updateSchedule(ScheduleRequestDto scheduleRequestDto, Schedule schedule, String updaterUid) {
@@ -336,6 +294,19 @@ public class ScheduleService {
             throw new RuntimeException(message);
         }
     }
+
+    @Getter
+    public static class ChangeMemberTuple {
+
+        private final MemberScheduleLinker memberScheduleLinker;
+        private final MoimMemberInfoDto moimMemberInfoDto;
+
+        public ChangeMemberTuple(MemberScheduleLinker memberScheduleLinker, MoimMemberInfoDto moimMemberInfoDto) {
+            this.memberScheduleLinker = memberScheduleLinker;
+            this.moimMemberInfoDto = moimMemberInfoDto;
+        }
+    }
+
 
 
 }

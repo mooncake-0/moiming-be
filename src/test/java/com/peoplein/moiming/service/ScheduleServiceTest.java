@@ -2,10 +2,7 @@ package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberScheduleLinker;
-import com.peoplein.moiming.domain.Moim;
-import com.peoplein.moiming.domain.Schedule;
+import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
@@ -13,6 +10,7 @@ import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.dto.request.ScheduleRequestDto;
 import com.peoplein.moiming.model.dto.response.ScheduleResponseDto;
+import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
 import com.peoplein.moiming.repository.ScheduleRepository;
 import org.assertj.core.api.Assertions;
@@ -58,6 +56,9 @@ class ScheduleServiceTest extends BaseTest {
 
     @Autowired
     ScheduleRepository scheduleRepository;
+
+    @Autowired
+    MemberMoimLinkerRepository memberMoimLinkerRepository;
 
     @Test
     @DisplayName("updateSchedule : 성공하는 경우")
@@ -306,6 +307,82 @@ class ScheduleServiceTest extends BaseTest {
                 .isInstanceOf(RuntimeException.class);
     }
 
+
+    @Test
+    @DisplayName("changeMemberState : 스케쥴 처음으로 가입하고자 할 때임.")
+    void changeMemberStateSuccess1Test() {
+
+        // Given :
+        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Moim moim = TestUtils.createMoimOnly();
+        Moim otherMoim = TestUtils.createMoimOnly("other-moim");
+
+        persist(creator.getRoles().get(0).getRole(),
+                creator,
+                joiner,
+                moim,
+                otherMoim);
+
+        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
+        moimMemberService.requestJoin(moimJoinRequestDto, creator);
+        moimMemberService.requestJoin(moimJoinRequestDto, joiner);
+
+        Schedule schedule = createScheduleForUpdate(moim, creator);
+        persist(schedule);
+        em.flush();
+        em.clear();
+
+        // When
+        ScheduleService.ChangeMemberTuple result = scheduleService.changeMemberState(schedule.getId(), true, joiner);
+        em.flush();
+        em.clear();
+
+        // Then
+        assertThat(result.getMemberScheduleLinker()).isNotNull();
+        assertThat(result.getMemberScheduleLinker().getMemberState()).isEqualTo(ScheduleMemberState.ATTEND);
+        assertThat(result.getMoimMemberInfoDto().getMemberUid()).isEqualTo(joiner.getUid());
+
+        MemberScheduleLinker findLinker = memberScheduleLinkerRepository.findByMemberAndScheduleId(joiner.getId(), schedule.getId());
+        assertThat(findLinker).isNotNull();
+    }
+
+    @Test
+    @DisplayName("changeMemberState : 성공. 기존 스케쥴이 있는데 미참석으로 수정하는 경우.")
+    void changeMemberStateSuccess2Test() {
+
+        // Given :
+        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Moim moim = TestUtils.createMoimOnly();
+        Moim otherMoim = TestUtils.createMoimOnly("other-moim");
+
+        persist(creator.getRoles().get(0).getRole(),
+                creator,
+                joiner,
+                moim,
+                otherMoim);
+
+        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
+        moimMemberService.requestJoin(moimJoinRequestDto, creator);
+        moimMemberService.requestJoin(moimJoinRequestDto, joiner);
+
+        Schedule schedule = createScheduleForUpdate(moim, creator);
+        MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
+        persist(schedule, linker);
+        em.flush();
+        em.clear();
+
+        // When
+        ScheduleService.ChangeMemberTuple result = scheduleService.changeMemberState(schedule.getId(), false, joiner);
+        em.flush();
+        em.clear();
+
+        // Then
+        assertThat(result.getMemberScheduleLinker()).isNotNull();
+        assertThat(result.getMemberScheduleLinker().getMemberState()).isEqualTo(ScheduleMemberState.NONATTEND);
+        assertThat(result.getMoimMemberInfoDto().getMemberUid()).isEqualTo(joiner.getUid());
+    }
 
     private void persist(Object ... objects) {
         Arrays.stream(objects).forEach(o -> em.persist(o));
