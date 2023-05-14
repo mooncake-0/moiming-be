@@ -159,34 +159,16 @@ public class ScheduleService {
 
         Schedule schedule = scheduleRepository.findById(scheduleId);
 
-        // Null 체킹
-        if (Objects.isNull(schedule)) {
-            log.error("요청한 일정을 찾을 수 없는 경우");
-            throw new RuntimeException("요청한 일정을 찾을 수 없는 경우");
-        }
+        String errorMessage = "요청한 일정을 찾을 수 없는 경우";
+        throwIfScheduleIsNull(schedule, errorMessage);
 
-        // 일정 삭제 권한은 생성자 / 리더 / 운영진 에게 있다
-        if (!curMember.getUid().equals(schedule.getCreatedUid())) { // 일정 생성자가 아니다
-            // 아닐 경우 어떤 멤버인지 판독 필요
-            MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
-            if (!memberMoimLinker.getMoimRoleType().equals(MoimRoleType.LEADER) && !memberMoimLinker.getMoimRoleType().equals(MoimRoleType.MANAGER)) {
-                // 권한 소유자도 아니다
-                log.error("일정을 삭제할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
-                throw new RuntimeException("일정을 삭제할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
-            }
-        }
+        String failMessage = "일정을 삭제할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님";
+        checkAuthority(curMember, schedule, failMessage);
 
-        // 권한이 있으므로, 삭제를 진행한다
-        // 모든 MemberScheduleLinker 를 우선 삭제한다
-        try {
-
-            memberScheduleLinkerRepository.removeAllByScheduleId(scheduleId);
-            scheduleRepository.remove(schedule);
-
-        } catch (RuntimeException exception) {
-            log.error("삭제중 Error 발생: {}", exception.getMessage());
-            throw new RuntimeException("삭제중 Error 발생: " + exception.getMessage());
-        }
+        // Error 발생 시, RuntimeException이 아닌 다른 에러가 발생함.
+        // 현재 위치에서 RollBack Exception으로 Controller에 전달됨.
+        memberScheduleLinkerRepository.removeAllByScheduleId(scheduleId);
+        scheduleRepository.remove(schedule);
     }
 
     public ScheduleMemberDto changeMemberState(Long scheduleId, boolean isJoin, Member curMember) {
@@ -338,6 +320,16 @@ public class ScheduleService {
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
         if (!hasPermissionForUpdateSchedule(curMember, schedule, memberMoimLinker)) { // 일정 생성자가 아니다
             log.error("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
+            throw new RuntimeException("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
+        }
+    }
+
+    // 변경할 권한 유저 체킹 - 생성자, 리더, 운영진 가능
+    // 요청한 유저와 이 Schedule 의 Moim Id 확보 필요
+    private void checkAuthority(Member curMember, Schedule schedule, String failMessage) {
+        MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
+        if (!hasPermissionForUpdateSchedule(curMember, schedule, memberMoimLinker)) { // 일정 생성자가 아니다
+            log.error(failMessage);
             throw new RuntimeException("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
         }
     }
