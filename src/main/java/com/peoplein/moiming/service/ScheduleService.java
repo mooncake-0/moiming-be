@@ -45,7 +45,6 @@ public class ScheduleService {
         // TODO :: 현재 모임원들에게 FCM Push 를 전송한다
         if (requestDto.isFullNotice()) {
         }
-
         Moim findMoim = moimRepository.findById(requestDto.getMoimId());
 
         Schedule newSchedule = createNewScheduleWithDto(requestDto, findMoim, curMember);
@@ -280,12 +279,6 @@ public class ScheduleService {
 
     private boolean hasPermissionForUpdateSchedule(Member curMember, Schedule schedule, MemberMoimLinker memberMoimLinker) {
         return curMember.isSameUid(schedule.getCreatedUid()) || memberMoimLinker.hasPermissionForUpdate();
-    }
-    private void throwIfScheduleIsNull(Schedule schedule, String message) {
-        if (Objects.isNull(schedule)) {
-            log.error(message);
-            throw new RuntimeException(message);
-        }
     }
 
     private void throwIfObjectIsNull(Object object, String message) {
