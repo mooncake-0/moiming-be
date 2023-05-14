@@ -122,7 +122,7 @@ public class ScheduleService {
 
         // When repository does not have such schedule in DB.
         String errorMessage = "요청한 일정을 찾을 수 없는 경우";
-        throwIfScheduleIsNull(schedule, errorMessage);
+        throwIfObjectIsNull(schedule, errorMessage);
         checkAuthorityForUpdate(curMember, schedule);
 
         boolean isAnyUpdated = updateSchedule(scheduleRequestDto, schedule, curMember.getUid());
@@ -160,7 +160,7 @@ public class ScheduleService {
         Schedule schedule = scheduleRepository.findById(scheduleId);
 
         String errorMessage = "요청한 일정을 찾을 수 없는 경우";
-        throwIfScheduleIsNull(schedule, errorMessage);
+        throwIfObjectIsNull(schedule, errorMessage);
 
         String failMessage = "일정을 삭제할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님";
         checkAuthority(curMember, schedule, failMessage);
@@ -174,18 +174,12 @@ public class ScheduleService {
     public ScheduleMemberDto changeMemberState(Long scheduleId, boolean isJoin, Member curMember) {
 
         Schedule schedule = scheduleRepository.findById(scheduleId);
-
-        if (Objects.isNull(schedule)) {
-            log.error("잘못된 요청 : 해당 PK의 일정이 존재하지 않습니다");
-            throw new RuntimeException("잘못된 요청 : 해당 PK의 일정이 존재하지 않습니다");
-        }
+        String errorMessageForSchedule = "잘못된 요청 : 해당 PK의 일정이 존재하지 않습니다";
+        throwIfObjectIsNull(schedule, errorMessageForSchedule);
 
         MemberMoimLinker curMemberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
-
-        if (Objects.isNull(curMemberMoimLinker)) {
-            log.error("잘못된 요청 : 모임원이 아닙니다");
-            throw new RuntimeException("잘못된 요청 : 모임원이 아닙니다");
-        }
+        String errorMessageForLinker = "잘못된 요청 : 모임원이 아닙니다";
+        throwIfObjectIsNull(curMemberMoimLinker, errorMessageForLinker);
 
         MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(
                 curMemberMoimLinker.getMember().getId(), curMemberMoimLinker.getMember().getUid()
@@ -344,6 +338,12 @@ public class ScheduleService {
         }
     }
 
+    private void throwIfObjectIsNull(Object object, String message) {
+        if (Objects.isNull(object)) {
+            log.error(message);
+            throw new RuntimeException(message);
+        }
+    }
 
 
 }
