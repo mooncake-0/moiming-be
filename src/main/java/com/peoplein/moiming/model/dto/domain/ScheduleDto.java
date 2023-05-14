@@ -39,4 +39,19 @@ public class ScheduleDto {
         this.updatedAt = schedule.getUpdatedAt();
         this.updatedUid = schedule.getUpdatedUid();
     }
+
+    public static ScheduleDto createScheduleDto(Schedule schedule) {
+        return new ScheduleDto(
+                schedule.getId(),
+                schedule.getScheduleTitle(),
+                schedule.getScheduleLocation(),
+                schedule.getScheduleDate(),
+                schedule.getMaxCount(),
+                schedule.isClosed(),
+                schedule.getCreatedAt(),
+                schedule.getCreatedUid(),
+                schedule.getUpdatedAt(),
+                schedule.getUpdatedUid()
+        );
+    }
 }

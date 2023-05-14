@@ -64,9 +64,19 @@ public class MoimMemberInfoDto {
         } else {
             this.updatedAt = memberMoimLinker.getUpdatedAt();
         }
-
     }
 
+    public static MoimMemberInfoDto createWithMemberMoimLinker(MemberMoimLinker memberMoimLinker) {
+        return new MoimMemberInfoDto(
+                memberMoimLinker.getMember().getId(),
+                memberMoimLinker.getMember().getUid(),
+                memberMoimLinker.getMember().getMemberInfo().getMemberName(),
+                memberMoimLinker.getMember().getMemberInfo().getMemberEmail(),
+                memberMoimLinker.getMember().getMemberInfo().getMemberGender(),
+                memberMoimLinker.getMember().getMemberInfo().getMemberPfImg(),
+                memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState(),
+                memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt());
+    }
 
     /*
      MemberMoimLinker 정보 세팅을 위한 setter open

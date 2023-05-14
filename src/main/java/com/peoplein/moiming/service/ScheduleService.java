@@ -3,7 +3,6 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.ScheduleDto;
 import com.peoplein.moiming.model.dto.domain.ScheduleMemberDto;
@@ -13,6 +12,7 @@ import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.ScheduleRepository;
 import com.peoplein.moiming.repository.jpa.MemberMoimLinkerJpaRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,22 +46,12 @@ public class ScheduleService {
         if (requestDto.isFullNotice()) {
         }
 
-        Moim moim = moimRepository.findById(requestDto.getMoimId());
+        Moim findMoim = moimRepository.findById(requestDto.getMoimId());
 
-        Schedule schedule = Schedule.createSchedule(
-                requestDto.getScheduleTitle(), requestDto.getScheduleLocation()
-                , transferStringToLdt(requestDto.getScheduleDate())
-                , requestDto.getMaxCount()
-                , moim, curMember
-        );
+        Schedule newSchedule = createNewScheduleWithDto(requestDto, findMoim, curMember);
+        scheduleRepository.save(newSchedule);
 
-        scheduleRepository.save(schedule);
-
-        ScheduleDto scheduleDto = new ScheduleDto(
-                schedule.getId(), schedule.getScheduleTitle(), schedule.getScheduleLocation(), schedule.getScheduleDate(), schedule.getMaxCount()
-                , schedule.isClosed(), schedule.getCreatedAt(), schedule.getCreatedUid(), schedule.getUpdatedAt(), schedule.getUpdatedUid()
-        );
-
+        ScheduleDto scheduleDto = ScheduleDto.createScheduleDto(newSchedule);
         return new ScheduleResponseDto(scheduleDto);
     }
 
@@ -130,58 +120,16 @@ public class ScheduleService {
 
         Schedule schedule = scheduleRepository.findWithMoimById(scheduleRequestDto.getScheduleId());
 
-        // Null 체킹
-        if (Objects.isNull(schedule)) {
-            log.error("요청한 일정을 찾을 수 없는 경우");
-            throw new RuntimeException("요청한 일정을 찾을 수 없는 경우");
-        }
+        // When repository does not have such schedule in DB.
+        String errorMessage = "요청한 일정을 찾을 수 없는 경우";
+        throwIfScheduleIsNull(schedule, errorMessage);
+        checkAuthorityForUpdate(curMember, schedule);
 
-        // 변경할 권한 유저 체킹 - 생성자, 리더, 운영진 가능
-        // 요청한 유저와 이 Schedule 의 Moim Id 확보 필요
-        if (!curMember.getUid().equals(schedule.getCreatedUid())) { // 일정 생성자가 아니다
-            MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
-            if (!memberMoimLinker.getMoimRoleType().equals(MoimRoleType.LEADER) && !memberMoimLinker.getMoimRoleType().equals(MoimRoleType.MANAGER)) {
-                // 권한 소유자도 아니다
-                log.error("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
-                throw new RuntimeException("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
-            }
-        }
+        boolean isAnyUpdated = updateSchedule(scheduleRequestDto, schedule, curMember.getUid());
 
-        boolean isAnyUpdate = false;
-
-        if (!scheduleRequestDto.getScheduleTitle().equals(schedule.getScheduleTitle())) {
-            isAnyUpdate = true;
-            schedule.changeScheduleTitle(scheduleRequestDto.getScheduleTitle());
-        }
-
-        if (!scheduleRequestDto.getScheduleLocation().equals(schedule.getScheduleLocation())) {
-            isAnyUpdate = true;
-            schedule.changeScheduleLocation(scheduleRequestDto.getScheduleLocation());
-        }
-
-        LocalDateTime scheduleDateLdt = transferStringToLdt(scheduleRequestDto.getScheduleDate());
-        if (!scheduleDateLdt.equals(schedule.getScheduleDate())) {
-            isAnyUpdate = true;
-            schedule.changeScheduleDate(scheduleDateLdt);
-        }
-
-        if (scheduleRequestDto.getMaxCount() != schedule.getMaxCount()) {
-            isAnyUpdate = true;
-            schedule.setMaxCount(scheduleRequestDto.getMaxCount());
-        }
-
-        if (scheduleRequestDto.isFullNotice()) {
-            // TODO:: 수정사항 전체 알림 설정(?)
-        }
-
-        if (isAnyUpdate) {
-
-            schedule.setUpdatedUid(curMember.getUid());
-
+        if (isAnyUpdated) {
             return buildScheduleResponseDto(schedule);
-
         } else {
-            // 수정요청이 들어왔으나 수정된 사항이 없음
             log.error("수정된 사항이 없는 경우");
             throw new RuntimeException("수정된 사항이 없는 경우");
         }
@@ -192,49 +140,19 @@ public class ScheduleService {
         // 모든 ScheduleLinker 들과 MemberMoimLinker 들과 연계 필요
         // MSL 의 정보를 가져오기 위해 조회, 사실 N+1 이지만 Batch 설정으로 인해 한번에 들고와준다.
         List<MemberScheduleLinker> memberScheduleLinkers = schedule.getMemberScheduleLinkers();
-        List<Long> memberIds = memberScheduleLinkers.stream().map(msl -> msl.getMember().getId())
+        List<Long> memberIds = memberScheduleLinkers.stream()
+                .map(msl -> msl.getMember().getId())
+                .distinct()
                 .collect(Collectors.toList());
 
-        // memberId 들로 해당 MemberMoimLinker 들을 들고온다.
+        // memberId 들로 해당 MemberMoimLinker들을 들고온다.
         List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findByMoimIdAndMemberIds(schedule.getMoim().getId(), memberIds);
-        List<ScheduleMemberDto> scheduleMemberDtos = new ArrayList<>();
 
-        // MEMO :: N^2 발생지점
-        memberScheduleLinkers.forEach(msl -> {
-                    MemberMoimLinker sameMemberLinker = null;
-                    for (MemberMoimLinker mml : memberMoimLinkers) {
-                        if (msl.getMember().getId().equals(mml.getMember().getId())) {
-                            sameMemberLinker = mml;
-                        }
-                    }
-                    if (Objects.isNull(sameMemberLinker)) {
-                        throw new RuntimeException("");
-                    }
-                    MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(
-                            sameMemberLinker.getMember().getId(), sameMemberLinker.getMember().getUid()
-                            , sameMemberLinker.getMember().getMemberInfo().getMemberName()
-                            , sameMemberLinker.getMember().getMemberInfo().getMemberEmail()
-                            , sameMemberLinker.getMember().getMemberInfo().getMemberGender()
-                            , sameMemberLinker.getMember().getMemberInfo().getMemberPfImg()
-                            , sameMemberLinker.getMoimRoleType(), sameMemberLinker.getMemberState()
-                            , sameMemberLinker.getCreatedAt(), sameMemberLinker.getUpdatedAt()
-                    );
+        // Moim에서 Member / Shedule 정보가 있는 녀석들을 찾아서 ScheduleMemberDto를 만듦.
+        List<ScheduleMemberDto> scheduleMemberDtos = getDtosIfMoimHasScheduleAndMember(memberScheduleLinkers, memberMoimLinkers);
 
-                    ScheduleMemberDto scheduleMemberDto = new ScheduleMemberDto(
-                            msl.getMemberState(), msl.getCreatedAt(), msl.getUpdatedAt());
-
-                    scheduleMemberDto.setMoimMemberInfoDto(moimMemberInfoDto);
-                    scheduleMemberDtos.add(scheduleMemberDto);
-                }
-        );
-        ScheduleResponseDto scheduleResponseDto = new ScheduleResponseDto(new ScheduleDto(
-                schedule.getId(), schedule.getScheduleTitle(), schedule.getScheduleLocation(), schedule.getScheduleDate(), schedule.getMaxCount(), schedule.isClosed()
-                , schedule.getCreatedAt(), schedule.getCreatedUid(), schedule.getUpdatedAt(), schedule.getUpdatedUid()
-        ));
-
-        scheduleResponseDto.setScheduleMemberDto(scheduleMemberDtos);
-
-        return scheduleResponseDto;
+        ScheduleDto scheduleDto = ScheduleDto.createScheduleDto(schedule);
+        return ScheduleResponseDto.create(scheduleDto, scheduleMemberDtos);
     }
 
     public void deleteSchedule(Long scheduleId, Member curMember) {
@@ -344,5 +262,96 @@ public class ScheduleService {
         }
 
     }
+
+    private boolean updateSchedule(ScheduleRequestDto scheduleRequestDto, Schedule schedule, String updaterUid) {
+        // 시간 변환
+        LocalDateTime scheduleDateLdt = transferStringToLdt(scheduleRequestDto.getScheduleDate());
+
+        boolean isAnyUpdate = schedule.hasAnyUpdate(
+                scheduleRequestDto.getScheduleTitle(),
+                scheduleRequestDto.getScheduleLocation(),
+                scheduleDateLdt,
+                scheduleRequestDto.getMaxCount());
+
+        schedule.changeScheduleTitle(scheduleRequestDto.getScheduleTitle());
+        schedule.changeScheduleLocation(scheduleRequestDto.getScheduleLocation());
+        schedule.changeScheduleDate(scheduleDateLdt);
+        schedule.setMaxCount(scheduleRequestDto.getMaxCount());
+
+        if (isAnyUpdate)
+            schedule.setUpdatedUid(updaterUid);
+
+        /*if (scheduleRequestDto.isFullNotice()) {
+            // TODO:: 수정사항 전체 알림 설정(?)
+            // Not Supported Operation.
+        }*/
+        return isAnyUpdate;
+    }
+
+    private List<ScheduleMemberDto> getDtosIfMoimHasScheduleAndMember(
+            List<MemberScheduleLinker> memberScheduleLinkers,
+            List<MemberMoimLinker> memberMoimLinkers) {
+
+        return memberScheduleLinkers.stream()
+                .filter(memberScheduleLinker -> getMemberMoimLinkerCorrspondScheduleLinker(memberMoimLinkers, memberScheduleLinker).isPresent())
+                .map(memberScheduleLinker ->
+                        new Tuple(memberScheduleLinker, getMemberMoimLinkerCorrspondScheduleLinker(memberMoimLinkers, memberScheduleLinker).orElseThrow()))
+                .map(Tuple::asScheduleMemberDto)
+                .collect(Collectors.toList());
+    }
+
+    private Optional<MemberMoimLinker> getMemberMoimLinkerCorrspondScheduleLinker(List<MemberMoimLinker> memberMoimLinkers, MemberScheduleLinker msl) {
+        return memberMoimLinkers.stream()
+                .filter(memberMoimLinker -> msl.getMember().getId().equals(memberMoimLinker.getMember().getId()))
+                .findFirst();
+    }
+
+
+    @Getter
+    private static final class Tuple {
+        private final MemberScheduleLinker memberScheduleLinker;
+        private final MoimMemberInfoDto moimMemberInfoDto;
+
+        public Tuple(MemberScheduleLinker memberScheduleLinker, MemberMoimLinker memberMoimLinker) {
+            this.memberScheduleLinker = memberScheduleLinker;
+            this.moimMemberInfoDto = MoimMemberInfoDto.createWithMemberMoimLinker(memberMoimLinker);
+        }
+
+        public ScheduleMemberDto asScheduleMemberDto() {
+            return ScheduleMemberDto.create(this.memberScheduleLinker, this.moimMemberInfoDto);
+        }
+    }
+
+    private Schedule createNewScheduleWithDto(ScheduleRequestDto requestDto, Moim moim, Member curMember) {
+        return Schedule.createSchedule(
+                requestDto.getScheduleTitle(),
+                requestDto.getScheduleLocation(),
+                transferStringToLdt(requestDto.getScheduleDate()),
+                requestDto.getMaxCount(),
+                moim,
+                curMember);
+    }
+
+    // 변경할 권한 유저 체킹 - 생성자, 리더, 운영진 가능
+    // 요청한 유저와 이 Schedule 의 Moim Id 확보 필요
+    private void checkAuthorityForUpdate(Member curMember, Schedule schedule) {
+        MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
+        if (!hasPermissionForUpdateSchedule(curMember, schedule, memberMoimLinker)) { // 일정 생성자가 아니다
+            log.error("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
+            throw new RuntimeException("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
+        }
+    }
+
+    private boolean hasPermissionForUpdateSchedule(Member curMember, Schedule schedule, MemberMoimLinker memberMoimLinker) {
+        return curMember.isSameUid(schedule.getCreatedUid()) || memberMoimLinker.hasPermissionForUpdate();
+    }
+    private void throwIfScheduleIsNull(Schedule schedule, String message) {
+        if (Objects.isNull(schedule)) {
+            log.error(message);
+            throw new RuntimeException(message);
+        }
+    }
+
+
 
 }

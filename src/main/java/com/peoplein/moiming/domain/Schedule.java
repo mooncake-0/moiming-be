@@ -58,7 +58,8 @@ public class Schedule extends BaseEntity{
         /*
          연관관계 및 편의 메소드
          */
-        this.memberScheduleLinkers.add(MemberScheduleLinker.memberJoinSchedule(creator, this, ScheduleMemberState.CREATOR));
+        MemberScheduleLinker.memberJoinSchedule(creator, this, ScheduleMemberState.CREATOR);
+        // this.memberScheduleLinkers.add(MemberScheduleLinker.memberJoinSchedule(creator, this, ScheduleMemberState.CREATOR));
         this.moim = moim;
     }
 
@@ -91,5 +92,17 @@ public class Schedule extends BaseEntity{
         }
         memberScheduleLinkers.add(memberScheduleLinker);
     }
+
+    public boolean hasAnyUpdate(String changedTitle,
+                                String changedLocation,
+                                LocalDateTime changedTime,
+                                int changedMaxCount) {
+
+        return !this.scheduleTitle.equals(changedTitle) ||
+                !this.scheduleLocation.equals(changedLocation) ||
+                !this.scheduleDate.equals(changedTime) ||
+                this.maxCount != changedMaxCount;
+    }
+
 
 }

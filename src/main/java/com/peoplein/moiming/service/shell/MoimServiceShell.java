@@ -99,6 +99,7 @@ public class MoimServiceShell {
         // persist
         createMoimCategoryLinker.forEach(moimCategoryLinkerRepository::save);
         moimRepository.save(createdMoim);
+        memberMoimLinkerRepository.save(curMemberMoimLinker);
 
         // response
         MoimMembersDto moimMembersDto = new MoimMembersDto(

@@ -144,7 +144,9 @@ public class TestUtils {
     }
 
     public static Moim createMoimOnly() {
-        return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
+        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
+        moim.setHasRuleJoin(false);
+        return moim;
     }
 
     public static Moim createMoimOnly(String moimName) {
