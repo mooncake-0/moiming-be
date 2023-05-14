@@ -273,7 +273,7 @@ public class ScheduleService {
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
         if (!hasPermissionForUpdateSchedule(curMember, schedule, memberMoimLinker)) { // 일정 생성자가 아니다
             log.error(failMessage);
-            throw new RuntimeException("일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님");
+            throw new RuntimeException(failMessage);
         }
     }
 
