@@ -13,6 +13,8 @@ import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.dto.request.ScheduleRequestDto;
 import com.peoplein.moiming.model.dto.response.ScheduleResponseDto;
+import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
+import com.peoplein.moiming.repository.ScheduleRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,12 @@ class ScheduleServiceTest extends BaseTest {
 
     @Autowired
     MoimService moimService;
+
+    @Autowired
+    MemberScheduleLinkerRepository memberScheduleLinkerRepository;
+
+    @Autowired
+    ScheduleRepository scheduleRepository;
 
     @Test
     @DisplayName("updateSchedule : 성공하는 경우")
@@ -224,6 +232,77 @@ class ScheduleServiceTest extends BaseTest {
 
         // When + Then:
         assertThatThrownBy(() -> scheduleService.updateSchedule(scheduleRequestDto, joiner))
+                .isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    @DisplayName("deleteScheduleTest : 성공")
+    void deleteScheduleSuccessTest() {
+
+        // Given :
+        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Moim moim = TestUtils.createMoimOnly();
+        Moim otherMoim = TestUtils.createMoimOnly("other-moim");
+
+        persist(creator.getRoles().get(0).getRole(),
+                creator,
+                joiner,
+                moim,
+                otherMoim);
+
+        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
+        moimMemberService.requestJoin(moimJoinRequestDto, creator);
+        moimMemberService.requestJoin(moimJoinRequestDto, joiner);
+
+        Schedule schedule = createScheduleForUpdate(moim, creator);
+        MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
+        persist(schedule, linker);
+        em.flush();
+        em.clear();
+
+        // When
+        scheduleService.deleteSchedule(schedule.getId(), creator);
+        em.flush();
+        em.clear();
+
+        // Then
+        Schedule findSchedule = scheduleRepository.findById(schedule.getId());
+        MemberScheduleLinker linker1 = memberScheduleLinkerRepository.findByMemberAndScheduleId(creator.getId(), schedule.getId());
+        MemberScheduleLinker linker2 = memberScheduleLinkerRepository.findByMemberAndScheduleId(joiner.getId(), schedule.getId());
+
+        assertThat(findSchedule).isNull();
+        assertThat(linker1).isNull();
+        assertThat(linker2).isNull();
+    }
+
+
+    @Test
+    @DisplayName("deleteScheduleTest : 실패. 권한 문제")
+    void deleteScheduleFailTest() {
+
+        // Given :
+        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Moim moim = TestUtils.createMoimOnly();
+        Moim otherMoim = TestUtils.createMoimOnly("other-moim");
+
+        persist(creator.getRoles().get(0).getRole(),
+                creator,
+                joiner,
+                moim,
+                otherMoim);
+
+        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
+        moimMemberService.requestJoin(moimJoinRequestDto, creator);
+        moimMemberService.requestJoin(moimJoinRequestDto, joiner);
+
+        Schedule schedule = createScheduleForUpdate(moim, creator);
+        MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
+        persist(schedule, linker);
+
+        // When + Then
+        assertThatThrownBy(() -> scheduleService.deleteSchedule(schedule.getId(), joiner))
                 .isInstanceOf(RuntimeException.class);
     }
 
