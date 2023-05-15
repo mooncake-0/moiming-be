@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QMember.*;
 import static com.peoplein.moiming.domain.QMemberInfo.*;
@@ -116,6 +117,17 @@ public class MemberJpaRepository implements MemberRepository {
         return queryFactory.selectFrom(member)
                 .where(member.id.in(memberIds))
                 .fetch();
+    }
+
+    @Override
+    public Optional<Member> findOptionalByPhoneNumber(String memberPhoneNumber) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(member)
+                        .join(member.memberInfo, memberInfo).fetchJoin()
+                        .where(member.memberInfo.memberPhone.eq(memberPhoneNumber))
+                        .fetchOne()
+        );
+
     }
 
 }
