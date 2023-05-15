@@ -53,14 +53,4 @@ public class MemberScheduleLinker extends BaseEntity{
         this.memberState = memberState;
     }
 
-    public void changeMemberStateWithJoin(boolean isJoin) {
-        if (isJoin)
-            this.memberState = ScheduleMemberState.ATTEND;
-        else
-            this.memberState = ScheduleMemberState.NONATTEND;
-
-    }
-
-
-
 }

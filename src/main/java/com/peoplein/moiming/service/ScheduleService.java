@@ -184,14 +184,12 @@ public class ScheduleService {
 
         // 해당 멤버에 대한 ScheduleLinker 가 있는지 우선 조회
         MemberScheduleLinker memberScheduleLinker = memberScheduleLinkerRepository.findWithScheduleByMemberAndScheduleId(curMember.getId(), scheduleId);
+        ScheduleMemberState scheduleMemberState = isJoin ? ScheduleMemberState.ATTEND : ScheduleMemberState.NONATTEND;
 
         if (Objects.isNull(memberScheduleLinker)) {
-            memberScheduleLinker =
-                    isJoin ?
-                    MemberScheduleLinker.memberJoinSchedule(curMember, schedule, ScheduleMemberState.ATTEND) :
-                    MemberScheduleLinker.memberJoinSchedule(curMember, schedule, ScheduleMemberState.NONATTEND);
+            memberScheduleLinker = MemberScheduleLinker.memberJoinSchedule(curMember, schedule, scheduleMemberState);
         } else {
-            memberScheduleLinker.changeMemberStateWithJoin(isJoin);
+            memberScheduleLinker.changeMemberState(scheduleMemberState);
         }
 
         MoimMemberInfoDto moimMemberInfoDto = MoimMemberInfoDto.createWithMemberMoimLinker(curMemberMoimLinker);
