@@ -48,7 +48,7 @@ public class SmsVerificationController {
 
     /*
      SMS 인증 요청
-     */
+    */
     private String verifyNumber(@RequestBody SmsVerifyRequestDto smsVerifyRequestDto) {
         return "";
     }

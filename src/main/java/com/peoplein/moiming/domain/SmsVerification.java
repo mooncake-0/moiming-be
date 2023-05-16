@@ -20,6 +20,7 @@ import java.util.Random;
  */
 /*
     TODO :: 일단 SMS Verification 의 PK 값을 주고 받는것으로 판단한다
+            그리고 모든 인증 시도는 저장한다
 
  */
 @Entity
