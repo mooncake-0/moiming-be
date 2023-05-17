@@ -49,6 +49,9 @@ public class SmsVerificationCore {
     private String secretKey;
 
 
+    /*
+     문자를 보내는 main method
+    */
     public void sendMessage(String verificationCode, String phoneNumber) {
 
         String content = buildContent(verificationCode);
@@ -58,6 +61,7 @@ public class SmsVerificationCore {
         OkHttpClient okHttpClient = new OkHttpClient();
 
         try {
+
             RequestBody requestBody = RequestBody.create(om.writeValueAsString(messageBody)
                     , MediaType.get("application/json; charset=utf-8"));
 
@@ -65,16 +69,27 @@ public class SmsVerificationCore {
 
             Response response = okHttpClient.newCall(request).execute();
 
+            log.info("NAVER SMS API :: SMS 문자 시도 - {}", response.body().string());
+
+
         } catch (IOException e) {
+
             log.error("JSON 변환중 에러 :: {}", e.getMessage());
+
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+
             log.error("SIGNATURE 형성중 에러 :: {}", e.getMessage());
+
         }
     }
 
+    /*
+     문자 내용을 생성한다
+    */
     private String buildContent(String verificationCode) {
         return "인증번호 [" + verificationCode + "] 를 입력하여 주세요";
     }
+
 
     /*
      HEADER 정보를 생성하고
@@ -98,12 +113,19 @@ public class SmsVerificationCore {
                 .build();
     }
 
+    /*
+     NAVER API HEADER 양식대로 TIMESTAMP 를 형성후 반환한다
+     */
     private String createTimeStamp() {
         long timestamp = System.currentTimeMillis();
         return Long.toString(timestamp);
     }
 
+    /*
+     NAVER API HEADER 양식대로 Signature Key 값을 형성후 반환한다
+     */
     private String createSignature(String requestUrl, String requestTimeStamp) throws UnsupportedEncodingException, InvalidKeyException, NoSuchAlgorithmException {
+
         String space = " ";                    // one space
         String newLine = "\n";                    // new line
         String method = "POST";                    // method

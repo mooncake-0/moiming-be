@@ -9,18 +9,30 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 
+import java.util.Optional;
+
+import static com.peoplein.moiming.domain.QSmsVerification.*;
+
 @Repository
 @RequiredArgsConstructor
 public class SmsVerificationJpaRepository implements SmsVerificationRepository {
 
-    private EntityManager em;
-    private JPAQueryFactory queryFactory;
-
+    private final EntityManager em;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public Long save(SmsVerification smsVerification) {
         em.persist(smsVerification);
         return smsVerification.getId();
+    }
+
+    @Override
+    public Optional<SmsVerification> findOptionalById(Long smsVerificationId) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(smsVerification)
+                        .where(smsVerification.id.eq(smsVerificationId))
+                        .fetchOne()
+        );
     }
 
 }

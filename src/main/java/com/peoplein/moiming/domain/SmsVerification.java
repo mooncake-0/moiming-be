@@ -91,5 +91,8 @@ public class SmsVerification {
         return strBuilder.toString();
     }
 
+    public void setVerified(boolean isVerified) {
+        this.isVerified = isVerified;
+    }
 
 }
