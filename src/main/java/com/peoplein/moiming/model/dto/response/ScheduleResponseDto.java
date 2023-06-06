@@ -23,4 +23,11 @@ public class ScheduleResponseDto {
     public void setScheduleMemberDto(List<ScheduleMemberDto> scheduleMemberDto) {
         this.scheduleMemberDto = scheduleMemberDto;
     }
+
+    public static ScheduleResponseDto create(ScheduleDto scheduleDto, List<ScheduleMemberDto> scheduleMemberDto) {
+        ScheduleResponseDto scheduleResponseDto = new ScheduleResponseDto(scheduleDto);
+        scheduleResponseDto.setScheduleMemberDto(scheduleMemberDto);
+        return scheduleResponseDto;
+    }
+
 }

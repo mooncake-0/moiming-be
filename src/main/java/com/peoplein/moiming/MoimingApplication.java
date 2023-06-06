@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 
 import java.io.FileInputStream;
@@ -16,28 +17,8 @@ import java.io.IOException;
 
 @SpringBootApplication
 public class MoimingApplication {
-    @Value("${app_files.fcm_path}")
-    private String fcmFilePath;
 
     public static void main(String[] args) {
         SpringApplication.run(MoimingApplication.class, args);
     }
-
-    /*
-     앱 시작시 Firebase 연동 (수명주기중 한 번 수행)
-     */
-    @EventListener(ApplicationReadyEvent.class)
-    public void initFirebaseApp() throws IOException {
-
-        FileInputStream serviceAccount =
-                new FileInputStream(fcmFilePath);
-
-        FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
-
-        FirebaseApp.initializeApp(options);
-        System.out.println("FIREBASE INITIALIZE COMPLETE");
-    }
-
 }

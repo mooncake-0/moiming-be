@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Schedule {
+public class Schedule extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -24,9 +24,7 @@ public class Schedule {
     private LocalDateTime scheduleDate;
     private int maxCount;
     private boolean isClosed;
-    private LocalDateTime createdAt;
     private String createdUid;
-    private LocalDateTime updatedAt;
     private String updatedUid;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -56,12 +54,12 @@ public class Schedule {
          초기화
          */
         this.isClosed = false;
-        this.createdAt = LocalDateTime.now();
 
         /*
          연관관계 및 편의 메소드
          */
-        this.memberScheduleLinkers.add(MemberScheduleLinker.memberJoinSchedule(creator, this, ScheduleMemberState.CREATOR));
+        MemberScheduleLinker.memberJoinSchedule(creator, this, ScheduleMemberState.CREATOR);
+        // this.memberScheduleLinkers.add(MemberScheduleLinker.memberJoinSchedule(creator, this, ScheduleMemberState.CREATOR));
         this.moim = moim;
     }
 
@@ -88,7 +86,23 @@ public class Schedule {
         this.updatedUid = updatedUid;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void addScheduleLinker(MemberScheduleLinker memberScheduleLinker) {
+        if (this.maxCount < this.memberScheduleLinkers.size() + 1) {
+            throw new RuntimeException("모임 스케쥴의 최대값을 넘는 값입니다.");
+        }
+        memberScheduleLinkers.add(memberScheduleLinker);
     }
+
+    public boolean hasAnyUpdate(String changedTitle,
+                                String changedLocation,
+                                LocalDateTime changedTime,
+                                int changedMaxCount) {
+
+        return !this.scheduleTitle.equals(changedTitle) ||
+                !this.scheduleLocation.equals(changedLocation) ||
+                !this.scheduleDate.equals(changedTime) ||
+                this.maxCount != changedMaxCount;
+    }
+
+
 }

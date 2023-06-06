@@ -129,4 +129,8 @@ public class Member extends BaseEntity {
     public void setFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
     }
+
+    public boolean isSameUid(String uid) {
+        return this.uid.equals(uid);
+    }
 }
