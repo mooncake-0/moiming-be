@@ -48,37 +48,26 @@ public class SmsVerificationCore {
     @Value("${open_api_keys.naver_secret_key_id}")
     private String secretKey;
 
-
     /*
-     문자를 보내는 main method
-    */
-    public void sendMessage(String verificationCode, String phoneNumber) {
+     문자의 최종 Response 를 만든다
+     */
+    public Request buildResponse(String verificationCode, String phoneNumber) {
 
         String content = buildContent(verificationCode);
 
         SmsMessageDto messageBody = SmsMessageDto.createSmsMessageDto(content, phoneNumber);
-
-        OkHttpClient okHttpClient = new OkHttpClient();
 
         try {
 
             RequestBody requestBody = RequestBody.create(om.writeValueAsString(messageBody)
                     , MediaType.get("application/json; charset=utf-8"));
 
-            Request request = buildRequest(requestBody);
+            return buildRequest(requestBody);
 
-            Response response = okHttpClient.newCall(request).execute();
-
-            log.info("NAVER SMS API :: SMS 문자 시도 - {}", response.body().string());
-
-
-        } catch (IOException e) {
-
-            log.error("JSON 변환중 에러 :: {}", e.getMessage());
-
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | IOException e) {
 
             log.error("SIGNATURE 형성중 에러 :: {}", e.getMessage());
+            throw new RuntimeException(e);
 
         }
     }
@@ -87,7 +76,7 @@ public class SmsVerificationCore {
      문자 내용을 생성한다
     */
     private String buildContent(String verificationCode) {
-        return "인증번호 [" + verificationCode + "] 를 입력하여 주세요";
+        return String.format("인증번호 [%s]를 입력하여 주세요", verificationCode);
     }
 
 

@@ -8,7 +8,9 @@ import com.peoplein.moiming.model.dto.auth.*;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.SmsVerificationRepository;
 import com.peoplein.moiming.service.core.SmsVerificationCore;
+import com.peoplein.moiming.service.shell.SmsSendShell;
 import lombok.RequiredArgsConstructor;
+import okhttp3.Request;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +27,7 @@ public class SmsVerificationService {
     private final MemberRepository memberRepository;
     private final SmsVerificationRepository smsVerificationRepository;
     private final SmsVerificationCore smsVerificationCore;
+    private final SmsSendShell smsSendShell;
 
     public SmsVerificationDto findMemberIdAuth(@RequestBody FindIdRequestDto findIdRequestDto) {
 
@@ -33,8 +36,8 @@ public class SmsVerificationService {
 
         SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getUid(), curMember.getMemberInfo().getMemberPhone(), VerificationType.FIND_ID);
 
-        // TODO 문자 진행
-        smsVerificationCore.sendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
+        // 문자 진행
+        buildAndSendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
 
         smsVerificationRepository.save(smsVerification);
 
@@ -48,8 +51,8 @@ public class SmsVerificationService {
 
         SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getUid(), curMember.getMemberInfo().getMemberPhone(), VerificationType.FIND_PW);
 
-        // TODO 문자 진행
-        smsVerificationCore.sendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
+        // 문자 진행
+        buildAndSendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
 
         smsVerificationRepository.save(smsVerification);
 
@@ -62,12 +65,20 @@ public class SmsVerificationService {
 
         SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getUid(), curMember.getMemberInfo().getMemberPhone(), VerificationType.PW_CHANGE);
 
-        // TODO 문자 진행
-        smsVerificationCore.sendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
+        // 문자 진행
+        buildAndSendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
 
         smsVerificationRepository.save(smsVerification);
 
         return new SmsVerificationDto(smsVerification.getId());
+    }
+
+    /*
+     문자 보내는 함수
+     */
+    private void buildAndSendMessage(String verificationNumber, String memberPhoneNumber) {
+        Request request = smsVerificationCore.buildResponse(verificationNumber, memberPhoneNumber);
+        smsSendShell.sendMessage(request);
     }
 
 
