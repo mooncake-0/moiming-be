@@ -20,6 +20,9 @@ public interface NetworkSetting {
     String API_MOIM_RULES = "/rules";
     String API_MOIM_SESSION = "/session";
 
+    String API_SMS_VER = "/v0";
+    String API_SMS = "/sms";
+
     String API_NOTI_VER = "/v0";
     String API_NOTI = "/notification";
 }
