@@ -29,7 +29,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "중복 ID 확인 요청 (적용성 검토 중")
+    @Operation(summary = "중복 ID 확인 요청 (적용성 검토 중)")
     @GetMapping("/uidAvailable/{uid}")
     private ResponseModel<String> checkUidAvailable(@PathVariable String uid) {
 
@@ -43,7 +43,7 @@ public class AuthController {
     /*
      회원가입 요청 수신
      */
-    @Operation(description = "회원가입 요청 형식 및 응답", summary = "회원가입 요청")
+    @Operation(description = "회원가입 요청 형식 및 응답 (약관 동의 항목들도 BODY에 한번에 전달)", summary = "회원가입 요청")
     @PostMapping("/signin")
     @ApiResponses(
             value = {

@@ -60,6 +60,9 @@ public class AuthService {
      1. Null 및 공백값들에 대한 2차적 확인
      2. Unique Columns 들에 대한 중복값 검증 및 대응
      3. 기본 MemberInfo 생성, User Role 부여
+
+     ------------- TODO :: 회원 약관 동의 항목들에 대한 Policy Agree 객체 push -- 별도의 서비스 분리해서 가져가는게 좋을듯!
+
      4. 토큰 발급, Response 헤더 세팅
      5. ResponseDto 모델 세팅
      */

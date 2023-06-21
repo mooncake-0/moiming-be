@@ -29,6 +29,8 @@ public class MoimPost extends BaseEntity{
 
     private String postTitle;
     private String postContent;
+
+    @Enumerated(value = EnumType.STRING)
     private MoimPostCategory moimPostCategory;
     private boolean isNotice;
     private boolean hasFiles;

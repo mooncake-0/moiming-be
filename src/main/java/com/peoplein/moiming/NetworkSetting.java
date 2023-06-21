@@ -25,4 +25,8 @@ public interface NetworkSetting {
 
     String API_NOTI_VER = "/v0";
     String API_NOTI = "/notification";
+
+
+    String API_POLICY_VER = "/v0";
+    String API_POLICY = "/policy";
 }
