@@ -98,3 +98,15 @@ configurations {
 compileQuerydsl {
     options.annotationProcessorPath = configurations.querydsl
 }
+
+jar {
+    archiveFileName = 'moiming.jar'
+}
+
+task moveJar(type: Copy) {
+    // JAR 파일을 옮길 위치 설정
+    from jar.archiveFile
+    into 'docker/'
+}
+
+build.dependsOn(moveJar)
