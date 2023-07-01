@@ -105,6 +105,7 @@ public class SecurityJwtConfig extends WebSecurityConfigurerAdapter {
                 .antMatcher("/v3/api-docs/**").anonymous()
         ;
 
+
         http
                 .antMatcher(NetworkSetting.API_SERVER + "/**")
                 .authorizeRequests()

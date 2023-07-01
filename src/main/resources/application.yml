@@ -10,9 +10,10 @@ spring:
   #DB
   #Local DB Source
   datasource:
-    url: jdbc:mysql://localhost:3306/moiming_dev_db?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/moiming_dev_db?useSSL=false&useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
     username: root
     password: peoplein
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
     #Test Server Source
 #      url: jdbc:mysql://dev-database:3306/moiming_dev_db?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
