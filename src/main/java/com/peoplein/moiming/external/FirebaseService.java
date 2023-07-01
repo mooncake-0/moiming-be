@@ -32,11 +32,12 @@ public class FirebaseService {
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
 
-        FirebaseApp firebaseApp = FirebaseApp.initializeApp(options);
-
-        // For Shutdown Hook.
-        Runtime.getRuntime().addShutdownHook(new Thread(new FirebaseShutDownRunnable(firebaseApp)));
-        log.info("FIREBASE INITIALIZE COMPLETE");
+        if (FirebaseApp.getApps().isEmpty()) {
+            FirebaseApp firebaseApp = FirebaseApp.initializeApp(options);
+            // For Shutdown Hook.
+            Runtime.getRuntime().addShutdownHook(new Thread(new FirebaseShutDownRunnable(firebaseApp)));
+            log.info("FIREBASE INITIALIZE COMPLETE");
+        }
     }
 
     private static class FirebaseShutDownRunnable implements Runnable {
