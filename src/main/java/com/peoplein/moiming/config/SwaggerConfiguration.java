@@ -29,12 +29,12 @@ public class SwaggerConfiguration {
                         "- errorType : 에러 현황을 간략하게 알 수 있는 타입 값이 전달됩니다. 에러코드 문서에 명시되어 있습니다\n" +
                         "- errorDesc : 서버에서 발생한 error exception 의 메세지를 전달합니다.\n\n\n" +
                         "**`Execute 실행 시, JWT 토큰을 Authorize에서 포함하세요`**\n" +
-                        "- curl -X POST -H \"Content-Type: application/json\" -d '{\"uid\":\"<USER_ID>\", \"password\":\"<PASS_WORD>\"}' http://115.23.164.167:31088/moim/api/v0/auth/login | grep -oP 'ACCESS_TOKEN: \\K.*'"
+                        "- curl -X POST -i -H \"Content-Type: application/json\" -d '{\"uid\":\"<USER_ID>\", \"password\":\"<PASS_WORD>\"}' http://moim.k8s-sha.com:31088/api/v0/auth/login | grep -i \"^access_token:\" | awk -F': ' '{print $2}' | tr -d '\\r'"
                 )
                 .version("v0.0");
 
         Server local = new Server().url("http://localhost:8080/").description("LOCAL");
-        Server dev = new Server().url("http://115.23.164.167:31088/moim").description("DEV");
+        Server dev = new Server().url("http://moim.k8s-sha.com:31088/").description("DEV");
         List<Server> servers = List.of(local, dev);
 
         SecurityScheme securityScheme = new SecurityScheme()
@@ -47,7 +47,6 @@ public class SwaggerConfiguration {
                 .addSecurityItem(securityItem)
                 .servers(servers)
                 .info(info);
-    }
 
     @Bean
     public GroupedOpenApi groupedOpenApi() {
