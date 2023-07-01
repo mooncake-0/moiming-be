@@ -144,4 +144,10 @@ public class MemberMoimLinker extends BaseEntity {
         this.moim.minusCurMemberCount();
         this.memberState = moimMemberState;
     }
+
+    // 스케쥴 변경 권한은 LEADER / MANAGER만 있음.
+    public boolean hasPermissionForUpdate() {
+        return this.moimRoleType.equals(MoimRoleType.LEADER) ||
+                this.moimRoleType.equals(MoimRoleType.MANAGER);
+    }
 }

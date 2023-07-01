@@ -78,7 +78,10 @@ public class ScheduleController {
     @PatchMapping("/state/{scheduleId}")
     public ResponseModel<ScheduleMemberDto> changeMemberState(@PathVariable(name = "scheduleId") Long scheduleId, @RequestParam(name = "join") boolean isJoin) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ScheduleMemberDto scheduleMemberDto = scheduleService.changeMemberState(scheduleId, isJoin, curMember);
+
+        ScheduleService.ChangeMemberTuple tuple = scheduleService.changeMemberState(scheduleId, isJoin, curMember);
+        ScheduleMemberDto scheduleMemberDto = ScheduleMemberDto.create(tuple);
+
         return ResponseModel.createResponse(scheduleMemberDto);
     }
 

@@ -1,6 +1,8 @@
 package com.peoplein.moiming.model.dto.domain;
 
+import com.peoplein.moiming.domain.MemberScheduleLinker;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
+import com.peoplein.moiming.service.ScheduleService;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +25,28 @@ public class ScheduleMemberDto {
         this.updatedAt = updatedAt;
     }
 
+    public static ScheduleMemberDto create(MemberScheduleLinker memberScheduleLinker,
+                                           MoimMemberInfoDto moimMemberInfoDto) {
+        ScheduleMemberDto scheduleMemberDto = new ScheduleMemberDto(
+                memberScheduleLinker.getMemberState(),
+                memberScheduleLinker.getCreatedAt(),
+                memberScheduleLinker.getUpdatedAt());
+        scheduleMemberDto.setMoimMemberInfoDto(moimMemberInfoDto);
+        return scheduleMemberDto;
+    }
+
+
     public void setMoimMemberInfoDto(MoimMemberInfoDto moimMemberInfoDto) {
         this.moimMemberInfoDto = moimMemberInfoDto;
     }
+
+    public static ScheduleMemberDto create(ScheduleService.ChangeMemberTuple tuple) {
+        ScheduleMemberDto scheduleMemberDto = new ScheduleMemberDto(tuple.getMemberScheduleLinker().getMemberState(),
+                tuple.getMemberScheduleLinker().getCreatedAt(),
+                tuple.getMemberScheduleLinker().getUpdatedAt());
+        scheduleMemberDto.setMoimMemberInfoDto(tuple.getMoimMemberInfoDto());
+        return scheduleMemberDto;
+    }
+
+
 }

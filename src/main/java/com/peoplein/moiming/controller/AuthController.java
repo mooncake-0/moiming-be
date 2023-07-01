@@ -1,10 +1,11 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
+import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.exception.DuplicateAuthValueException;
 import com.peoplein.moiming.model.ErrorResponse;
 import com.peoplein.moiming.model.ResponseModel;
-import com.peoplein.moiming.model.dto.auth.MemberSigninRequestDto;
+import com.peoplein.moiming.model.dto.auth.*;
 import com.peoplein.moiming.model.dto.response.MemberResponseDto;
 import com.peoplein.moiming.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -67,4 +69,9 @@ public class AuthController {
         MemberResponseDto dto = authService.signin(requestDto, response);
         return ResponseModel.createResponse(dto);
     }
+
+
+    // TODO:: SMS Verifiy 관련된건 해당 Domain 으로 요청을 보낸다
+    //        실제 Id 찾기, Pw 찾기, Pw 변경 자체에 대한 요청을 Auth Domain 에서 진행한다
+
 }

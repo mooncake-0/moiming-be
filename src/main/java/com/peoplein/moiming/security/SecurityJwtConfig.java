@@ -101,7 +101,10 @@ public class SecurityJwtConfig extends WebSecurityConfigurerAdapter {
         http
                 .antMatcher("/swagger-ui/**")
                 .antMatcher("classpath:/META-INF/resources/webjars/swagger-ui/**")
-                .antMatcher("/v3/api-docs/**").anonymous();
+                .antMatcher("/**")
+                .antMatcher("/v3/api-docs/**").anonymous()
+        ;
+
 
         http
                 .antMatcher(NetworkSetting.API_SERVER + "/**")
