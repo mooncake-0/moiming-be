@@ -18,11 +18,10 @@ import java.security.NoSuchAlgorithmException;
  */
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class SmsSendShell {
 
-    private final OkHttpClient okHttpClient;
-
+    // 전역으로 해당 빈 안에서 계속 사용할 수 있도록 한다
+    private final OkHttpClient okHttpClient = new OkHttpClient();
 
     /*
      실패에 대한 별도의 action 처리는 필요하지 않음 - 미수신시 Client 단에서 재요청 필요

@@ -4,6 +4,7 @@ import com.peoplein.moiming.domain.enums.PolicyType;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -52,6 +53,21 @@ public class PolicyAgree {
         this.createdAt = LocalDateTime.now();
         this.createdUid = member.getUid();
 
+    }
+
+    public void setAgreed(boolean isAgreed) {
+        this.isAgreed = isAgreed;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void changeUpdatedUid(String updatedUid) {
+        if (!StringUtils.hasText(updatedUid)) {
+            throw new RuntimeException("약관 수정 변경자 수정 에러");
+        }
+        this.updatedUid = updatedUid;
     }
 
 }
