@@ -18,6 +18,7 @@ import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.exception.AuthErrorEnum;
 import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.provider.token.MoimingTokenType;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,8 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
@@ -37,18 +40,7 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final MoimingTokenProvider moimingTokenProvider;
     private final MemberJpaQueryRepository memberJpaQueryRepository;
-
-    public AuthService(PasswordEncoder passwordEncoder,
-                       MemberRepository memberRepository,
-                       RoleRepository roleRepository,
-                       MoimingTokenProvider moimingTokenProvider,
-                       MemberJpaQueryRepository memberJpaQueryRepository) {
-        this.passwordEncoder = passwordEncoder;
-        this.memberRepository = memberRepository;
-        this.roleRepository = roleRepository;
-        this.moimingTokenProvider = moimingTokenProvider;
-        this.memberJpaQueryRepository = memberJpaQueryRepository;
-    }
+    private final PolicyAgreeService policyAgreeService;
 
     public boolean checkUidAvailable(String uid) {
         Member memberByUid = memberRepository.findMemberByUid(uid);
@@ -60,6 +52,9 @@ public class AuthService {
      1. Null 및 공백값들에 대한 2차적 확인
      2. Unique Columns 들에 대한 중복값 검증 및 대응
      3. 기본 MemberInfo 생성, User Role 부여
+
+     ------------- TODO :: 회원 약관 동의 항목들에 대한 Policy Agree 객체 push -- 별도의 서비스 분리해서 가져가는게 좋을듯!
+
      4. 토큰 발급, Response 헤더 세팅
      5. ResponseDto 모델 세팅
      */
@@ -84,10 +79,14 @@ public class AuthService {
         memberRepository.save(signInMember);
         provideTokenBySignin(signInMember, response);
 
+        // 약관 등록
+        policyAgreeService.createUserPolicyAgree(signInMember, memberSigninDto.getPolicyAgreeList());
+
 
         // Response 객체 생성
         MemberDto memberDto = MemberDto.createMemberDtoWhenSignIn(signInMember);
         MemberInfoDto memberInfoDto = MemberInfoDto.createMemberInfoDtoWhenSignIn(signInMember.getMemberInfo());
+
         return new MemberResponseDto(memberDto, memberInfoDto);
     }
 
