@@ -17,6 +17,15 @@ public class MemberSigninRequestDto {
 
     // 약관 동의 항목들도 같이 요청을 보낸다
     // 회원가입 요청시에는 true, false 인지 정확하게 보내져야 한다
+
+
+    public MemberSigninRequestDto(String uid, String password, String email, String fcmToken) {
+        this.uid = uid;
+        this.password = password;
+        this.email = email;
+        this.fcmToken = fcmToken;
+    }
+
     private List<PolicyAgreeRequestDto> policyAgreeList = new ArrayList<>();
 
 }

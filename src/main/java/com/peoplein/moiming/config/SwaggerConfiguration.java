@@ -47,6 +47,7 @@ public class SwaggerConfiguration {
                 .addSecurityItem(securityItem)
                 .servers(servers)
                 .info(info);
+    }
 
     @Bean
     public GroupedOpenApi groupedOpenApi() {
