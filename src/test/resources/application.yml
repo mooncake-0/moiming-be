@@ -22,3 +22,9 @@ spring:
 
 app_files:
   fcm_path: src/main/resources/fcm/moiming-b2ae3-firebase-adminsdk-21zjr-11c77c69f7.json
+
+
+open_api_keys:
+  naver_sens_sms: ncp:sms:kr:307383565992:moiming_phone_certi
+  naver_access_key_id: rJNU8kRQi1b4Z9QFrCKK
+  naver_secret_key_id: 2z0LxdrRcqMCWgADLCTnwlw6SnlYV6YmYK5Z8zzk
