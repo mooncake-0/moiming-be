@@ -1,4 +1,4 @@
-package com.peoplein.moiming.repository.jpa.query;
+package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.FileUpload;
 import com.peoplein.moiming.domain.QFileUpload;
@@ -33,7 +33,7 @@ public class FileUploadJpaRepository implements FileUploadRepository {
     public List<FileUpload> findFileUploadByOwnerPk(Long pk) {
         return queryFactory
                 .selectFrom(fileUpload)
-                .where(fileUpload.id.eq(pk))
+                .where(fileUpload.ownerKey.eq(pk))
                 .fetch();
     }
 
@@ -43,5 +43,13 @@ public class FileUploadJpaRepository implements FileUploadRepository {
                 .delete(fileUpload)
                 .where(fileUpload.id.in(fileIds))
                 .execute();
+    }
+
+    @Override
+    public List<FileUpload> findAllDeletedMarkedFile() {
+        return queryFactory
+                .selectFrom(fileUpload)
+                .where(fileUpload.isDeleted.eq(true))
+                .fetch();
     }
 }
