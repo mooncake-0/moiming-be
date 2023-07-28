@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -24,6 +25,7 @@ class FileServiceTest extends BaseTest {
 
     @Test
     @DisplayName("success")
+    @Transactional
     void test1() throws IOException {
         // GIVEN :
         MultipartFile multipartFile1 = new MockMultipartFile("3.jpg", "3.jpg", "image/jpeg", new byte[]{});
