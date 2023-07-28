@@ -39,10 +39,10 @@ public class FileService {
         this.scheduler = scheduler;
     }
 
-    // File Invalid 시, RuntimeException 발생. -> 전체 트랜잭션 롤백 유도.
-    // 트랜잭션 전파 시, 부모 트랜잭션에서 자동 롤백.
-    // 부모 트랜잭션에서 이 메서드 호출 후, 롤백 발생할 수 있음. 따라서 이 녀석은 부모 트랜잭션에서도 가장 마지막에 호출되어야 함.
-    @Transactional
+
+    // 사용하는 쪽에서는 어떻게 할것인가?
+    // 1. 트랜잭션 없는 구간에서 saveFile()을 호출해야함.
+    // 2. 그리고 먼저 호출해야함.
     public boolean saveFile(Long ownerKey, List<MultipartFile> files) throws IOException {
 
         areTheyProper(files);
@@ -51,17 +51,23 @@ public class FileService {
                 .map(multipartFile -> new TupleMultiPartFile(multipartFile, fileDir, ownerKey))
                 .collect(Collectors.toList());
 
-        tupleMultiPartFiles.forEach(tupleMultiPartFile -> fileUploadRepository.saveFile(tupleMultiPartFile.getFileUpload()));
-
+        // 파일 저장 후 DB에 경로 저장.
         for (TupleMultiPartFile tupleMultiPartFile : tupleMultiPartFiles) {
             final MultipartFile multipartFile = tupleMultiPartFile.getMultipartFile();
             multipartFile.transferTo(tupleMultiPartFile.getFile());
             log.info("디스크에 파일 저장 완료 = {}", tupleMultiPartFile.getFileUpload().getSavedFileName());
         }
 
+        // 트랜잭션 시작 + 종료
+        saveFileToDB(tupleMultiPartFiles);
         return true;
     }
 
+
+    @Transactional
+    protected void saveFileToDB(List<TupleMultiPartFile> tupleMultiPartFiles) {
+        tupleMultiPartFiles.forEach(tupleMultiPartFile -> fileUploadRepository.saveFile(tupleMultiPartFile.getFileUpload()));
+    }
 
     @Transactional
     public void removeFile(Long ownerPk) {
