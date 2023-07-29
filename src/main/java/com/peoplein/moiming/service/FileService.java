@@ -1,8 +1,6 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.cron.FileDeleteScheduler;
 import com.peoplein.moiming.domain.FileUpload;
-import com.peoplein.moiming.repository.FileUploadRepository;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,18 +23,16 @@ public class FileService {
     private static final String PNG_CONTENT_TYPE = "image/png";
     private final Pattern PATTERN_PROPER_SUFFIX;
     private final Pattern PATTERN_FORBIDDEN_PREFIX;
-    private final FileUploadRepository fileUploadRepository;
-    private final FileDeleteScheduler scheduler;
+    private final FileTransactionService fileTransactionService;
 
 
     @Value("${file.dir}")
     private String fileDir;
 
-    public FileService(FileUploadRepository fileUploadRepository, FileDeleteScheduler scheduler) {
+    public FileService(FileTransactionService fileTransactionService) {
         this.PATTERN_FORBIDDEN_PREFIX = Pattern.compile("^\\.\\.\\/.*");
         this.PATTERN_PROPER_SUFFIX = Pattern.compile(".+.(jpeg|jpg|PNG|png)$");
-        this.fileUploadRepository = fileUploadRepository;
-        this.scheduler = scheduler;
+        this.fileTransactionService = fileTransactionService;
     }
 
 
@@ -66,14 +62,13 @@ public class FileService {
 
     @Transactional
     protected void saveFileToDB(List<TupleMultiPartFile> tupleMultiPartFiles) {
-        tupleMultiPartFiles.forEach(tupleMultiPartFile -> fileUploadRepository.saveFile(tupleMultiPartFile.getFileUpload()));
+        fileTransactionService.saveFileToDB(tupleMultiPartFiles);
     }
 
     @Transactional
     public void removeFile(Long ownerPk) {
-        final List<FileUpload> fileUploadByOwnerPk = fileUploadRepository.findFileUploadByOwnerPk(ownerPk);
-        // mark deleted by dirty check.
-        fileUploadByOwnerPk.forEach(FileUpload::markDeleted);
+        fileTransactionService.removeFile(ownerPk);
+
     }
 
     private void areTheyProper(List<MultipartFile> files) {

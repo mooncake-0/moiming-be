@@ -23,6 +23,7 @@ public class FileDeleteScheduler {
 
     @Transactional
     @Scheduled(cron = "0 */1 * * * *")
+//    @Scheduled(cron = "0 */1 * * * *")
     public void delete() {
         log.info("FileDeletedScheduler Called");
         List<FileUpload> allDeletedMarkedFile = fileUploadRepository.findAllDeletedMarkedFile();
