@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@Import(FileServiceTest.TestConfig.class)
 class FileServiceTest extends BaseTest {
 
     @Autowired
