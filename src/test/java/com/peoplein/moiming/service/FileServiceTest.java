@@ -1,11 +1,14 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.BaseTest;
-import org.assertj.core.api.Assertions;
+import com.peoplein.moiming.service.util.FilePersistor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,13 +18,25 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
+@Import(FileServiceTest.TestConfig.class)
 class FileServiceTest extends BaseTest {
 
     @Autowired
     FileService fileService;
 
+    @TestConfiguration
+    static class TestConfig{
+
+        @Bean
+        public FilePersistor filePersistor() {
+            FilePersistor mockPersistor = mock(FilePersistor.class);
+            when(mockPersistor.persistFiles(any())).thenReturn(true);
+            return mockPersistor;
+        }
+    }
 
     @Test
     @DisplayName("success")

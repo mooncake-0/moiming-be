@@ -1,6 +1,8 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.FileUpload;
+import com.peoplein.moiming.service.util.FilePersistor;
+import com.peoplein.moiming.service.util.TupleMultiPartFile;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,22 +26,24 @@ public class FileService {
     private final Pattern PATTERN_PROPER_SUFFIX;
     private final Pattern PATTERN_FORBIDDEN_PREFIX;
     private final FileTransactionService fileTransactionService;
-
+    private final FilePersistor filePersistor;
 
     @Value("${file.dir}")
     private String fileDir;
 
-    public FileService(FileTransactionService fileTransactionService) {
+    public FileService(FileTransactionService fileTransactionService,
+                       FilePersistor filePersistor) {
         this.PATTERN_FORBIDDEN_PREFIX = Pattern.compile("^\\.\\.\\/.*");
         this.PATTERN_PROPER_SUFFIX = Pattern.compile(".+.(jpeg|jpg|PNG|png)$");
         this.fileTransactionService = fileTransactionService;
+        this.filePersistor = filePersistor;
     }
 
 
     // 사용하는 쪽에서는 어떻게 할것인가?
     // 1. 트랜잭션 없는 구간에서 saveFile()을 호출해야함.
     // 2. 그리고 먼저 호출해야함.
-    public boolean saveFile(Long ownerKey, List<MultipartFile> files) throws IOException {
+    public boolean saveFile(Long ownerKey, List<MultipartFile> files) {
 
         areTheyProper(files);
 
@@ -48,11 +52,7 @@ public class FileService {
                 .collect(Collectors.toList());
 
         // 파일 저장 후 DB에 경로 저장.
-        for (TupleMultiPartFile tupleMultiPartFile : tupleMultiPartFiles) {
-            final MultipartFile multipartFile = tupleMultiPartFile.getMultipartFile();
-            multipartFile.transferTo(tupleMultiPartFile.getFile());
-            log.info("디스크에 파일 저장 완료 = {}", tupleMultiPartFile.getFileUpload().getSavedFileName());
-        }
+        filePersistor.persistFiles(tupleMultiPartFiles);
 
         // 트랜잭션 시작 + 종료
         saveFileToDB(tupleMultiPartFiles);
@@ -105,17 +105,6 @@ public class FileService {
                 .matches();
     }
 
-    @Getter
-    static class TupleMultiPartFile{
-        private final MultipartFile multipartFile;
-        private final File file;
-        private final FileUpload fileUpload;
 
 
-        public TupleMultiPartFile(MultipartFile multipartFile, String fileDir, Long ownerKey) {
-            this.multipartFile = multipartFile;
-            this.fileUpload = FileUpload.createFileUpload(multipartFile.getOriginalFilename(), fileDir, ownerKey);
-            this.file = new File(fileUpload.getSavedFileName());
-        }
-    }
 }
