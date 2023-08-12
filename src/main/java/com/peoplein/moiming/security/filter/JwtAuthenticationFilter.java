@@ -5,7 +5,6 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.peoplein.moiming.model.ErrorResponse;
 import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.JwtPropertySetting;
@@ -16,6 +15,7 @@ import com.peoplein.moiming.security.service.SecurityMemberService;
 import com.peoplein.moiming.security.token.JwtAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -53,19 +53,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(refreshToken)) {
 
-            /*
-             Refresh Token 을 검증한다
-             검증시 DB 에 저장된 값을 조회하여 확인
-             성공시 - 새 Refresh Token 을 발급하여 update. 새 Access Token 도 발급하여 Header 에 넣어주고, 기존 요청 처리를 위해 인가로 넘어간다
-            */
+                /*
+                 Refresh Token 을 검증한다
+                 검증시 DB 에 저장된 값을 조회하여 확인
+                 성공시 - 새 Refresh Token 을 발급하여 update. 새 Access Token 도 발급하여 Header 에 넣어주고, 기존 요청 처리를 위해 인가로 넘어간다
+                */
 
                 moimingTokenProvider.validateToken(refreshToken, MoimingTokenType.JWT_RT);
-                String uid = moimingTokenProvider.retrieveUid(refreshToken, MoimingTokenType.JWT_RT);
+                String memberEmail = moimingTokenProvider.retrieveEmail(refreshToken, MoimingTokenType.JWT_RT);
 
-                if (StringUtils.hasText(uid)) {
+                if (StringUtils.hasText(memberEmail)) {
 
                     SecurityMemberService userDetailsService = (SecurityMemberService) this.userDetailsService;
-                    SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserAndValidateRefreshToken(uid, refreshToken);
+                    SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserAndValidateRefreshToken(memberEmail, refreshToken);
 
                     JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(securityMember.getMember(), null, securityMember.getAuthorities());
 
@@ -97,7 +97,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (StringUtils.hasText(jwtToken)) {
 
                     moimingTokenProvider.validateToken(jwtToken, MoimingTokenType.JWT_AT); // Validate 관련 에러는 모두 throw 로 날라간다
-                    String uid = moimingTokenProvider.retrieveUid(jwtToken, MoimingTokenType.JWT_AT);
+                    String uid = moimingTokenProvider.retrieveEmail(jwtToken, MoimingTokenType.JWT_AT);
 
                     if (StringUtils.hasText(uid)) {
 
@@ -170,7 +170,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         response.setStatus(authErrorEnum.getStatusCode());
 
-        ResponseModel<ErrorResponse> errorResponseModel = ResponseModel.createResponse(new ErrorResponse(authErrorEnum.getErrorType(), authErrorEnum.getErrorCode(), e.getLocalizedMessage()));
+        // TODO :: TEMP 조치
+        ResponseModel<Object> errorResponseModel = ResponseModel.createResponse(HttpStatus.BAD_REQUEST, "인증에 실패", null);
+//        ResponseModel<ErrorResponse> errorResponseModel = ResponseModel.createResponse(
+//                new ErrorResponse(authErrorEnum.getErrorType(), authErrorEnum.getErrorCode(), e.getLocalizedMessage()));
 
         response.getWriter().write(om.writeValueAsString(errorResponseModel));
     }

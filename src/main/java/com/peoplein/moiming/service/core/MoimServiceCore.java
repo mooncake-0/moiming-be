@@ -70,7 +70,7 @@ public class MoimServiceCore {
                 , moimDto.getMoimInfo()
                 , moimDto.getMoimPfImg()
                 , moimDto.getArea()
-                , curMember.getUid());
+                , curMember.getId());
 
         MemberMoimLinker curMemberMoimLinker = MemberMoimLinker.memberJoinMoim(
                 curMember, createdMoim, MoimRoleType.CREATOR, MoimMemberState.ACTIVE
@@ -100,7 +100,7 @@ public class MoimServiceCore {
                 ruleJoinDto.getMoimMaxCount(),
                 ruleJoinDto.isDupLeaderAvailable(),
                 ruleJoinDto.isDupManagerAvailable(),
-                createdMoim, curMember.getUid());
+                createdMoim, curMember.getId());
     }
 
 }

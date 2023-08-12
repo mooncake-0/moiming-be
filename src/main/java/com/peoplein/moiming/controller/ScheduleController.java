@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@Tag(name = "Moim 일정 관련")
 @RequiredArgsConstructor
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_SCHEDULE)
 public class ScheduleController {
@@ -27,7 +26,9 @@ public class ScheduleController {
     public ResponseModel<ScheduleResponseDto> createSchedule(@RequestBody ScheduleRequestDto scheduleRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ScheduleResponseDto responseData = scheduleService.createSchedule(scheduleRequestDto, curMember);
-        return ResponseModel.createResponse(responseData);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(responseData);
     }
 
     /*
@@ -37,7 +38,9 @@ public class ScheduleController {
     public ResponseModel<List<ScheduleResponseDto>> viewAllMoimSchedule(@RequestParam(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<ScheduleResponseDto> responseData = scheduleService.viewAllMoimSchedule(moimId, curMember);
-        return ResponseModel.createResponse(responseData);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(responseData);
     }
 
     /*
@@ -56,7 +59,9 @@ public class ScheduleController {
     public ResponseModel<ScheduleResponseDto> updateSchedule(@RequestBody ScheduleRequestDto scheduleRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ScheduleResponseDto scheduleResponseDto = scheduleService.updateSchedule(scheduleRequestDto, curMember);
-        return ResponseModel.createResponse(scheduleResponseDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(scheduleResponseDto);
     }
 
     /*
@@ -66,7 +71,9 @@ public class ScheduleController {
     public ResponseModel<String> deleteSchedule(@PathVariable(name = "scheduleId") Long scheduleId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         scheduleService.deleteSchedule(scheduleId, curMember);
-        return ResponseModel.createResponse("OK");
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse("OK");
     }
 
 
@@ -82,7 +89,9 @@ public class ScheduleController {
         ScheduleService.ChangeMemberTuple tuple = scheduleService.changeMemberState(scheduleId, isJoin, curMember);
         ScheduleMemberDto scheduleMemberDto = ScheduleMemberDto.create(tuple);
 
-        return ResponseModel.createResponse(scheduleMemberDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(scheduleMemberDto);
     }
 
 

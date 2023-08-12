@@ -50,8 +50,6 @@ public class MemberMoimLinker extends BaseEntity {
 
     private MemberMoimLinker(Member member, Moim moim, MoimRoleType moimRoleType, MoimMemberState memberState) {
 
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), member, moim, moimRoleType, memberState);
-
         this.member = member;
         this.moimRoleType = moimRoleType;
         this.memberState = memberState;

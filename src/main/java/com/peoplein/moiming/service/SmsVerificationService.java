@@ -34,7 +34,7 @@ public class SmsVerificationService {
         Member curMember = memberRepository.findOptionalByPhoneNumber(findIdRequestDto.getMemberPhoneNumber()).orElseThrow(() -> new RuntimeException("해당 전화번호의 유저가 존재하지 않습니다"));
         checkRightMemberRequest(curMember, VerificationType.FIND_ID, findIdRequestDto.getMemberName());
 
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getUid(), curMember.getMemberInfo().getMemberPhone(), VerificationType.FIND_ID);
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberInfo().getMemberPhone(), VerificationType.FIND_ID);
 
         // 문자 진행
         buildAndSendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
@@ -49,7 +49,7 @@ public class SmsVerificationService {
         Member curMember = memberRepository.findOptionalByPhoneNumber(findPwRequestDto.getMemberPhoneNumber()).orElseThrow(() -> new RuntimeException("해당 전화번호의 유저가 존재하지 않습니다"));
         checkRightMemberRequest(curMember, VerificationType.FIND_PW, findPwRequestDto.getMemberEmail());
 
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getUid(), curMember.getMemberInfo().getMemberPhone(), VerificationType.FIND_PW);
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberInfo().getMemberPhone(), VerificationType.FIND_PW);
 
         // 문자 진행
         buildAndSendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
@@ -63,7 +63,7 @@ public class SmsVerificationService {
 
         checkRightMemberRequest(curMember, VerificationType.PW_CHANGE, changePwRequestDto.getMemberPhoneNumber());
 
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getUid(), curMember.getMemberInfo().getMemberPhone(), VerificationType.PW_CHANGE);
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberInfo().getMemberPhone(), VerificationType.PW_CHANGE);
 
         // 문자 진행
         buildAndSendMessage(smsVerification.getVerificationNumber(), smsVerification.getMemberPhoneNumber());
@@ -94,7 +94,7 @@ public class SmsVerificationService {
         }
 
         if (verificationType.equals(VerificationType.FIND_PW)) { // info = email
-            if (!curMember.getMemberInfo().getMemberEmail().equals(info)) {
+            if (!curMember.getMemberEmail().equals(info)) {
                 throw new RuntimeException("PW 찾기 오류 :: 해당 번호 유저의 이메일이 아닙니다");
             }
         }

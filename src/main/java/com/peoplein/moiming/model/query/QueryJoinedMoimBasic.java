@@ -29,16 +29,14 @@ public class QueryJoinedMoimBasic {
     private Long moimId;
     private String moimName;
     private String moimInfo;
-    private String moimPfImg;
     private boolean hasRuleJoin;
     private boolean hasRulePersist;
     private int curMemberCount;
     private Area moimArea;
     private LocalDateTime createdAt;
-    private String createdUid;
-
+    private Long createdMemberId;
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
 
     /*
      2. MemberMoimLinker 정보
@@ -56,22 +54,21 @@ public class QueryJoinedMoimBasic {
     private List<CategoryDto> categoriesDto = new ArrayList<>();
 
     public QueryJoinedMoimBasic(
-            Long moimId, String moimName, String moimInfo, String moimPfImg, boolean hasRuleJoin, boolean hasRulePersist, int curMemberCount
-            , Area moimArea, LocalDateTime createdAt, String createdUid, LocalDateTime updatedAt, String updatedUid
+            Long moimId, String moimName, String moimInfo, boolean hasRuleJoin, boolean hasRulePersist, int curMemberCount
+            , Area moimArea, LocalDateTime createdAt, Long createdMemberId, LocalDateTime updatedAt, Long updatedMemberId
             , MoimRoleType moimRoleType, MoimMemberState memberState, LocalDateTime memberLinkerCreatedAt, LocalDateTime memberLinkerUpdatedAt
     ) {
         this.moimId = moimId;
         this.moimName = moimName;
         this.moimInfo = moimInfo;
-        this.moimPfImg = moimPfImg;
         this.hasRuleJoin = hasRuleJoin;
         this.hasRulePersist = hasRulePersist;
         this.curMemberCount = curMemberCount;
         this.moimArea = moimArea;
         this.createdAt = createdAt;
-        this.createdUid = createdUid;
+        this.createdMemberId = createdMemberId;
         this.updatedAt = updatedAt;
-        this.updatedUid = updatedUid;
+        this.updatedMemberId= updatedMemberId;
         this.moimRoleType = moimRoleType;
         this.memberState = memberState;
         this.memberLinkerCreatedAt = memberLinkerCreatedAt;

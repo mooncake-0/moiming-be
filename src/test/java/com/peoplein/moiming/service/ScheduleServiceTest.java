@@ -71,8 +71,8 @@ class ScheduleServiceTest extends BaseTest {
         int expectedMaxCount = 15;
 
 
-        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
-        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Member creator = TestUtils.initMemberAndMemberInfo("creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner", "joiner@gmail.com");
         Moim moim = TestUtils.createMoimOnly();
 
         persist(creator.getRoles().get(0).getRole(),
@@ -115,8 +115,8 @@ class ScheduleServiceTest extends BaseTest {
     void updateScheduleFail2Test() {
 
         // Given :
-        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
-        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Member creator = TestUtils.initMemberAndMemberInfo("creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner", "joiner@gmail.com");
         Moim moim = TestUtils.createMoimOnly();
 
         persist(creator.getRoles().get(0).getRole(),
@@ -158,8 +158,8 @@ class ScheduleServiceTest extends BaseTest {
         String expectedDate = "202301010130";
         int expectedMaxCount = 15;
 
-        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
-        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Member creator = TestUtils.initMemberAndMemberInfo("creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner", "joiner@gmail.com");
         Moim moim = TestUtils.createMoimOnly();
 
         persist(creator.getRoles().get(0).getRole(),
@@ -200,8 +200,8 @@ class ScheduleServiceTest extends BaseTest {
         String expectedDate = "202301010130";
         int expectedMaxCount = 15;
 
-        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
-        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Member creator = TestUtils.initMemberAndMemberInfo("creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner", "joiner@gmail.com");
         Moim moim = TestUtils.createMoimOnly();
         Moim otherMoim = TestUtils.createMoimOnly("other-moim");
 
@@ -241,8 +241,8 @@ class ScheduleServiceTest extends BaseTest {
     void deleteScheduleSuccessTest() {
 
         // Given :
-        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
-        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Member creator = TestUtils.initMemberAndMemberInfo("creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner", "joiner@gmail.com");
         Moim moim = TestUtils.createMoimOnly();
         Moim otherMoim = TestUtils.createMoimOnly("other-moim");
 
@@ -283,8 +283,8 @@ class ScheduleServiceTest extends BaseTest {
     void deleteScheduleFailTest() {
 
         // Given :
-        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
-        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Member creator = TestUtils.initMemberAndMemberInfo("creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner", "joiner@gmail.com");
         Moim moim = TestUtils.createMoimOnly();
         Moim otherMoim = TestUtils.createMoimOnly("other-moim");
 
@@ -313,8 +313,8 @@ class ScheduleServiceTest extends BaseTest {
     void changeMemberStateSuccess1Test() {
 
         // Given :
-        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
-        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Member creator = TestUtils.initMemberAndMemberInfo("creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner", "joiner@gmail.com");
         Moim moim = TestUtils.createMoimOnly();
         Moim otherMoim = TestUtils.createMoimOnly("other-moim");
 
@@ -341,7 +341,7 @@ class ScheduleServiceTest extends BaseTest {
         // Then
         assertThat(result.getMemberScheduleLinker()).isNotNull();
         assertThat(result.getMemberScheduleLinker().getMemberState()).isEqualTo(ScheduleMemberState.ATTEND);
-        assertThat(result.getMoimMemberInfoDto().getMemberUid()).isEqualTo(joiner.getUid());
+        assertThat(result.getMoimMemberInfoDto().getMemberId()).isEqualTo(joiner.getId());
 
         MemberScheduleLinker findLinker = memberScheduleLinkerRepository.findByMemberAndScheduleId(joiner.getId(), schedule.getId());
         assertThat(findLinker).isNotNull();
@@ -352,8 +352,8 @@ class ScheduleServiceTest extends BaseTest {
     void changeMemberStateSuccess2Test() {
 
         // Given :
-        Member creator = TestUtils.initMemberAndMemberInfo("creator-uid","creator", "creator@gmail.com");
-        Member joiner = TestUtils.initMemberAndMemberInfo("joiner-uid","joiner", "joiner@gmail.com");
+        Member creator = TestUtils.initMemberAndMemberInfo("creator", "creator@gmail.com");
+        Member joiner = TestUtils.initMemberAndMemberInfo("joiner", "joiner@gmail.com");
         Moim moim = TestUtils.createMoimOnly();
         Moim otherMoim = TestUtils.createMoimOnly("other-moim");
 
@@ -381,7 +381,7 @@ class ScheduleServiceTest extends BaseTest {
         // Then
         assertThat(result.getMemberScheduleLinker()).isNotNull();
         assertThat(result.getMemberScheduleLinker().getMemberState()).isEqualTo(ScheduleMemberState.NONATTEND);
-        assertThat(result.getMoimMemberInfoDto().getMemberUid()).isEqualTo(joiner.getUid());
+        assertThat(result.getMoimMemberInfoDto().getMemberId()).isEqualTo(joiner.getId());
     }
 
     private void persist(Object ... objects) {

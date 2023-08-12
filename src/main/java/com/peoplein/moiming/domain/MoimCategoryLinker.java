@@ -32,7 +32,6 @@ public class MoimCategoryLinker {
 
     public MoimCategoryLinker(Moim moim, Category category) {
 
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moim, category);
         this.moim = moim;
         this.category = category;
     }

@@ -66,9 +66,9 @@ public class ScheduleService {
         Map<Long, MoimMemberInfoDto> memberInfoMap = new HashMap<>();
         memberMoimLinkers.forEach(mml -> {
             memberInfoMap.put(mml.getMember().getId(), new MoimMemberInfoDto(
-                    mml.getMember().getId(), mml.getMember().getUid(),
-                    mml.getMember().getMemberInfo().getMemberName(), mml.getMember().getMemberInfo().getMemberEmail(),
-                    mml.getMember().getMemberInfo().getMemberGender(), mml.getMember().getMemberInfo().getMemberPfImg(),
+                    mml.getMember().getId(),
+                    mml.getMember().getMemberInfo().getMemberName(), mml.getMember().getMemberEmail(),
+                    mml.getMember().getMemberInfo().getMemberGender(),
                     mml.getMoimRoleType(), mml.getMemberState(), mml.getCreatedAt(), mml.getUpdatedAt()
             ));
         });
@@ -101,7 +101,7 @@ public class ScheduleService {
 
             ScheduleDto scheduleDto = new ScheduleDto(
                     schedule.getId(), schedule.getScheduleTitle(), schedule.getScheduleLocation(), schedule.getScheduleDate()
-                    , schedule.getMaxCount(), schedule.isClosed(), schedule.getCreatedAt(), schedule.getCreatedUid(), schedule.getUpdatedAt(), schedule.getUpdatedUid()
+                    , schedule.getMaxCount(), schedule.isClosed(), schedule.getCreatedAt(), schedule.getCreatedMemberId(), schedule.getUpdatedAt(), schedule.getUpdatedMemberId()
             );
 
             List<ScheduleMemberDto> scheduleMemberDto = new ArrayList<>(scheduleMemberInfoMap.get(schedule.getId()).values());
@@ -126,7 +126,7 @@ public class ScheduleService {
         String authorityFailMessage = "일정을 수정할 권한이 없는 경우 :: 일정 생성자, 모임장, 운영진이 아님";
         checkAuthority(curMember, schedule, authorityFailMessage);
 
-        boolean isAnyUpdated = updateSchedule(scheduleRequestDto, schedule, curMember.getUid());
+        boolean isAnyUpdated = updateSchedule(scheduleRequestDto, schedule, curMember.getId());
 
         if (isAnyUpdated) {
             return buildScheduleResponseDto(schedule);
@@ -196,7 +196,7 @@ public class ScheduleService {
         return new ChangeMemberTuple(memberScheduleLinker, moimMemberInfoDto);
     }
 
-    private boolean updateSchedule(ScheduleRequestDto scheduleRequestDto, Schedule schedule, String updaterUid) {
+    private boolean updateSchedule(ScheduleRequestDto scheduleRequestDto, Schedule schedule, Long updatedMemberId) {
         // 시간 변환
         LocalDateTime scheduleDateLdt = transferStringToLdt(scheduleRequestDto.getScheduleDate());
 
@@ -212,7 +212,7 @@ public class ScheduleService {
         schedule.setMaxCount(scheduleRequestDto.getMaxCount());
 
         if (isAnyUpdate)
-            schedule.setUpdatedUid(updaterUid);
+            schedule.setUpdatedUid(updatedMemberId);
 
         /*if (scheduleRequestDto.isFullNotice()) {
             // TODO:: 수정사항 전체 알림 설정(?)
@@ -276,7 +276,9 @@ public class ScheduleService {
     }
 
     private boolean hasPermissionForUpdateSchedule(Member curMember, Schedule schedule, MemberMoimLinker memberMoimLinker) {
-        return curMember.isSameUid(schedule.getCreatedUid()) || memberMoimLinker.hasPermissionForUpdate();
+        // TODO : 변경 필요
+        return curMember.getId().equals(schedule.getCreatedMemberId()) || memberMoimLinker.hasPermissionForUpdate();
+//        return curMember.isSameUid(schedule.getCreatedUid()) || memberMoimLinker.hasPermissionForUpdate();
     }
 
     private void throwIfObjectIsNull(Object object, String message) {

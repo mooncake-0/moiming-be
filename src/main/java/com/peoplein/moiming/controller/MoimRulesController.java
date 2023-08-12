@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Moim 규칙 관리 관련")
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_RULES)
 public class MoimRulesController {
     private final MoimRulesService moimRulesService;
@@ -25,7 +24,9 @@ public class MoimRulesController {
     @PostMapping("/join/create")
     public ResponseModel<RuleJoinDto> createJoinRule(@RequestBody RuleRequestDto ruleRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimRulesService.createJoinRule(ruleRequestDto, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimRulesService.createJoinRule(ruleRequestDto, curMember));
     }
 
     /*
@@ -34,7 +35,9 @@ public class MoimRulesController {
     @PostMapping("/persist/create")
     public ResponseModel<RulePersistDto> createPersistRule(@RequestBody RuleRequestDto ruleRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimRulesService.createPersistRule(ruleRequestDto, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimRulesService.createPersistRule(ruleRequestDto, curMember));
     }
 
     /*
@@ -43,7 +46,9 @@ public class MoimRulesController {
     @GetMapping("/join/{moimId}")
     public ResponseModel<RuleJoinDto> getJoinRule(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimRulesService.getJoinRule(moimId, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimRulesService.getJoinRule(moimId, curMember));
     }
 
     /*
@@ -52,7 +57,9 @@ public class MoimRulesController {
     @GetMapping("/persist/{moimId}")
     public ResponseModel<RulePersistDto> getPersistRule(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimRulesService.getPersistRule(moimId, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimRulesService.getPersistRule(moimId, curMember));
     }
 
     /*
@@ -62,7 +69,9 @@ public class MoimRulesController {
     @PatchMapping("/join/update")
     public ResponseModel<RuleJoinDto> changeJoinRule(@RequestBody RuleRequestDto ruleRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimRulesService.changeJoinRule(ruleRequestDto, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimRulesService.changeJoinRule(ruleRequestDto, curMember));
     }
 
     /*
@@ -71,7 +80,9 @@ public class MoimRulesController {
     @PatchMapping("/persist/update")
     public ResponseModel<RulePersistDto> changePersistRule(@RequestBody RuleRequestDto ruleRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimRulesService.changePersistRule(ruleRequestDto, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimRulesService.changePersistRule(ruleRequestDto, curMember));
     }
 
     /*
@@ -81,7 +92,9 @@ public class MoimRulesController {
     public ResponseModel<String> deleteJoinRule(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimRulesService.deleteJoinRule(moimId, curMember);
-        return ResponseModel.createResponse("OK");
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse("OK");
     }
 
     /*
@@ -91,7 +104,9 @@ public class MoimRulesController {
     public ResponseModel<String> deletePersistRule(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimRulesService.deletePersistRule(moimId, curMember);
-        return ResponseModel.createResponse("OK");
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse("OK");
     }
 
 }

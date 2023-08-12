@@ -14,6 +14,7 @@ import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.provider.token.MoimingTokenType;
 import com.peoplein.moiming.security.service.SecurityMemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -45,21 +46,9 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
 
         Member loggedInMember = (Member) valueMap.get("member");
 
-        MemberDto memberDto = MemberDto.builder()
-                .id(loggedInMember.getId())
-                .uid(loggedInMember.getUid())
-                .createdAt(loggedInMember.getCreatedAt()).build();
-
-        memberDto.convertLinkerToDto(loggedInMember.getRoles());
-
-        MemberInfoDto memberInfoDto = MemberInfoDto.builder()
-                .memberGender(loggedInMember.getMemberInfo().getMemberGender())
-                .memberName(loggedInMember.getMemberInfo().getMemberName())
-                .memberEmail(loggedInMember.getMemberInfo().getMemberEmail())
-                .createdAt(loggedInMember.getMemberInfo().getCreatedAt())
-                .build();
-
-        ResponseModel<MemberResponseDto> loginSuccessfulResponse = ResponseModel.createResponse(new MemberResponseDto(memberDto, memberInfoDto));
+        ResponseModel<MemberResponseDto> loginSuccessfulResponse = ResponseModel.createResponse(
+                HttpStatus.OK, "로그인 성공", new MemberResponseDto(loggedInMember)
+        );
 
         response.getWriter().write(om.writeValueAsString(loginSuccessfulResponse));
 

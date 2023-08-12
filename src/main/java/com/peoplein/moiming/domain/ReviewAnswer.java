@@ -34,7 +34,6 @@ public class ReviewAnswer {
 
     private ReviewAnswer(int anwChoice, String anwText, MoimReview moimReview, ReviewQuestion reviewQuestion) {
 
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moimReview, reviewQuestion);
         this.anwChoice = anwChoice;
         this.anwText = anwText;
 

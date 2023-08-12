@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +23,7 @@ import java.util.Objects;
 
 
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"uid"}, name = "unique_uid")})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"member_email"}, name = "unique_member_email")})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
@@ -35,17 +36,17 @@ public class Member extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name = "uid", nullable = false)
-    private String uid;
+    @Column(name = "member_email", nullable = false)
+    private String memberEmail;
 
     @Column(nullable = false)
     private String password;
 
+    private String nickname;
+
     private String refreshToken;
 
     private String fcmToken;
-
-    private LocalDateTime logonAt;
 
     /*
      Mapped Columns
@@ -60,40 +61,31 @@ public class Member extends BaseEntity {
     /*
      생성자는 Private 으로, 생성 방식을 create 함수로만 제어한다
      */
-    private Member(String uid, String password, String fcmToken, MemberInfo memberInfo) {
+    private Member(String memberEmail, String password, String fcmToken, MemberInfo memberInfo) {
 
-        // TODO : 에러 메세지를 필요하다면 수정해야함.
-        if (!StringUtils.hasText(uid) || !StringUtils.hasText(password)) {
-            throw new IllegalArgumentException("잘못된 입력 발생");
-        }
-
-        if (Objects.isNull(memberInfo)) {
-            throw new NullPointerException("잘못된 객체가 전달되었습니다.");
-        }
-
-        this.uid = uid;
+        this.memberEmail = memberEmail;
         this.password = password;
         this.fcmToken = fcmToken;
         this.memberInfo = memberInfo;
 
     }
 
-//    public static Member createMember(String uid, String password, MemberInfo memberInfo) {
-//        return new Member(uid, password, memberInfo);
-//    }
 
     // Password should be always encrypted.
-    public static Member createMember(String uid,
+    public static Member createMember(String memberEmail,
                                       String encryptedPassword,
-                                      String email,
                                       String memberName,
-                                      String fcmToken,
+                                      String memberPhone,
                                       MemberGender memberGender,
+                                      LocalDate memberBirth,
+                                      String fcmToken,
                                       Role role
     ) {
-        MemberInfo memberInfo = new MemberInfo(email, memberName, memberGender);
-        Member createdMember = new Member(uid, encryptedPassword, fcmToken, memberInfo);
+
+        MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, memberBirth);
+        Member createdMember = new Member(memberEmail, encryptedPassword, fcmToken, memberInfo);
         MemberRoleLinker.grantRoleToMember(createdMember, role);
+
         return createdMember;
     }
 
@@ -122,15 +114,5 @@ public class Member extends BaseEntity {
         this.password = password;
     }
 
-    /*
-     필요 Setter Open
-     */
 
-    public void setFcmToken(String fcmToken) {
-        this.fcmToken = fcmToken;
-    }
-
-    public boolean isSameUid(String uid) {
-        return this.uid.equals(uid);
-    }
 }

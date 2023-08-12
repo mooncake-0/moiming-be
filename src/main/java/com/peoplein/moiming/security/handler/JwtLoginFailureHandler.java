@@ -3,10 +3,10 @@ package com.peoplein.moiming.security.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.peoplein.moiming.model.ErrorResponse;
 import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.security.exception.AuthErrorEnum;
 import com.peoplein.moiming.security.exception.BadLoginInputException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -36,29 +36,30 @@ public class JwtLoginFailureHandler implements AuthenticationFailureHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        if (exception instanceof BadLoginInputException || exception instanceof UsernameNotFoundException) {
-
-            authErrorEnum = AuthErrorEnum.AUTH_LOGIN_INVALID_INPUT;
-
-        } else if (exception instanceof BadCredentialsException) {
-
-            authErrorEnum = AuthErrorEnum.AUTH_LOGIN_PW_ERROR;
-
-        } else if (exception instanceof DisabledException) {
-
-            authErrorEnum = AuthErrorEnum.AUTH_LOGIN_DISABLED_ACCOUNT;
-
-        } else {
-
-            authErrorEnum = AuthErrorEnum.AUTH_LOGIN_UNKNOWN;
-        }
+//        if (exception instanceof BadLoginInputException || exception instanceof UsernameNotFoundException) {
+//
+//            authErrorEnum = AuthErrorEnum.AUTH_LOGIN_INVALID_INPUT;
+//
+//        } else if (exception instanceof BadCredentialsException) {
+//
+//            authErrorEnum = AuthErrorEnum.AUTH_LOGIN_PW_ERROR;
+//
+//        } else if (exception instanceof DisabledException) {
+//
+//            authErrorEnum = AuthErrorEnum.AUTH_LOGIN_DISABLED_ACCOUNT;
+//
+//        } else {
+//
+//            authErrorEnum = AuthErrorEnum.AUTH_LOGIN_UNKNOWN;
+//        }
 
         response.setStatus(authErrorEnum.getStatusCode());
-
-        ResponseModel<ErrorResponse> errorResponseModel = ResponseModel.createResponse(
-                new ErrorResponse(authErrorEnum.getErrorCode()
-                        , authErrorEnum.getErrorType()
-                        , exception.getLocalizedMessage()));
+        // TODO:: 에러요소 전달 필요, 일단 TEMP 한 조치
+        ResponseModel<Object> errorResponseModel = ResponseModel.createResponse(HttpStatus.BAD_REQUEST, "로그인에 실패했습니다", null);
+//        ResponseModel<ErrorResponse> errorResponseModel = ResponseModel.createResponse(
+//                new ErrorResponse(authErrorEnum.getErrorCode()
+//                        , authErrorEnum.getErrorType()
+//                        , exception.getLocalizedMessage()));
 
         response.getWriter().write(om.writeValueAsString(errorResponseModel));
     }

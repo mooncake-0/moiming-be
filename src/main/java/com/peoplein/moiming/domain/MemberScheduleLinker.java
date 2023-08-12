@@ -36,8 +36,6 @@ public class MemberScheduleLinker extends BaseEntity{
 
     private MemberScheduleLinker(Member member, Schedule schedule, ScheduleMemberState memberState) {
 
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), member, schedule, memberState);
-
         this.member = member;
         this.memberState = memberState;
 
@@ -49,7 +47,6 @@ public class MemberScheduleLinker extends BaseEntity{
     }
 
     public void changeMemberState(ScheduleMemberState memberState) {
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), memberState);
         this.memberState = memberState;
     }
 

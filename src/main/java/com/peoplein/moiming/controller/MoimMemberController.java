@@ -33,7 +33,9 @@ public class MoimMemberController {
     public ResponseModel<List<MoimMemberInfoDto>> viewMoimMember(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<MoimMemberInfoDto> moimMemberInfoDto = moimMemberService.viewMoimMember(moimId, curMember);
-        return ResponseModel.createResponse(moimMemberInfoDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimMemberInfoDto);
     }
 
     /*
@@ -44,7 +46,9 @@ public class MoimMemberController {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MemberMoimLinker memberMoimLinker = moimMemberService.requestJoin(moimJoinRequestDto, curMember);
         MyMoimLinkerDto myMoimLinkerDto = new MyMoimLinkerDto(memberMoimLinker);
-        return ResponseModel.createResponse(myMoimLinkerDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(myMoimLinkerDto);
     }
 
     /*
@@ -55,7 +59,9 @@ public class MoimMemberController {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MemberMoimLinker memberMoimLinker = moimMemberService.decideJoin(moimMemberActionRequestDto, curMember);
         MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(memberMoimLinker);
-        return ResponseModel.createResponse(moimMemberInfoDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimMemberInfoDto);
     }
 
     /*
@@ -65,7 +71,9 @@ public class MoimMemberController {
     public ResponseModel<MoimMemberInfoDto> exitMoim(@RequestBody MoimMemberActionRequestDto moimMemberActionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimMemberInfoDto moimMemberInfoDto = moimMemberService.exitMoim(moimMemberActionRequestDto, curMember);
-        return ResponseModel.createResponse(moimMemberInfoDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimMemberInfoDto);
     }
 
     /*
@@ -75,7 +83,9 @@ public class MoimMemberController {
     public ResponseModel<MoimMemberInfoDto> changeRole(@RequestBody MoimMemberActionRequestDto moimMemberActionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimMemberInfoDto moimMemberInfoDto = moimMemberService.changeRole(moimMemberActionRequestDto, curMember);
-        return ResponseModel.createResponse(moimMemberInfoDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimMemberInfoDto);
     }
 
 

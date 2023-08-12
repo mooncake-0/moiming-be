@@ -1,7 +1,6 @@
 package com.peoplein.moiming.domain.session;
 
 
-import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.Schedule;
 import lombok.AccessLevel;
@@ -13,6 +12,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ COMPILE FIXED
+ */
 @Entity
 @Getter
 @Table(name = "moim_session")
@@ -37,10 +39,10 @@ public class MoimSession {
     private boolean isFinished;
 
     private LocalDateTime createdAt;
-    private String createdUid;
+    private Long createdMemberId;
 
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "moim_id")
@@ -64,29 +66,25 @@ public class MoimSession {
     private List<MemberSessionLinker> memberSessionLinkers = new ArrayList<>();
 
 
-    public static MoimSession createMoimSession(String sessionName, String sessionInfo, int totalCost, int totalSenderCount, String createdUid
+    public static MoimSession createMoimSession(String sessionName, String sessionInfo, int totalCost, int totalSenderCount, Long createdMemberId
             , Moim moim, Schedule schedule) {
         MoimSession moimSession = new MoimSession(
-                sessionName, sessionInfo, totalCost, totalSenderCount, createdUid, moim, schedule
+                sessionName, sessionInfo, totalCost, totalSenderCount, createdMemberId, moim, schedule
         );
 
         return moimSession;
     }
 
 
-    private MoimSession(String sessionName, String sessionInfo, int totalCost, int totalSenderCount, String createdUid
+    private MoimSession(String sessionName, String sessionInfo, int totalCost, int totalSenderCount, Long createdMemberId
             , Moim moim, Schedule schedule) {
-
-        // NN 검증
-        DomainChecker.checkRightString(this.getClass().getName(), false, sessionName, createdUid);
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moim);
 
         // 생성
         this.sessionName = sessionName;
         this.sessionInfo = sessionInfo;
         this.totalCost = totalCost;
         this.totalSenderCount = totalSenderCount;
-        this.createdUid = createdUid;
+        this.createdMemberId = createdMemberId;
 
         // 초기화
         this.isFinished = false;
@@ -101,7 +99,6 @@ public class MoimSession {
 
 
     public void changeCreatedAt(LocalDateTime createdAt) {
-        DomainChecker.checkWrongObjectParams(getClass().getName(), createdAt);
         this.createdAt = createdAt;
     }
 
@@ -136,7 +133,7 @@ public class MoimSession {
         this.updatedAt = updatedAt;
     }
 
-    public void setUpdatedUid(String updatedUid) {
-        this.updatedUid = updatedUid;
+    public void setUpdatedMemberId(Long updatedMemberId) {
+        this.updatedMemberId = updatedMemberId;
     }
 }

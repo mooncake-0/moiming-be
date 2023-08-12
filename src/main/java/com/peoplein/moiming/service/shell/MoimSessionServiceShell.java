@@ -132,7 +132,7 @@ public class MoimSessionServiceShell {
             // 이미 Member, MemberInfo 까지 영컨에 올라온 상태
             MemberMoimLinker thisMemberMoimLinker = sessionMembersMoimLinkers.stream().filter(
                     memberMoimLinker -> memberMoimLinker.getMember().getId().equals(memberSessionLinker.getMember().getId())
-            ).findAny().orElseThrow(() -> new RuntimeException("가지고 온 MoimMember 정보 중 " + memberSessionLinker.getMember().getUid() + "의 정보를 찾을 수 없습니다"));
+            ).findAny().orElseThrow(() -> new RuntimeException("가지고 온 MoimMember 정보 중 " + memberSessionLinker.getMember().getId() + "의 정보를 찾을 수 없습니다"));
 
             MoimMemberInfoDto moimMemberInfoDto = MoimMemberInfoDto.createMemberInfoDto(thisMemberMoimLinker);
 

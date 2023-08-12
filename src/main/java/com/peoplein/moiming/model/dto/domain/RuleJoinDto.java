@@ -1,6 +1,5 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import lombok.AccessLevel;
@@ -23,9 +22,9 @@ public class RuleJoinDto {
     private boolean dupLeaderAvailable;
     private boolean dupManagerAvailable;
     private LocalDateTime createdAt;
-    private String createdUid;
+    private Long createdMemberId;
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
 
 
     /*
@@ -42,9 +41,9 @@ public class RuleJoinDto {
             this.dupLeaderAvailable = ruleJoin.isDupLeaderAvailable();
             this.dupManagerAvailable = ruleJoin.isDupManagerAvailable();
             this.createdAt = ruleJoin.getCreatedAt();
-            this.createdUid = ruleJoin.getCreatedUid();
+            this.createdMemberId = ruleJoin.getCreatedMemberId();
             this.updatedAt = ruleJoin.getUpdatedAt();
-            this.updatedUid = ruleJoin.getUpdatedUid();
+            this.updatedMemberId = ruleJoin.getUpdatedMemberId();
         }
     }
 
@@ -53,8 +52,8 @@ public class RuleJoinDto {
      각 필드 주입을 통한 Dto 형성
      */
     public RuleJoinDto(Long moimId, int birthMax, int birthMin, MemberGender gender, int moimMaxCount, boolean dupLeaderAvailable, boolean dupManagerAvailable
-            , LocalDateTime createdAt, String createdUid, LocalDateTime updatedAt, String updatedUid) {
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moimId);
+            , LocalDateTime createdAt, Long createdMemberId , LocalDateTime updatedAt, Long updatedMemberId) {
+
         this.moimId = moimId;
         this.birthMax = birthMax;
         this.birthMin = birthMin;
@@ -63,9 +62,9 @@ public class RuleJoinDto {
         this.dupLeaderAvailable = dupLeaderAvailable;
         this.dupManagerAvailable = dupManagerAvailable;
         this.createdAt = createdAt;
-        this.createdUid = createdUid;
+        this.createdMemberId = createdMemberId;
         this.updatedAt = updatedAt;
-        this.updatedUid = updatedUid;
+        this.updatedMemberId = updatedMemberId;
     }
 
     /*

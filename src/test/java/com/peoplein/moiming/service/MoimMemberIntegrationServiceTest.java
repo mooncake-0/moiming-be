@@ -79,7 +79,10 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
         Moim moim = TestUtils.createMoimOnly();
-        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange
+                , TestUtils.memberGenderAny, TestUtils.moimCountBig, true
+                , true, moim, member.getId(), false
+                , false);
 
         moimRepository.save(moim);
         memberRepository.save(member);
@@ -105,9 +108,13 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
         Moim moim = TestUtils.createMoimOnly();
-        MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
+        MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim
+                , MoimRoleType.NORMAL, MoimMemberState.IBF);
         memberMoimLinker.setBanRejoin(true);
-        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange
+                , TestUtils.birthMinForBigRange, TestUtils.memberGenderAny
+                , TestUtils.moimCountBig, true, true
+                , moim, member.getId(), false, false);
 
         moimRepository.save(moim);
         memberRepository.save(member);
@@ -136,7 +143,9 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         Moim moim = TestUtils.createMoimOnly();
         MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
         memberMoimLinker.setBanRejoin(false);
-        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange
+                , TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true
+                , moim, member.getId(), false, false);
 
         moimRepository.save(moim);
         memberRepository.save(member);
@@ -162,7 +171,9 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         Moim moim = TestUtils.createMoimOnly();
         MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
         memberMoimLinker.setBanRejoin(true);
-        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange
+                , TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim
+                , member.getId(), false, false);
 
         moimRepository.save(moim);
         memberRepository.save(member);

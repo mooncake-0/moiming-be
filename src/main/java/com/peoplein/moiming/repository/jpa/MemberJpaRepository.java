@@ -65,32 +65,28 @@ public class MemberJpaRepository implements MemberRepository {
     }
 
     @Override
-    public Member findMemberByUid(String uid) {
-
-        /*
-        Query : select * from member m
-                where m.uid = {uid};
-         */
+    public Member findMemberByEmail(String memberEmail) {
 
         return queryFactory.selectFrom(member)
-                .where(member.uid.eq(uid))
+                .where(member.memberEmail.eq(memberEmail))
                 .fetchOne();
     }
 
 
     @Override
-    public Member findMemberWithRolesByUid(String uid) {
+    public Member findMemberWithRolesByEmail(String memberEmail) {
+
         /*
          JPQL : select distinct m from Member m
                     join fetch m.roles mri
                     join fetch mri.role r
-                    where m.uid = {uid}
+                    where m.memberEmail = {memberEmail}
          */
 
         return queryFactory.selectFrom(member).distinct()
                 .join(member.roles, memberRoleLinker).fetchJoin()
                 .join(memberRoleLinker.role, role).fetchJoin()
-                .where(member.uid.eq(uid))
+                .where(member.memberEmail.eq(memberEmail))
                 .fetchOne();
     }
 

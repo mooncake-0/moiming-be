@@ -48,17 +48,17 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
       인증후 Authentication 객체를 세션에 저장하고 후속 진행
      */
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException {
 
         MemberLoginDto memberLoginDto = om.readValue(request.getReader(), MemberLoginDto.class);
 
-        if (!StringUtils.hasText(memberLoginDto.getUid()) || !StringUtils.hasText(memberLoginDto.getPassword())) {
-            String msg = "ID 혹은 PW 값을 전달받지 못했습니다";
+        if (!StringUtils.hasText(memberLoginDto.getMemberEmail()) || !StringUtils.hasText(memberLoginDto.getPassword())) {
+            String msg = "EMAIL 혹은 PW 값을 전달받지 못했습니다";
             log.error(msg);
             throw new BadLoginInputException(msg);
         }
 
-        JwtAuthenticationToken preAuthentication = new JwtAuthenticationToken(memberLoginDto.getUid(), memberLoginDto.getPassword());
+        JwtAuthenticationToken preAuthentication = new JwtAuthenticationToken(memberLoginDto.getMemberEmail(), memberLoginDto.getPassword());
         AuthenticationManager authenticationManager = getAuthenticationManager();
 
         return authenticationManager.authenticate(preAuthentication);

@@ -20,7 +20,7 @@ import java.util.Objects;
 @Table(name = "moim_post")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Slf4j
-public class MoimPost extends BaseEntity{
+public class MoimPost extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -29,13 +29,11 @@ public class MoimPost extends BaseEntity{
 
     private String postTitle;
     private String postContent;
-
-    @Enumerated(value = EnumType.STRING)
     private MoimPostCategory moimPostCategory;
     private boolean isNotice;
     private boolean hasFiles;
 
-    private String updatedUid;
+    private Long updatedMemberId;
 
     /*
      연관관계
@@ -60,9 +58,6 @@ public class MoimPost extends BaseEntity{
 
     private MoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean isNotice, boolean hasFiles, Moim moim, Member member) {
 
-        DomainChecker.checkRightString(this.getClass().getName(), false, postTitle, postContent);
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moimPostCategory, isNotice, hasFiles, moim, member);
-
         this.postTitle = postTitle;
         this.postContent = postContent;
         this.moimPostCategory = moimPostCategory;
@@ -74,11 +69,10 @@ public class MoimPost extends BaseEntity{
         this.member = member;
 
         // 초기화.
-        this.updatedUid = member.getUid();
+        this.updatedMemberId = member.getId();
     }
 
     public void addPostComment(PostComment postComment) {
-        DomainChecker.checkWrongObjectParams(this.getClass().getName() + ", addPostComment()", postComment);
         this.postComments.add(postComment);
     }
 
@@ -87,18 +81,15 @@ public class MoimPost extends BaseEntity{
     }
 
     public void changePostTitle(String postTitle) {
-        DomainChecker.checkRightString(this.getClass().getName(), false, postTitle);
         this.postTitle = postTitle;
     }
 
     public void changePostContent(String postContent) {
-        DomainChecker.checkRightString(this.getClass().getName(), false, postContent);
         this.postContent = postContent;
     }
 
 
     public void changePostCategory(MoimPostCategory moimPostCategory) {
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moimPostCategory);
         this.moimPostCategory = moimPostCategory;
     }
 
@@ -111,12 +102,12 @@ public class MoimPost extends BaseEntity{
     // 업데이트 했을 때, UID 바뀌는지
     // 업데이트 안했을 때, UID 안 바뀌는지
     public boolean update(String postTitle,
-                       String postContent,
-                       boolean isNotice,
-                       MoimPostCategory moimPostCategory,
-                       String updatedUid) {
+                          String postContent,
+                          boolean isNotice,
+                          MoimPostCategory moimPostCategory,
+                          Long updatedMemberId) {
 
-        checkWrongArgument(postTitle, postContent, isNotice, moimPostCategory, updatedUid);
+        checkWrongArgument(postTitle, postContent, isNotice, moimPostCategory, updatedMemberId);
 
         if (!isChangedAny(postTitle, postContent, isNotice, moimPostCategory)) {
             return false;
@@ -126,21 +117,21 @@ public class MoimPost extends BaseEntity{
         this.postContent = postContent;
         this.isNotice = isNotice;
         this.moimPostCategory = moimPostCategory;
-        this.updatedUid = updatedUid;
+        this.updatedMemberId = updatedMemberId;
 
         return true;
     }
 
     public void checkWrongArgument(String postTitle,
-                                    String postContent,
-                                    boolean isNotice,
-                                    MoimPostCategory moimPostCategory,
-                                    String updatedUid) {
+                                   String postContent,
+                                   boolean isNotice,
+                                   MoimPostCategory moimPostCategory,
+                                   Long updatedMemberId) {
 
         if (!StringUtils.hasText(postTitle) ||
                 !StringUtils.hasText(postContent) ||
-                !StringUtils.hasText(updatedUid) ||
-                Objects.isNull(moimPostCategory)) {
+                Objects.isNull(moimPostCategory) ||
+                Objects.isNull(updatedMemberId)) {
             throw new IllegalArgumentException();
         }
     }

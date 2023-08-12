@@ -8,8 +8,8 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor // TEMP
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@NoArgsConstructor
 public class Role {
 
     @Id

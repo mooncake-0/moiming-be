@@ -67,7 +67,7 @@ public class MoimRulesService {
 
             MoimRule ruleJoin = new RuleJoin( // MOIM 측 CASCADE 로 자동으로 등록이 된다
                     ruleJoinDto.getBirthMax(), ruleJoinDto.getBirthMin(), ruleJoinDto.getGender(), ruleJoinDto.getMoimMaxCount(),
-                    ruleJoinDto.isDupLeaderAvailable(), ruleJoinDto.isDupManagerAvailable(), memberMoimLinker.getMoim(), curMember.getUid()
+                    ruleJoinDto.isDupLeaderAvailable(), ruleJoinDto.isDupManagerAvailable(), memberMoimLinker.getMoim(), curMember.getId()
             );
 
             // 생성된 ruleJoin 으로 Dto 응답 재형성
@@ -96,7 +96,7 @@ public class MoimRulesService {
 
             MoimRule rulePersist = new RulePersist( // MOIM 측 CASCADE 로 자동으로 등록이 된다
                     rulePersistDto.isDoGreeting(), rulePersistDto.getAttendMonthly(), rulePersistDto.getAttendCount()
-                    , memberMoimLinker.getMoim(), curMember.getUid()
+                    , memberMoimLinker.getMoim(), curMember.getId()
             );
 
             // 생성된 ruleJoin 으로 Dto 응답 재형성
@@ -189,7 +189,7 @@ public class MoimRulesService {
             if (isAnyUpdated) {
 
                 ruleJoin.setUpdatedAt(LocalDateTime.now());
-                ruleJoin.setUpdatedUid(curMember.getUid());
+                ruleJoin.setUpdatedMemberId(curMember.getId());
 
                 return new RuleJoinDto(ruleJoin);
 
@@ -247,7 +247,7 @@ public class MoimRulesService {
             if (isAnyUpdated) {
 
                 rulePersist.setUpdatedAt(LocalDateTime.now());
-                rulePersist.setUpdatedUid(curMember.getUid());
+                rulePersist.setUpdatedMemberId(curMember.getId());
 
                 return new RulePersistDto(rulePersist);
 

@@ -8,10 +8,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class MemberLoginDto {
 
-    private String uid;
+    private String memberEmail;
     private String password;
 
 }

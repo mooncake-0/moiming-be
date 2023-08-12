@@ -53,7 +53,7 @@ public class MoimPostServiceUnitTest extends BaseTest {
         assertThat(output.getCreatedMoimPost().getPostTitle()).isEqualTo(input.getPostTitleAboutNewMoimPost());
         assertThat(output.getCreatedMoimPost().getMoimPostCategory()).isEqualTo(input.getMoimPostCategoryAboutNewMoimPost());
         assertThat(output.getCreatedMoimPost().getMoim().getMoimName()).isEqualTo(moim.getMoimName());
-        assertThat(output.getCreatedMoimPost().getMember().getUid()).isEqualTo(member.getUid());
+        assertThat(output.getCreatedMoimPost().getMember().getId()).isEqualTo(member.getId());
     }
 
     @Test
@@ -81,7 +81,7 @@ public class MoimPostServiceUnitTest extends BaseTest {
         assertThat(output.getCreatedMoimPost().getPostTitle()).isEqualTo(input.getPostTitleAboutNewMoimPost());
         assertThat(output.getCreatedMoimPost().getMoimPostCategory()).isEqualTo(input.getMoimPostCategoryAboutNewMoimPost());
         assertThat(output.getCreatedMoimPost().getMoim().getMoimName()).isEqualTo(moim.getMoimName());
-        assertThat(output.getCreatedMoimPost().getMember().getUid()).isEqualTo(member.getUid());
+        assertThat(output.getCreatedMoimPost().getMember().getId()).isEqualTo(member.getId());
     }
 
 }

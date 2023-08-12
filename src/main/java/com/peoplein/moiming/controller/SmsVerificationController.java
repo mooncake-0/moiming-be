@@ -27,7 +27,9 @@ public class SmsVerificationController {
     */
     @PostMapping("/send/findId")
     private ResponseModel<SmsVerificationDto> findMemberIdAuth(@RequestBody FindIdRequestDto findIdRequestDto) {
-        return ResponseModel.createResponse(smsVerificationService.findMemberIdAuth(findIdRequestDto));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(smsVerificationService.findMemberIdAuth(findIdRequestDto));
     }
 
     /*
@@ -36,7 +38,9 @@ public class SmsVerificationController {
     */
     @PostMapping("/send/findPw")
     private ResponseModel<SmsVerificationDto> findMemberPwAuth(@RequestBody FindPwRequestDto findPwRequestDto) {
-        return ResponseModel.createResponse(smsVerificationService.findMemberPwAuth(findPwRequestDto));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(smsVerificationService.findMemberPwAuth(findPwRequestDto));
     }
 
 
@@ -47,7 +51,9 @@ public class SmsVerificationController {
     @PostMapping("/send/changePw")
     private ResponseModel<SmsVerificationDto> changePwAuth(@RequestBody ChangePwRequestDto changePwRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(smsVerificationService.changePwAuth(curMember, changePwRequestDto));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(smsVerificationService.changePwAuth(curMember, changePwRequestDto));
     }
 
 
@@ -57,7 +63,9 @@ public class SmsVerificationController {
     */
     @PostMapping("/verify")
     private ResponseModel<String> verifyNumber(@RequestBody SmsVerifyRequestDto smsVerifyRequestDto) {
-        return ResponseModel.createResponse(smsVerificationService.verifyNumber(smsVerifyRequestDto));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(smsVerificationService.verifyNumber(smsVerifyRequestDto));
     }
 
 }

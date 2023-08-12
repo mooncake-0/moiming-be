@@ -26,32 +26,42 @@ public class MoimReviewController {
     @PostMapping("/create")
     public ResponseModel<MoimReviewResponseDto> createReview(@RequestBody MoimReviewRequestDto moimReviewRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimReviewService.createReview(moimReviewRequestDto, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimReviewService.createReview(moimReviewRequestDto, curMember));
     }
 
     @GetMapping("/{reviewId}")
     public ResponseModel<MoimReviewResponseDto> getReview(@PathVariable(name = "reviewId") Long reviewId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimReviewService.getReview(reviewId, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimReviewService.getReview(reviewId, curMember));
     }
 
     @PatchMapping("/update")
     public MoimReviewResponseDto updateReview(@RequestBody MoimReviewRequestDto moimReviewRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return moimReviewService.updateReview(moimReviewRequestDto, curMember);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return moimReviewService.updateReview(moimReviewRequestDto, curMember);
     }
 
     @DeleteMapping("/{reviewId}")
     public ResponseModel<String> deleteReview(@PathVariable(name = "reviewId") Long reviewId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimReviewService.deleteReview(reviewId, curMember);
-        return ResponseModel.createResponse("OK");
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse("OK");
     }
 
     @GetMapping("")
     public ResponseModel<List<MoimReviewResponseDto>> viewAllMoimReview(@RequestParam(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimReviewService.viewAllMoimReview(moimId, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimReviewService.viewAllMoimReview(moimId, curMember));
     }
 
     /*
@@ -59,6 +69,8 @@ public class MoimReviewController {
      */
     @GetMapping("/questions")
     public ResponseModel<List<ReviewQuestionResponseDto>> getReviewQuestions() {
-        return ResponseModel.createResponse(moimReviewService.getReviewQuestions());
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimReviewService.getReviewQuestions());
     }
 }

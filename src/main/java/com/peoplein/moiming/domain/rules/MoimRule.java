@@ -26,8 +26,8 @@ public abstract class MoimRule {
     protected Moim moim;
 
     protected LocalDateTime createdAt;
-    protected String createdUid;
+    protected Long createdMemberId;
     protected LocalDateTime updatedAt;
-    protected String updatedUid;
+    protected Long updatedMemberId;
 
 }

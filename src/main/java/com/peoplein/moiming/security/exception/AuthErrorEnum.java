@@ -5,8 +5,8 @@ import org.springframework.http.HttpStatus;
 public enum AuthErrorEnum {
 
     AUTH_SIGNIN_INVALID_INPUT(HttpStatus.BAD_REQUEST.value(), "AS001", "UID_OR_PW_OR_EMAIL"),
-    AUTH_SIGNIN_DUPLICATE_UID(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS002", "DUP_UID"),
-    AUTH_SIGNIN_DUPLICATE_EMAIL(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS003", "DUP_EMAIL"),
+    AUTH_SIGNIN_DUPLICATE_EMAIL(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS002", "DUP_EMAIL"),
+    AUTH_SIGNIN_DUPLICATE_PHONE(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS003", "DUP_PHONE"),
     AUTH_SIGNIN_NICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS004", "NICE_FAILED"),
     AUTH_SIGNIN_UNKNOWN(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS000", "AUTH_SIGNIN_UNKNOWN"),
 
@@ -44,4 +44,3 @@ public enum AuthErrorEnum {
     }
 
 }
-

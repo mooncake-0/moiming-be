@@ -1,6 +1,5 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.embeddable.Area;
 import lombok.AccessLevel;
@@ -23,9 +22,9 @@ public class MoimDto {
     private boolean hasRulePersist;
 
     private LocalDateTime createdAt;
-    private String createdUid;
+    private Long createdMemberId;
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
 
     /*
      Constructor -1
@@ -37,8 +36,6 @@ public class MoimDto {
          응답을 위한 형성시 MoimDto 는 NotNull
          */
 
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moim);
-
         this.moimId = moim.getId();
         this.moimName = moim.getMoimName();
         this.moimInfo = moim.getMoimInfo();
@@ -48,9 +45,9 @@ public class MoimDto {
         this.hasRuleJoin = moim.isHasRuleJoin();
         this.hasRulePersist = moim.isHasRulePersist();
         this.createdAt = moim.getCreatedAt();
-        this.createdUid = moim.getCreatedUid();
+        this.createdMemberId = moim.getCreatedMemberId();
         this.updatedAt = moim.getUpdatedAt();
-        this.updatedUid = moim.getUpdatedUid();
+        this.updatedMemberId = moim.getUpdatedMemberId();
 
     }
 
@@ -58,23 +55,21 @@ public class MoimDto {
      Constructor -2
      각 필드 주입을 통한 Dto 형성
      */
-    public MoimDto(Long moimId, String moimName, String moimInfo, String moimPfImg, Area area, int curMemberCount
-            , boolean hasRuleJoin, boolean hasRulePersist, LocalDateTime createdAt, String createdUid, LocalDateTime updatedAt, String updatedUid) {
-
-        DomainChecker.checkRightString(this.getClass().getName(), false, moimName, createdUid);
+    public MoimDto(Long moimId, String moimName, String moimInfo, Area area, int curMemberCount
+            , boolean hasRuleJoin, boolean hasRulePersist, LocalDateTime createdAt, Long createdMemberId, LocalDateTime updatedAt, Long updatedMemberId) {
 
         this.moimId = moimId;
         this.moimName = moimName;
         this.moimInfo = moimInfo;
-        this.moimPfImg = moimPfImg;
         this.area = area;
         this.curMemberCount = curMemberCount;
         this.hasRuleJoin = hasRuleJoin;
         this.hasRulePersist = hasRulePersist;
         this.createdAt = createdAt;
-        this.createdUid = createdUid;
+        this.createdMemberId = createdMemberId;
         this.updatedAt = updatedAt;
-        this.updatedUid = updatedUid;
+        this.updatedMemberId = updatedMemberId;
+
     }
 
 

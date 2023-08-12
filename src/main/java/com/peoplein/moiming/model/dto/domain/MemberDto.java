@@ -13,17 +13,28 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
-@AllArgsConstructor
-@Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberDto {
 
     private Long id;
-    private String uid;
-
+    private String memberEmail;
+    private String nickname;
+    private String fcmToken;
     private List<MemberRoleDto> roles;
-
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+
+    public MemberDto(Member member) {
+        this.id = member.getId();
+        this.memberEmail = member.getMemberEmail();
+        this.nickname = member.getNickname();
+        this.fcmToken = member.getFcmToken();
+        this.createdAt = member.getCreatedAt();
+        this.updatedAt = member.getUpdatedAt();
+
+        convertLinkerToDto(member.getRoles());
+    }
 
     /*
      MemberRoleLinker 에는 이미 Role 이 다 조회되어진 상태
@@ -33,16 +44,6 @@ public class MemberDto {
         this.roles = memberRoleLinkers.stream()
                 .map(MemberRoleDto::new)
                 .collect(Collectors.toList());
-    }
-
-    public static MemberDto createMemberDtoWhenSignIn(Member signInMember) {
-        MemberDto memberDto = MemberDto.builder().id(signInMember.getId())
-                .uid(signInMember.getUid())
-                .createdAt(signInMember.getCreatedAt())
-                .build();
-
-        memberDto.convertLinkerToDto(signInMember.getRoles());
-        return memberDto;
     }
 
 }

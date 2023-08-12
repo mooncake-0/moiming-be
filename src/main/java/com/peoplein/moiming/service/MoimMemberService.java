@@ -46,6 +46,7 @@ public class MoimMemberService {
         List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findWithMemberInfoAndMoimByMoimId(moimId);
         return getMoimMemberInfos(memberMoimLinkers);
     }
+
     /**
      * 특정 유저의 모임 가입 요청을 처리한다
      *
@@ -114,6 +115,7 @@ public class MoimMemberService {
 
         return memberMoimLinker;
     }
+
     public MoimMemberInfoDto exitMoim(MoimMemberActionRequestDto moimMemberActionRequestDto, Member curMember) {
 
         // 영속화
@@ -159,9 +161,9 @@ public class MoimMemberService {
 
         // 그 Member 의 MoimMemberInfo 를 전달
         MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(
-                memberMoimLinker.getMember().getId(), memberMoimLinker.getMember().getUid()
-                , memberMoimLinker.getMember().getMemberInfo().getMemberName(), memberMoimLinker.getMember().getMemberInfo().getMemberEmail()
-                , memberMoimLinker.getMember().getMemberInfo().getMemberGender(), memberMoimLinker.getMember().getMemberInfo().getMemberPfImg()
+                memberMoimLinker.getMember().getId()
+                , memberMoimLinker.getMember().getMemberInfo().getMemberName(), memberMoimLinker.getMember().getMemberEmail()
+                , memberMoimLinker.getMember().getMemberInfo().getMemberGender()
                 , memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState()
                 , memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt()
         );

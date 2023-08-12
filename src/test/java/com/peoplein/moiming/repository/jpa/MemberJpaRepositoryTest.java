@@ -89,7 +89,7 @@ public class MemberJpaRepositoryTest extends BaseTest{
         em.flush();
         em.clear();
 
-        Member findMember = repository.findMemberByUid(member.getUid());
+        Member findMember = repository.findMemberById(member.getId());
 
         assertThat(findMember.getId()).isEqualTo(member.getId());
         assertThat(findMember.getMemberInfo().getId()).isEqualTo(memberInfo.getId());

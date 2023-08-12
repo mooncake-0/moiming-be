@@ -86,7 +86,7 @@ public class MoimJpaRepositoryTest extends BaseTest {
         assertEquals(moim.getMoimName(), foundMoim.getMoimName());
         assertEquals(moim.getMoimInfo(), foundMoim.getMoimInfo());
         assertEquals(moim.getMoimPfImg(), foundMoim.getMoimPfImg());
-        assertEquals(moim.getCreatedUid(), foundMoim.getCreatedUid());
+        assertEquals(moim.getCreatedMemberId(), foundMoim.getCreatedMemberId());
         assertEquals(moim.getMoimArea().getState(), foundMoim.getMoimArea().getState());
     }
 

@@ -3,7 +3,6 @@ package com.peoplein.moiming.security;
 /*
  Secured Info
  */
-
 public interface JwtPropertySetting {
 
     /*
@@ -32,7 +31,7 @@ public interface JwtPropertySetting {
 
     // CLAIM CATEGORY
     String MEMBER_ID = "id";
-    String MEMBER_UID = "uid";
+    String MEMBER_EMAIL = "email";
     String MEMBER_ROLES = "roles";
 
 }

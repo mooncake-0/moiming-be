@@ -12,6 +12,7 @@ import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
 import com.peoplein.moiming.service.MoimSessionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,9 @@ public class MoimSessionController {
     public ResponseModel<MoimSessionResponseDto> createMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimSessionResponseDto moimSessionResponseDto = moimSessionService.createMoimSession(moimSessionRequestDto, curMember);
-        return ResponseModel.createResponse(moimSessionResponseDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(HttpStatus.CREATED, "생성완료", moimSessionResponseDto);
     }
 
     /*
@@ -42,7 +45,9 @@ public class MoimSessionController {
     @GetMapping("")
     public ResponseModel<List<MoimSessionDto>> getAllMoimSessions(@RequestParam(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimSessionService.getAllMoimSessions(moimId, curMember));
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimSessionService.getAllMoimSessions(moimId, curMember));
     }
 
     /*s
@@ -51,8 +56,9 @@ public class MoimSessionController {
     @GetMapping("/{sessionId}")
     public MoimSessionResponseDto getMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        System.out.println(sessionId);
-        return moimSessionService.getMoimSession(sessionId, curMember);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return moimSessionService.getMoimSession(sessionId, curMember);
     }
 
     /*
@@ -63,7 +69,9 @@ public class MoimSessionController {
     public ResponseModel<MoimSessionResponseDto> updateMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimSessionResponseDto moimSessionResponseDto = moimSessionService.updateMoimSession(moimSessionRequestDto, curMember);
-        return ResponseModel.createResponse(moimSessionResponseDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(moimSessionResponseDto);
     }
 
     /*
@@ -73,7 +81,9 @@ public class MoimSessionController {
     public ResponseModel<String> deleteMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimSessionService.deleteMoimSession(sessionId, curMember);
-        return ResponseModel.createResponse("OK");
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse("OK");
     }
 
     /*
@@ -89,12 +99,9 @@ public class MoimSessionController {
         // 일단은 "완료" / "미완료" 만 변경할 수 있으므로 only 관리자일 뿐인듯
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MemberSessionLinkerDto responseDto = moimSessionService.changeSessionMemberStatus(moimId, sessionId, memberId, memberSessionStateRequestDto, curMember);
-        return ResponseModel.createResponse(responseDto);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(responseDto);
     }
-
-
-    /*
-     FCM : 송금 요청
-     */
 
 }

@@ -28,8 +28,7 @@ public class PolicyAgree {
 
     private LocalDateTime updatedAt;
 
-    private String createdUid;
-    private String updatedUid;
+    private Long createdMemberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
@@ -41,8 +40,6 @@ public class PolicyAgree {
 
     private PolicyAgree(Member member, PolicyType policyType, boolean isAgreed) {
 
-        DomainChecker.checkWrongObjectParams(getClass().getName(), member, policyType);
-
         this.policyType = policyType;
         this.isAgreed = isAgreed;
 
@@ -51,7 +48,7 @@ public class PolicyAgree {
 
         // 초기화
         this.createdAt = LocalDateTime.now();
-        this.createdUid = member.getUid();
+        this.createdMemberId = member.getId();
 
     }
 
@@ -61,13 +58,6 @@ public class PolicyAgree {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public void changeUpdatedUid(String updatedUid) {
-        if (!StringUtils.hasText(updatedUid)) {
-            throw new RuntimeException("약관 수정 변경자 수정 에러");
-        }
-        this.updatedUid = updatedUid;
     }
 
 }

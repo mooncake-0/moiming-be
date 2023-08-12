@@ -35,9 +35,6 @@ public class MoimPostTest {
         // MOIM
         when(moim.getMoimName()).thenReturn("예제 모임");
 
-        // MEMBER
-        when(member.getUid()).thenReturn("wrock.kang");
-
     }
 
 
@@ -153,12 +150,12 @@ public class MoimPostTest {
                 TestUtils.postContent,
                 TestUtils.isNotice,
                 TestUtils.moimPostCategory,
-                updateMember.getUid());
+                updateMember.getId());
 
         // then
         assertThat(update).isTrue();
         assertThat(moimPost.getPostTitle()).isEqualTo(changedTitle);
-        assertThat(moimPost.getUpdatedUid()).isEqualTo(updateMember.getUid());
+        assertThat(moimPost.getUpdatedMemberId()).isEqualTo(updateMember.getId());
     }
 
     @Test
@@ -174,12 +171,12 @@ public class MoimPostTest {
                 TestUtils.postContent,
                 TestUtils.isNotice,
                 TestUtils.moimPostCategory,
-                updateMember.getUid());
+                updateMember.getId());
 
         // then
         assertThat(update).isFalse();
         assertThat(moimPost.getPostTitle()).isEqualTo(TestUtils.postTitle);
-        assertThat(moimPost.getUpdatedUid()).isEqualTo(member.getUid());
+        assertThat(moimPost.getUpdatedMemberId()).isEqualTo(member.getId());
     }
 
     @Test
@@ -198,8 +195,8 @@ public class MoimPostTest {
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> moimPost.update(null, null, false, TestUtils.moimPostCategory, null))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> moimPost.update(null, null, false, null, TestUtils.uid + "updated"))
-                .isInstanceOf(IllegalArgumentException.class);
+//        assertThatThrownBy(() -> moimPost.update(null, null, false, null, TestUtils.uid + "updated"))
+//                .isInstanceOf(IllegalArgumentException.class);
     }
 
 

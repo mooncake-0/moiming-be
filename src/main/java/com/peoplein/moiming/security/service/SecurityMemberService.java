@@ -36,27 +36,27 @@ public class SecurityMemberService implements UserDetailsService {
      */
     @Transactional(readOnly = true)
     @Override
-    public UserDetails loadUserByUsername(String uid) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String memberEmail) throws UsernameNotFoundException {
 
-        Member memberByUid = memberRepository.findMemberWithRolesByUid(uid);
+        Member memberByEmail = memberRepository.findMemberByEmail(memberEmail);
 
         // Query 확인용: 제거 필요
         System.out.println("memberService.loadUserByName 에서 findMemberWithRolesByUid 호출되었습니다===========================");
 
-        if (Objects.isNull(memberByUid)) {
-            String msg = "[" + uid + "]의 유저를 찾을 수 없습니다";
+        if (Objects.isNull(memberByEmail)) {
+            String msg = "[" + memberEmail + "]의 유저를 찾을 수 없습니다";
             log.error(msg);
             throw new UsernameNotFoundException(msg);
         }
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
-        for (MemberRoleLinker roleLinker : memberByUid.getRoles()) {
+        for (MemberRoleLinker roleLinker : memberByEmail.getRoles()) {
             RoleType roleType = roleLinker.getRole().getRoleType();
             authorities.add(new SimpleGrantedAuthority("ROLE_" + roleType));
         }
 
-        return new SecurityMember(memberByUid, authorities);
+        return new SecurityMember(memberByEmail, authorities);
     }
 
     /*
@@ -64,30 +64,31 @@ public class SecurityMemberService implements UserDetailsService {
      해당 유저 DB에 저장되어 있는 REFRESH_TOKEN 과 일치하는지 확인한다
      */
     @Transactional
-    public UserDetails loadUserAndValidateRefreshToken(String uid, String refreshToken) throws UsernameNotFoundException {
+    public UserDetails loadUserAndValidateRefreshToken(String memberEmail, String refreshToken) throws UsernameNotFoundException {
 
-        Member memberByUid = memberRepository.findMemberWithRolesByUid(uid);
+        Member memberByEmail = memberRepository.findMemberWithRolesByEmail(memberEmail);
 
-        if (Objects.isNull(memberByUid)) {
-            String msg = "[" + uid + "]의 유저를 찾을 수 없습니다";
+        if (Objects.isNull(memberByEmail)) {
+            String msg = "[" + memberEmail + "]의 유저를 찾을 수 없습니다";
             log.error(msg);
             throw new UsernameNotFoundException(msg);
         }
 
-        if (!refreshToken.equals(memberByUid.getRefreshToken())) {
-            String msg = "[" + uid + "]의 REFRESH TOKEN 이 일치하지 않습니다";
+        if (!refreshToken.equals(memberByEmail.getRefreshToken())) {
+            String msg = "[" + memberEmail + "]의 REFRESH TOKEN 이 일치하지 않습니다";
             log.error(msg);
             throw new InvalidParameterException(msg);
         }
 
+        // 가지고 있는 Role 에 따라 Security 객체에 권한 부여
         List<GrantedAuthority> authorities = new ArrayList<>();
 
-        for (MemberRoleLinker roleLinker : memberByUid.getRoles()) {
+        for (MemberRoleLinker roleLinker : memberByEmail.getRoles()) {
             RoleType roleType = roleLinker.getRole().getRoleType();
             authorities.add(new SimpleGrantedAuthority("ROLE_" + roleType));
         }
 
-        SecurityMember securityMember = new SecurityMember(memberByUid, authorities);
+        SecurityMember securityMember = new SecurityMember(memberByEmail, authorities);
 
         String resetRefreshToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_RT, securityMember);
         securityMember.getMember().changeRefreshToken(resetRefreshToken);

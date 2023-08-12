@@ -21,7 +21,7 @@ public class MemberJpaQueryRepository {
      Querying Dtos
      */
 
-    public List<QueryDuplicateColumnMemberDto> findDuplicateMemberByUidOrEmail(String uid, String memberEmail) {
+    public List<QueryDuplicateColumnMemberDto> findDuplicateMemberByEmailOrPhone(String memberEmail, String memberPhone) {
 
         /*
          Query: select m.uid, mi.member_email from member m
@@ -30,11 +30,11 @@ public class MemberJpaQueryRepository {
                     where m.uid = {uid} or mi.member_email = {memberEmail}
          */
 
-        return queryFactory.select(Projections.constructor(QueryDuplicateColumnMemberDto.class, member.uid, memberInfo.memberEmail))
+        return queryFactory.select(Projections.constructor(QueryDuplicateColumnMemberDto.class, member.memberEmail, memberInfo.memberPhone))
                 .from(member)
                 .join(memberInfo)
                 .on(member.memberInfo.id.eq(memberInfo.id))
-                .where(member.uid.eq(uid).or(memberInfo.memberEmail.eq(memberEmail)))
+                .where(member.memberEmail.eq(memberEmail).or(memberInfo.memberPhone.eq(memberPhone)))
                 .fetch()
                 ;
     }

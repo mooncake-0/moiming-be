@@ -18,7 +18,7 @@ public class SecurityMember extends User {
     private final Member member;
 
     public SecurityMember(Member member, Collection<? extends GrantedAuthority> authorities) {
-        super(member.getUid(), member.getPassword(), authorities); // 여기서 User 객체로 Authority 가 들어간다
+        super(member.getMemberEmail(), member.getPassword(), authorities); // 여기서 User 객체로 Authority 가 들어간다
         this.member = member;
     }
 

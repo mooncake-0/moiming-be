@@ -1,38 +1,37 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
-import com.peoplein.moiming.exception.DuplicateAuthValueException;
+import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.auth.MemberSigninRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MemberReqDto;
+import com.peoplein.moiming.model.dto.request_b.MemberReqDto.MemberSignInReqDto;
 import com.peoplein.moiming.model.dto.response.MemberResponseDto;
-import com.peoplein.moiming.model.dto.domain.MemberDto;
-import com.peoplein.moiming.model.dto.domain.MemberInfoDto;
+import com.peoplein.moiming.model.dto.response_a.MemberRespDto;
+import com.peoplein.moiming.model.inner.TokenTransmitter;
 import com.peoplein.moiming.model.query.QueryDuplicateColumnMemberDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.repository.jpa.query.MemberJpaQueryRepository;
-import com.peoplein.moiming.security.JwtPropertySetting;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.exception.AuthErrorEnum;
 import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.provider.token.MoimingTokenType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
+@RequiredArgsConstructor // 중복 Type 이 있는 경우에만 직접 생성자 주입하도록 함
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
@@ -40,54 +39,35 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final MoimingTokenProvider moimingTokenProvider;
     private final MemberJpaQueryRepository memberJpaQueryRepository;
-    private final PolicyAgreeService policyAgreeService;
 
-    public boolean checkUidAvailable(String uid) {
-        Member memberByUid = memberRepository.findMemberByUid(uid);
-        return Objects.isNull(memberByUid);
+
+    public boolean checkUidAvailable(String email) {
+        Member memberByEmail = memberRepository.findMemberByEmail(email);
+        return Objects.isNull(memberByEmail);
     }
 
-    /*
-     회원가입 로직을 실행한다
-     1. Null 및 공백값들에 대한 2차적 확인
-     2. Unique Columns 들에 대한 중복값 검증 및 대응
-     3. 기본 MemberInfo 생성, User Role 부여
 
-     ------------- TODO :: 회원 약관 동의 항목들에 대한 Policy Agree 객체 push -- 별도의 서비스 분리해서 가져가는게 좋을듯!
+    public TokenTransmitter<MemberSignInRespDto> signIn(MemberSignInReqDto requestDto) {
 
-     4. 토큰 발급, Response 헤더 세팅
-     5. ResponseDto 모델 세팅
-     */
-    public MemberResponseDto signin(MemberSigninRequestDto memberSigninDto, HttpServletResponse response) {
+        checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone());
 
-        DomainChecker.checkRightString("Member Signin Request Dto", true, memberSigninDto.getUid(), memberSigninDto.getPassword(), memberSigninDto.getEmail());
-        checkUniqueColumnDuplication(memberSigninDto.getUid(), memberSigninDto.getEmail());
-
-        // TODO : 이거 TEMP로 생성하는게 맞는건가?
-        String encodedPassword = passwordEncoder.encode(memberSigninDto.getPassword());
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
         Role roleUser = roleRepository.findByRoleType(RoleType.USER);
 
-        Member signInMember = Member.createMember(
-                memberSigninDto.getUid(),
-                encodedPassword,
-                memberSigninDto.getEmail(),
-                "TEMP",
-                memberSigninDto.getFcmToken(),
-                MemberGender.N,
-                roleUser);
+        Member signInMember = Member.createMember(requestDto.getMemberEmail(), encodedPassword, requestDto.getMemberName()
+                , requestDto.getMemberPhone(), requestDto.getMemberGender(), requestDto.getMemberBirth(), requestDto.getFcmToken(), roleUser);
 
+        // member 저장
         memberRepository.save(signInMember);
-        provideTokenBySignin(signInMember, response);
 
-        // 약관 등록
-        policyAgreeService.createUserPolicyAgree(signInMember, memberSigninDto.getPolicyAgreeList());
+        // 토큰 발급
+        String accessToken = provideTokenByMember(signInMember);
 
 
         // Response 객체 생성
-        MemberDto memberDto = MemberDto.createMemberDtoWhenSignIn(signInMember);
-        MemberInfoDto memberInfoDto = MemberInfoDto.createMemberInfoDtoWhenSignIn(signInMember.getMemberInfo());
+        MemberSignInRespDto mrd = new MemberSignInRespDto(signInMember);
+        return new TokenTransmitter<>(accessToken, signInMember.getRefreshToken(), mrd);
 
-        return new MemberResponseDto(memberDto, memberInfoDto);
     }
 
 
@@ -95,18 +75,19 @@ public class AuthService {
      회원가입 전에 중복 조건들에 대해서 확인
      에러 발생시 회원 가입 중단
      */
-    private void checkUniqueColumnDuplication(String uid, String memberEmail) {
+    // package-private 으로 변경
+    void checkUniqueColumnDuplication(String memberEmail, String memberPhone) {
 
-        List<QueryDuplicateColumnMemberDto> dupMembers = memberJpaQueryRepository.findDuplicateMemberByUidOrEmail(uid, memberEmail);
+        List<QueryDuplicateColumnMemberDto> dupMembers = memberJpaQueryRepository.findDuplicateMemberByEmailOrPhone(memberEmail, memberPhone);
 
         if (!dupMembers.isEmpty()) {
             for (QueryDuplicateColumnMemberDto target : dupMembers) {
-                if (target.getUid().equals(uid)) {
-                    throw new DuplicateAuthValueException("[" + uid + "] 는  이미 존재하는 회원입니다", AuthErrorEnum.AUTH_SIGNIN_DUPLICATE_UID.getErrorCode());
+                if (target.getMemberEmail().equals(memberEmail)) {
+                    throw new MoimingApiException("[" + memberEmail + "] 는  이미 존재하는 회원입니다");
                 }
 
-                if (target.getMemberEmail().equals(memberEmail)) {
-                    throw new DuplicateAuthValueException("[" + memberEmail + "] 는  이미 존재하는 회원의 이메일입니다", AuthErrorEnum.AUTH_SIGNIN_DUPLICATE_EMAIL.getErrorCode());
+                if (target.getMemberPhone().equals(memberPhone)) {
+                    throw new MoimingApiException("[" + memberPhone + "] 는  이미 존재하는 회원의 전화번호 입니다");
                 }
 
                 //...
@@ -114,23 +95,13 @@ public class AuthService {
         }
     }
 
-    /*
-     회원가입 성공시 인증 토큰을 발급한다
-     */
-    private void provideTokenBySignin(Member signinMember, HttpServletResponse response) {
+    String provideTokenByMember(Member signInMember) {
 
-        SecurityMember securityMember = new SecurityMember(signinMember, new ArrayList<>());
+        SecurityMember sm = new SecurityMember(signInMember, new ArrayList<>()); // 권한은 토큰 생성에 필요하지 않음
+        String accessToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_AT, sm);
+        String refreshToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_RT, sm);
+        signInMember.changeRefreshToken(refreshToken);
 
-        String accessToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_AT, securityMember);
-        String refreshToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_RT, securityMember);
-
-        signinMember.changeRefreshToken(refreshToken);
-
-        response.addHeader(JwtPropertySetting.HEADER_AT, accessToken);
-        response.addHeader(JwtPropertySetting.HEADER_RT, refreshToken);
-
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setStatus(HttpServletResponse.SC_OK);
-
+        return accessToken;
     }
 }

@@ -22,6 +22,7 @@ import com.peoplein.moiming.service.output.MoimServiceOutput;
 import com.peoplein.moiming.service.shell.MoimServiceShell;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,8 +65,8 @@ public class MoimService {
         for (QueryJoinedMoimBasic queryData : queryDataList) {
 
             MoimDto moimDto = new MoimDto(
-                    queryData.getMoimId(), queryData.getMoimName(), queryData.getMoimInfo(), queryData.getMoimPfImg(), queryData.getMoimArea(), queryData.getCurMemberCount()
-                    , queryData.isHasRuleJoin(), queryData.isHasRulePersist(), queryData.getCreatedAt(), queryData.getCreatedUid(), queryData.getUpdatedAt(), queryData.getUpdatedUid()
+                    queryData.getMoimId(), queryData.getMoimName(), queryData.getMoimInfo(), queryData.getMoimArea(), queryData.getCurMemberCount()
+                    , queryData.isHasRuleJoin(), queryData.isHasRulePersist(), queryData.getCreatedAt(), queryData.getCreatedMemberId(), queryData.getUpdatedAt(), queryData.getUpdatedMemberId()
             );
 
             MyMoimLinkerDto myMoimLinkerDto = new MyMoimLinkerDto(
@@ -92,7 +93,7 @@ public class MoimService {
             ));
         }
 
-        return ResponseModel.createResponse(moimResponseDtos);
+        return ResponseModel.createResponse(HttpStatus.OK, "조회", moimResponseDtos);
     }
 
 
@@ -132,7 +133,7 @@ public class MoimService {
 
         MoimMembersDto moimMembersDto = new MoimMembersDto();
         moim.getMemberMoimLinkers().stream().filter(memberMoimLinker -> memberMoimLinker.getMember().getId().equals(curMember.getId()))
-                        .forEach(memberMoimLinker -> moimMembersDto.setMyMoimLinkerDto(new MyMoimLinkerDto(memberMoimLinker)));
+                .forEach(memberMoimLinker -> moimMembersDto.setMyMoimLinkerDto(new MyMoimLinkerDto(memberMoimLinker)));
 
         List<MoimMemberInfoDto> moimMemberInfoDtos = moim.getMemberMoimLinkers().stream().filter(memberMoimLinker -> !memberMoimLinker.getMember().getId().equals(curMember.getId()))
                 .map(MoimMemberInfoDto::createMemberInfoDto).collect(Collectors.toList());
@@ -207,7 +208,7 @@ public class MoimService {
                 ruleJoinDto.getMoimMaxCount(),
                 ruleJoinDto.isDupLeaderAvailable(),
                 ruleJoinDto.isDupManagerAvailable(),
-                createdMoim, curMember.getUid());
+                createdMoim, curMember.getId());
     }
 
     public MoimServiceCore getMoimServiceCore() {

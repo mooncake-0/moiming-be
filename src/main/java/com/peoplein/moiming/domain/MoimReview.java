@@ -41,7 +41,6 @@ public class MoimReview {
 
     private MoimReview(Member member, Moim moim) {
 
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), member, moim);
         /*
          연관관계 매핑
          */

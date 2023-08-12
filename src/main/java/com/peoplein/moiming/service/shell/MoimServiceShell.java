@@ -71,7 +71,7 @@ public class MoimServiceShell {
         findMoim.setMoimInfo(inputMoimDto.getMoimInfo());
         findMoim.changeMoimArea(new Area(inputMoimDto.getArea().getState(), inputMoimDto.getArea().getCity()));
 
-        findMoim.changeUpdatedUid(curMember.getUid());
+        findMoim.changeUpdatedUid(curMember.getId());
 
         return createMoimResponseDto(findMoim, curMember);
     }

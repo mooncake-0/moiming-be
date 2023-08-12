@@ -63,7 +63,7 @@ public class MoimPostServiceTest extends BaseTest {
 
         // then
         assertThat(moimPostDto.getPostTitle()).isEqualTo(changedPostTitle);
-        assertThat(moimPostDto.getUpdatedUid()).isEqualTo(member.getUid());
+        assertThat(moimPostDto.getUpdatedMemberId()).isEqualTo(member.getId());
     }
     @Test
     void updateIntegrationFailTest() {

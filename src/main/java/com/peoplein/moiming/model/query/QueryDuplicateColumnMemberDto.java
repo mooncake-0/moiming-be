@@ -8,8 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class QueryDuplicateColumnMemberDto {
 
-    private String uid;
     private String memberEmail;
+
+    private String memberPhone;
 
     // ...  중복 불가 칼럼들 도입
     // private String memberPhone;

@@ -1,31 +1,22 @@
 package com.peoplein.moiming.model.dto.auth;
 
-import com.peoplein.moiming.model.dto.request.PolicyAgreeRequestDto;
+import com.peoplein.moiming.domain.enums.MemberGender;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class MemberSigninRequestDto {
 
-    private String uid;
+    //    private String uid;
+    private String memberEmail;
     private String password;
-    private String email;
+    private String memberName;
+    private String memberPhone;
+    private MemberGender memberGender;
+    private LocalDate memberBirth;
     private String fcmToken;
-
-    // 약관 동의 항목들도 같이 요청을 보낸다
-    // 회원가입 요청시에는 true, false 인지 정확하게 보내져야 한다
-
-
-    public MemberSigninRequestDto(String uid, String password, String email, String fcmToken) {
-        this.uid = uid;
-        this.password = password;
-        this.email = email;
-        this.fcmToken = fcmToken;
-    }
-
-    private List<PolicyAgreeRequestDto> policyAgreeList = new ArrayList<>();
 
 }

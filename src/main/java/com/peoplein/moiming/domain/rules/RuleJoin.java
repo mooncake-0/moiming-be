@@ -1,6 +1,5 @@
 package com.peoplein.moiming.domain.rules;
 
-import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import lombok.AccessLevel;
@@ -8,14 +7,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "rule_join")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RuleJoin extends MoimRule {
 
@@ -36,12 +35,9 @@ public class RuleJoin extends MoimRule {
                     boolean dupLeaderAvailable,
                     boolean dupManagerAvailable,
                     Moim moim,
-                    String createdUid,
+                    Long createdMemberId,
                     boolean possibleReJoinIfExitedByWill,
                     boolean possibleReJoinIfExitedByForce) {
-
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), gender, moim);
-        DomainChecker.checkRightString(this.getClass().getName(), false, createdUid);
 
         this.birthMax = birthMax;
         this.birthMin = birthMin;
@@ -49,6 +45,7 @@ public class RuleJoin extends MoimRule {
         this.moimMaxCount = moimMaxCount;
         this.dupLeaderAvailable = dupLeaderAvailable;
         this.dupManagerAvailable = dupManagerAvailable;
+        this.createdMemberId = createdMemberId;
         this.possibleReJoinIfExitedByWill = possibleReJoinIfExitedByWill;
         this.possibleReJoinIfExitedByForce = possibleReJoinIfExitedByForce;
 
@@ -67,16 +64,13 @@ public class RuleJoin extends MoimRule {
     }
 
     public RuleJoin(int birthMax, int birthMin, MemberGender gender, int moimMaxCount, boolean dupLeaderAvailable, boolean dupManagerAvailable,
-                    Moim moim, String createdUid) {
-
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), gender, moim);
-        DomainChecker.checkRightString(this.getClass().getName(), false, createdUid);
+                    Moim moim, Long createdMemberId) {
 
         this.birthMax = birthMax;
         this.birthMin = birthMin;
         this.gender = gender;
         this.moimMaxCount = moimMaxCount;
-        this.createdUid = createdUid;
+        this.createdMemberId = createdMemberId;
         this.dupLeaderAvailable = dupLeaderAvailable;
         this.dupManagerAvailable = dupManagerAvailable;
 

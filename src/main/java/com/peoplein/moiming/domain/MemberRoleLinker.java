@@ -41,8 +41,6 @@ public class MemberRoleLinker {
 
     private MemberRoleLinker(Member member, Role role) {
 
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), member, role);
-
         this.role = role;
         this.member = member;
         this.member.addRole(this);

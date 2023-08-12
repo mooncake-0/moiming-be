@@ -20,6 +20,6 @@ public interface MoimingTokenProvider {
     /*
      Token 에 함유된 정보를 통해 Authentication 객체를 반환한다
      */
-    String retrieveUid(String token, MoimingTokenType tokenType);
+    String retrieveEmail(String token, MoimingTokenType tokenType);
 
 }

@@ -112,7 +112,7 @@ class MemberScheduleLinkerJpaRepositoryTest extends BaseTest {
     @Test
     void findMemberScheduleLatest5ByMemberIdSuccessTest1() {
         // Given :
-        Member member = TestUtils.initMemberAndMemberInfo("attendee", "attendee", "attendee@moiming.net");
+        Member member = TestUtils.initMemberAndMemberInfo("attendee", "attendee@moiming.net");
         persist(member);
 
         // When :
@@ -125,7 +125,7 @@ class MemberScheduleLinkerJpaRepositoryTest extends BaseTest {
     @Test
     void findMemberScheduleLatest5ByMemberIdSuccessTest2() {
         // Given :
-        Member member = TestUtils.initMemberAndMemberInfo("attendee", "attendee", "attendee@moiming.net");
+        Member member = TestUtils.initMemberAndMemberInfo("attendee", "attendee@moiming.net");
 
         MemberScheduleLinker linker1 = MemberScheduleLinker.memberJoinSchedule(member, schedule1, ScheduleMemberState.ATTEND);
         MemberScheduleLinker linker2 = MemberScheduleLinker.memberJoinSchedule(member, schedule2, ScheduleMemberState.ATTEND);
@@ -155,7 +155,7 @@ class MemberScheduleLinkerJpaRepositoryTest extends BaseTest {
     @Test
     void findMemberScheduleLatest5ByMemberIdSuccessTest3() {
         // Given :
-        Member member = TestUtils.initMemberAndMemberInfo("attendee", "attendee", "attendee@moiming.net");
+        Member member = TestUtils.initMemberAndMemberInfo("attendee", "attendee@moiming.net");
 
         MemberScheduleLinker linker1 = MemberScheduleLinker.memberJoinSchedule(member, schedule1, ScheduleMemberState.ATTEND);
         MemberScheduleLinker linker2 = MemberScheduleLinker.memberJoinSchedule(member, schedule2, ScheduleMemberState.ATTEND);

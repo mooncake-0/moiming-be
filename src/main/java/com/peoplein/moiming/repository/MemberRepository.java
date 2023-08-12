@@ -17,9 +17,11 @@ public interface MemberRepository {
 
     Member findMemberAndMemberInfoById(Long id);
 
-    Member findMemberByUid(String uid);
+    //    Member findMemberByUid(String uid);
+    Member findMemberByEmail(String memberEmail);
 
-    Member findMemberWithRolesByUid(String uid);
+    //    Member findMemberWithRolesByUid(String uid);
+    Member findMemberWithRolesByEmail(String memberEmail);
 
     Member findMemberAndMemberInfoWithRolesById(Long id);
 

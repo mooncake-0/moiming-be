@@ -45,7 +45,7 @@ public class JwtTokenProvider implements MoimingTokenProvider {
         String jwtToken = JWT.create()
                 .withSubject(subject)
                 .withExpiresAt(new Date(expiresAt))
-                .withClaim(JwtPropertySetting.MEMBER_UID, securityMember.getMember().getUid())
+                .withClaim(JwtPropertySetting.MEMBER_EMAIL, securityMember.getMember().getMemberEmail())
                 .sign(Algorithm.HMAC512(secretKey));
 
         return jwtToken;
@@ -89,7 +89,7 @@ public class JwtTokenProvider implements MoimingTokenProvider {
     }
 
     @Override
-    public String retrieveUid(String jwtToken, MoimingTokenType tokenType) {
+    public String retrieveEmail(String jwtToken, MoimingTokenType tokenType) {
 
         try {
             String secret = "";
@@ -105,7 +105,7 @@ public class JwtTokenProvider implements MoimingTokenProvider {
             return JWT.require(Algorithm.HMAC512(secret))
                     .build()
                     .verify(jwtToken)
-                    .getClaim(JwtPropertySetting.MEMBER_UID)
+                    .getClaim(JwtPropertySetting.MEMBER_EMAIL)
                     .asString();
 
         } catch (Exception exception) {

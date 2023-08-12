@@ -2,7 +2,6 @@ package com.peoplein.moiming.model.dto.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.peoplein.moiming.domain.fixed.Category;
-import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -27,7 +26,6 @@ public class CategoryDto {
         /*
          Category 도 들어가려면 필수 DTO 로 분류
          */
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), category);
         this.depth = category.getCategoryDepth();
         this.categoryName = category.getCategoryName();
     }

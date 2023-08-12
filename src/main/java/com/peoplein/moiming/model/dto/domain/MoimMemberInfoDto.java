@@ -15,11 +15,9 @@ import java.time.LocalDateTime;
 public class MoimMemberInfoDto {
 
     private Long memberId;
-    private String memberUid;
     private String memberName;
     private String memberEmail;
     private MemberGender memberGender;
-    private String memberPfImg;
     private MoimRoleType moimRoleType;
     private MoimMemberState moimMemberState;
 
@@ -28,9 +26,10 @@ public class MoimMemberInfoDto {
 
     public static MoimMemberInfoDto createMemberInfoDto(MemberMoimLinker memberMoimLinker) {
         return new MoimMemberInfoDto(
-                memberMoimLinker.getMember().getId(), memberMoimLinker.getMember().getUid()
-                , memberMoimLinker.getMember().getMemberInfo().getMemberName(), memberMoimLinker.getMember().getMemberInfo().getMemberEmail()
-                , memberMoimLinker.getMember().getMemberInfo().getMemberGender(), memberMoimLinker.getMember().getMemberInfo().getMemberPfImg()
+                memberMoimLinker.getMember().getId()
+                , memberMoimLinker.getMember().getMemberInfo().getMemberName()
+                , memberMoimLinker.getMember().getMemberEmail()
+                , memberMoimLinker.getMember().getMemberInfo().getMemberGender()
                 , memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState()
                 , memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt());
     }
@@ -38,22 +37,18 @@ public class MoimMemberInfoDto {
     /*
      Member 의 내용으로만 우선 형성될 수 있도록 따로 Open 한다
      */
-    public MoimMemberInfoDto(Long memberId, String memberUid, String memberName, String memberEmail, MemberGender memberGender, String memberPfImg) {
+    public MoimMemberInfoDto(Long memberId,  String memberName, String memberEmail, MemberGender memberGender) {
         this.memberId = memberId;
-        this.memberUid = memberUid;
         this.memberName = memberName;
         this.memberEmail = memberEmail;
         this.memberGender = memberGender;
-        this.memberPfImg = memberPfImg;
     }
 
     public MoimMemberInfoDto(MemberMoimLinker memberMoimLinker) {
         this.memberId = memberMoimLinker.getMember().getId();
-        this.memberUid = memberMoimLinker.getMember().getUid();
         this.memberName = memberMoimLinker.getMember().getMemberInfo().getMemberName();
-        this.memberEmail = memberMoimLinker.getMember().getMemberInfo().getMemberEmail();
+        this.memberEmail = memberMoimLinker.getMember().getMemberEmail();
         this.memberGender = memberMoimLinker.getMember().getMemberInfo().getMemberGender();
-        this.memberPfImg = memberMoimLinker.getMember().getMemberInfo().getMemberPfImg();
         this.moimRoleType = memberMoimLinker.getMoimRoleType();
         this.moimMemberState = memberMoimLinker.getMemberState();
         this.createdAt = memberMoimLinker.getCreatedAt();
@@ -69,11 +64,9 @@ public class MoimMemberInfoDto {
     public static MoimMemberInfoDto createWithMemberMoimLinker(MemberMoimLinker memberMoimLinker) {
         return new MoimMemberInfoDto(
                 memberMoimLinker.getMember().getId(),
-                memberMoimLinker.getMember().getUid(),
                 memberMoimLinker.getMember().getMemberInfo().getMemberName(),
-                memberMoimLinker.getMember().getMemberInfo().getMemberEmail(),
+                memberMoimLinker.getMember().getMemberEmail(),
                 memberMoimLinker.getMember().getMemberInfo().getMemberGender(),
-                memberMoimLinker.getMember().getMemberInfo().getMemberPfImg(),
                 memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState(),
                 memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt());
     }

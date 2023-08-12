@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ COMPILE FIXED
+ */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,8 +27,8 @@ public class Schedule extends BaseEntity{
     private LocalDateTime scheduleDate;
     private int maxCount;
     private boolean isClosed;
-    private String createdUid;
-    private String updatedUid;
+    private Long createdMemberId;
+    private Long updatedMemberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "moim_id")
@@ -41,14 +44,11 @@ public class Schedule extends BaseEntity{
 
     private Schedule(String scheduleTitle, String scheduleLocation, LocalDateTime scheduleDate, int maxCount, Moim moim, Member creator) {
 
-        DomainChecker.checkRightString(this.getClass().getName(), false, scheduleTitle, scheduleLocation);
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), scheduleDate, moim, creator);
-
         this.scheduleTitle = scheduleTitle;
         this.scheduleLocation = scheduleLocation;
         this.scheduleDate = scheduleDate;
         this.maxCount = maxCount;
-        this.createdUid = creator.getUid();
+        this.createdMemberId = creator.getId();
 
         /*
          초기화
@@ -64,17 +64,14 @@ public class Schedule extends BaseEntity{
     }
 
     public void changeScheduleDate(LocalDateTime scheduleDate) {
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), scheduleDate);
         this.scheduleDate = scheduleDate;
     }
 
     public void changeScheduleLocation(String scheduleLocation) {
-        DomainChecker.checkRightString(this.getClass().getName(), false, scheduleLocation);
         this.scheduleLocation = scheduleLocation;
     }
 
     public void changeScheduleTitle(String scheduleTitle) {
-        DomainChecker.checkRightString(this.getClass().getName(), false, scheduleTitle);
         this.scheduleTitle = scheduleTitle;
     }
 
@@ -82,8 +79,8 @@ public class Schedule extends BaseEntity{
         this.maxCount = maxCount;
     }
 
-    public void setUpdatedUid(String updatedUid) {
-        this.updatedUid = updatedUid;
+    public void setUpdatedUid(Long updatedMemberId) {
+        this.updatedMemberId = updatedMemberId;
     }
 
     public void addScheduleLinker(MemberScheduleLinker memberScheduleLinker) {
