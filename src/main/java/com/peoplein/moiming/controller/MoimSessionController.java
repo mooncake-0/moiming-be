@@ -3,7 +3,6 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.MemberSessionLinkerDto;
 import com.peoplein.moiming.model.dto.domain.MoimSessionDto;
 import com.peoplein.moiming.model.dto.request.MemberSessionStateRequestDto;
@@ -13,6 +12,7 @@ import com.peoplein.moiming.service.MoimSessionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +31,7 @@ public class MoimSessionController {
      정산활동 생성 - create
      */
     @PostMapping("/create")
-    public ResponseModel<MoimSessionResponseDto> createMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
+    public ResponseEntity<?> createMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimSessionResponseDto moimSessionResponseDto = moimSessionService.createMoimSession(moimSessionRequestDto, curMember);
         // TODO :: ResponseEntity 로 변환 예정
@@ -43,7 +43,7 @@ public class MoimSessionController {
      모임 내 모든 정산활동 기본 정보 조회 - moim/session?moimId={}
      */
     @GetMapping("")
-    public ResponseModel<List<MoimSessionDto>> getAllMoimSessions(@RequestParam(name = "moimId") Long moimId) {
+    public ResponseEntity<?> getAllMoimSessions(@RequestParam(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         // TODO :: ResponseEntity 로 변환 예정
         return null;
@@ -54,7 +54,7 @@ public class MoimSessionController {
      특정 정산활동 세부조회 - moim/session/{sessionId}
      */
     @GetMapping("/{sessionId}")
-    public MoimSessionResponseDto getMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
+    public ResponseEntity<?> getMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         // TODO :: ResponseEntity 로 변환 예정
         return null;
@@ -66,7 +66,7 @@ public class MoimSessionController {
      */
     // Patch 가 아닌 PUT 으로 업데이트 진행
     @PutMapping("/update")
-    public ResponseModel<MoimSessionResponseDto> updateMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
+    public ResponseEntity<?>updateMoimSession(@RequestBody MoimSessionRequestDto moimSessionRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimSessionResponseDto moimSessionResponseDto = moimSessionService.updateMoimSession(moimSessionRequestDto, curMember);
         // TODO :: ResponseEntity 로 변환 예정
@@ -78,7 +78,7 @@ public class MoimSessionController {
      정산활동 삭제
      */
     @DeleteMapping("/{sessionId}")
-    public ResponseModel<String> deleteMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
+    public ResponseEntity<?> deleteMoimSession(@PathVariable(name = "sessionId") Long sessionId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimSessionService.deleteMoimSession(sessionId, curMember);
         // TODO :: ResponseEntity 로 변환 예정
@@ -90,7 +90,7 @@ public class MoimSessionController {
      정산활동 멤버 상태변경
      */
     @PatchMapping("/{sessionId}/member/{memberId}/status")
-    public ResponseModel<MemberSessionLinkerDto> changeSessionMemberStatus(@PathVariable(name = "sessionId") Long sessionId
+    public ResponseEntity<MemberSessionLinkerDto> changeSessionMemberStatus(@PathVariable(name = "sessionId") Long sessionId
             , @PathVariable(name = "memberId") Long memberId
             , @RequestParam(name = "moimId") Long moimId
             , @RequestBody MemberSessionStateRequestDto memberSessionStateRequestDto) {

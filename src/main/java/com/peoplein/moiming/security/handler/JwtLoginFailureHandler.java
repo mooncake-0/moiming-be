@@ -3,7 +3,7 @@ package com.peoplein.moiming.security.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.peoplein.moiming.model.ResponseModel;
+import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.security.exception.AuthErrorEnum;
 import com.peoplein.moiming.security.exception.BadLoginInputException;
 import org.springframework.http.HttpStatus;
@@ -55,7 +55,8 @@ public class JwtLoginFailureHandler implements AuthenticationFailureHandler {
 
         response.setStatus(authErrorEnum.getStatusCode());
         // TODO:: 에러요소 전달 필요, 일단 TEMP 한 조치
-        ResponseModel<Object> errorResponseModel = ResponseModel.createResponse(HttpStatus.BAD_REQUEST, "로그인에 실패했습니다", null);
+        ResponseBodyDto<Object> errorResponseModel = ResponseBodyDto.createResponse(-1, "인증에 실패", null);
+//        ResponseModel<Object> errorResponseModel = ResponseModel.createResponse(HttpStatus.BAD_REQUEST, "로그인에 실패했습니다", null);
 //        ResponseModel<ErrorResponse> errorResponseModel = ResponseModel.createResponse(
 //                new ErrorResponse(authErrorEnum.getErrorCode()
 //                        , authErrorEnum.getErrorType()

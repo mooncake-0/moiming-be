@@ -11,14 +11,14 @@ import java.util.Optional;
 
 public interface MemberRepository {
 
-    Long save(Member member);
+    void save(Member member);
 
     Member findMemberById(Long id);
 
     Member findMemberAndMemberInfoById(Long id);
 
     //    Member findMemberByUid(String uid);
-    Member findMemberByEmail(String memberEmail);
+    Optional<Member> findMemberByEmail(String memberEmail);
 
     //    Member findMemberWithRolesByUid(String uid);
     Member findMemberWithRolesByEmail(String memberEmail);

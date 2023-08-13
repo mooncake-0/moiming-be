@@ -2,13 +2,14 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.ResponseModel;
+import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.inner.TokenTransmitter;
 import com.peoplein.moiming.security.JwtPropertySetting;
 import com.peoplein.moiming.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,25 +28,22 @@ public class AuthController {
 
 
     @GetMapping("/uidAvailable/{email}")
-    private ResponseModel<String> checkUidAvailable(@PathVariable String email) {
-        if (authService.checkUidAvailable(email)) {
-            return ResponseModel.createResponse(HttpStatus.OK, "OK", null);
-        } else {
-            throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
-        }
+    private ResponseEntity<?> checkUidAvailable(@PathVariable String email) {
+        authService.checkUidAvailable(email);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "사용 가능", null));
     }
 
     /*
      회원가입 요청 수신
      */
     @PostMapping("/signin")
-    private ResponseModel<MemberSignInRespDto> signInMember(@RequestBody @Valid MemberSignInReqDto requestDto, BindingResult br
+    private ResponseEntity<?> signInMember(@RequestBody @Valid MemberSignInReqDto requestDto, BindingResult br
             , HttpServletResponse response) {
 
         TokenTransmitter<MemberSignInRespDto> data = authService.signIn(requestDto);
         prepareResponseWithToken(data.getAccessToken(), data.getRefreshToken(), response);
 
-        return ResponseModel.createResponse(HttpStatus.CREATED, "Member 생성 성공", data.getData());
+        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "회원 생성 성공", data.getData()), HttpStatus.CREATED);
     }
 
 

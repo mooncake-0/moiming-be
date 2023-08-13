@@ -3,7 +3,6 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.domain.enums.VerificationType;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.auth.*;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.SmsVerificationRepository;

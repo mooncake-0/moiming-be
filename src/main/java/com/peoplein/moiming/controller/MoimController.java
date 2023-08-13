@@ -3,7 +3,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.ResponseModel;
+import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.request.MoimRequestDto;
 import com.peoplein.moiming.model.dto.response.MoimResponseDto;
 import com.peoplein.moiming.service.MoimService;
@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +33,10 @@ public class MoimController {
      모임 생성 요청 수신
      */
     @PostMapping("/create")
-    public ResponseModel<MoimResponseDto> createMoim(@RequestBody MoimRequestDto requestDto) {
+    public ResponseEntity<?> createMoim(@RequestBody MoimRequestDto requestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimResponseDto moimResponseDto = moimService.createMoim(curMember, requestDto);
-        return ResponseModel.createResponse(HttpStatus.CREATED, "생성", moimResponseDto);
+        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "모임 생성 성공", moimResponseDto), HttpStatus.CREATED);
     }
 
     // TODO :: 현재 유저의 구독권 여부에 따라서 RULE_JOIN 을 형성할 수 있을지 여부를 판별한다
@@ -46,9 +47,10 @@ public class MoimController {
      현 유저가 속한 모든 모임 기본 정보 영역 조회
      */
     @GetMapping("/viewMemberMoim")
-    public ResponseModel<List<MoimResponseDto>> viewMemberMoim() {
+    public ResponseEntity<?> viewMemberMoim() {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return moimService.viewMemberMoim(curMember);
+        List<MoimResponseDto> responseData = moimService.viewMemberMoim(curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "유저 모임 조회 완료", responseData));
     }
 
 
@@ -56,30 +58,30 @@ public class MoimController {
      특정 Id 의 모임 조회
      */
     @GetMapping("/{moimId}")
-    public ResponseModel<MoimResponseDto> getMoim(@PathVariable(name = "moimId") Long moimId) {
+    public ResponseEntity<?> getMoim(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimResponseDto moimResponseDto = moimService.getMoim(moimId, curMember);
-        return ResponseModel.createResponse(HttpStatus.OK, "조회완료", moimResponseDto);
+        MoimResponseDto responseDto = moimService.getMoim(moimId, curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "모임 일반 조회 완료", responseDto));
     }
 
     /*
      모임 기본 정보 수정
      */
     @PatchMapping("/update")
-    public ResponseModel<MoimResponseDto> updateMoim(@RequestBody MoimRequestDto moimRequestDto) {
+    public ResponseEntity<?> updateMoim(@RequestBody MoimRequestDto moimRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimResponseDto moimResponseDto = moimService.updateMoim(moimRequestDto, curMember);
-        return ResponseModel.createResponse(HttpStatus.OK, "수정완료", moimResponseDto);
+        MoimResponseDto responseDto = moimService.updateMoim(moimRequestDto, curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "모임 정보 수정 완료", responseDto));
     }
 
     /*
      모임 삭제
      */
     @DeleteMapping("/{moimId}")
-    public ResponseModel<String> deleteMoim(@PathVariable(name = "moimId") Long moimId) {
+    public ResponseEntity<?> deleteMoim(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimService.deleteMoim(moimId, curMember);
-        return ResponseModel.createResponse(HttpStatus.OK, "삭제완료", null);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "모임 삭제 완료", null));
     }
 
 }

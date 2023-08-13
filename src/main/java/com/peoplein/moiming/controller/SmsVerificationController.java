@@ -2,11 +2,11 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.auth.*;
 import com.peoplein.moiming.service.SmsVerificationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,7 +26,7 @@ public class SmsVerificationController {
      SMS 인증번호 요청
     */
     @PostMapping("/send/findId")
-    private ResponseModel<SmsVerificationDto> findMemberIdAuth(@RequestBody FindIdRequestDto findIdRequestDto) {
+    private ResponseEntity<SmsVerificationDto> findMemberIdAuth(@RequestBody FindIdRequestDto findIdRequestDto) {
         // TODO :: ResponseEntity 로 변환 예정
         return null;
 //        return ResponseModel.createResponse(smsVerificationService.findMemberIdAuth(findIdRequestDto));
@@ -37,7 +37,7 @@ public class SmsVerificationController {
      SMS 인증번호 요청
     */
     @PostMapping("/send/findPw")
-    private ResponseModel<SmsVerificationDto> findMemberPwAuth(@RequestBody FindPwRequestDto findPwRequestDto) {
+    private ResponseEntity<SmsVerificationDto> findMemberPwAuth(@RequestBody FindPwRequestDto findPwRequestDto) {
         // TODO :: ResponseEntity 로 변환 예정
         return null;
 //        return ResponseModel.createResponse(smsVerificationService.findMemberPwAuth(findPwRequestDto));
@@ -49,7 +49,7 @@ public class SmsVerificationController {
      SMS 인증번호 요청
     */
     @PostMapping("/send/changePw")
-    private ResponseModel<SmsVerificationDto> changePwAuth(@RequestBody ChangePwRequestDto changePwRequestDto) {
+    private ResponseEntity<SmsVerificationDto> changePwAuth(@RequestBody ChangePwRequestDto changePwRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         // TODO :: ResponseEntity 로 변환 예정
         return null;
@@ -62,7 +62,7 @@ public class SmsVerificationController {
      서버단에 생성된 SmsVerification 객체의 Number 와 동일한지 확인한다
     */
     @PostMapping("/verify")
-    private ResponseModel<String> verifyNumber(@RequestBody SmsVerifyRequestDto smsVerifyRequestDto) {
+    private ResponseEntity<String> verifyNumber(@RequestBody SmsVerifyRequestDto smsVerifyRequestDto) {
         // TODO :: ResponseEntity 로 변환 예정
         return null;
 //        return ResponseModel.createResponse(smsVerificationService.verifyNumber(smsVerifyRequestDto));

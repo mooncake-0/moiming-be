@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
 
@@ -41,9 +42,11 @@ public class AuthService {
     private final MemberJpaQueryRepository memberJpaQueryRepository;
 
 
-    public boolean checkUidAvailable(String email) {
-        Member memberByEmail = memberRepository.findMemberByEmail(email);
-        return Objects.isNull(memberByEmail);
+    public void checkUidAvailable(String email) {
+        Optional<Member> memberOp = memberRepository.findMemberByEmail(email);
+        if (memberOp.isPresent()) {
+            throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
+        }
     }
 
 
@@ -51,6 +54,7 @@ public class AuthService {
 
         checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone());
 
+        // TODO :: 인코딩 AOP 로 빼주면 좋을 듯
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
         Role roleUser = roleRepository.findByRoleType(RoleType.USER);
 
@@ -63,7 +67,6 @@ public class AuthService {
         // 토큰 발급
         String accessToken = provideTokenByMember(signInMember);
 
-
         // Response 객체 생성
         MemberSignInRespDto mrd = new MemberSignInRespDto(signInMember);
         return new TokenTransmitter<>(accessToken, signInMember.getRefreshToken(), mrd);
@@ -75,7 +78,7 @@ public class AuthService {
      회원가입 전에 중복 조건들에 대해서 확인
      에러 발생시 회원 가입 중단
      */
-    // package-private 으로 변경
+    // Test 에서 보이게 하기 위한 package-private 으로 변경
     void checkUniqueColumnDuplication(String memberEmail, String memberPhone) {
 
         List<QueryDuplicateColumnMemberDto> dupMembers = memberJpaQueryRepository.findDuplicateMemberByEmailOrPhone(memberEmail, memberPhone);
@@ -95,6 +98,8 @@ public class AuthService {
         }
     }
 
+
+    // Test 에서 보이게 하기 위한 package-private 으로 변경
     String provideTokenByMember(Member signInMember) {
 
         SecurityMember sm = new SecurityMember(signInMember, new ArrayList<>()); // 권한은 토큰 생성에 필요하지 않음

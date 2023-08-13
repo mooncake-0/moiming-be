@@ -29,9 +29,8 @@ public class MemberJpaRepository implements MemberRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Long save(Member member) {
+    public void save(Member member) {
         em.persist(member);
-        return member.getId();
     }
 
     @Override
@@ -65,11 +64,11 @@ public class MemberJpaRepository implements MemberRepository {
     }
 
     @Override
-    public Member findMemberByEmail(String memberEmail) {
+    public Optional<Member> findMemberByEmail(String memberEmail) {
 
-        return queryFactory.selectFrom(member)
+        return Optional.ofNullable(queryFactory.selectFrom(member)
                 .where(member.memberEmail.eq(memberEmail))
-                .fetchOne();
+                .fetchOne());
     }
 
 

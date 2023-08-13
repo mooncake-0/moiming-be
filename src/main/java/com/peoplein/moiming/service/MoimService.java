@@ -7,8 +7,6 @@ import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.rules.MoimRule;
 import com.peoplein.moiming.domain.rules.RuleJoin;
-import com.peoplein.moiming.domain.rules.RulePersist;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.*;
 import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimRequestDto;
@@ -56,7 +54,7 @@ public class MoimService {
        유저가 소속된 모든 모임의 Basic 정보를 반환한다
      > TODO : 등록되어 있는 일정 확인 들어가면 좋을 듯
      */
-    public ResponseModel<List<MoimResponseDto>> viewMemberMoim(Member curMember) {
+    public List<MoimResponseDto> viewMemberMoim(Member curMember) {
 
         List<MoimResponseDto> moimResponseDtos = new ArrayList<>();
         List<QueryJoinedMoimBasic> queryDataList
@@ -93,7 +91,7 @@ public class MoimService {
             ));
         }
 
-        return ResponseModel.createResponse(HttpStatus.OK, "조회", moimResponseDtos);
+        return moimResponseDtos;
     }
 
 

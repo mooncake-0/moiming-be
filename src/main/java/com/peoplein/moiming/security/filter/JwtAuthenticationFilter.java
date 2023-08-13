@@ -5,7 +5,7 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.peoplein.moiming.model.ResponseModel;
+import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.JwtPropertySetting;
 import com.peoplein.moiming.security.exception.AuthErrorEnum;
@@ -169,11 +169,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         response.setStatus(authErrorEnum.getStatusCode());
+        // TODO :: 일단 SU
 
-        // TODO :: TEMP 조치
-        ResponseModel<Object> errorResponseModel = ResponseModel.createResponse(HttpStatus.BAD_REQUEST, "인증에 실패", null);
-//        ResponseModel<ErrorResponse> errorResponseModel = ResponseModel.createResponse(
-//                new ErrorResponse(authErrorEnum.getErrorType(), authErrorEnum.getErrorCode(), e.getLocalizedMessage()));
+        ResponseBodyDto<Object> errorResponseModel = ResponseBodyDto.createResponse(-1, "인증에 실패", null);
 
         response.getWriter().write(om.writeValueAsString(errorResponseModel));
     }

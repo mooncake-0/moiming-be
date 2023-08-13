@@ -2,12 +2,12 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.request.PolicyAgreeRequestDto;
 import com.peoplein.moiming.model.dto.response.PolicyAgreeResponseDto;
 import com.peoplein.moiming.service.PolicyAgreeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +32,7 @@ public class PolicyAgreeController {
     // 일단 @RequestBody  는 List 로 Data 받는 형태 채택
     // 추후 중간 객체 두는게 더 나을 것 같으면 (유지 보수 측면 데이터 추가 유리) 그 때 수정하되, 크게 추가될 데이터가 있을 것 같지는 않아서 이 방식 유지
     @PatchMapping("/update")
-    public ResponseModel<PolicyAgreeResponseDto> updatePolicyAgree(@RequestBody List<PolicyAgreeRequestDto> policyAgreeList) {
+    public ResponseEntity<PolicyAgreeResponseDto> updatePolicyAgree(@RequestBody List<PolicyAgreeRequestDto> policyAgreeList) {
         // 수정 요청을 보낸 사람의 약관 내용 중 요청한 내용들을 수정해준다
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         PolicyAgreeResponseDto responseModel = policyAgreeService.updatePolicyAgree(curMember, policyAgreeList);

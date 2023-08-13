@@ -6,7 +6,6 @@ import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.rules.RuleJoin;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
 import com.peoplein.moiming.model.dto.domain.NotificationDto;

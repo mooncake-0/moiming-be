@@ -1,10 +1,8 @@
-package com.peoplein.moiming.dev_support;
+package com.peoplein.moiming.support;
 
 
 import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.enums.RoleType;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Role;
 
 import java.time.LocalDate;
 

@@ -38,25 +38,24 @@ public class SecurityMemberService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String memberEmail) throws UsernameNotFoundException {
 
-        Member memberByEmail = memberRepository.findMemberByEmail(memberEmail);
+        Member memberPs = memberRepository.findMemberByEmail(memberEmail).orElseThrow(() -> {
+                    String msg = "[" + memberEmail + "]의 유저를 찾을 수 없습니다";
+                    log.error(msg);
+                    throw new UsernameNotFoundException(msg);
+                }
+        );
 
-        // Query 확인용: 제거 필요
+        // TODO :: Query 확인용: 제거 필요
         System.out.println("memberService.loadUserByName 에서 findMemberWithRolesByUid 호출되었습니다===========================");
-
-        if (Objects.isNull(memberByEmail)) {
-            String msg = "[" + memberEmail + "]의 유저를 찾을 수 없습니다";
-            log.error(msg);
-            throw new UsernameNotFoundException(msg);
-        }
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
-        for (MemberRoleLinker roleLinker : memberByEmail.getRoles()) {
+        for (MemberRoleLinker roleLinker : memberPs.getRoles()) {
             RoleType roleType = roleLinker.getRole().getRoleType();
             authorities.add(new SimpleGrantedAuthority("ROLE_" + roleType));
         }
 
-        return new SecurityMember(memberByEmail, authorities);
+        return new SecurityMember(memberPs, authorities);
     }
 
     /*

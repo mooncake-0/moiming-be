@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.ResponseModel;
+import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.domain.MemberDto;
 import com.peoplein.moiming.model.dto.domain.MemberInfoDto;
 import com.peoplein.moiming.model.dto.response.MemberResponseDto;
@@ -46,8 +46,9 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
 
         Member loggedInMember = (Member) valueMap.get("member");
 
-        ResponseModel<MemberResponseDto> loginSuccessfulResponse = ResponseModel.createResponse(
-                HttpStatus.OK, "로그인 성공", new MemberResponseDto(loggedInMember)
+        // TODO :: Security 단 임시 해결
+        ResponseBodyDto<MemberResponseDto> loginSuccessfulResponse = ResponseBodyDto.createResponse(
+                1, "로그인 성공", new MemberResponseDto(loggedInMember)
         );
 
         response.getWriter().write(om.writeValueAsString(loginSuccessfulResponse));
