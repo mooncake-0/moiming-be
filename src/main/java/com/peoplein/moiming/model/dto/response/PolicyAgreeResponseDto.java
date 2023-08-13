@@ -13,11 +13,11 @@ import java.util.List;
 @Getter
 public class PolicyAgreeResponseDto {
 
-    private String memberUid;
+    private Long memberId;
     private List<PolicyAgreeDto> policyAgrees = new ArrayList<>();
 
-    public PolicyAgreeResponseDto(String memberUid, List<PolicyAgreeDto> policyAgrees) {
-        this.memberUid = memberUid;
+    public PolicyAgreeResponseDto(Long memberId, List<PolicyAgreeDto> policyAgrees) {
+        this.memberId = memberId;
         this.policyAgrees = policyAgrees;
     }
 

@@ -29,7 +29,7 @@ public class PolicyAgree {
     private LocalDateTime updatedAt;
 
     private Long createdMemberId;
-
+    private Long updatedMemberId;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
@@ -60,4 +60,7 @@ public class PolicyAgree {
         this.updatedAt = updatedAt;
     }
 
+    public void setUpdatedMemberId(Long updatedMemberId) {
+        this.updatedMemberId = updatedMemberId;
+    }
 }

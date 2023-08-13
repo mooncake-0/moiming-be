@@ -36,6 +36,8 @@ public class PolicyAgreeController {
         // 수정 요청을 보낸 사람의 약관 내용 중 요청한 내용들을 수정해준다
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         PolicyAgreeResponseDto responseModel = policyAgreeService.updatePolicyAgree(curMember, policyAgreeList);
-        return ResponseModel.createResponse(responseModel);
+        // TODO :: ResponseEntity 로 변환 예정
+        return null;
+//        return ResponseModel.createResponse(responseModel);
     }
 }
