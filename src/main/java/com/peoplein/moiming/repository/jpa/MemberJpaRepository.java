@@ -1,15 +1,10 @@
 package com.peoplein.moiming.repository.jpa;
 
-import antlr.preprocessor.PreprocessorTokenTypes;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.QMember;
-import com.peoplein.moiming.model.query.QueryDuplicateColumnMemberDto;
 import com.peoplein.moiming.repository.MemberRepository;
-import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
@@ -122,7 +117,15 @@ public class MemberJpaRepository implements MemberRepository {
                         .where(member.memberInfo.memberPhone.eq(memberPhoneNumber))
                         .fetchOne()
         );
+    }
 
+
+    @Override
+    public List<Member> findByEmailOrPhone(String memberEmail, String memberPhone) {
+        return queryFactory.selectFrom(member)
+                .join(member.memberInfo, memberInfo).fetchJoin()
+                .where(member.memberEmail.eq(memberEmail).or(member.memberInfo.memberPhone.eq(memberPhone)))
+                .fetch();
     }
 
 }

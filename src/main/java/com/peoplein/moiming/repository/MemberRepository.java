@@ -2,9 +2,6 @@ package com.peoplein.moiming.repository;
 
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.query.QueryDuplicateColumnMemberDto;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,4 +25,6 @@ public interface MemberRepository {
     List<Member> findMembersByIds(List<Long> memberIds);
 
     Optional<Member> findOptionalByPhoneNumber(String memberPhoneNumber);
+
+    List<Member> findByEmailOrPhone(String memberEmail, String memberPhone);
 }

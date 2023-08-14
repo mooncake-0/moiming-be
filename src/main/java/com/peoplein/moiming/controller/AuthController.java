@@ -29,7 +29,7 @@ public class AuthController {
 
     @GetMapping("/uidAvailable/{email}")
     private ResponseEntity<?> checkUidAvailable(@PathVariable String email) {
-        authService.checkUidAvailable(email);
+        authService.checkEmailAvailable(email);
         return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "사용 가능", null));
     }
 

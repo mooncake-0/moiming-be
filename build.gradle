@@ -56,7 +56,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
     // Test 환경
-//	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'com.h2database:h2'
 
     // FCM 환경
     implementation 'com.google.firebase:firebase-admin:9.1.1'

@@ -4,18 +4,11 @@ import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.auth.MemberSigninRequestDto;
-import com.peoplein.moiming.model.dto.request_b.MemberReqDto;
 import com.peoplein.moiming.model.dto.request_b.MemberReqDto.MemberSignInReqDto;
-import com.peoplein.moiming.model.dto.response.MemberResponseDto;
-import com.peoplein.moiming.model.dto.response_a.MemberRespDto;
 import com.peoplein.moiming.model.inner.TokenTransmitter;
-import com.peoplein.moiming.model.query.QueryDuplicateColumnMemberDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import com.peoplein.moiming.repository.jpa.query.MemberJpaQueryRepository;
 import com.peoplein.moiming.security.domain.SecurityMember;
-import com.peoplein.moiming.security.exception.AuthErrorEnum;
 import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.provider.token.MoimingTokenType;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
@@ -39,10 +31,9 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
     private final MoimingTokenProvider moimingTokenProvider;
-    private final MemberJpaQueryRepository memberJpaQueryRepository;
 
 
-    public void checkUidAvailable(String email) {
+    public void checkEmailAvailable(String email) {
         Optional<Member> memberOp = memberRepository.findMemberByEmail(email);
         if (memberOp.isPresent()) {
             throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
@@ -81,15 +72,16 @@ public class AuthService {
     // Test 에서 보이게 하기 위한 package-private 으로 변경
     void checkUniqueColumnDuplication(String memberEmail, String memberPhone) {
 
-        List<QueryDuplicateColumnMemberDto> dupMembers = memberJpaQueryRepository.findDuplicateMemberByEmailOrPhone(memberEmail, memberPhone);
+        List<Member> duplicateMembers = memberRepository.findByEmailOrPhone(memberEmail, memberPhone);
 
-        if (!dupMembers.isEmpty()) {
-            for (QueryDuplicateColumnMemberDto target : dupMembers) {
-                if (target.getMemberEmail().equals(memberEmail)) {
+        if (!duplicateMembers.isEmpty()) {
+            for (Member member : duplicateMembers) {
+
+                if (member.getMemberEmail().equals(memberEmail)) {
                     throw new MoimingApiException("[" + memberEmail + "] 는  이미 존재하는 회원입니다");
                 }
 
-                if (target.getMemberPhone().equals(memberPhone)) {
+                if (member.getMemberInfo().getMemberPhone().equals(memberPhone)) {
                     throw new MoimingApiException("[" + memberPhone + "] 는  이미 존재하는 회원의 전화번호 입니다");
                 }
 

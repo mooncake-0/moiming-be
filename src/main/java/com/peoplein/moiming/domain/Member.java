@@ -114,5 +114,13 @@ public class Member extends BaseEntity {
         this.password = password;
     }
 
+    // TODO :: 더 나은 방법 강구 필요
+    // WARN: ID 변경은 MOCK 용
+    public void changeMockObjectIdForTest(Long mockObjectId, String className) {
+        if (className.equals("TestMockCreator")) {
+            this.id = mockObjectId;
+        }
+    }
+
 
 }
