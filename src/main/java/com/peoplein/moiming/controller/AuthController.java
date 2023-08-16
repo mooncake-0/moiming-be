@@ -1,7 +1,6 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
-import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.inner.TokenTransmitter;
 import com.peoplein.moiming.security.JwtPropertySetting;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import static com.peoplein.moiming.model.dto.request_b.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.requesta.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
 
 @RequiredArgsConstructor
@@ -28,7 +27,7 @@ public class AuthController {
 
 
     @GetMapping("/uidAvailable/{email}")
-    private ResponseEntity<?> checkUidAvailable(@PathVariable String email) {
+    public ResponseEntity<?> checkUidAvailable(@PathVariable String email) {
         authService.checkEmailAvailable(email);
         return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "사용 가능", null));
     }
@@ -37,7 +36,7 @@ public class AuthController {
      회원가입 요청 수신
      */
     @PostMapping("/signin")
-    private ResponseEntity<?> signInMember(@RequestBody @Valid MemberSignInReqDto requestDto, BindingResult br
+    public ResponseEntity<?> signInMember(@RequestBody @Valid MemberSignInReqDto requestDto, BindingResult br
             , HttpServletResponse response) {
 
         TokenTransmitter<MemberSignInRespDto> data = authService.signIn(requestDto);

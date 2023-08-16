@@ -46,6 +46,8 @@ public class MemberInfo {
 
     private boolean isDormant;
 
+    private boolean isForeigner;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -56,12 +58,13 @@ public class MemberInfo {
 
 
     // 초기 Input 값을 통해 생성
-    public MemberInfo(String memberName, String memberPhone, MemberGender memberGender, LocalDate memberBirth) {
+    public MemberInfo(String memberName, String memberPhone, MemberGender memberGender, boolean isForeigner, LocalDate memberBirth) {
 
         this.memberName = memberName;
         this.memberPhone = memberPhone;
         this.memberGender = memberGender;
         this.memberBirth = memberBirth;
+        this.isForeigner = isForeigner;
 
         // 초기화
         this.createdAt = LocalDateTime.now();

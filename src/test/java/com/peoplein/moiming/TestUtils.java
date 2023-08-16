@@ -97,6 +97,7 @@ public class TestUtils {
                 , "other" + memberName
                 , "other" + memberPhone
                 , memberGender
+                , false
                 , memberBirth
                 , "other" + fcmToken
                 , role);
@@ -106,13 +107,13 @@ public class TestUtils {
 
     public static Member initMemberAndMemberInfo() {
         Member member = Member.createMember(memberEmail, password, memberName, memberPhone
-                , memberGender, memberBirth, fcmToken, role);
+                , memberGender, false, memberBirth, fcmToken, role);
         return member;
     }
 
     public static Member initMemberAndMemberInfo(String memberName, String memberEmail) {
         Member member = Member.createMember(memberEmail, password, memberName, memberPhone
-                , memberGender, memberBirth, fcmToken, role);
+                , memberGender, false, memberBirth, fcmToken, role);
 
         return member;
     }

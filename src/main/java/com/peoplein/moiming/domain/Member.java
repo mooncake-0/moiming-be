@@ -36,6 +36,8 @@ public class Member extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    private String niceDi;
+
     @Column(name = "member_email", nullable = false)
     private String memberEmail;
 
@@ -77,12 +79,13 @@ public class Member extends BaseEntity {
                                       String memberName,
                                       String memberPhone,
                                       MemberGender memberGender,
+                                      boolean isForeigner,
                                       LocalDate memberBirth,
                                       String fcmToken,
                                       Role role
     ) {
 
-        MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, memberBirth);
+        MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, isForeigner, memberBirth);
         Member createdMember = new Member(memberEmail, encryptedPassword, fcmToken, memberInfo);
         MemberRoleLinker.grantRoleToMember(createdMember, role);
 

@@ -12,7 +12,7 @@ public class TestObjectCreator {
     protected Member makeTestMember(String email, String phone, String name, Role role) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode(password);
-        return Member.createMember(email, encoded, name, phone, memberGender, memberBirth, fcmToken, role);
+        return Member.createMember(email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, role);
     }
 
     protected Role makeTestRole(RoleType roleType) {

@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.support.TestModelParams.*;
-import static com.peoplein.moiming.model.dto.request_b.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.requesta.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;

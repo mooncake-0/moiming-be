@@ -14,6 +14,8 @@ public abstract class TestModelParams {
     public static String memberName = "강우석";
     public static String memberPhone = "01012345678";
     public static MemberGender memberGender = MemberGender.M;
+    public static boolean notForeigner = false;
+    public static boolean foreigner = true;
     public static LocalDate memberBirth = LocalDate.of(1995, 12, 18);
     public static String fcmToken = "FCM_TOKEN";
 

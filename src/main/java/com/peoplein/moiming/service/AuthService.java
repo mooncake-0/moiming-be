@@ -4,7 +4,7 @@ import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.request_b.MemberReqDto.MemberSignInReqDto;
+import com.peoplein.moiming.model.dto.requesta.MemberReqDto.MemberSignInReqDto;
 import com.peoplein.moiming.model.inner.TokenTransmitter;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
@@ -49,8 +49,11 @@ public class AuthService {
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
         Role roleUser = roleRepository.findByRoleType(RoleType.USER);
 
+
         Member signInMember = Member.createMember(requestDto.getMemberEmail(), encodedPassword, requestDto.getMemberName()
-                , requestDto.getMemberPhone(), requestDto.getMemberGender(), requestDto.getMemberBirth(), requestDto.getFcmToken(), roleUser);
+                , requestDto.getMemberPhone(), requestDto.getMemberGender(), requestDto.isForeigner()
+                , requestDto.getMemberBirth(), requestDto.getFcmToken(), roleUser);
+
 
         // member 저장
         memberRepository.save(signInMember);

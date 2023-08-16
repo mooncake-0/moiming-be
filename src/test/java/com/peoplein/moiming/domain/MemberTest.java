@@ -36,7 +36,7 @@ public class MemberTest {
 
         // when
         Member member = Member.createMember(TestUtils.memberEmail, encryptedPassword,
-                TestUtils.memberName, TestUtils.memberPhone, TestUtils.memberGender, TestUtils.memberBirth, TestUtils.fcmToken, role);
+                TestUtils.memberName, TestUtils.memberPhone, TestUtils.memberGender, false, TestUtils.memberBirth, TestUtils.fcmToken, role);
 
         // then
         assertThat(member.getMemberEmail()).isEqualTo(TestUtils.memberEmail);
