@@ -2,10 +2,8 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.security.OldJwtPropertySetting;
+import com.peoplein.moiming.model.dto.requesta.TokenReqDto;
 import com.peoplein.moiming.security.provider.token.JwtParams;
-import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
-import com.peoplein.moiming.security.provider.token.MoimingTokenType;
 import com.peoplein.moiming.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,8 +47,22 @@ public class AuthController {
         // 응답 준비
         String jwtAccessToken = transmit.get(authService.KEY_ACCESS_TOKEN).toString();
         response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "회원 생성 성공", transmit.get(authService.KEY_RESPONSE_DATA)), HttpStatus.CREATED);
+
+    }
+
+    /*
+     Refresh Token 재발급 요청
+     */
+    @PostMapping("/token/refresh")
+    public ResponseEntity<?> reissueToken(@RequestBody @Valid TokenReqDto requestDto, BindingResult br, HttpServletResponse response) {
+
+        Map<String, String> responseData = authService.reissueToken(requestDto);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "재발급 성공", responseData));
 
     }
 }

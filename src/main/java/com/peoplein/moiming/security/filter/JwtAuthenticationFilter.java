@@ -1,11 +1,17 @@
 package com.peoplein.moiming.security.filter;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.provider.token.JwtParams;
 import com.peoplein.moiming.security.provider.token.MoimingTokenType;
 import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.JwtAuthenticationToken;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,6 +32,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
     private final MoimingTokenProvider moimingTokenProvider;
 
+    private ObjectMapper om = new ObjectMapper();
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, MoimingTokenProvider moimingTokenProvider) {
         super(authenticationManager);
@@ -40,17 +47,36 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
         if (StringUtils.hasText(jwtToken)) { // ACCESS TOKEN 이 있다 // Verfiy 해서 Member 를 꺼내준다
 
-            String tokenEmailValue = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, jwtToken);
-            SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(tokenEmailValue);
-            JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(securityMember.getMember(), null, securityMember.getAuthorities());
+            try {
 
-            // Access Token Verify 성공시 AuthenticationToken 이 저장된다
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                String tokenEmailValue = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, jwtToken);
+                SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(tokenEmailValue);
+                JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(securityMember.getMember(), null, securityMember.getAuthorities());
 
+                // Access Token Verify 성공시 AuthenticationToken 이 저장된다
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                doFilter(request, response, chain);
+
+            /*
+             Verification 시 발생한 예외에 대해
+             필터가 직접 Response 를 처리한다
+            */
+            } catch (SignatureVerificationException exception) {
+                log.error("SIGNATURE 에러, 올바르지 않은 Signature 로 접근하였습니다 : {}, {}", jwtToken, exception.getMessage());
+                processVerificationExceptionResponse(exception, response);
+            } catch (TokenExpiredException exception) {
+                log.info("Access Token 이 만료되었습니다");
+                processVerificationExceptionResponse(exception, response);
+            } catch (JWTVerificationException exception) { // Verify 시 최상위 Exception
+                log.info("Verify 도중 알 수 없는 예외가 발생 : {}", exception.getMessage());
+                processVerificationExceptionResponse(exception, response);
+            }
+
+        }else{
             // 실패시 아무것도 저장되지 않은채로 넘긴다
+            doFilter(request, response, chain);
         }
-
-        doFilter(request, response, chain);
     }
 
 
@@ -68,5 +94,30 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         return null;
     }
 
+
+    /*
+     JWT 인증 중 발생한 에러는 직접 처리한다
+     */
+    private void processVerificationExceptionResponse(JWTVerificationException exception, HttpServletResponse response) throws IOException {
+
+        int statusCode;
+        int errCode = -1;
+        String data = "";
+
+        if (exception instanceof SignatureVerificationException) {
+            statusCode = HttpStatus.FORBIDDEN.value();
+        } else if (exception instanceof TokenExpiredException) {
+            errCode = -100;
+            data = "ACCESS_TOKEN_EXPIRED";
+            statusCode = HttpStatus.UNAUTHORIZED.value();
+        } else {
+            statusCode = HttpStatus.BAD_REQUEST.value();
+        }
+
+        ResponseBodyDto<?> responseBody = ResponseBodyDto.createResponse(errCode, exception.getMessage(), data);
+        response.setStatus(statusCode);
+        response.getWriter().write(om.writeValueAsString(responseBody));
+
+    }
 
 }

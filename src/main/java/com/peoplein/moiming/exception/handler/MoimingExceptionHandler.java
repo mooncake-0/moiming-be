@@ -24,4 +24,6 @@ public class MoimingExceptionHandler {
         return ResponseEntity.badRequest().body(ResponseBodyDto.createResponse(-1, exception.getMessage(), exception.getErrMap()));
     }
 
+    @ExceptionHandler(MoimingValidationException.class)
+
 }
