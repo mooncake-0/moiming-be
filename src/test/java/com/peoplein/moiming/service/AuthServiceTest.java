@@ -4,11 +4,9 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.provider.token.MoimingTokenType;
 import com.peoplein.moiming.support.TestMockCreator;
 import com.peoplein.moiming.domain.enums.RoleType;
-import com.peoplein.moiming.model.inner.TokenTransmitter;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import org.junit.jupiter.api.Test;
@@ -54,7 +52,7 @@ public class AuthServiceTest extends TestMockCreator {
     private MemberRepository memberRepository;
 
     @Mock
-    private MoimingTokenProvider moimingTokenProvider;
+    private OldMoimingTokenProvider oldMoimingTokenProvider;
 
     @Test
     void checkEmailAvailable_should_throw_error_when_used_email() {
@@ -165,8 +163,8 @@ public class AuthServiceTest extends TestMockCreator {
         //given
         Role mockRole = mockRole(1L, RoleType.USER);
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, mockRole);
-        when(moimingTokenProvider.generateToken(eq(MoimingTokenType.JWT_AT), any())).thenReturn(accessToken);
-        when(moimingTokenProvider.generateToken(eq(MoimingTokenType.JWT_RT), any())).thenReturn(refreshToken);
+        when(oldMoimingTokenProvider.generateToken(eq(MoimingTokenType.JWT_AT), any())).thenReturn(accessToken);
+        when(oldMoimingTokenProvider.generateToken(eq(MoimingTokenType.JWT_RT), any())).thenReturn(refreshToken);
 
         //when
         String returnData = authService.provideTokenByMember(mockMember);

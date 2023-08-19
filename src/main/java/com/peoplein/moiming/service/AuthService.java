@@ -5,10 +5,8 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.requesta.MemberReqDto.MemberSignInReqDto;
-import com.peoplein.moiming.model.inner.TokenTransmitter;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.provider.token.MoimingTokenType;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
@@ -27,6 +26,8 @@ import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
 @RequiredArgsConstructor // 중복 Type 이 있는 경우에만 직접 생성자 주입하도록 함
 public class AuthService {
 
+    public final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
+    public final String KEY_RESPONSE_DATA = "RESPONSE_DATA";
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
@@ -41,7 +42,7 @@ public class AuthService {
     }
 
 
-    public TokenTransmitter<MemberSignInRespDto> signIn(MemberSignInReqDto requestDto) {
+    public Map<String, Object> signIn(MemberSignInReqDto requestDto) {
 
         checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone());
 
@@ -58,13 +59,16 @@ public class AuthService {
         // member 저장
         memberRepository.save(signInMember);
 
-        // 토큰 발급
-        String accessToken = provideTokenByMember(signInMember);
+        // Refresh 토큰 발급 & Response Data 생성
+        String jwtAccessToken = issueJwtTokens(signInMember);
+        MemberSignInRespDto responseData = new MemberSignInRespDto(signInMember);
 
-        // Response 객체 생성
-        MemberSignInRespDto mrd = new MemberSignInRespDto(signInMember);
-        return new TokenTransmitter<>(accessToken, signInMember.getRefreshToken(), mrd);
+        // 두 객체 응답을 위한 HashMap
+        Map<String, Object> transmit = new HashMap<>();
+        transmit.put(KEY_ACCESS_TOKEN, jwtAccessToken);
+        transmit.put(KEY_RESPONSE_DATA, responseData);
 
+        return transmit;
     }
 
 
@@ -95,13 +99,14 @@ public class AuthService {
 
 
     // Test 에서 보이게 하기 위한 package-private 으로 변경
-    String provideTokenByMember(Member signInMember) {
+    // RT 는 저장하고, AT 는 반환해준다
+    String issueJwtTokens(Member signInMember) {
 
-        SecurityMember sm = new SecurityMember(signInMember, new ArrayList<>()); // 권한은 토큰 생성에 필요하지 않음
-        String accessToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_AT, sm);
-        String refreshToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_RT, sm);
-        signInMember.changeRefreshToken(refreshToken);
+        String jwtAccessToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_AT, signInMember);
+        String jwtRefreshToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_RT, signInMember);
 
-        return accessToken;
+        signInMember.changeRefreshToken(jwtRefreshToken);
+
+        return jwtAccessToken;
     }
 }

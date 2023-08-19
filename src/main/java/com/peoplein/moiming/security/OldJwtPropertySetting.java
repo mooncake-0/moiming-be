@@ -3,7 +3,7 @@ package com.peoplein.moiming.security;
 /*
  Secured Info
  */
-public interface JwtPropertySetting {
+public interface OldJwtPropertySetting {
 
     /*
      보안 전략

@@ -27,4 +27,6 @@ public interface MemberRepository {
     Optional<Member> findOptionalByPhoneNumber(String memberPhoneNumber);
 
     List<Member> findByEmailOrPhone(String memberEmail, String memberPhone);
+
+    void updateRefreshTokenByEmail(Long id, String refreshToken);
 }

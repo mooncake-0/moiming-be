@@ -3,19 +3,20 @@ package com.peoplein.moiming.security.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.auth.oauth2.JwtProvider;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.domain.MemberDto;
-import com.peoplein.moiming.model.dto.domain.MemberInfoDto;
 import com.peoplein.moiming.model.dto.response.MemberResponseDto;
+import com.peoplein.moiming.model.dto.response_a.MemberRespDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
-import com.peoplein.moiming.security.JwtPropertySetting;
+import com.peoplein.moiming.security.provider.token.JwtParams;
 import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.provider.token.MoimingTokenType;
 import com.peoplein.moiming.security.service.SecurityMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
@@ -25,40 +26,36 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
-@RequiredArgsConstructor
-public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
+import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
 
-    private final MoimingTokenProvider tokenProvider;
+@RequiredArgsConstructor
+public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler {
+
+    private final MoimingTokenProvider moimingTokenProvider;
     private final SecurityMemberService securityMemberService;
-    private ObjectMapper om = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    private ObjectMapper om = new ObjectMapper();
 
     /*
-     Filter 에서 Auth 성공 수신시 후 처리
+     로그인 성공 했으면
+     Refresh Token 저장 후 발급해줘야 함
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
+        /*
+         Tx 가 끝났어도 Member Info 까지 다 프록시에 로딩된 Member 객체
+         */
         SecurityMember securityMember = (SecurityMember) authentication.getPrincipal();
 
-        Map<String, Object> valueMap = securityMemberService.prepareLoginResponseModel(securityMember);
+        String accessJwtToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_AT, securityMember.getMember());
+        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + accessJwtToken);
 
-        Member loggedInMember = (Member) valueMap.get("member");
-
-        // TODO :: Security 단 임시 해결
-        ResponseBodyDto<MemberResponseDto> loginSuccessfulResponse = ResponseBodyDto.createResponse(
-                1, "로그인 성공", new MemberResponseDto(loggedInMember)
-        );
-
-        response.getWriter().write(om.writeValueAsString(loginSuccessfulResponse));
-
-        response.addHeader(JwtPropertySetting.HEADER_AT, (String) valueMap.get(MoimingTokenType.JWT_AT.name()));
-        response.addHeader(JwtPropertySetting.HEADER_RT, (String) valueMap.get(MoimingTokenType.JWT_RT.name()));
-
+        ResponseBodyDto<MemberLoginRespDto> responseBody = ResponseBodyDto.createResponse(1, "로그인 성공", new MemberLoginRespDto(securityMember.getMember()));
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(om.writeValueAsString(responseBody));
+
+        response.setStatus(HttpStatus.OK.value());
 
     }
-
 }

@@ -58,10 +58,14 @@ public class MemberJpaRepository implements MemberRepository {
 
     }
 
+    /*
+     member info 활용을 위해 join 추가
+     */
     @Override
     public Optional<Member> findMemberByEmail(String memberEmail) {
 
         return Optional.ofNullable(queryFactory.selectFrom(member)
+                .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(member.memberEmail.eq(memberEmail))
                 .fetchOne());
     }
@@ -126,6 +130,18 @@ public class MemberJpaRepository implements MemberRepository {
                 .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(member.memberEmail.eq(memberEmail).or(member.memberInfo.memberPhone.eq(memberPhone)))
                 .fetch();
+    }
+
+    @Override
+    public void updateRefreshTokenByEmail(Long id, String refreshToken) {
+        long num = queryFactory.update(member)
+                .set(member.refreshToken, refreshToken)
+                .where(member.id.eq(id))
+                .execute();
+
+        if (num != 1) {
+            throw new RuntimeException("일단 에러인데, 나중에 잡는거 처리할거임");
+        }
     }
 
 }

@@ -1,28 +1,80 @@
 package com.peoplein.moiming.security.domain;
 
 import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.MemberRoleLinker;
+import com.peoplein.moiming.domain.enums.RoleType;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /*
- Spring Security Authentication 과 앱 Member Entity를
- 연동해주는 객체
+ DB 조회 완료된 Member 만을 통해서
+ Build 되는 UserDetails 객체이다
+ - Member 외 주입해줄 필요가 없음
  */
-public class SecurityMember extends User {
+@Getter
+public class SecurityMember implements UserDetails {
+
 
     private final Member member;
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public SecurityMember(Member member, Collection<? extends GrantedAuthority> authorities) {
-        super(member.getMemberEmail(), member.getPassword(), authorities); // 여기서 User 객체로 Authority 가 들어간다
+    public SecurityMember(Member member) {
         this.member = member;
+        this.authorities = convertRoles();
     }
 
-    public Member getMember() {
-        return this.member;
+    /*
+     Security Member 도메인에서 필요한 부분이므로 여기서 초기화한다
+     */
+    private Collection<? extends GrantedAuthority> convertRoles() {
+
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        for (MemberRoleLinker roleLinker : this.member.getRoles()) {
+            RoleType roleType = roleLinker.getRole().getRoleType();
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + roleType));
+        }
+
+        return authorities;
+    }
+
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.authorities;
+    }
+
+    @Override
+    public String getPassword() {
+        return member.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        return member.getMemberEmail();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }

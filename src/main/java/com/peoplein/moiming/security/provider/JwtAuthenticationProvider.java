@@ -1,6 +1,7 @@
 package com.peoplein.moiming.security.provider;
 
 import com.peoplein.moiming.security.domain.SecurityMember;
+import com.peoplein.moiming.security.service.SecurityMemberService;
 import com.peoplein.moiming.security.token.JwtAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +20,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     private final PasswordEncoder passwordEncoder;
 
     /*
-     SecurityMemberService 를 통해 들고온 SecurityMember 객체와 (DB조회)
+     SecurityMemberService 를 통해 들고온 OldSecurityMember 객체와 (DB조회)
      Manager 가 넘겨준 미인증 Authentication 객체의 비밀번호를 검증한다
      인증된 Authentication 객체를 반환하여 Manager > Filter 단까지 다시 올려준s다
      */
@@ -34,12 +35,11 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException(msg);
         }
 
-        JwtAuthenticationToken postAuthentication = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
+        JwtAuthenticationToken authenticatedToken = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
+        ((SecurityMemberService) userDetailsService).issueRefreshTokenToLoggedInMember(securityMember.getMember()); // 흠..
 
-        // MEMO: 확인용
-        System.out.println("postAuthentication = " + postAuthentication);
 
-        return postAuthentication;
+        return authenticatedToken;
     }
 
 

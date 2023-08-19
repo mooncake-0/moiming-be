@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.model.dto.auth.MemberLoginDto;
 import com.peoplein.moiming.security.exception.BadLoginInputException;
+import com.peoplein.moiming.security.exception.ExtraAuthenticationException;
 import com.peoplein.moiming.security.token.JwtAuthenticationToken;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,13 +16,12 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
-public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
+public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
 
     private final ObjectMapper om = new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -31,7 +31,7 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
       일반 Login 시도중임을 Filter
       결론적으로 인증객체와 Access Token, Refresh Token 을 발급해주는 경로
     */
-    public JwtLoginFilter() {
+    public MoimingLoginFilter() {
 
         super(new AntPathRequestMatcher(NetworkSetting.API_SERVER
                 + NetworkSetting.API_AUTH_VER
@@ -48,14 +48,23 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
       인증후 Authentication 객체를 세션에 저장하고 후속 진행
      */
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException {
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-        MemberLoginDto memberLoginDto = om.readValue(request.getReader(), MemberLoginDto.class);
+        MemberLoginDto memberLoginDto = null;
 
-        if (!StringUtils.hasText(memberLoginDto.getMemberEmail()) || !StringUtils.hasText(memberLoginDto.getPassword())) {
-            String msg = "EMAIL 혹은 PW 값을 전달받지 못했습니다";
-            log.error(msg);
-            throw new BadLoginInputException(msg);
+        try {
+            memberLoginDto = om.readValue(request.getReader(), MemberLoginDto.class);
+
+            if (!StringUtils.hasText(memberLoginDto.getMemberEmail()) || !StringUtils.hasText(memberLoginDto.getPassword())) {
+                String msg = "EMAIL 혹은 PW 값을 전달받지 못했습니다";
+                log.error(msg);
+                throw new BadLoginInputException(msg);
+            }
+
+        } catch (Exception exception) { // 로그인 시도 중 그 외의 어떤 예외가 발생할 경우
+
+            // Failure 핸들러에서 잡아서 전달할 수 있도록 런타임으로 변환후 전달한다
+            throw new ExtraAuthenticationException(exception.getMessage(), exception);
         }
 
         JwtAuthenticationToken preAuthentication = new JwtAuthenticationToken(memberLoginDto.getMemberEmail(), memberLoginDto.getPassword());

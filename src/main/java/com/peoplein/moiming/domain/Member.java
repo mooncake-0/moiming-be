@@ -36,8 +36,6 @@ public class Member extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    private String niceDi;
-
     @Column(name = "member_email", nullable = false)
     private String memberEmail;
 
