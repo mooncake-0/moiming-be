@@ -4,7 +4,8 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.security.provider.token.MoimingTokenType;
+import com.peoplein.moiming.security.token.MoimingTokenProvider;
+import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.support.TestMockCreator;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.repository.MemberRepository;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.peoplein.moiming.support.TestModelParams.*;
@@ -52,7 +54,7 @@ public class AuthServiceTest extends TestMockCreator {
     private MemberRepository memberRepository;
 
     @Mock
-    private OldMoimingTokenProvider oldMoimingTokenProvider;
+    private MoimingTokenProvider tokenProvider;
 
     @Test
     void checkEmailAvailable_should_throw_error_when_used_email() {
@@ -85,25 +87,25 @@ public class AuthServiceTest extends TestMockCreator {
         // given
         MemberSignInReqDto requestDto = mockSigninRequestDto();
 
-        //  - stubs
-        doNothing().when(authService).checkUniqueColumnDuplication(any(), any());
-        when(roleRepository.findByRoleType(RoleType.USER)).thenReturn(mockRole(1L, RoleType.USER));
+        // given - stubs
+        doNothing().when(authService).checkUniqueColumnDuplication(any(), any()); // 정상 객체 authService 안에서 일부를 mocking 한다 - Spy
+        when(roleRepository.findByRoleType(RoleType.USER)).thenReturn(mockRole(1L, RoleType.USER)); // role 이 null 이 되면 안되므로
         doNothing().when(memberRepository).save(any()); // save() 함수가 반환하는게 없으므로
-        doReturn(accessToken).when(authService).provideTokenByMember(any());
+        doReturn(accessToken).when(authService).issueJwtTokens(any()); // 정상 객체 authService 안에서 일부를 mocking 한다 - Spy
 
         // when
-        TokenTransmitter<MemberSignInRespDto> response = authService.signIn(requestDto);
-        MemberSignInRespDto responseDto = response.getData();
+        Map<String, Object> transmit = authService.signIn(requestDto);
+        MemberSignInRespDto responseData = (MemberSignInRespDto) transmit.get(authService.KEY_RESPONSE_DATA);
 
-        // then assert
-        assertThat(response.getAccessToken()).isEqualTo(accessToken);
-        assertThat(responseDto.getMemberEmail()).isEqualTo(memberEmail);
-        assertThat(responseDto.getMemberName()).isEqualTo(memberName);
-        assertThat(responseDto.getFcmToken()).isEqualTo(fcmToken);
+        // then - assert
+        assertThat(transmit.get(authService.KEY_ACCESS_TOKEN)).isEqualTo(accessToken);
+        assertThat(responseData.getMemberEmail()).isEqualTo(memberEmail);
+        assertThat(responseData.getMemberInfo().getMemberName()).isEqualTo(memberName);
+        assertThat(responseData.getFcmToken()).isEqualTo(fcmToken);
 
-        // then verify
+        // then - verify
         verify(authService, times(1)).checkUniqueColumnDuplication(any(), any());
-        verify(authService, times(1)).provideTokenByMember(any());
+        verify(authService, times(1)).issueJwtTokens(any());
 
     }
 
@@ -125,6 +127,7 @@ public class AuthServiceTest extends TestMockCreator {
         //then
         assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(memberEmail, notRegisteredPhone)).isInstanceOf(MoimingApiException.class);
     }
+
 
     @Test
     void checkUniqueColumnDuplication_should_throw_error_when_phone_duplicates() {
@@ -154,20 +157,20 @@ public class AuthServiceTest extends TestMockCreator {
 
         //when
         //then
-        assertDoesNotThrow(()->authService.checkUniqueColumnDuplication(memberEmail, memberPhone));
+        assertDoesNotThrow(()->authService.checkUniqueColumnDuplication(memberEmail, memberPhone)); // void returns
     }
 
 
     @Test
-    void provideTokenByMember_should_return_access_token_and_set_refresh_token() {
+    void issueJwtTokens_should_return_access_token_and_set_refresh_token() {
         //given
         Role mockRole = mockRole(1L, RoleType.USER);
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, mockRole);
-        when(oldMoimingTokenProvider.generateToken(eq(MoimingTokenType.JWT_AT), any())).thenReturn(accessToken);
-        when(oldMoimingTokenProvider.generateToken(eq(MoimingTokenType.JWT_RT), any())).thenReturn(refreshToken);
+        when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_AT), any())).thenReturn(accessToken); // stubbing 시 하나만 Matcher 넣는 것은 불가능 // All Params Matcher or 실제 Data
+        when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_RT), any())).thenReturn(refreshToken);
 
         //when
-        String returnData = authService.provideTokenByMember(mockMember);
+        String returnData = authService.issueJwtTokens(mockMember);
 
         //then
         assertThat(returnData).isEqualTo(accessToken);

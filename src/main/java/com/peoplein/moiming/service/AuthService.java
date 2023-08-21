@@ -1,8 +1,6 @@
 package com.peoplein.moiming.service;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.exceptions.SignatureVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
@@ -11,8 +9,8 @@ import com.peoplein.moiming.model.dto.requesta.MemberReqDto.MemberSignInReqDto;
 import com.peoplein.moiming.model.dto.requesta.TokenReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
-import com.peoplein.moiming.security.provider.token.MoimingTokenType;
+import com.peoplein.moiming.security.token.MoimingTokenProvider;
+import com.peoplein.moiming.security.token.MoimingTokenType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -88,22 +86,22 @@ public class AuthService {
      */
     public Map<String, String> reissueToken(TokenReqDto requestDto) {
 
-        String expiredAccessToken = requestDto.getExpiredAccessToken();
-        String curRefreshToken = requestDto.getCurRefreshToken();
+        if (requestDto.getGrantType().equals(KEY_REFRESH_TOKEN)) {
+            throw new MoimingApiException("갱신 요청시 Grant_Type 고정 값은 'REFRESH_TOKEN' 입니다");
+        }
+
+        String curRefreshToken = requestDto.getToken();
 
         try {
 
-            String atEmail = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, expiredAccessToken);
+            /*
+             재발급은 우성 REFRESH TOKEN 으로만 진행한다
+             */
             String rtEmail = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_RT, curRefreshToken);
-
-            if (!atEmail.equals(rtEmail)) {
-                throw new RuntimeException("잠깐 기다려봐");
-            }
-
             Member memberPs = memberRepository.findMemberByEmail(rtEmail).orElseThrow(() -> new RuntimeException("잠깐 기다려봐"));
 
-
-            if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(curRefreshToken)) { // Refresh Token 에 문제가 있을 경우
+            // Refresh Token 저장값이 없다. 두 Refresh Token 이 일치하지 않는 경우
+            if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(curRefreshToken)) {
                 throw new RuntimeException("잠깐 기다려봐");
             }
 
@@ -115,20 +113,12 @@ public class AuthService {
 
             return transmit;
 
-        } catch (SignatureVerificationException exception) {
-
-            log.error("SIGNATURE 에러, 올바르지 않은 Signature 로 접근하였습니다 : {}", exception.getMessage());
-//            processVerificationExceptionResponse(exception, response);
-
-        } catch (TokenExpiredException exception) { // REFRESH TOKEN 만료시
-
-            log.info("Access Token 이 만료되었습니다");
-//            processVerificationExceptionResponse(exception, response);
-
         } catch (JWTVerificationException exception) { // Verify 시 최상위 Exception
             log.info("Verify 도중 알 수 없는 예외가 발생 : {}", exception.getMessage());
-//            processVerificationExceptionResponse(exception, response);
-
+            throw exception;
+        } catch (MoimingApiException exception) {
+            log.info("JWT 와 관계없는 예외가 발생 : {}", exception.getMessage());
+            throw exception;
         }
     }
 

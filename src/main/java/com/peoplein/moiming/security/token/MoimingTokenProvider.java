@@ -1,4 +1,4 @@
-package com.peoplein.moiming.security.provider.token;
+package com.peoplein.moiming.security.token;
 
 import com.peoplein.moiming.domain.Member;
 

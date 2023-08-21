@@ -1,23 +1,18 @@
 package com.peoplein.moiming.security.service;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberRoleLinker;
-import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.security.domain.SecurityMember;
-import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
-import com.peoplein.moiming.security.provider.token.MoimingTokenType;
+import com.peoplein.moiming.security.token.MoimingTokenProvider;
+import com.peoplein.moiming.security.token.MoimingTokenType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.InvalidParameterException;
 import java.util.*;
 
 @Slf4j

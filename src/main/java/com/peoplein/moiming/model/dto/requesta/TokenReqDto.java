@@ -10,9 +10,9 @@ import javax.validation.constraints.NotEmpty;
 public class TokenReqDto {
 
     @NotEmpty
-    private String expiredAccessToken;
+    private String grantType;
 
     @NotEmpty
-    private String curRefreshToken;
+    private String token;
 
 }

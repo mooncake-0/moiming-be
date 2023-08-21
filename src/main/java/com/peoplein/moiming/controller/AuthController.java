@@ -3,7 +3,7 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.requesta.TokenReqDto;
-import com.peoplein.moiming.security.provider.token.JwtParams;
+import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +18,6 @@ import javax.validation.Valid;
 import java.util.Map;
 
 import static com.peoplein.moiming.model.dto.requesta.MemberReqDto.*;
-import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -56,7 +55,7 @@ public class AuthController {
     /*
      Refresh Token 재발급 요청
      */
-    @PostMapping("/token/refresh")
+    @PostMapping("/token")
     public ResponseEntity<?> reissueToken(@RequestBody @Valid TokenReqDto requestDto, BindingResult br, HttpServletResponse response) {
 
         Map<String, String> responseData = authService.reissueToken(requestDto);

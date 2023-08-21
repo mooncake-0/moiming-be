@@ -1,4 +1,4 @@
-package com.peoplein.moiming.security.provider.token;
+package com.peoplein.moiming.security.token;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

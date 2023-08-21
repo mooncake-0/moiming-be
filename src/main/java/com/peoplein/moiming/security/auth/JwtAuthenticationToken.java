@@ -1,4 +1,4 @@
-package com.peoplein.moiming.security.token;
+package com.peoplein.moiming.security.auth;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

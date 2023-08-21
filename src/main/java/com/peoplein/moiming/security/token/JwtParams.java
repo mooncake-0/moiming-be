@@ -1,4 +1,4 @@
-package com.peoplein.moiming.security.provider.token;
+package com.peoplein.moiming.security.token;
 
 public abstract class JwtParams {
 

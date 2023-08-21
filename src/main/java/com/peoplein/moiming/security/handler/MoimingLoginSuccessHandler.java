@@ -1,22 +1,15 @@
 package com.peoplein.moiming.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.auth.oauth2.JwtProvider;
-import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.response.MemberResponseDto;
-import com.peoplein.moiming.model.dto.response_a.MemberRespDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
-import com.peoplein.moiming.security.provider.token.JwtParams;
-import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
-import com.peoplein.moiming.security.provider.token.MoimingTokenType;
+import com.peoplein.moiming.security.token.JwtParams;
+import com.peoplein.moiming.security.token.MoimingTokenProvider;
+import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.security.service.SecurityMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
@@ -24,7 +17,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Map;
 
 import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
 

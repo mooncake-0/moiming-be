@@ -1,8 +1,8 @@
-package com.peoplein.moiming.security.provider;
+package com.peoplein.moiming.security.auth;
 
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.service.SecurityMemberService;
-import com.peoplein.moiming.security.token.JwtAuthenticationToken;
+import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;

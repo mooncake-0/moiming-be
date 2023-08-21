@@ -6,9 +6,9 @@ import com.peoplein.moiming.security.filter.JwtAuthenticationFilter;
 import com.peoplein.moiming.security.filter.MoimingLoginFilter;
 import com.peoplein.moiming.security.handler.MoimingLoginFailureHandler;
 import com.peoplein.moiming.security.handler.MoimingLoginSuccessHandler;
-import com.peoplein.moiming.security.provider.JwtAuthenticationProvider;
-import com.peoplein.moiming.security.provider.token.JwtTokenProvider;
-import com.peoplein.moiming.security.provider.token.MoimingTokenProvider;
+import com.peoplein.moiming.security.auth.JwtAuthenticationProvider;
+import com.peoplein.moiming.security.token.JwtTokenProvider;
+import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.service.SecurityMemberService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -119,14 +119,16 @@ public class SecurityJwtConfig {
                 .antMatcher("/v3/api-docs/**").anonymous()
         ;
 
-
+        // /api/v0/auth/~ 외의 모든 경로는 인증을 요구한다
+        // 아직 특정 인가를 요구하는 경로는 없음 (ADMIN 단 미진행 중)
         http
-                .antMatcher(NetworkSetting.API_SERVER + "/**")
+//                .antMatcher(NetworkSetting.API_SERVER + "/**")
                 .authorizeRequests()
                 .antMatchers(NetworkSetting.API_SERVER + NetworkSetting.API_AUTH_VER + NetworkSetting.API_AUTH + "/**").permitAll()
 //                .antMatchers("/api/datas/**").hasRole("USER")
 //                .antMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated();
+
 
 
         /*
