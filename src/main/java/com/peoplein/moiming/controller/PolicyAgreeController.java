@@ -5,7 +5,6 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.request.PolicyAgreeRequestDto;
 import com.peoplein.moiming.model.dto.response.PolicyAgreeResponseDto;
 import com.peoplein.moiming.service.PolicyAgreeService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "약관 동의 관련")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_POLICY_VER + NetworkSetting.API_POLICY)

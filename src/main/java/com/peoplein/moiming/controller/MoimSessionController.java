@@ -4,14 +4,11 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.domain.MemberSessionLinkerDto;
-import com.peoplein.moiming.model.dto.domain.MoimSessionDto;
 import com.peoplein.moiming.model.dto.request.MemberSessionStateRequestDto;
 import com.peoplein.moiming.model.dto.request.MoimSessionRequestDto;
 import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
 import com.peoplein.moiming.service.MoimSessionService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Moim 정산 관련")
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_SESSION)
 public class MoimSessionController {
 

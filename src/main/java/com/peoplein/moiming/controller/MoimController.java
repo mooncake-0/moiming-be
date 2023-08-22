@@ -7,12 +7,6 @@ import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.request.MoimRequestDto;
 import com.peoplein.moiming.model.dto.response.MoimResponseDto;
 import com.peoplein.moiming.service.MoimService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +17,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Moim(모임) 관련")
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM)
 public class MoimController {
 

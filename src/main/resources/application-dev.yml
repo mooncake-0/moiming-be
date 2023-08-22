@@ -1,6 +1,5 @@
 spring:
 
-  #Swagger (Spring Boot 2.6 이후 해당 설정 Default 값 변경으로 인한 수동 설정)
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher

@@ -2,11 +2,8 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
-import com.peoplein.moiming.model.dto.domain.RulePersistDto;
 import com.peoplein.moiming.model.dto.request.RuleRequestDto;
 import com.peoplein.moiming.service.MoimRulesService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;

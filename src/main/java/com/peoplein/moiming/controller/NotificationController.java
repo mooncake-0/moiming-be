@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Tag(name = "Notification 관련")
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_NOTI_VER + NetworkSetting.API_NOTI)
 public class NotificationController {
 

@@ -44,9 +44,6 @@ dependencies {
     // JWT 토큰 라이브러리
     implementation 'com.auth0:java-jwt:4.2.1'
 
-    // Swagger API Lib
-    implementation 'org.springdoc:springdoc-openapi-ui:1.6.9'
-
     // QueryDsl 추가
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
@@ -62,26 +59,25 @@ dependencies {
     implementation 'com.google.firebase:firebase-admin:9.1.1'
     implementation 'com.google.firebase:firebase-messaging:22.0.0'
 
+
+    // Swagger 3.0 적용
+    implementation 'io.springfox:springfox-boot-starter:3.0.0'
+    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+
+
     // Http 요청 Library (OkHttp)
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
 
-    // https://mvnrepository.com/artifact/org.mockito/mockito-core
     testImplementation 'org.mockito:mockito-core'
     testImplementation 'org.mockito:mockito-junit-jupiter:4.10.0'
 
-    // https://mvnrepository.com/artifact/org.testcontainers/junit-jupiter
     testImplementation 'org.testcontainers:junit-jupiter:1.17.6'
     testImplementation 'org.testcontainers:mysql:1.17.6'
 
     testRuntimeOnly 'com.mysql:mysql-connector-j'
-//	untimeOnly 'com.mysql:mysql-connector-j'
 
-    // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator:2.7.6'
-    // https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus
     implementation 'io.micrometer:micrometer-registry-prometheus:1.11.2'
-
-
 
 }
 

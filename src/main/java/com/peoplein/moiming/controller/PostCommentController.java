@@ -5,19 +5,12 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
 import com.peoplein.moiming.model.dto.request.PostCommentRequestDto;
 import com.peoplein.moiming.service.PostCommentService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@Tag(name = "Moim 게시물 댓글 관련")
 @RequiredArgsConstructor
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_POST + NetworkSetting.API_MOIM_POST_COMMENT)
 public class PostCommentController {

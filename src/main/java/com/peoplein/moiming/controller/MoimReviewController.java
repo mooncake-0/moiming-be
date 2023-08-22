@@ -3,10 +3,7 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.request.MoimReviewRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimReviewResponseDto;
-import com.peoplein.moiming.model.dto.response.ReviewQuestionResponseDto;
 import com.peoplein.moiming.service.MoimReviewService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Moim 후기 관련")
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_REVIEW)
 public class MoimReviewController {
 
