@@ -1,6 +1,5 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.model.dto.request.ReviewAnswerRequestDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

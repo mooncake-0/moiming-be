@@ -2,7 +2,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.dto.request.RuleRequestDto;
+import com.peoplein.moiming.model.dto.request_b.RuleRequestDto;
 import com.peoplein.moiming.service.MoimRulesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

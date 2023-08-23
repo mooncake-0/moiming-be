@@ -1,7 +1,6 @@
 package com.peoplein.moiming.model.dto.domain;
 
 import com.peoplein.moiming.domain.session.MoimSession;
-import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

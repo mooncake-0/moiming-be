@@ -2,14 +2,13 @@ package com.peoplein.moiming.service.shell;
 
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MoimMembersDto;
 import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
-import com.peoplein.moiming.model.dto.request.MoimRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MoimRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimResponseDto;
 import com.peoplein.moiming.repository.CategoryRepository;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MoimCategoryLinkerRepository;
@@ -20,10 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -101,7 +98,7 @@ public class MoimServiceShell {
         moimRepository.save(createdMoim);
         memberMoimLinkerRepository.save(curMemberMoimLinker);
 
-        // response
+        // response_b
         MoimMembersDto moimMembersDto = new MoimMembersDto(
                 new MyMoimLinkerDto(curMemberMoimLinker),
                 new ArrayList<>()); // 생성된 모임은 회원이 없음

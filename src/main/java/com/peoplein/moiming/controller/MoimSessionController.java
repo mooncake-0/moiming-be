@@ -4,16 +4,14 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.domain.MemberSessionLinkerDto;
-import com.peoplein.moiming.model.dto.request.MemberSessionStateRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimSessionRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MemberSessionStateRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimSessionRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimSessionResponseDto;
 import com.peoplein.moiming.service.MoimSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 @RestController

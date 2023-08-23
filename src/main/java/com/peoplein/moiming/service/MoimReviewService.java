@@ -8,11 +8,11 @@ import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.QuestionChoiceDto;
 import com.peoplein.moiming.model.dto.domain.ReviewAnswerDto;
 import com.peoplein.moiming.model.dto.domain.ReviewQuestionDto;
-import com.peoplein.moiming.model.dto.request.MoimReviewRequestDto;
-import com.peoplein.moiming.model.dto.request.ReviewAnswerRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimReviewResponseDto;
-import com.peoplein.moiming.model.dto.response.ReviewQuestionAnswerDto;
-import com.peoplein.moiming.model.dto.response.ReviewQuestionResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MoimReviewRequestDto;
+import com.peoplein.moiming.model.dto.request_b.ReviewAnswerRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimReviewResponseDto;
+import com.peoplein.moiming.model.dto.response_b.ReviewQuestionAnswerDto;
+import com.peoplein.moiming.model.dto.response_b.ReviewQuestionResponseDto;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.MoimReviewRepository;
@@ -81,7 +81,7 @@ public class MoimReviewService {
 
         moimReviewRepository.save(moimReview);
 
-        // curMember 가 보낸 create 에 대한 response 이므로, moimMemberInfo 는 추가하지 않는다
+        // curMember 가 보낸 create 에 대한 response_b 이므로, moimMemberInfo 는 추가하지 않는다
 
         MoimReviewResponseDto moimReviewResponseDto = new MoimReviewResponseDto();
 

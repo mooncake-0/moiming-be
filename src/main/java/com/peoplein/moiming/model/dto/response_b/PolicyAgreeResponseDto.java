@@ -1,7 +1,6 @@
-package com.peoplein.moiming.model.dto.response;
+package com.peoplein.moiming.model.dto.response_b;
 
 import com.peoplein.moiming.model.dto.domain.PolicyAgreeDto;
-import com.peoplein.moiming.model.dto.request.PolicyAgreeRequestDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,9 +1,7 @@
-package com.peoplein.moiming.model.dto.response;
+package com.peoplein.moiming.model.dto.response_b;
 
-import com.peoplein.moiming.domain.ReviewAnswer;
 import com.peoplein.moiming.model.dto.domain.ReviewAnswerDto;
 import com.peoplein.moiming.model.dto.domain.ReviewQuestionDto;
-import lombok.Data;
 import lombok.Getter;
 
 @Getter

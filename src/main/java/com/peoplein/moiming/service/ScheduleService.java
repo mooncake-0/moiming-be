@@ -1,13 +1,12 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.ScheduleDto;
 import com.peoplein.moiming.model.dto.domain.ScheduleMemberDto;
-import com.peoplein.moiming.model.dto.request.ScheduleRequestDto;
-import com.peoplein.moiming.model.dto.response.ScheduleResponseDto;
+import com.peoplein.moiming.model.dto.request_b.ScheduleRequestDto;
+import com.peoplein.moiming.model.dto.response_b.ScheduleResponseDto;
 import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.ScheduleRepository;

@@ -1,10 +1,9 @@
-package com.peoplein.moiming.model.dto.requesta;
+package com.peoplein.moiming.model.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.peoplein.moiming.domain.enums.MemberGender;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import io.swagger.annotations.ApiModel;
+import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -14,7 +13,22 @@ import java.time.LocalDate;
 
 public class MemberReqDto {
 
+    @ApiModel(value = "Login API - 요청 - 로그인")
+    @Getter
+    @Setter
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    public static class MemberLoginReqDto {
 
+        @NotEmpty
+        private String memberEmail;
+
+        @NotEmpty
+        private String password;
+
+    }
+
+
+    @ApiModel(value = "Auth API - 요청 - 회원가입")
     @Getter
     @Setter
     @AllArgsConstructor

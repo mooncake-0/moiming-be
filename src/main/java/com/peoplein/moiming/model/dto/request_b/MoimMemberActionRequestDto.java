@@ -1,4 +1,4 @@
-package com.peoplein.moiming.model.dto.request;
+package com.peoplein.moiming.model.dto.request_b;
 
 import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.domain.enums.MoimRoleType;

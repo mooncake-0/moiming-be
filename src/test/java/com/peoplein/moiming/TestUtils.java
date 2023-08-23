@@ -8,11 +8,10 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
-import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimMemberActionRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.List;

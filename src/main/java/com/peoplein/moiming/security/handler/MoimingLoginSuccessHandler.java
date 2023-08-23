@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
+import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 
 @RequiredArgsConstructor
 public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler {

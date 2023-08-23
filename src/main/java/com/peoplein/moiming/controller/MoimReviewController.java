@@ -2,14 +2,12 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.dto.request.MoimReviewRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimReviewRequestDto;
 import com.peoplein.moiming.service.MoimReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor

@@ -5,8 +5,9 @@ import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.requesta.MemberReqDto.MemberSignInReqDto;
-import com.peoplein.moiming.model.dto.requesta.TokenReqDto;
+import com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto;
+import com.peoplein.moiming.model.dto.request.TokenReqDto;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
@@ -24,7 +25,7 @@ import java.util.Optional;
 
 import org.springframework.util.StringUtils;
 
-import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
+import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 
 @Slf4j
 @Service
@@ -84,7 +85,7 @@ public class AuthService {
      만료된 AT 와 RT 를 활용해서 재인증을 성공하고
      AT 와 RT 를 모두 재발급해준다
      */
-    public Map<String, String> reissueToken(TokenReqDto requestDto) {
+    public Map<String, Object> reissueToken(TokenReqDto requestDto) {
 
         if (requestDto.getGrantType().equals(KEY_REFRESH_TOKEN)) {
             throw new MoimingApiException("갱신 요청시 Grant_Type 고정 값은 'REFRESH_TOKEN' 입니다");
@@ -106,10 +107,11 @@ public class AuthService {
             }
 
             String jwtAccessToken = issueJwtTokens(memberPs);
+            TokenRespDto responseData = new TokenRespDto(memberPs.getRefreshToken());
 
-            Map<String, String> transmit = new HashMap<>();
+            Map<String, Object> transmit = new HashMap<>();
             transmit.put(KEY_ACCESS_TOKEN, jwtAccessToken);
-            transmit.put(KEY_REFRESH_TOKEN, memberPs.getRefreshToken());
+            transmit.put(KEY_RESPONSE_DATA, responseData);
 
             return transmit;
 

@@ -60,9 +60,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:22.0.0'
 
 
-    // Swagger 3.0 적용
-    implementation 'io.springfox:springfox-boot-starter:3.0.0'
-    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+    // Swagger 2.9.2 적용
+    implementation 'io.springfox:springfox-swagger-ui:2.9.2'
+    implementation 'io.springfox:springfox-swagger2:2.9.2'
 
 
     // Http 요청 Library (OkHttp)

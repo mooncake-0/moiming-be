@@ -2,8 +2,8 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.dto.request.PolicyAgreeRequestDto;
-import com.peoplein.moiming.model.dto.response.PolicyAgreeResponseDto;
+import com.peoplein.moiming.model.dto.request_b.PolicyAgreeRequestDto;
+import com.peoplein.moiming.model.dto.response_b.PolicyAgreeResponseDto;
 import com.peoplein.moiming.service.PolicyAgreeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

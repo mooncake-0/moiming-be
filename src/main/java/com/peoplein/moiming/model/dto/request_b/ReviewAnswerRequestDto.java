@@ -1,4 +1,4 @@
-package com.peoplein.moiming.model.dto.request;
+package com.peoplein.moiming.model.dto.request_b;
 
 import com.peoplein.moiming.model.dto.domain.ReviewAnswerDto;
 import com.peoplein.moiming.model.dto.domain.ReviewQuestionDto;

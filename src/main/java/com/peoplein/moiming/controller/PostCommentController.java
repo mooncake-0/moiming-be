@@ -3,7 +3,7 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
-import com.peoplein.moiming.model.dto.request.PostCommentRequestDto;
+import com.peoplein.moiming.model.dto.request_b.PostCommentRequestDto;
 import com.peoplein.moiming.service.PostCommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

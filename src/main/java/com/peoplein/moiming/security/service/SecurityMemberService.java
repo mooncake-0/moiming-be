@@ -55,5 +55,6 @@ public class SecurityMemberService implements UserDetailsService {
         }
         String jwtRefreshToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_RT, loggedInMember);
         memberRepository.updateRefreshTokenByEmail(loggedInMember.getId(), jwtRefreshToken);
+        loggedInMember.changeRefreshToken(jwtRefreshToken); // 뒤에서 쓰기 때문에 업데이트 따로 해준다
     }
 }

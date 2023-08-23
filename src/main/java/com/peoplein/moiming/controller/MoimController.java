@@ -4,9 +4,11 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.request.MoimRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MoimRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimResponseDto;
 import com.peoplein.moiming.service.MoimService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,9 @@ public class MoimController {
     /*
      모임 생성 요청 수신
      */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
     @PostMapping("/create")
     public ResponseEntity<?> createMoim(@RequestBody MoimRequestDto requestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

@@ -4,7 +4,7 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.model.dto.domain.MoimPostDto;
-import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.service.input.MoimPostServiceInput;

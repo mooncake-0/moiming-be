@@ -1,4 +1,4 @@
-package com.peoplein.moiming.model.dto.response;
+package com.peoplein.moiming.model.dto.response_b;
 
 import com.peoplein.moiming.model.dto.domain.QuestionChoiceDto;
 import com.peoplein.moiming.model.dto.domain.ReviewQuestionDto;

@@ -1,19 +1,17 @@
-package com.peoplein.moiming.model.dto.response_a;
+package com.peoplein.moiming.model.dto.response;
 
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberInfo;
-import com.peoplein.moiming.model.dto.domain.MemberRoleDto;
+import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 public class MemberRespDto {
 
     /*
      회원가입 응답 정보 전달
      */
+    @ApiModel(value = "Auth API - 응답 - 회원가입")
     @Getter
     @Setter
     public static class MemberSignInRespDto {
@@ -62,6 +60,7 @@ public class MemberRespDto {
     /*
      요청별로 DTO 를 분할 - 훨씬 깔끔한듯
      */
+    @ApiModel(value = "Login API - 응답 - 로그인")
     @Getter
     @Setter
     public static class MemberLoginRespDto {

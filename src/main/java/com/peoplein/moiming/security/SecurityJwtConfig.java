@@ -108,8 +108,11 @@ public class SecurityJwtConfig {
          */
         http
                 .authorizeRequests()
+                .antMatchers("/static/css/**, /static/js/**, *.ico").permitAll()
+                .antMatchers("/swagger-ui.html", "/v2/**", "/configuration/ui",
+                        "/swagger-resources/**", "/configuration/security",
+                        "/swagger-ui/**", "/webjars/**", "/swagger/**").permitAll()
                 .antMatchers(NetworkSetting.API_SERVER + NetworkSetting.API_AUTH_VER + NetworkSetting.API_AUTH + "/**").permitAll()
-                .antMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated();
 
 

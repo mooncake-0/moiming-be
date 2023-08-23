@@ -9,21 +9,16 @@ import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.rules.RuleJoin;
-import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
-import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimMemberActionRequestDto;
 import com.peoplein.moiming.repository.*;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;

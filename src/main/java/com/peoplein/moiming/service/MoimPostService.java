@@ -1,11 +1,10 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MoimPostDto;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
-import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import com.peoplein.moiming.model.query.QueryMoimPostDetails;
 import com.peoplein.moiming.model.query.QueryPostCommentDetails;
 import com.peoplein.moiming.repository.*;
@@ -20,9 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 

@@ -3,35 +3,24 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
-import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
-import com.peoplein.moiming.model.dto.request.ScheduleRequestDto;
-import com.peoplein.moiming.model.dto.response.ScheduleResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
+import com.peoplein.moiming.model.dto.request_b.ScheduleRequestDto;
+import com.peoplein.moiming.model.dto.response_b.ScheduleResponseDto;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
 import com.peoplein.moiming.repository.ScheduleRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional

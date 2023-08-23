@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.peoplein.moiming.NetworkSetting;
-import com.peoplein.moiming.model.dto.auth.MemberLoginDto;
+import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import com.peoplein.moiming.security.exception.BadLoginInputException;
 import com.peoplein.moiming.security.exception.ExtraAuthenticationException;
 import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
@@ -18,6 +18,8 @@ import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 
 @Slf4j
 public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
@@ -49,10 +51,10 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-        MemberLoginDto memberLoginDto = null;
+        MemberLoginReqDto memberLoginDto = null;
 
         try {
-            memberLoginDto = om.readValue(request.getReader(), MemberLoginDto.class);
+            memberLoginDto = om.readValue(request.getReader(), MemberLoginReqDto.class);
 
             if (!StringUtils.hasText(memberLoginDto.getMemberEmail()) || !StringUtils.hasText(memberLoginDto.getPassword())) {
                 String msg = "EMAIL 혹은 PW 값을 전달받지 못했습니다";

@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.peoplein.moiming.support.TestModelParams.*;
-import static com.peoplein.moiming.model.dto.requesta.MemberReqDto.*;
-import static com.peoplein.moiming.model.dto.response_a.MemberRespDto.*;
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.*;
@@ -106,6 +106,11 @@ public class AuthServiceTest extends TestMockCreator {
         // then - verify
         verify(authService, times(1)).checkUniqueColumnDuplication(any(), any());
         verify(authService, times(1)).issueJwtTokens(any());
+
+    }
+
+    @Test
+    void reissueTokenTest() {
 
     }
 

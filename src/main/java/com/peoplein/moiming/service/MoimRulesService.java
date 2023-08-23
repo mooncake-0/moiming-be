@@ -9,7 +9,7 @@ import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.domain.rules.RulePersist;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
 import com.peoplein.moiming.model.dto.domain.RulePersistDto;
-import com.peoplein.moiming.model.dto.request.RuleRequestDto;
+import com.peoplein.moiming.model.dto.request_b.RuleRequestDto;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MoimRuleRepository;
 import lombok.RequiredArgsConstructor;

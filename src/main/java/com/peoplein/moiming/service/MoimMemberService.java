@@ -1,16 +1,12 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberInfo;
 import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.enums.*;
-import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
-import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
-import com.peoplein.moiming.model.dto.domain.NotificationDto;
-import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.inner.NotificationInput;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MemberRepository;
@@ -19,12 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 

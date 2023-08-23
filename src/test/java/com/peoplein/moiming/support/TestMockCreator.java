@@ -12,7 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.Date;
 
 import static com.peoplein.moiming.support.TestModelParams.*;
-import static com.peoplein.moiming.model.dto.requesta.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 
 /*
  MOCK - id 를 직접 지정해서 모킹한 모델 (ID Verifying 까지를 위함)
