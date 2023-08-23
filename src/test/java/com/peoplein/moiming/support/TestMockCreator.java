@@ -30,6 +30,7 @@ public class TestMockCreator {
         Member mockMember = Member.createMember(
                 email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, role
         );
+        mockMember.changeRefreshToken(refreshToken); // 회원가입하면 일단 저장 필요
         mockMember.changeMockObjectIdForTest(id, this.getClass().getSimpleName());
         return mockMember;
     }

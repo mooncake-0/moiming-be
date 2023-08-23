@@ -16,7 +16,8 @@ public class MemberReqDto {
     @ApiModel(value = "Login API - 요청 - 로그인")
     @Getter
     @Setter
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class MemberLoginReqDto {
 
         @NotEmpty
@@ -32,6 +33,7 @@ public class MemberReqDto {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class MemberSignInReqDto{
 
         @NotEmpty

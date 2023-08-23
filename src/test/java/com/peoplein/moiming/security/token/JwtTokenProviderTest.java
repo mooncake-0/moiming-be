@@ -26,7 +26,6 @@ public class JwtTokenProviderTest extends TestMockCreator {
     private MoimingTokenProvider tokenProvider = new JwtTokenProvider();
 
 
-
     @Test
     void generateToken_should_return_jwt_token_when_right_info_passed() {
 

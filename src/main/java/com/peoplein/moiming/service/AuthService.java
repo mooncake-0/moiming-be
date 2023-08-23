@@ -87,7 +87,7 @@ public class AuthService {
      */
     public Map<String, Object> reissueToken(TokenReqDto requestDto) {
 
-        if (requestDto.getGrantType().equals(KEY_REFRESH_TOKEN)) {
+        if (!requestDto.getGrantType().equals(KEY_REFRESH_TOKEN)) {
             throw new MoimingApiException("갱신 요청시 Grant_Type 고정 값은 'REFRESH_TOKEN' 입니다");
         }
 

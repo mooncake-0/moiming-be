@@ -4,6 +4,8 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.request.TokenReqDto;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.support.TestMockCreator;
@@ -44,7 +46,7 @@ public class AuthServiceTest extends TestMockCreator {
     @InjectMocks
     private AuthService authService;
 
-    @Spy // 진짜 일 수행시키기 위함. 구현체 주입
+    @Spy // 진짜 일 수행시키기 위함. 구현체 주입 // signIn 할 때 필요
     private BCryptPasswordEncoder passwordEncoder;
 
     @Mock
@@ -85,7 +87,7 @@ public class AuthServiceTest extends TestMockCreator {
     void signIn_should_create_account_when_right_info_passed() {
 
         // given
-        MemberSignInReqDto requestDto = mockSigninRequestDto();
+        MemberSignInReqDto requestDto = mockSigninRequestDto(); // VALIDATION Controller 단에서 컷
 
         // given - stubs
         doNothing().when(authService).checkUniqueColumnDuplication(any(), any()); // 정상 객체 authService 안에서 일부를 mocking 한다 - Spy
@@ -109,10 +111,39 @@ public class AuthServiceTest extends TestMockCreator {
 
     }
 
-    @Test
-    void reissueTokenTest() {
 
+    @Test
+    void reissueToken_should_reissue_token_when_right_info_passed() {
+
+        // given
+        Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
+
+        TokenReqDto reqDto = new TokenReqDto();
+        reqDto.setGrantType(authService.KEY_REFRESH_TOKEN);
+        reqDto.setToken(refreshToken); // 기존 refresh token 전달
+
+        // given - stub
+        when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
+        when(memberRepository.findMemberByEmail(any())).thenReturn(Optional.ofNullable(mockMember));
+
+        // given - stub - signIn 과는 다르게 issueJwtToken() 일부 정상 동작 필요
+        when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_AT), any())).thenReturn("NEW_ACCESS_TOKEN");
+        when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_RT), any())).thenReturn("NEW_REFRESH_TOKEN");
+
+        //when
+        Map<String, Object> transmit = authService.reissueToken(reqDto);
+        TokenRespDto respDto = (TokenRespDto) transmit.get(authService.KEY_RESPONSE_DATA);
+
+        //then
+        assertThat(transmit.get(authService.KEY_ACCESS_TOKEN)).isEqualTo("NEW_ACCESS_TOKEN");
+        assertThat(respDto.getRefreshToken()).isEqualTo("NEW_REFRESH_TOKEN");
+        assertThat(mockMember.getRefreshToken()).isEqualTo("NEW_REFRESH_TOKEN");
+
+        //then - verify 검증할 것 없음
     }
+
+
+    // TODO :: reissueToken() 에 대한 예외상황 검증 필요
 
 
     @Test

@@ -36,7 +36,7 @@ public class MoimingLoginFailureHandler implements AuthenticationFailureHandler 
         } else if (exception instanceof BadCredentialsException) {
             statusCode = HttpStatus.UNAUTHORIZED.value();
         } else if (exception instanceof UsernameNotFoundException) {
-            statusCode = HttpStatus.NOT_FOUND.value();
+            statusCode = HttpStatus.UNAUTHORIZED.value();
         } else { // ExtraAuthenticationException 으로 넘어올 것
             statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         }

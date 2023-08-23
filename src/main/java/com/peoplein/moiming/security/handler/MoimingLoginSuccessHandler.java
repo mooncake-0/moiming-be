@@ -43,6 +43,7 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
         response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + accessJwtToken);
 
         ResponseBodyDto<MemberLoginRespDto> responseBody = ResponseBodyDto.createResponse(1, "로그인 성공", new MemberLoginRespDto(securityMember.getMember()));
+
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(om.writeValueAsString(responseBody));

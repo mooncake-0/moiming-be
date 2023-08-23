@@ -62,7 +62,9 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
                 throw new BadLoginInputException(msg);
             }
 
-        } catch (Exception exception) { // 로그인 시도 중 그 외의 어떤 예외가 발생할 경우
+        } catch (BadLoginInputException exception){
+            throw exception;
+        } catch(Exception exception) { // 로그인 시도 중 그 외의 어떤 예외가 발생할 경우
 
             // Failure 핸들러에서 잡아서 전달할 수 있도록 런타임으로 변환후 전달한다
             throw new ExtraAuthenticationException(exception.getMessage(), exception);

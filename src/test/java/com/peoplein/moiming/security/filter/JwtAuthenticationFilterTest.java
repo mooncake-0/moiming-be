@@ -23,8 +23,14 @@ import javax.persistence.EntityManager;
 
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
+/*
+ 간단한 JWT Auth Filter 의 동작성을 검증
+ 추후 ADMIN 들어오면 ROLE 에 대한 동작성 추가 검증 필요
+ */
 @AutoConfigureMockMvc
 @Transactional
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -84,12 +90,41 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
 
         // when
         Thread.sleep(2000);
-        ResultActions resultActions = mvc.perform(get("/api/v0/moim")
+        ResultActions resultActions = mvc.perform(get("/any/other/path")
                 .header(JwtParams.HEADER, JwtParams.PREFIX + sampleToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
-        System.out.println("responseBody = " + responseBody);
+//        System.out.println("responseBody = " + responseBody);
         resultActions.andExpect(status().isUnauthorized()); // TOKEN 만료시 TokenExpiredException 으로
+        resultActions.andExpect(jsonPath("$.code").value(-100)); // Token Expire 에 대한 code = -100
+
+    }
+
+    @Test
+    void filter_should_return_401_by_entrypoint_when_token_empty() throws Exception{
+
+        //given
+        String wrongToken = "";
+
+        //when
+        ResultActions resultActions = mvc.perform(get("/any/other/path").header(JwtParams.HEADER, JwtParams.PREFIX + wrongToken));
+
+        //then
+        resultActions.andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    void filter_should_return_400_when_token_invalid() throws Exception{
+
+        //given
+        String wrongToken = "WRONG_TOKEN";
+
+        //when
+        ResultActions resultActions = mvc.perform(get("/any/other/path").header(JwtParams.HEADER, JwtParams.PREFIX + wrongToken));
+
+        //then
+        resultActions.andExpect(status().isBadRequest());
 
     }
 }
