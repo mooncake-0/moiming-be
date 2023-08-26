@@ -67,7 +67,7 @@ public class AuthController {
     @ApiOperation("갱신 토큰 - 토큰 재발급 요청")
     @ApiResponses({
             @ApiResponse(code = 200, message = "접근 / 갱신 토큰 재발급 성공", response = TokenRespDto.class,
-                    responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}")}),
+                    responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })
     @PostMapping("/token")

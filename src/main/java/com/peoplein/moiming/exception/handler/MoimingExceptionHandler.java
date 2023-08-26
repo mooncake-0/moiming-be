@@ -23,7 +23,7 @@ public class MoimingExceptionHandler {
     }
 
     @ExceptionHandler(MoimingValidationException.class)
-    public ResponseEntity<?> moimingApiException(MoimingValidationException exception) {
+    public ResponseEntity<?> moimingValidationException(MoimingValidationException exception) {
         log.error("VALIDATION EXCEPTION : {}", exception.getMessage());
         return ResponseEntity.badRequest().body(ResponseBodyDto.createResponse(-1, exception.getMessage(), exception.getErrMap()));
     }

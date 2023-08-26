@@ -55,17 +55,19 @@ public class MemberReqDto {
         @Size(max = 20, message = "번호는 최대 20자입니다")
         private String memberPhone;
 
+
         @NotNull
         private MemberGender memberGender;
 
         @NotNull
         private boolean isForeigner;
 
+
         @NotNull
         @JsonFormat(pattern = "yyyy-MM-dd")
         private LocalDate memberBirth;
 
-        @NotNull
+        @NotEmpty
         private String fcmToken;
 
     }

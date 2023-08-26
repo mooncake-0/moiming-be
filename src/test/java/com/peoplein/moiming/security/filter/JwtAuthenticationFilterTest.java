@@ -101,7 +101,7 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
     }
 
     @Test
-    void filter_should_return_401_by_entrypoint_when_token_empty() throws Exception{
+    void filter_should_pass_but_return_401_by_entrypoint_when_token_empty() throws Exception{
 
         //given
         String wrongToken = "";

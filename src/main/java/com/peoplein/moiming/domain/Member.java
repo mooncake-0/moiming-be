@@ -23,7 +23,10 @@ import java.util.Objects;
 
 
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"member_email"}, name = "unique_member_email")})
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"member_email"}, name = "unique_member_email"),
+        @UniqueConstraint(columnNames = {"nickname"}, name= "unique_nickname")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
@@ -101,12 +104,11 @@ public class Member extends BaseEntity {
 
     // MEMO : 수정 메소드 영속화 확인 필수
     // Member 생성 이후 수정 메소드
+    // Refresh Token 삭제 시도일 수도 있으니 빈칸 허용
     public void changeRefreshToken(String refreshToken) {
-        if (!StringUtils.hasText(refreshToken)) {
-            throw new IllegalArgumentException("잘못된 입력");
-        }
         this.refreshToken = refreshToken;
     }
+
 
     public void changePassword(String password) {
         if (!StringUtils.hasText(password)) {
@@ -121,6 +123,13 @@ public class Member extends BaseEntity {
         if (className.equals("TestMockCreator")) {
             this.id = mockObjectId;
         }
+    }
+
+    public void changeNickname(String nickname) {
+        if (!StringUtils.hasText(nickname)) {
+            throw new IllegalArgumentException("잘못된 입력");
+        }
+        this.nickname = nickname;
     }
 
 

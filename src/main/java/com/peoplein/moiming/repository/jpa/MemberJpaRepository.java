@@ -72,6 +72,15 @@ public class MemberJpaRepository implements MemberRepository {
 
 
     @Override
+    public Optional<Member> findByNickname(String nickname) {
+        return Optional.ofNullable(queryFactory.selectFrom(member)
+                .where(member.nickname.eq(nickname))
+                .fetchOne()
+        );
+    }
+
+
+    @Override
     public Member findMemberWithRolesByEmail(String memberEmail) {
 
         /*

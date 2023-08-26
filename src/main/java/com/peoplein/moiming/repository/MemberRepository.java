@@ -14,8 +14,9 @@ public interface MemberRepository {
 
     Member findMemberAndMemberInfoById(Long id);
 
-    //    Member findMemberByUid(String uid);
     Optional<Member> findMemberByEmail(String memberEmail);
+
+    Optional<Member> findByNickname(String nickname);
 
     //    Member findMemberWithRolesByUid(String uid);
     Member findMemberWithRolesByEmail(String memberEmail);

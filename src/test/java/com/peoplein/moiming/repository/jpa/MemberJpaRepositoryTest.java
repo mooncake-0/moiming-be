@@ -19,6 +19,7 @@ import javax.persistence.EntityManager;
 
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
@@ -47,10 +48,12 @@ public class MemberJpaRepositoryTest extends TestObjectCreator {
         roleRepository.save(testRole);
 
         Member member1 = makeTestMember(memberEmail, "01023456789", memberName, testRole);
+        member1.changeNickname(nickname);
         memberRepository.save(member1);
 
         // 2번 유저 주입
         Member member2 = makeTestMember("hello@abc.com", memberPhone, memberName, testRole);
+        member2.changeNickname(nickname + "1");
         memberRepository.save(member2);
 
         // Data Jpa 아님
@@ -95,5 +98,35 @@ public class MemberJpaRepositoryTest extends TestObjectCreator {
 
         // then
         assertFalse(members.isEmpty());
+    }
+
+
+    @Test
+    void findByNickname_should_return_when_found() {
+
+        // given
+        String findingNickname = nickname;
+
+        // when
+        Optional<Member> memberOp = memberRepository.findByNickname(findingNickname);
+
+        // then
+        assertTrue(memberOp.isPresent());
+        assertThat(memberOp.get().getMemberEmail()).isEqualTo(memberEmail);
+
+    }
+
+    @Test
+    void findByNickname_should_return_empty_when_not_found() {
+
+        // given
+        String findingNickname = nickname + "2";
+
+        // when
+        Optional<Member> memberOp = memberRepository.findByNickname(findingNickname);
+
+        // then
+        assertTrue(memberOp.isEmpty());
+
     }
 }

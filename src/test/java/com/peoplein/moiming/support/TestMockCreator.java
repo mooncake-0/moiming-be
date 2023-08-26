@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -20,8 +21,15 @@ import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 public class TestMockCreator {
 
 
-    protected MemberSignInReqDto mockSigninRequestDto() { // 모델들 추가되면 그 때 분할
+    protected MemberSignInReqDto mockSigninReqDto() { // 모델들 추가되면 그 때 분할
         return new MemberSignInReqDto(memberEmail, password, memberName, memberPhone, memberGender, notForeigner, memberBirth, fcmToken);
+    }
+
+    protected TokenReqDto mockTokenReqDto(String refreshToken) {
+        TokenReqDto tokenReqDto = new TokenReqDto();
+        tokenReqDto.setGrantType("REFRESH_TOKEN");
+        tokenReqDto.setToken(refreshToken);
+        return tokenReqDto;
     }
 
     protected Member mockMember(Long id, String email, String name, String phone, Role role) {

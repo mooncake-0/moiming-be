@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.exception.MoimingInvalidTokenException;
 import com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;
@@ -12,6 +13,7 @@ import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
+import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -65,6 +67,10 @@ public class AuthService {
                 , requestDto.getMemberBirth(), requestDto.getFcmToken(), roleUser);
 
 
+        String createdNickname = tryCreateNicknameForUser(); // 실패시 일괄 rollback
+        signInMember.changeNickname(createdNickname);
+
+
         // member 저장
         memberRepository.save(signInMember);
 
@@ -82,47 +88,44 @@ public class AuthService {
 
 
     /*
-     만료된 AT 와 RT 를 활용해서 재인증을 성공하고
-     AT 와 RT 를 모두 재발급해준다
-     */
+    재발급은 우성 REFRESH TOKEN 으로만 진행한다
+    */
     public Map<String, Object> reissueToken(TokenReqDto requestDto) {
 
-        if (!requestDto.getGrantType().equals(KEY_REFRESH_TOKEN)) {
-            throw new MoimingApiException("갱신 요청시 Grant_Type 고정 값은 'REFRESH_TOKEN' 입니다");
-        }
-
         String curRefreshToken = requestDto.getToken();
+        String rtEmail = "";
 
         try {
-
-            /*
-             재발급은 우성 REFRESH TOKEN 으로만 진행한다
-             */
-            String rtEmail = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_RT, curRefreshToken);
-            Member memberPs = memberRepository.findMemberByEmail(rtEmail).orElseThrow(() -> new RuntimeException("잠깐 기다려봐"));
-
-            // Refresh Token 저장값이 없다. 두 Refresh Token 이 일치하지 않는 경우
-            if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(curRefreshToken)) {
-                throw new RuntimeException("잠깐 기다려봐");
-            }
-
-            String jwtAccessToken = issueJwtTokens(memberPs);
-            TokenRespDto responseData = new TokenRespDto(memberPs.getRefreshToken());
-
-            Map<String, Object> transmit = new HashMap<>();
-            transmit.put(KEY_ACCESS_TOKEN, jwtAccessToken);
-            transmit.put(KEY_RESPONSE_DATA, responseData);
-
-            return transmit;
-
+            rtEmail = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_RT, curRefreshToken);
         } catch (JWTVerificationException exception) { // Verify 시 최상위 Exception
             log.info("Verify 도중 알 수 없는 예외가 발생 : {}", exception.getMessage());
             throw exception;
-        } catch (MoimingApiException exception) {
-            log.info("JWT 와 관계없는 예외가 발생 : {}", exception.getMessage());
-            throw exception;
         }
+
+        Member memberPs = memberRepository.findMemberByEmail(rtEmail).orElseThrow(() ->
+                new MoimingApiException("해당 토큰에 저장된 Email 로 가입된 유저가 없습니다")
+        );
+
+        // Refresh Token 저장값이 없다. 두 Refresh Token 이 일치하지 않는 경우 REFRESH TOKEN 삭제 및 재로그인 유도
+        if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(curRefreshToken)) {
+            String errMsg = "Refresh Token 검증에 실패하였습니다. 다시 로그인 해주세요";
+            log.info(errMsg + ": {}", rtEmail); // 이메일 로깅
+
+            memberPs.changeRefreshToken(""); // RefreshToken 을 삭제한다
+            throw new MoimingInvalidTokenException(errMsg);
+        }
+
+        String jwtAccessToken = issueJwtTokens(memberPs);
+        TokenRespDto responseData = new TokenRespDto(memberPs.getRefreshToken());
+
+        Map<String, Object> transmit = new HashMap<>();
+        transmit.put(KEY_ACCESS_TOKEN, jwtAccessToken);
+        transmit.put(KEY_RESPONSE_DATA, responseData);
+
+        return transmit;
     }
+
+
 
     /*
      회원가입 전에 중복 조건들에 대해서 확인
@@ -160,5 +163,25 @@ public class AuthService {
         signInMember.changeRefreshToken(jwtRefreshToken);
 
         return jwtAccessToken;
+    }
+
+
+
+    String tryCreateNicknameForUser() {
+
+        MemberNicknameCreator nicknameCreator = new MemberNicknameCreator();
+
+        int trial = 1;
+        while (trial < 10) {
+            String createdNickname = nicknameCreator.createNickname();
+            Optional<Member> memberOp = memberRepository.findByNickname(createdNickname);
+            if (memberOp.isEmpty()) { // 중복이 없어야 한다
+                return createdNickname;
+            }
+            trial += 1; // 중복이면 다시 시도
+        }
+
+        throw new MoimingApiException("");
+
     }
 }
