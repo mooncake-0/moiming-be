@@ -37,7 +37,6 @@ import static org.junit.Assert.assertEquals;
  */
 @SpringBootTest
 @Transactional
-@Rollback(value = false)
 public class MoimJpaRepositoryTest  {
 
     @Autowired

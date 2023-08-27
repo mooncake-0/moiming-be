@@ -1,0 +1,10 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "prometheus,health,metrics"
+
+spring:
+  profiles:
+    active:
+      - test
