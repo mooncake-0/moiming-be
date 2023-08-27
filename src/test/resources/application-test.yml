@@ -14,3 +14,14 @@ spring:
         show_sql: true
         format_sql: true
         default_batch_fetch_size: 100
+
+# TEST 통과를 위해 기재
+app_files:
+  fcm_path: test
+
+open_api_keys:
+  naver_sens_sms: test
+  naver_access_key_id: test
+  naver_secret_key_id: test
+
+file.dir: test

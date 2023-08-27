@@ -27,6 +27,4 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
     - name: Gradle Ci
-      env:
-        SPRING_PROFILES_ACTIVE: ci # CI 환경을 위한 프로파일 지정
-      run: gradle test
+      run: SPRING_PROFILES_ACTIVE=[ci] ./gradlew test
