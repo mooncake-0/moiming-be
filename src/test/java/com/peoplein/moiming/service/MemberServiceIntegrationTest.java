@@ -38,7 +38,6 @@ class MemberServiceIntegrationTest {
     MemberService service;
 
 
-
 //    @Test
     void test1() {
 

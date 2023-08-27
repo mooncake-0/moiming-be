@@ -13,8 +13,7 @@ import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QMember.*;
 import static com.peoplein.moiming.domain.QMemberInfo.*;
-import static com.peoplein.moiming.domain.QMemberRoleLinker.*;
-import static com.peoplein.moiming.domain.fixed.QRole.*;
+
 
 @Repository
 @RequiredArgsConstructor
@@ -29,40 +28,24 @@ public class MemberJpaRepository implements MemberRepository {
     }
 
     @Override
-    public Member findMemberById(Long memberId) {
+    public Optional<Member> findById(Long memberId) {
 
         /*
         Query : select * from member m
                 where m.member_id = {id};
          */
 
-        return queryFactory.selectFrom(member)
+        return Optional.ofNullable(queryFactory.selectFrom(member)
                 .where(member.id.eq(memberId))
-                .fetchOne();
+                .fetchOne());
     }
 
-    @Override
-    public Member findMemberAndMemberInfoById(Long memberId) {
-
-
-        /*
-         JPQL Query : select m from Member m
-                        join fetch m.memberInfo mi where m.id = :id;
-
-         */
-
-        return queryFactory.selectFrom(member)
-                .join(member.memberInfo, memberInfo).fetchJoin()
-                .where(member.id.eq(memberId))
-                .fetchOne();
-
-    }
 
     /*
      member info 활용을 위해 join 추가
      */
     @Override
-    public Optional<Member> findMemberByEmail(String memberEmail) {
+    public Optional<Member> findByEmail(String memberEmail) {
 
         return Optional.ofNullable(queryFactory.selectFrom(member)
                 .join(member.memberInfo, memberInfo).fetchJoin()
@@ -81,49 +64,7 @@ public class MemberJpaRepository implements MemberRepository {
 
 
     @Override
-    public Member findMemberWithRolesByEmail(String memberEmail) {
-
-        /*
-         JPQL : select distinct m from Member m
-                    join fetch m.roles mri
-                    join fetch mri.role r
-                    where m.memberEmail = {memberEmail}
-         */
-
-        return queryFactory.selectFrom(member).distinct()
-                .join(member.roles, memberRoleLinker).fetchJoin()
-                .join(memberRoleLinker.role, role).fetchJoin()
-                .where(member.memberEmail.eq(memberEmail))
-                .fetchOne();
-    }
-
-    @Override
-    public Member findMemberAndMemberInfoWithRolesById(Long id) {
-        /*
-         JPQL : select distinct m from Member m
-                    join fetch m.memberInfo mi
-                    join fetch m.roles mri
-                    join fetch mri.role r
-                    where m.id = :{id}
-         */
-
-        return queryFactory.selectFrom(member).distinct()
-                .join(member.memberInfo, memberInfo).fetchJoin()
-                .join(member.roles, memberRoleLinker).fetchJoin()
-                .join(memberRoleLinker.role, role).fetchJoin()
-                .where(member.id.eq(id))
-                .fetchOne();
-    }
-
-    @Override
-    public List<Member> findMembersByIds(List<Long> memberIds) {
-        return queryFactory.selectFrom(member)
-                .where(member.id.in(memberIds))
-                .fetch();
-    }
-
-    @Override
-    public Optional<Member> findOptionalByPhoneNumber(String memberPhoneNumber) {
+    public Optional<Member> findByPhoneNumber(String memberPhoneNumber) {
         return Optional.ofNullable(
                 queryFactory.selectFrom(member)
                         .join(member.memberInfo, memberInfo).fetchJoin()
@@ -134,7 +75,15 @@ public class MemberJpaRepository implements MemberRepository {
 
 
     @Override
-    public List<Member> findByEmailOrPhone(String memberEmail, String memberPhone) {
+    public List<Member> findMembersByIds(List<Long> memberIds) {
+        return queryFactory.selectFrom(member)
+                .where(member.id.in(memberIds))
+                .fetch();
+    }
+
+
+    @Override
+    public List<Member> findMembersByEmailOrPhone(String memberEmail, String memberPhone) {
         return queryFactory.selectFrom(member)
                 .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(member.memberEmail.eq(memberEmail).or(member.memberInfo.memberPhone.eq(memberPhone)))

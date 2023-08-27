@@ -73,7 +73,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_should_login_when_right_info_passed() throws Exception{
+    void filter_shouldLogin_whenRightInfoPassed() throws Exception{
 
         //given
         MemberLoginReqDto loginReqDto = new MemberLoginReqDto(memberEmail, password);
@@ -94,7 +94,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_should_return_500_when_wrong_dto_passed_by_extra_exception() throws Exception {
+    void filter_shouldReturn500_whenWrongDtoPassed_byExtraException() throws Exception {
 
         // given
         Map<String, String> wrongDto = new HashMap<>();
@@ -111,7 +111,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_should_return_400_when_empty_param_passed_by_bad_input_exception() throws Exception {
+    void filter_shouldReturn400_whenEmptyParamPassed_byBadInputException() throws Exception {
 
         // given
         MemberLoginReqDto wrongDto = new MemberLoginReqDto(memberEmail, "");
@@ -126,7 +126,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_should_return_401_when_email_not_found_by_username_not_found_exception() throws Exception {
+    void filter_shouldReturn401_whenEmailNotFound_byUsernameNotFoundException() throws Exception {
         // given
         MemberLoginReqDto wrongDto = new MemberLoginReqDto("not@registered.com", "1234");
         String requestDto = om.writeValueAsString(wrongDto);
@@ -140,7 +140,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_should_return_401_when_password_wrong_by_bad_credential_exception() throws Exception {
+    void filter_shouldReturn401_whenPasswordWrong_byBadCredentialException() throws Exception {
         // given
         MemberLoginReqDto wrongDto = new MemberLoginReqDto(memberEmail, password + "a");
         String requestDto = om.writeValueAsString(wrongDto);
@@ -154,7 +154,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_should_return_500_when_nothing_given_by_extra_exception() throws Exception {
+    void filter_shouldReturn500_whenNothingGiven_byExtraException() throws Exception {
         // given
         // when
         ResultActions resultActions = mvc.perform(post(LOGIN_URL));

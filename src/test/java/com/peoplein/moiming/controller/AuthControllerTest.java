@@ -5,15 +5,11 @@ import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.JwtParams;
-import com.peoplein.moiming.support.TestDto;
-import com.peoplein.moiming.support.TestModelParams;
 import com.peoplein.moiming.support.TestObjectCreator;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +21,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import org.testcontainers.shaded.com.github.dockerjava.core.exec.ExecCreateCmdExec;
 
 import javax.persistence.EntityManager;
 
@@ -40,11 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 /*
-
-
  - reissueToken - 잘못된 토큰 (이메일 추출은 가능) 일 시 Fail & RT 삭제는 Service 에서 확인
-
- */
+*/
 @AutoConfigureMockMvc
 @Transactional // Test Data 저장을 위함
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -52,6 +44,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
     private final String AUTH_URL = API_SERVER + API_AUTH_VER + API_AUTH;
     private final ObjectMapper om = new ObjectMapper();
+
     @Autowired
     private MockMvc mvc;
 
@@ -87,7 +80,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void checkUidAvailable_should_return_200_when_available() throws Exception {
+    void checkUidAvailable_shouldReturn200_whenEmailAvailable() throws Exception {
 
         // given
         String availableEmail = memberEmail;
@@ -102,7 +95,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void checkUidAvailable_should_return_400_when_unavailable_by_moiming_api_exception() throws Exception {
+    void checkUidAvailable_shouldReturn400_whenEmailUnavailable_byMoimingApiException() throws Exception {
 
         // given
         String unavailableEmail = "registered@mail.com";
@@ -121,7 +114,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void checkUidAvailable_should_return_404_when_no_email_passed() throws Exception {
+    void checkUidAvailable_shouldReturn404_whenNoEmailPassed() throws Exception {
 
         // given
         String noEmail = "";
@@ -138,7 +131,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void signIn_should_return_member_dto_and_200_when_successful() throws Exception {
+    void signIn_shouldReturnMemberDtoAnd200_whenSuccessful() throws Exception {
 
         // given
         TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
@@ -162,7 +155,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
     // 중복 EMAIL 유저
     @Test
-    void signIn_should_return_400_when_email_duplicates_by_moiming_api_exception() throws Exception {
+    void signIn_shouldReturn400_whenEmailDuplicates_byMoimingApiException() throws Exception {
 
         // given
         String unavailableEmail = "registered@mail.com";
@@ -180,7 +173,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
     // 중복 핸드폰 유저
     @Test
-    void signIn_should_return_400_when_phone_duplicates_by_moiming_api_exception() throws Exception {
+    void signIn_shouldReturn400_whenPhoneDuplicates_byMoimingApiException() throws Exception {
 
         // given
         String unavailablePhone = "01000000000";
@@ -198,7 +191,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
     // VALIDATION 에서 걸릴 때 (없는 값 하나 대표적으로)
     @Test
-    void signIn_should_return_400_when_request_dto_validation_fails_by_moiming_validation_exception() throws Exception{
+    void signIn_shouldReturn400_whenRequestDtoValidationFails_byMoimingValidationException() throws Exception{
 
         // given
         TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
@@ -219,7 +212,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
     // 이메일 형식 오류
     @Test
-    void signIn_should_return_400_when_email_format_wrong_by_moiming_validation_exception() throws Exception {
+    void signIn_shouldReturn400_whenEmailFormatWrong_byMoimingValidationException() throws Exception {
 
         // given
         String wrongEmailFormat = "hellonaver.com";
@@ -243,7 +236,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void signIn_should_return_400_when_password_condition_fails_by_moiming_validation_exception() throws Exception {
+    void signIn_shouldReturn400_whenPasswordConditionFails_byMoimingValidationException() throws Exception {
 
         // given
         TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
@@ -265,7 +258,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
     // 토큰 재발급
     @Test
-    void reissueToken_should_return_new_token_and_200_when_successful() throws Exception {
+    void reissueToken_shouldReturnNewTokenAnd200_whenSuccessful() throws Exception {
 
         // given
         TokenReqDto reqDto = new TokenReqDto();
@@ -295,7 +288,7 @@ public class AuthControllerTest extends TestObjectCreator {
      통합테스트 이므로, 추후 검증까지 진행해본다
      */
     @Test
-    void reissueToken_should_save_new_token_to_requesting_member() throws Exception {
+    void reissueToken_shouldSaveNewTokenToRequestingMember_whenSuccessful() throws Exception {
 
         // given
         TokenReqDto reqDto = new TokenReqDto();
@@ -311,7 +304,7 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isOk());
 
         // then - member 조회 후 발급받은 Refresh Token 이 전달 받은것과 같은지 확인한다
-        Member findMemberPs = memberRepository.findMemberById(registeredMember.getId());
+        Member findMemberPs = memberRepository.findById(registeredMember.getId()).orElseThrow(Exception::new);
         resultActions.andExpect(jsonPath("$.data.refreshToken").value(findMemberPs.getRefreshToken()));
 
     }
@@ -319,7 +312,7 @@ public class AuthControllerTest extends TestObjectCreator {
     // RT Expire 일 경우
 
     @Test
-    void reissueToken_should_return_401_when_refresh_token_expired_by_token_expired_exception() throws Exception {
+    void reissueToken_shouldReturn401_whenRefreshTokenExpired_byTokenExpiredException() throws Exception {
 
         // given
         TokenReqDto reqDto = new TokenReqDto();

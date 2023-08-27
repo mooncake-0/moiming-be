@@ -33,7 +33,7 @@ public class SecurityMemberService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String memberEmail) throws UsernameNotFoundException {
 
-        Member memberPs = memberRepository.findMemberByEmail(memberEmail).orElseThrow(() -> {
+        Member memberPs = memberRepository.findByEmail(memberEmail).orElseThrow(() -> {
                     String msg = "[" + memberEmail + "]의 유저를 찾을 수 없습니다";
                     log.error(msg);
                     throw new UsernameNotFoundException(msg);

@@ -13,7 +13,7 @@ public class MemberNicknameCreatorTest {
     MemberNicknameCreator nicknameCreator = new MemberNicknameCreator();
 
     @Test
-    void createNickname_should_return_created_nickname() {
+    void createNickname_shouldReturnCreatedNickname() {
 
         // given
         // when

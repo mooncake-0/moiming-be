@@ -30,7 +30,7 @@ public class SmsVerificationService {
 
     public SmsVerificationDto findMemberIdAuth(@RequestBody FindIdRequestDto findIdRequestDto) {
 
-        Member curMember = memberRepository.findOptionalByPhoneNumber(findIdRequestDto.getMemberPhoneNumber()).orElseThrow(() -> new RuntimeException("해당 전화번호의 유저가 존재하지 않습니다"));
+        Member curMember = memberRepository.findByPhoneNumber(findIdRequestDto.getMemberPhoneNumber()).orElseThrow(() -> new RuntimeException("해당 전화번호의 유저가 존재하지 않습니다"));
         checkRightMemberRequest(curMember, VerificationType.FIND_ID, findIdRequestDto.getMemberName());
 
         SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberInfo().getMemberPhone(), VerificationType.FIND_ID);
@@ -45,7 +45,7 @@ public class SmsVerificationService {
 
     public SmsVerificationDto findMemberPwAuth(@RequestBody FindPwRequestDto findPwRequestDto) {
 
-        Member curMember = memberRepository.findOptionalByPhoneNumber(findPwRequestDto.getMemberPhoneNumber()).orElseThrow(() -> new RuntimeException("해당 전화번호의 유저가 존재하지 않습니다"));
+        Member curMember = memberRepository.findByPhoneNumber(findPwRequestDto.getMemberPhoneNumber()).orElseThrow(() -> new RuntimeException("해당 전화번호의 유저가 존재하지 않습니다"));
         checkRightMemberRequest(curMember, VerificationType.FIND_PW, findPwRequestDto.getMemberEmail());
 
         SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberInfo().getMemberPhone(), VerificationType.FIND_PW);

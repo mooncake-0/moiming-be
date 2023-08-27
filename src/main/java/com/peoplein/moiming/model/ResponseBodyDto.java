@@ -6,7 +6,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ResponseBodyDto<T> {
 
-    private int code; // 1 성공 2 실패
+    private int code;
     private String msg;
     private T data;
 

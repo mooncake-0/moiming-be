@@ -68,7 +68,7 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_should_pass_jwt_authentication_filter_and_return_404() throws Exception {
+    void filter_shouldPassAndReturn404() throws Exception {
 
         // given
         String sampleJwtToken = createTestJwtToken(member, 1000);
@@ -83,7 +83,7 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_should_return_401_when_token_expired() throws Exception {
+    void filter_shouldReturn401_whenTokenExpired_byTokenExpiredException() throws Exception {
 
         // given
         String sampleToken = createTestJwtToken(member, 1000);
@@ -101,7 +101,7 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
     }
 
     @Test
-    void filter_should_pass_but_return_401_by_entrypoint_when_token_empty() throws Exception{
+    void filter_shouldPassButReturn401_whenTokenEmpty_byEntrypoint() throws Exception{
 
         //given
         String wrongToken = "";
@@ -115,7 +115,7 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
     }
 
     @Test
-    void filter_should_return_400_when_token_invalid() throws Exception{
+    void filter_shouldReturn400_whenTokenInvalid_byJWTVerificationException() throws Exception{
 
         //given
         String wrongToken = "WRONG_TOKEN";

@@ -46,7 +46,7 @@ public class AuthService {
 
 
     public void checkEmailAvailable(String email) {
-        Optional<Member> memberOp = memberRepository.findMemberByEmail(email);
+        Optional<Member> memberOp = memberRepository.findByEmail(email);
         if (memberOp.isPresent()) {
             throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
         }
@@ -102,7 +102,7 @@ public class AuthService {
             throw exception;
         }
 
-        Member memberPs = memberRepository.findMemberByEmail(rtEmail).orElseThrow(() ->
+        Member memberPs = memberRepository.findByEmail(rtEmail).orElseThrow(() ->
                 new MoimingApiException("해당 토큰에 저장된 Email 로 가입된 유저가 없습니다")
         );
 
@@ -134,7 +134,7 @@ public class AuthService {
     // Test 에서 보이게 하기 위한 package-private 으로 변경
     void checkUniqueColumnDuplication(String memberEmail, String memberPhone) {
 
-        List<Member> duplicateMembers = memberRepository.findByEmailOrPhone(memberEmail, memberPhone);
+        List<Member> duplicateMembers = memberRepository.findMembersByEmailOrPhone(memberEmail, memberPhone);
 
         if (!duplicateMembers.isEmpty()) {
             for (Member member : duplicateMembers) {

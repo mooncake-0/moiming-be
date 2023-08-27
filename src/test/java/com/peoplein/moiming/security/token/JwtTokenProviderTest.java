@@ -27,7 +27,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
 
 
     @Test
-    void generateToken_should_return_jwt_token_when_right_info_passed() {
+    void generateToken_shouldReturnJwtToken_whenRightInfoPassed() {
 
         //given
         Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
@@ -43,7 +43,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
     }
 
     @Test
-    void generateToken_should_throw_null_when_member_not_given() {
+    void generateToken_shouldThrowNullException_whenMemberNotGiven() {
         //given
         //when
         //then
@@ -54,7 +54,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
 
 
     @Test
-    void verifyMemberEmail_should_return_email_when_right_token_passed() {
+    void verifyMemberEmail_shouldReturnEmail_whenRightTokenPassed() {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
@@ -69,7 +69,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
 
 
     @Test
-    void verifyMemberEmail_should_throw_expired_exception_when_token_expires() throws Exception {
+    void verifyMemberEmail_shouldThrowExpiredException_whenTokenExpires() throws Exception {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
@@ -84,7 +84,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
     }
 
     @Test
-    void verifyMemberEmail_should_throw_decode_exception_when_token_null() {
+    void verifyMemberEmail_shouldThrowDecodeException_whenTokenNull() {
 
         // given
         String testToken = null;
@@ -97,7 +97,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
     }
 
     @Test
-    void verifyMemberEmail_should_throw_decode_exception_when_token_empty() {
+    void verifyMemberEmail_shouldThrowDecodeException_whenTokenEmpty() {
 
         // given
         String testToken = "";
@@ -110,7 +110,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
     }
 
     @Test
-    void verifyMemberEmail_should_throw_decode_exception_when_wrong_token_given() {
+    void verifyMemberEmail_shouldThrowDecodeException_whenWrongTokenPassed() {
 
         // given
         String testToken = "NOT_JWT_TOKEN";

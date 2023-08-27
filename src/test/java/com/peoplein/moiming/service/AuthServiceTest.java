@@ -61,12 +61,13 @@ public class AuthServiceTest extends TestMockCreator {
     @Mock
     private MoimingTokenProvider tokenProvider;
 
+
     @Test
-    void checkEmailAvailable_should_throw_error_when_used_email() {
+    void checkEmailAvailable_shouldThrowError_whenUsedEmail() {
         // given
         String email = memberEmail;
         Role mockRole = mockRole(1L, RoleType.USER);
-        when(memberRepository.findMemberByEmail(email)).thenReturn(Optional.of(mockMember(1L, email, memberName, memberPhone, mockRole)));
+        when(memberRepository.findByEmail(email)).thenReturn(Optional.of(mockMember(1L, email, memberName, memberPhone, mockRole)));
 
         // when
         // then
@@ -74,10 +75,10 @@ public class AuthServiceTest extends TestMockCreator {
     }
 
     @Test
-    void checkEmailAvailable_should_pass_when_unused_email() {
+    void checkEmailAvailable_shouldPass_whenUnusedEmail() {
         // given
         String email = memberEmail;
-        when(memberRepository.findMemberByEmail(email)).thenReturn(Optional.empty());
+        when(memberRepository.findByEmail(email)).thenReturn(Optional.empty());
 
         //when
         //then
@@ -87,7 +88,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void signIn_should_create_account_when_right_info_passed() {
+    void signIn_shouldCreateAccount_whenRightInfoPassed() {
 
         // given
         MemberSignInReqDto requestDto = mockSigninReqDto(); // VALIDATION Controller 단에서 컷
@@ -118,7 +119,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void reissueToken_should_reissue_token_when_right_info_passed() {
+    void reissueToken_shouldReissueToken_whenRightInfoPassed() {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
@@ -126,7 +127,7 @@ public class AuthServiceTest extends TestMockCreator {
 
         // given - stub
         when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
-        when(memberRepository.findMemberByEmail(any())).thenReturn(Optional.ofNullable(mockMember));
+        when(memberRepository.findByEmail(any())).thenReturn(Optional.ofNullable(mockMember));
 
         // given - stub - signIn 과는 다르게 issueJwtToken() 일부 정상 동작 필요
         when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_AT), any())).thenReturn("NEW_ACCESS_TOKEN");
@@ -146,14 +147,14 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void reissueToken_should_throw_exception_when_user_not_found() {
+    void reissueToken_shouldThrowException_whenUserNotFound() {
 
         // given
         TokenReqDto reqDto = mockTokenReqDto(refreshToken);
 
         // given - stub
         when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
-        when(memberRepository.findMemberByEmail(memberEmail)).thenReturn(Optional.empty()); // 아무것도 찾지 못했을 경우
+        when(memberRepository.findByEmail(memberEmail)).thenReturn(Optional.empty()); // 아무것도 찾지 못했을 경우
 
         // when
         // then // Exception 이 제대로 터지는지 확인한다
@@ -163,7 +164,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void reissueToken_should_remove_saved_token_and_throw_exception_when_token_not_match() {
+    void reissueToken_shouldRemoveSavedTokenAndThrowException_whenTokenNotMatch() {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, mockRole(1L, RoleType.USER));
@@ -171,7 +172,7 @@ public class AuthServiceTest extends TestMockCreator {
 
         // given - stub
         when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
-        when(memberRepository.findMemberByEmail(any())).thenReturn(Optional.ofNullable(mockMember)); // Mocked Member 반환
+        when(memberRepository.findByEmail(any())).thenReturn(Optional.ofNullable(mockMember)); // Mocked Member 반환
 
         // when
         // then
@@ -182,7 +183,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void reissueToken_should_throw_exception_when_member_not_have_token() {
+    void reissueToken_shouldThrowException_whenMemberNotHaveToken() {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, mockRole(1L, RoleType.USER));
@@ -192,7 +193,7 @@ public class AuthServiceTest extends TestMockCreator {
 
         // given - stub
         when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
-        when(memberRepository.findMemberByEmail(any())).thenReturn(Optional.ofNullable(mockMember)); // Mocked Member 반환
+        when(memberRepository.findByEmail(any())).thenReturn(Optional.ofNullable(mockMember)); // Mocked Member 반환
 
         // when
         // then
@@ -203,7 +204,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void checkUniqueColumnDuplication_should_throw_error_when_email_duplicates() {
+    void checkUniqueColumnDuplication_shouldThrowException_whenEmailDuplicates() {
         // given
         String notRegisteredPhone = "01000000000";
         Role mockRole = mockRole(1L, RoleType.USER);
@@ -213,7 +214,7 @@ public class AuthServiceTest extends TestMockCreator {
         queriedMembers.add(mockMember);
 
         // given - stub
-        when(memberRepository.findByEmailOrPhone(memberEmail, notRegisteredPhone)).thenReturn(queriedMembers);
+        when(memberRepository.findMembersByEmailOrPhone(memberEmail, notRegisteredPhone)).thenReturn(queriedMembers);
 
         //when
         //then
@@ -222,7 +223,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void checkUniqueColumnDuplication_should_throw_error_when_phone_duplicates() {
+    void checkUniqueColumnDuplication_shouldThrowException_whenPhoneDuplicates() {
         // given
         String notRegisteredEmail = "not@registered.com";
         Role mockRole = mockRole(1L, RoleType.USER);
@@ -232,7 +233,7 @@ public class AuthServiceTest extends TestMockCreator {
         queriedMembers.add(mockMember);
 
         // given - stub
-        when(memberRepository.findByEmailOrPhone(notRegisteredEmail, memberPhone)).thenReturn(queriedMembers);
+        when(memberRepository.findMembersByEmailOrPhone(notRegisteredEmail, memberPhone)).thenReturn(queriedMembers);
 
         //when
         //then
@@ -241,12 +242,12 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void checkUniqueColumnDuplication_should_pass_when_no_duplicate() {
+    void checkUniqueColumnDuplication_shouldPass_whenNoDuplicate() {
         // given
         List<Member> queriedMembers = new ArrayList<>();
 
         // given - stub
-        when(memberRepository.findByEmailOrPhone(memberEmail, memberPhone)).thenReturn(queriedMembers);
+        when(memberRepository.findMembersByEmailOrPhone(memberEmail, memberPhone)).thenReturn(queriedMembers);
 
         //when
         //then
@@ -255,7 +256,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void issueJwtTokens_should_return_access_token_and_set_refresh_token() {
+    void issueJwtTokens_shouldReturnAccessTokenAndSetRefreshToken_whenRightInfoPassed() {
         //given
         Role mockRole = mockRole(1L, RoleType.USER);
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, mockRole);
@@ -272,7 +273,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void tryCreateNicknameForUser_should_return_nickname() {
+    void tryCreateNicknameForUser_shouldReturnNickname() {
 
         // given
         // given - stub
@@ -287,7 +288,7 @@ public class AuthServiceTest extends TestMockCreator {
     }
 
     @Test
-    void tryCreateNicknameForUser_should_throw_exception_when_duplicated_10_times() {
+    void tryCreateNicknameForUser_shouldThrowException_whenDuplicated10Times() {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, mockRole(1L, RoleType.USER));

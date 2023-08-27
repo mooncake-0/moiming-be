@@ -65,7 +65,6 @@ public class Member extends BaseEntity {
      생성자는 Private 으로, 생성 방식을 create 함수로만 제어한다
      */
     private Member(String memberEmail, String password, String fcmToken, MemberInfo memberInfo) {
-
         this.memberEmail = memberEmail;
         this.password = password;
         this.fcmToken = fcmToken;
@@ -92,7 +91,6 @@ public class Member extends BaseEntity {
 
         return createdMember;
     }
-
 
     /*
      연관관계 편의 메소드
