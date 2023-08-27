@@ -1,11 +1,9 @@
 package com.peoplein.moiming.domain.session;
 
 
-import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.enums.MemberSessionState;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
-import com.peoplein.moiming.domain.fixed.SessionCategory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +13,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+/*
+ COMPILE FIXED
+ */
 
 @Entity
 @Getter
@@ -58,8 +60,6 @@ public class MemberSessionLinker {
 
     private MemberSessionLinker(int singleCost, MemberSessionState memberSessionState, Member member, MoimSession moimSession) {
 
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), memberSessionState, member, moimSession);
-
         this.singleCost = singleCost;
         this.memberSessionState = memberSessionState;
 
@@ -86,7 +86,7 @@ public class MemberSessionLinker {
             this.moimSession.addCurCost(singleCost);
             this.moimSession.addCurSenderCount();
             this.moimSession.setUpdatedAt(LocalDateTime.now());
-            this.moimSession.setUpdatedUid(curMember.getUid());
+            this.moimSession.setUpdatedMemberId(curMember.getId());
         }
     }
 
@@ -99,7 +99,7 @@ public class MemberSessionLinker {
             this.moimSession.removalCurCost(singleCost);
             this.moimSession.removalCurSenderCount();
             this.moimSession.setUpdatedAt(LocalDateTime.now());
-            this.moimSession.setUpdatedUid(curMember.getUid());
+            this.moimSession.setUpdatedMemberId(curMember.getId());
         }
     }
 

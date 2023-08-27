@@ -12,9 +12,9 @@ import com.peoplein.moiming.model.dto.domain.MemberSessionLinkerDto;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MoimSessionDto;
 import com.peoplein.moiming.model.dto.domain.SessionCategoryItemDto;
-import com.peoplein.moiming.model.dto.request.MemberSessionStateRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimSessionRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MemberSessionStateRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimSessionRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimSessionResponseDto;
 import com.peoplein.moiming.service.input.MoimSessionServiceInput;
 import com.peoplein.moiming.service.shell.MoimSessionServiceShell;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class MoimSessionService {
         MoimSessionDto moimSessionDto = moimSessionRequestDto.getMoimSessionDto();
         MoimSession moimSession = MoimSession.createMoimSession(
                 moimSessionDto.getSessionName(), moimSessionDto.getSessionInfo()
-                , moimSessionDto.getTotalCost(), moimSessionDto.getTotalSenderCount(), curMember.getUid()
+                , moimSessionDto.getTotalCost(), moimSessionDto.getTotalSenderCount(), curMember.getId()
                 , entityInputs.getMoimOfNewMoimSession(), entityInputs.getScheduleOfNewMoimSession()
         );
 
@@ -102,7 +102,7 @@ public class MoimSessionService {
 
         // 삭제하기에 앞서, 필요한 정보들은 선추출한다
         LocalDateTime preCreatedAt = moimSession.getCreatedAt();
-        String preCreatedUid = moimSession.getCreatedUid();
+        Long preCreatedUid = moimSession.getCreatedMemberId();
 
         // 삭제 진행한다, 권한 SKIP 을 위해, SHELL 직접 호출
         moimSessionServiceShell.processDelete(moimSession);
@@ -130,7 +130,7 @@ public class MoimSessionService {
 
         // 업데이트 정보 등록
         updatingMoimSession.setUpdatedAt(LocalDateTime.now());
-        updatingMoimSession.setUpdatedUid(updateRequestMember.getUid());
+        updatingMoimSession.setUpdatedMemberId(updateRequestMember.getId());
 
         // DB 에 푸시 후 RETURN Model 준비
         moimSessionServiceShell.saveMoimSession(updatingMoimSession);

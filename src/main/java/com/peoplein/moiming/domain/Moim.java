@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 @Getter
 @Table(name = "moim")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Moim extends BaseEntity{
+public class Moim extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -45,9 +45,9 @@ public class Moim extends BaseEntity{
     @Embedded
     private Area moimArea;
 
-    private String createdUid;
+    private Long createdMemberId;
 
-    private String updatedUid;
+    private Long updatedMemberId;
 
     @OneToMany(mappedBy = "moim", cascade = CascadeType.ALL)
     private List<MoimRule> moimRules = new ArrayList<>();
@@ -59,19 +59,18 @@ public class Moim extends BaseEntity{
                                   String moimInfo,
                                   String moimPfImg,
                                   Area moimArea,
-                                  String createdUid) {
-        Moim moim = new Moim(moimName, moimInfo, moimPfImg, moimArea, createdUid);
+                                  Long createdMemberId) {
+        Moim moim = new Moim(moimName, moimInfo, moimPfImg, moimArea, createdMemberId);
         return moim;
     }
 
-    private Moim(String moimName, String moimInfo, String moimPfImg, Area moimArea, String createdUid) {
+    private Moim(String moimName, String moimInfo, String moimPfImg, Area moimArea, Long createdMemberId) {
 
-        DomainChecker.checkRightString("Moim Entity", false, moimName, moimArea.getCity(), moimArea.getState(), createdUid);
         this.moimName = moimName;
         this.moimInfo = moimInfo;
         this.moimPfImg = moimPfImg;
         this.moimArea = moimArea;
-        this.createdUid = createdUid;
+        this.createdMemberId = createdMemberId;
 
         /*
          기본값
@@ -135,18 +134,15 @@ public class Moim extends BaseEntity{
     }
 
     public void changeMoimName(String moimName) {
-        DomainChecker.checkRightString(this.getClass().getName(), false, moimName);
         this.moimName = moimName;
     }
 
     public void changeMoimArea(Area moimArea) {
-        DomainChecker.checkRightString(this.getClass().getName(), false, moimArea.getState(), moimArea.getCity());
         this.moimArea = moimArea;
     }
 
-    public void changeUpdatedUid(String updatedUid) {
-        DomainChecker.checkRightString(this.getClass().getName(), false, updatedUid);
-        this.updatedUid = updatedUid;
+    public void changeUpdatedUid(Long updatedMemberId) {
+        this.updatedMemberId = updatedMemberId;
     }
 
     public void setMoimInfo(String moimInfo) {
@@ -174,7 +170,7 @@ public class Moim extends BaseEntity{
             }
         }
 
-        // count 부분이 자기 자신이라면 항상 빼야한다. 즉, 그 부분을 나눠줘야함. 
+        // count 부분이 자기 자신이라면 항상 빼야한다. 즉, 그 부분을 나눠줘야함.
         if (!ruleJoin.isDupLeaderAvailable() || !ruleJoin.isDupManagerAvailable() || ruleJoin.getMoimMaxCount() > 0) { // 겸직 조건이 하나라도 있거나 최대 모임 갯수 조건이 있음
             boolean isMemberAnyLeader = false;
             boolean isMemberAnyManager = false;

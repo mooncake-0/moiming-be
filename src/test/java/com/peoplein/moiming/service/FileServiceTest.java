@@ -20,8 +20,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+
 @SpringBootTest
-class FileServiceTest extends BaseTest {
+class FileServiceTest {
 
     @Autowired
     FileService fileService;

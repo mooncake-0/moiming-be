@@ -32,8 +32,8 @@ public class MoimJpaQueryRepository {
     public List<QueryJoinedMoimBasic> findQueryMoimBasicByMemberId(Long memberId) {
         return queryFactory.select(
                         Projections.constructor(QueryJoinedMoimBasic.class,
-                                moim.id, moim.moimName, moim.moimInfo, moim.moimPfImg, moim.hasRuleJoin, moim.hasRulePersist, moim.curMemberCount
-                                , moim.moimArea, moim.createdAt, moim.createdUid, moim.updatedAt, moim.updatedUid
+                                moim.id, moim.moimName, moim.moimInfo, moim.hasRuleJoin, moim.hasRulePersist, moim.curMemberCount
+                                , moim.moimArea, moim.createdAt, moim.createdMemberId, moim.updatedAt, moim.updatedMemberId
                                 , memberMoimLinker.moimRoleType, memberMoimLinker.memberState, memberMoimLinker.createdAt, memberMoimLinker.updatedAt
                         )
                 ).distinct().from(moim)
@@ -66,7 +66,7 @@ public class MoimJpaQueryRepository {
         List<RuleJoinDto> foundRuleJoinDto
                 = queryFactory.select(
                         Projections.constructor(RuleJoinDto.class, moim.id, ruleJoin.birthMax, ruleJoin.birthMin, ruleJoin.gender, ruleJoin.moimMaxCount
-                                , ruleJoin.dupLeaderAvailable, ruleJoin.dupManagerAvailable, ruleJoin.createdAt, ruleJoin.createdUid, ruleJoin.updatedAt, ruleJoin.updatedUid)
+                                , ruleJoin.dupLeaderAvailable, ruleJoin.dupManagerAvailable, ruleJoin.createdAt, ruleJoin.createdMemberId, ruleJoin.updatedAt, ruleJoin.updatedMemberId)
                 ).from(ruleJoin)
                 .join(moim).on(ruleJoin.moim.id.eq(moim.id))
                 .where(ruleJoin.moim.id.in(moimIds))
@@ -78,7 +78,7 @@ public class MoimJpaQueryRepository {
         List<RulePersistDto> foundRulePersistDto
                 = queryFactory.select(
                         Projections.constructor(RulePersistDto.class, moim.id, rulePersist.doGreeting, rulePersist.attendMonthly, rulePersist.attendCount
-                                , rulePersist.createdAt, rulePersist.createdUid, rulePersist.updatedAt, rulePersist.updatedUid)
+                                , rulePersist.createdAt, rulePersist.createdMemberId, rulePersist.updatedAt, rulePersist.updatedMemberId)
                 ).from(rulePersist)
                 .join(moim).on(rulePersist.moim.id.eq(moim.id))
                 .where(rulePersist.moim.id.in(moimIds))

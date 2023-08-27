@@ -1,8 +1,6 @@
 package com.peoplein.moiming.domain.session;
 
 
-import com.peoplein.moiming.domain.DomainChecker;
-import com.peoplein.moiming.domain.enums.SessionCategoryType;
 import com.peoplein.moiming.domain.fixed.SessionCategory;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -51,8 +49,6 @@ public class SessionCategoryItem {
     private SessionCategoryItem(String itemName, int itemCost, MoimSession moimSession, SessionCategory sessionCategory) {
 
         //NN 체킹
-        DomainChecker.checkRightString(this.getClass().getName(), false, itemName);
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moimSession, sessionCategory);
 
         this.itemName = itemName;
         this.itemCost = itemCost;

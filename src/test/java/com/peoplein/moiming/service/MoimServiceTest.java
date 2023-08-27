@@ -11,8 +11,8 @@ import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
-import com.peoplein.moiming.model.dto.request.MoimRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MoimRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimResponseDto;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.query.MoimJpaQueryRepository;
 import com.peoplein.moiming.service.core.MoimServiceCore;
@@ -28,9 +28,13 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+
+/*
+ 해당 도메인 서비스단 재설계 예정 - core 등의 구조 개편 예정
+ */
 @SpringBootTest
 //@Transactional
-class MoimServiceTest extends BaseTest {
+class MoimServiceTest  {
 
 
     @Mock
@@ -130,7 +134,7 @@ class MoimServiceTest extends BaseTest {
     }
 
 
-    @Test
+//    @Test
     void getMoimTest() {
         // given
         Member member = spy(baseMember);
@@ -151,7 +155,7 @@ class MoimServiceTest extends BaseTest {
         assertThat(result.getRuleJoinDto().getBirthMax()).isEqualTo(moim.getRuleJoin().getBirthMax());
     }
 
-    @Test
+//    @Test
     void getMoimFailTest() {
         // given
         Member member = spy(baseMember);

@@ -3,18 +3,15 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.ErrorResponse;
-import com.peoplein.moiming.model.ResponseModel;
-import com.peoplein.moiming.model.dto.request.MoimRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimResponseDto;
+import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.request_b.MoimRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimResponseDto;
 import com.peoplein.moiming.service.MoimService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +19,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Moim(모임) 관련")
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM)
 public class MoimController {
 
@@ -31,29 +27,14 @@ public class MoimController {
     /*
      모임 생성 요청 수신
      */
-    @Operation(summary = "모임 생성 요청", description = "moimDto, categoryNames (필수), ruleJoinDto (선택) 에 대해 전달 \n \n " +
-            "moimDto 필수 - moimName, area / curMemberCnt, hasRulePersist 는 필드가 아예 없어도 됨")
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "모임 생성 성공",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = MoimResponseDto.class))
-                            }),
-                    @ApiResponse(responseCode = "400", description = "잘못된 변수 전달, 잘못된 JSON 형식",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-                    @ApiResponse(responseCode = "500", description = "내부 Null Pointer 발생, Response 형성 에러 발생 (Report Need)",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-            }
-    )
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
     @PostMapping("/create")
-    public ResponseModel<MoimResponseDto> createMoim(@RequestBody MoimRequestDto requestDto) {
+    public ResponseEntity<?> createMoim(@RequestBody MoimRequestDto requestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MoimResponseDto moimResponseDto = moimService.createMoim(curMember, requestDto);
-        return ResponseModel.createResponse(moimResponseDto);
+        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "모임 생성 성공", moimResponseDto), HttpStatus.CREATED);
     }
 
     // TODO :: 현재 유저의 구독권 여부에 따라서 RULE_JOIN 을 형성할 수 있을지 여부를 판별한다
@@ -63,27 +44,11 @@ public class MoimController {
     /*
      현 유저가 속한 모든 모임 기본 정보 영역 조회
      */
-    @Operation(summary = "현재 유저 모든 모임 일반 정보 조회", description = "Response Schema 에 기재된 ResponseDto 의 List 로 제공")
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "모임 일반 정보 조회 성공",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = MoimResponseDto.class))
-                            }),
-                    @ApiResponse(responseCode = "400", description = "잘못된 변수 전달, 잘못된 JSON 형식",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-                    @ApiResponse(responseCode = "500", description = "내부 Null Pointer 발생, Response 형성 에러 발생 (Report Need)",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-            }
-    )
     @GetMapping("/viewMemberMoim")
-    public ResponseModel<List<MoimResponseDto>> viewMemberMoim() {
+    public ResponseEntity<?> viewMemberMoim() {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return moimService.viewMemberMoim(curMember);
+        List<MoimResponseDto> responseData = moimService.viewMemberMoim(curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "유저 모임 조회 완료", responseData));
     }
 
 
@@ -91,39 +56,30 @@ public class MoimController {
      특정 Id 의 모임 조회
      */
     @GetMapping("/{moimId}")
-    public ResponseModel<MoimResponseDto> getMoim(@PathVariable(name = "moimId") Long moimId) {
+    public ResponseEntity<?> getMoim(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimResponseDto moimResponseDto = moimService.getMoim(moimId, curMember);
-        return ResponseModel.createResponse(moimResponseDto);
+        MoimResponseDto responseDto = moimService.getMoim(moimId, curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "모임 일반 조회 완료", responseDto));
     }
 
     /*
      모임 기본 정보 수정
      */
     @PatchMapping("/update")
-    public ResponseModel<MoimResponseDto> updateMoim(@RequestBody MoimRequestDto moimRequestDto) {
+    public ResponseEntity<?> updateMoim(@RequestBody MoimRequestDto moimRequestDto) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimResponseDto moimResponseDto = moimService.updateMoim(moimRequestDto, curMember);
-        return ResponseModel.createResponse(moimResponseDto);
-    }
-
-    /*
-     모임 프로필 사진 변경
-    */
-    @PatchMapping("/image")
-    public String updateImage() {
-
-        return "";
+        MoimResponseDto responseDto = moimService.updateMoim(moimRequestDto, curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "모임 정보 수정 완료", responseDto));
     }
 
     /*
      모임 삭제
      */
     @DeleteMapping("/{moimId}")
-    public ResponseModel<String> deleteMoim(@PathVariable(name = "moimId") Long moimId) {
+    public ResponseEntity<?> deleteMoim(@PathVariable(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimService.deleteMoim(moimId, curMember);
-        return ResponseModel.createResponse("OK");
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "모임 삭제 완료", null));
     }
 
 }

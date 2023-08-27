@@ -9,35 +9,29 @@ import com.peoplein.moiming.domain.MemberInfo;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
-@Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberInfoDto {
 
-    private String memberEmail;
     private String memberName;
-    //    private String memberPhone;
+    private String memberPhone;
     private MemberGender memberGender;
-//    private LocalDate memberBirth;
-//    private String memberPfImg;
-//    private String memberBank;
-//    private String memberBankNumber;
-
+    private LocalDate memberBirth;
+    private boolean isDormant;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-//    private LocalDateTime updatedAt;
-
-
-    public static MemberInfoDto createMemberInfoDtoWhenSignIn(MemberInfo memberInfo) {
-        return MemberInfoDto.builder().memberName(memberInfo.getMemberName())
-                .memberEmail(memberInfo.getMemberEmail())
-                .memberGender(memberInfo.getMemberGender())
-                .createdAt(memberInfo.getCreatedAt())
-                .build();
+    public MemberInfoDto(MemberInfo memberInfo) {
+        this.memberName = memberInfo.getMemberName();
+        this.memberPhone = memberInfo.getMemberPhone();
+        this.memberGender = memberInfo.getMemberGender();
+        this.memberBirth = memberInfo.getMemberBirth();
+        this.isDormant = memberInfo.isDormant();
+        this.createdAt = memberInfo.getCreatedAt();
+        this.updatedAt = memberInfo.getUpdatedAt();
     }
-
 
 }

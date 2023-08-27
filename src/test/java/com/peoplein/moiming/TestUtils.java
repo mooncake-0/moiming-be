@@ -8,11 +8,10 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
-import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimMemberActionRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,8 +40,6 @@ public class TestUtils {
      추가 입력 정보
      */
     public static LocalDate memberBirth = LocalDate.of(1995, 12, 18);
-    public static String memberPfImg = "/user/pf-img/wrock.kang.jpg";
-    public static boolean isDormant = false;
 
 
     public static String moimName = "모이밍";
@@ -89,44 +86,36 @@ public class TestUtils {
     public static boolean DUPLICATED_MANAGER_ENABLE = true;
 
 
-
     public static final Role role = initAdminRole();
 
     public static Member initOtherMemberAndMemberInfo() {
         Role role = initUserRole();
 
-        Member member = Member.createMember("other" + uid
+        Member member = Member.createMember("other" + memberEmail
                 , "other" + password
-                , "other" + memberEmail
                 , "other" + memberName
+                , "other" + memberPhone
+                , memberGender
+                , false
+                , memberBirth
                 , "other" + fcmToken
-                , memberGender, role);
-        member.getMemberInfo().setMemberBirth(memberBirth);
+                , role);
 
         return member;
     }
 
     public static Member initMemberAndMemberInfo() {
-        Member member = Member.createMember(uid, password, memberEmail, memberName, fcmToken, memberGender, role);
-        member.getMemberInfo().setMemberBirth(memberBirth);
-
+        Member member = Member.createMember(memberEmail, password, memberName, memberPhone
+                , memberGender, false, memberBirth, fcmToken, role);
         return member;
     }
 
     public static Member initMemberAndMemberInfo(String memberName, String memberEmail) {
-        Member member = Member.createMember(uid, password, memberEmail, memberName, fcmToken, memberGender, role);
-        member.getMemberInfo().setMemberBirth(memberBirth);
+        Member member = Member.createMember(memberEmail, password, memberName, memberPhone
+                , memberGender, false, memberBirth, fcmToken, role);
 
         return member;
     }
-
-    public static Member initMemberAndMemberInfo(String uid, String memberName, String memberEmail) {
-        Member member = Member.createMember(uid, password, memberEmail, memberName, fcmToken, memberGender, role);
-        member.getMemberInfo().setMemberBirth(memberBirth);
-
-        return member;
-    }
-
 
     public static Role initAdminRole() {
         return new Role(1L, "admin", RoleType.ADMIN);
@@ -138,23 +127,23 @@ public class TestUtils {
 
 
     public static Moim initMoimAndRuleJoin() {
-        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
-        RuleJoin ruleJoin = new RuleJoin(1, 1, MemberGender.F, 1, true, true, moim, createdUid);
+        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
+        RuleJoin ruleJoin = new RuleJoin(1, 1, MemberGender.F, 1, true, true, moim, 1L);
         return moim;
     }
 
     public static Moim createMoimOnly() {
-        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
+        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
         moim.setHasRuleJoin(false);
         return moim;
     }
 
     public static Moim createMoimOnly(String moimName) {
-        return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), createdUid);
+        return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
     }
 
     public static Moim createOtherMoimOnly(String moimName, Area area) {
-        return Moim.createMoim(moimName, "other" + moimInfo, "other" + moimPfImg, area, createdUid);
+        return Moim.createMoim(moimName, "other" + moimInfo, "other" + moimPfImg, area, 1L);
     }
 
     public static MoimPost initMoimPost(Moim moim, Member member) {
@@ -219,22 +208,6 @@ public class TestUtils {
         newCategory2.setCategoryName(categoryNames.get(1));
 
         return List.of(newCategory1, newCategory2);
-    }
-
-
-    public static void initDatabase(InitDatabaseQuery initDatabase) {
-        initDatabase.initUserRole();
-        initDatabase.initMemberWithAdminGrant();
-        initDatabase.initMemberWithUserGrant();
-        initDatabase.initMoimCategory();
-        initDatabase.initMoimEntity();
-        initDatabase.initMoimEntity2();
-        initDatabase.joinMoim1OfMember2();
-        initDatabase.initPostByMember1();
-        initDatabase.initPostByMember2();
-        initDatabase.initPostComment();
-        initDatabase.initSchedule1InMoim1();
-        initDatabase.initSchedule2InMoim1();
     }
 
 

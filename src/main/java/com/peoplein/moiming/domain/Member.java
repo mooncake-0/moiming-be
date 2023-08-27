@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +23,10 @@ import java.util.Objects;
 
 
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"uid"}, name = "unique_uid")})
+@Table(uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"member_email"}, name = "unique_member_email"),
+        @UniqueConstraint(columnNames = {"nickname"}, name= "unique_nickname")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
@@ -35,17 +39,17 @@ public class Member extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name = "uid", nullable = false)
-    private String uid;
+    @Column(name = "member_email", nullable = false)
+    private String memberEmail;
 
     @Column(nullable = false)
     private String password;
 
+    private String nickname;
+
     private String refreshToken;
 
     private String fcmToken;
-
-    private LocalDateTime logonAt;
 
     /*
      Mapped Columns
@@ -60,43 +64,33 @@ public class Member extends BaseEntity {
     /*
      생성자는 Private 으로, 생성 방식을 create 함수로만 제어한다
      */
-    private Member(String uid, String password, String fcmToken, MemberInfo memberInfo) {
-
-        // TODO : 에러 메세지를 필요하다면 수정해야함.
-        if (!StringUtils.hasText(uid) || !StringUtils.hasText(password)) {
-            throw new IllegalArgumentException("잘못된 입력 발생");
-        }
-
-        if (Objects.isNull(memberInfo)) {
-            throw new NullPointerException("잘못된 객체가 전달되었습니다.");
-        }
-
-        this.uid = uid;
+    private Member(String memberEmail, String password, String fcmToken, MemberInfo memberInfo) {
+        this.memberEmail = memberEmail;
         this.password = password;
         this.fcmToken = fcmToken;
         this.memberInfo = memberInfo;
 
     }
 
-//    public static Member createMember(String uid, String password, MemberInfo memberInfo) {
-//        return new Member(uid, password, memberInfo);
-//    }
 
     // Password should be always encrypted.
-    public static Member createMember(String uid,
+    public static Member createMember(String memberEmail,
                                       String encryptedPassword,
-                                      String email,
                                       String memberName,
-                                      String fcmToken,
+                                      String memberPhone,
                                       MemberGender memberGender,
+                                      boolean isForeigner,
+                                      LocalDate memberBirth,
+                                      String fcmToken,
                                       Role role
     ) {
-        MemberInfo memberInfo = new MemberInfo(email, memberName, memberGender);
-        Member createdMember = new Member(uid, encryptedPassword, fcmToken, memberInfo);
+
+        MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, isForeigner, memberBirth);
+        Member createdMember = new Member(memberEmail, encryptedPassword, fcmToken, memberInfo);
         MemberRoleLinker.grantRoleToMember(createdMember, role);
+
         return createdMember;
     }
-
 
     /*
      연관관계 편의 메소드
@@ -108,12 +102,11 @@ public class Member extends BaseEntity {
 
     // MEMO : 수정 메소드 영속화 확인 필수
     // Member 생성 이후 수정 메소드
+    // Refresh Token 삭제 시도일 수도 있으니 빈칸 허용
     public void changeRefreshToken(String refreshToken) {
-        if (!StringUtils.hasText(refreshToken)) {
-            throw new IllegalArgumentException("잘못된 입력");
-        }
         this.refreshToken = refreshToken;
     }
+
 
     public void changePassword(String password) {
         if (!StringUtils.hasText(password)) {
@@ -122,15 +115,20 @@ public class Member extends BaseEntity {
         this.password = password;
     }
 
-    /*
-     필요 Setter Open
-     */
-
-    public void setFcmToken(String fcmToken) {
-        this.fcmToken = fcmToken;
+    // TODO :: 더 나은 방법 강구 필요
+    // WARN: ID 변경은 MOCK 용
+    public void changeMockObjectIdForTest(Long mockObjectId, String className) {
+        if (className.equals("TestMockCreator")) {
+            this.id = mockObjectId;
+        }
     }
 
-    public boolean isSameUid(String uid) {
-        return this.uid.equals(uid);
+    public void changeNickname(String nickname) {
+        if (!StringUtils.hasText(nickname)) {
+            throw new IllegalArgumentException("잘못된 입력");
+        }
+        this.nickname = nickname;
     }
+
+
 }

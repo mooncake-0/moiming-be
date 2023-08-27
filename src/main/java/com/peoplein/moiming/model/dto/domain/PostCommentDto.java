@@ -1,6 +1,5 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.DomainChecker;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,8 +25,6 @@ public class PostCommentDto {
      */
     public PostCommentDto(Long commentId, String commentContent, LocalDateTime createdAt, LocalDateTime updatedAt, boolean isCreatorCurMember, MoimMemberInfoDto commentCreatorInfo) {
 
-        DomainChecker.checkRightString(this.getClass().getName(), false, commentContent);
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), commentId, createdAt);
         this.commentId = commentId;
         this.commentContent = commentContent;
         this.createdAt = createdAt;

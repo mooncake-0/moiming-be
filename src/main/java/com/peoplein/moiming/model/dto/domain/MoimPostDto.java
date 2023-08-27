@@ -1,14 +1,10 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.MoimPost;
-import com.peoplein.moiming.domain.PostComment;
-import com.peoplein.moiming.domain.PostFile;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,7 +22,7 @@ public class MoimPostDto {
     private boolean hasFiles;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
     private MoimMemberInfoDto postCreatorInfo;
 
     /*
@@ -41,10 +37,8 @@ public class MoimPostDto {
      각 정보들 매핑해서 Dto 형성
      */
     public MoimPostDto(Long moimPostId, String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean isNotice,
-                       LocalDateTime createdAt, LocalDateTime updatedAt, String updatedUid, boolean hasFiles, boolean isCreatorCurMember, MoimMemberInfoDto postCreatorInfo) {
+                       LocalDateTime createdAt, LocalDateTime updatedAt, Long updatedMemberId, boolean hasFiles, boolean isCreatorCurMember, MoimMemberInfoDto postCreatorInfo) {
 
-        DomainChecker.checkRightString(this.getClass().getName(), false, postTitle);
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moimPostId, moimPostCategory, createdAt);
         this.moimPostId = moimPostId;
         this.postTitle = postTitle;
         this.postContent = postContent;
@@ -52,7 +46,7 @@ public class MoimPostDto {
         this.isNotice = isNotice;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.updatedUid = updatedUid;
+        this.updatedMemberId = updatedMemberId;
         this.hasFiles = hasFiles;
         this.isCreatorCurMember = isCreatorCurMember;
         this.postCreatorInfo = postCreatorInfo;
@@ -67,7 +61,7 @@ public class MoimPostDto {
                 , moimPost.isNotice()
                 , moimPost.getCreatedAt()
                 , moimPost.getUpdatedAt()
-                , moimPost.getUpdatedUid()
+                , moimPost.getUpdatedMemberId()
                 , moimPost.isHasFiles()
                 , isCreatorCurMember
                 , null
@@ -89,7 +83,7 @@ public class MoimPostDto {
         this.hasFiles = moimPost.isHasFiles();
         this.createdAt = moimPost.getCreatedAt();
         this.updatedAt = moimPost.getUpdatedAt();
-        this.updatedUid = moimPost.getUpdatedUid();
+        this.updatedMemberId = moimPost.getUpdatedMemberId();
     }
 
     public void setPostFilesDto(List<PostFileDto> postFilesDto) {
@@ -104,4 +98,3 @@ public class MoimPostDto {
         this.postCreatorInfo = postCreatorInfo;
     }
 }
-

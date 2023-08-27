@@ -29,7 +29,7 @@ public class SmsSendShell {
     public void sendMessage(Request request) {
 
         // .execute() 함수는 동기처리 함수인듯
-        // Response response = okHttpClient.newCall(request).execute();
+        // Response response_b = okHttpClient.newCall(request_b).execute();
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {

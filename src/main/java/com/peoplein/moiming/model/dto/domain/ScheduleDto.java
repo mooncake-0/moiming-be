@@ -19,9 +19,9 @@ public class ScheduleDto {
     private int maxCount;
     private boolean isClosed;
     private LocalDateTime createdAt;
-    private String createdUid;
+    private Long createdMemberId;
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
 
     /*
      Constructor 1
@@ -35,9 +35,9 @@ public class ScheduleDto {
         this.maxCount = schedule.getMaxCount();
         this.isClosed = schedule.isClosed();
         this.createdAt = schedule.getCreatedAt();
-        this.createdUid = schedule.getCreatedUid();
+        this.createdMemberId = schedule.getCreatedMemberId();
         this.updatedAt = schedule.getUpdatedAt();
-        this.updatedUid = schedule.getUpdatedUid();
+        this.updatedMemberId = schedule.getUpdatedMemberId();
     }
 
     public static ScheduleDto createScheduleDto(Schedule schedule) {
@@ -49,9 +49,9 @@ public class ScheduleDto {
                 schedule.getMaxCount(),
                 schedule.isClosed(),
                 schedule.getCreatedAt(),
-                schedule.getCreatedUid(),
+                schedule.getCreatedMemberId(),
                 schedule.getUpdatedAt(),
-                schedule.getUpdatedUid()
+                schedule.getUpdatedMemberId()
         );
     }
 }

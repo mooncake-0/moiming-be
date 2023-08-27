@@ -5,8 +5,8 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.model.dto.domain.PolicyAgreeDto;
-import com.peoplein.moiming.model.dto.request.PolicyAgreeRequestDto;
-import com.peoplein.moiming.model.dto.response.PolicyAgreeResponseDto;
+import com.peoplein.moiming.model.dto.request_b.PolicyAgreeRequestDto;
+import com.peoplein.moiming.model.dto.response_b.PolicyAgreeResponseDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +62,7 @@ public class PolicyAgreeService {
         );
 
         if (isAnyForbidden) {
-            log.error("필수 약관 변경 요청 - 경로 확인 필요 : {}", curMember.getUid());
+            log.error("필수 약관 변경 요청 - 경로 확인 필요 : {}", curMember.getId());
             throw new RuntimeException("잘못된 경로 및 요청 - 경로 확인 필요 : 필수 약관 동의 여부는 변경할 수 없습니다");
         }
 
@@ -73,7 +73,7 @@ public class PolicyAgreeService {
 
         // TODO :: 이걸 레포지토리단에서 하는 건 괜찮을까?
         if (curMemberPolicyAgreedList.isEmpty()) {
-            log.error("Member 약관 없음 - 확인 필요 : {}", curMember.getUid());
+            log.error("Member 약관 없음 - 확인 필요 : {}", curMember.getId());
             throw new RuntimeException("잘못된 상황입니다 - Member 약관 확인 필요");
         }
 
@@ -93,7 +93,7 @@ public class PolicyAgreeService {
                 if (thisAgree.isAgreed() != updatingPolicy.isAgreed()) { // 수정한다
                     thisAgree.setAgreed(updatingPolicy.isAgreed());
                     thisAgree.setUpdatedAt(LocalDateTime.now());
-                    thisAgree.changeUpdatedUid(curMember.getUid());
+                    thisAgree.setUpdatedMemberId(curMember.getId());
                 }
 
             } else { // 없다 - 객체 생성 필요 (추가된 약관 항목으로 보임)
@@ -122,6 +122,6 @@ public class PolicyAgreeService {
             policyAgrees.add(new PolicyAgreeDto(curPolicyAgree));
         }
 
-        return new PolicyAgreeResponseDto(curMember.getUid(), policyAgrees);
+        return new PolicyAgreeResponseDto(curMember.getId(), policyAgrees);
     }
 }

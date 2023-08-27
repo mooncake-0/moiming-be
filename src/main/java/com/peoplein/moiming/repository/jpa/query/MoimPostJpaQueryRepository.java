@@ -41,7 +41,7 @@ public class MoimPostJpaQueryRepository {
 
         List<MoimMemberInfoDto> dataList =
                 queryFactory.select(Projections.constructor(MoimMemberInfoDto.class,
-                                member.id, member.uid, memberInfo.memberName, memberInfo.memberEmail, memberInfo.memberGender, memberInfo.memberPfImg
+                                member.id, memberInfo.memberName, member.memberEmail, memberInfo.memberGender
                                 , memberMoimLinker.moimRoleType, memberMoimLinker.memberState)
                         ).from(memberMoimLinker)
                         .join(memberMoimLinker.member, member)
@@ -60,7 +60,7 @@ public class MoimPostJpaQueryRepository {
         return queryFactory.select(
                         Projections.constructor(QueryMoimPostDetails.class
                                 , moimPost.id, moimPost.postTitle, moimPost.postContent, moimPost.moimPostCategory, moimPost.isNotice, moimPost.hasFiles
-                                , moimPost.createdAt, moimPost.updatedAt, moimPost.updatedUid, member.id)
+                                , moimPost.createdAt, moimPost.updatedAt, moimPost.updatedMemberId, member.id)
                 )
                 .from(moimPost)
                 .join(moimPost.moim, moim)

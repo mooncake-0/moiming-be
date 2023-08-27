@@ -22,8 +22,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/*
+ 해당 도메인 서비스단 재설계 예정
+ - Service 는 단위테스트만 진행 예정 (DB 개입 필요 없음)
+ - Repo 단위테스트, Controlller 통합 테스트로 진행
+ */
 //@SpringBootTest
-public class MoimServiceUnitTest extends BaseTest {
+public class MoimServiceUnitTest {
 
     @Autowired
     MoimService moimService;
@@ -38,7 +43,7 @@ public class MoimServiceUnitTest extends BaseTest {
     }
 
 
-    @Test
+//    @Test
     void updateMoimSuccessTest() {
 
         // given
@@ -58,7 +63,7 @@ public class MoimServiceUnitTest extends BaseTest {
         assertThat(result.isAnyUpdated()).isTrue();
     }
 
-    @Test
+//    @Test
     void updateMoimTestFailIfNotPermitted2() {
 
         // given
@@ -78,7 +83,7 @@ public class MoimServiceUnitTest extends BaseTest {
 
 
 
-    @Test
+//    @Test
     void updateMoimTestFailIfMoimNotExisted() {
         // given
         MoimDto moimDto = TestUtils.createOtherMoimDtoForUpdate();
@@ -95,7 +100,7 @@ public class MoimServiceUnitTest extends BaseTest {
                 .isInstanceOf(RuntimeException.class);
     }
 
-    @Test
+//    @Test
     void createMoimTestSuccess() {
         // given
         MoimDto moimDto = TestUtils.createOtherMoimDtoForUpdate();

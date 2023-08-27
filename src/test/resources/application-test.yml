@@ -1,0 +1,27 @@
+spring:
+
+  datasource:
+    url: jdbc:h2:mem:test;MODE=MySQL # Test 는 인메모리 사용
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        default_batch_fetch_size: 100
+
+# TEST 통과를 위해 기재
+app_files:
+  fcm_path: test
+
+open_api_keys:
+  naver_sens_sms: test
+  naver_access_key_id: test
+  naver_secret_key_id: test
+
+file.dir: test

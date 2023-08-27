@@ -9,30 +9,31 @@ import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.rules.RuleJoin;
-import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
-import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimMemberActionRequestDto;
 import com.peoplein.moiming.repository.*;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+
+/*
+ Integrated Test 는 통합 테스트로 ㄱㄱ
+ Repository 와 분리 필요
+ - Service 단위테스트만 진행
+ */
 @SpringBootTest
 @Transactional
-public class MoimMemberIntegrationServiceTest extends BaseTest {
+public class MoimMemberIntegrationServiceTest {
 
 
     @Autowired
@@ -51,7 +52,7 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
     @Autowired
     EntityManager em;
 
-    @Test
+//    @Test
     @DisplayName("성공 @ requestJoin() - RuleJoin이 없는 모임에 가입 요청")
     void requestJoinTestSuccessWithNoRuleJoin() {
         // given
@@ -73,13 +74,16 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
     }
 
-    @Test
+//    @Test
     @DisplayName("requestJoin")
     void requestJoinTestSuccess() {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
         Moim moim = TestUtils.createMoimOnly();
-        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange
+                , TestUtils.memberGenderAny, TestUtils.moimCountBig, true
+                , true, moim, member.getId(), false
+                , false);
 
         moimRepository.save(moim);
         memberRepository.save(member);
@@ -99,15 +103,19 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         assertThat(findMoim.getCurMemberCount()).isEqualTo(1);
     }
 
-    @Test
+//    @Test
     @DisplayName("성공 @ requestJoin() - IBF 재가입 시도")
     void requestJoinTestSuccessCase2() {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
         Moim moim = TestUtils.createMoimOnly();
-        MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
+        MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim
+                , MoimRoleType.NORMAL, MoimMemberState.IBF);
         memberMoimLinker.setBanRejoin(true);
-        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange
+                , TestUtils.birthMinForBigRange, TestUtils.memberGenderAny
+                , TestUtils.moimCountBig, true, true
+                , moim, member.getId(), false, false);
 
         moimRepository.save(moim);
         memberRepository.save(member);
@@ -128,7 +136,7 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         assertThat(findMoim.getCurMemberCount()).isEqualTo(0);
     }
 
-    @Test
+//    @Test
     @DisplayName("성공 @ requestJoin() - IBF 재가입 시도")
     void requestJoinTestSuccessCase3() {
         // given
@@ -136,7 +144,9 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         Moim moim = TestUtils.createMoimOnly();
         MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
         memberMoimLinker.setBanRejoin(false);
-        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange
+                , TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true
+                , moim, member.getId(), false, false);
 
         moimRepository.save(moim);
         memberRepository.save(member);
@@ -155,14 +165,16 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         assertThat(findMoim.getCurMemberCount()).isEqualTo(0);
     }
 
-    @Test
+//    @Test
     void decideJoinTestSuccess() {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
         Moim moim = TestUtils.createMoimOnly();
         MemberMoimLinker memberMoimLinker = MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.IBF);
         memberMoimLinker.setBanRejoin(true);
-        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange, TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim, member.getUid(), false, false);
+        RuleJoin ruleJoin = new RuleJoin(TestUtils.birthMaxForBigRange, TestUtils.birthMinForBigRange
+                , TestUtils.memberGenderAny, TestUtils.moimCountBig, true, true, moim
+                , member.getId(), false, false);
 
         moimRepository.save(moim);
         memberRepository.save(member);

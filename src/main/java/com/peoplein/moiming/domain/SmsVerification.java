@@ -38,7 +38,7 @@ public class SmsVerification {
 
     private String verificationNumber;
 
-    private String memberUid;
+    private Long memberId;
 
     private String memberPhoneNumber;
 
@@ -53,18 +53,15 @@ public class SmsVerification {
 
     private LocalDateTime expiredAt; // 만료 및 추후 일괄 삭제시 필요
 
-    public static SmsVerification createSmsVerification(String memberUid, String memberPhoneNumber, VerificationType verificationType) {
+    public static SmsVerification createSmsVerification(Long memberId, String memberPhoneNumber, VerificationType verificationType) {
         String verificationNumber = createVerificationNumber();
-        return new SmsVerification(verificationNumber, memberUid, memberPhoneNumber, verificationType);
+        return new SmsVerification(verificationNumber, memberId, memberPhoneNumber, verificationType);
     }
 
-    private SmsVerification(String verificationNumber, String memberUid, String memberPhoneNumber, VerificationType verificationType) {
-
-        DomainChecker.checkRightString(getClass().getName(), false, verificationNumber, memberUid, memberPhoneNumber);
-        DomainChecker.checkWrongObjectParams(getClass().getName(), verificationType);
+    private SmsVerification(String verificationNumber, Long memberId, String memberPhoneNumber, VerificationType verificationType) {
 
         this.verificationNumber = verificationNumber;
-        this.memberUid = memberUid;
+        this.memberId = memberId;
         this.memberPhoneNumber = memberPhoneNumber;
         this.verificationType = verificationType;
 

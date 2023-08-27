@@ -22,12 +22,12 @@ public class RulePersist extends MoimRule {
     private int attendCount;
 
     public RulePersist(boolean doGreeting, int attendMonthly, int attendCount
-            , Moim moim, String createdUid) {
+            , Moim moim, Long createdMemberId) {
 
         this.doGreeting = doGreeting;
         this.attendMonthly = attendMonthly;
         this.attendCount = attendCount;
-        this.createdUid = createdUid;
+        this.createdMemberId = createdMemberId;
 
          /*
          초기화

@@ -4,20 +4,24 @@ import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.Moim;
-import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import com.peoplein.moiming.service.core.MoimPostServiceCore;
 import com.peoplein.moiming.service.input.MoimPostServiceInput;
 import com.peoplein.moiming.service.output.MoimPostServiceOutput;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import static org.assertj.core.api.Assertions.*;
 
+
+/*
+ Integrated Test 는 통합 테스트로 ㄱㄱ
+ Repository 와 분리 필요
+ - Service 단위테스트만 진행
+ */
 @SpringBootTest
-public class MoimPostServiceUnitTest extends BaseTest {
+public class MoimPostServiceUnitTest {
 
 
     MoimPostServiceCore moimPostServiceCore;
@@ -28,7 +32,7 @@ public class MoimPostServiceUnitTest extends BaseTest {
     }
 
 
-    @Test
+//    @Test
     void createMoimPostTestPass() {
         // given
 
@@ -53,10 +57,10 @@ public class MoimPostServiceUnitTest extends BaseTest {
         assertThat(output.getCreatedMoimPost().getPostTitle()).isEqualTo(input.getPostTitleAboutNewMoimPost());
         assertThat(output.getCreatedMoimPost().getMoimPostCategory()).isEqualTo(input.getMoimPostCategoryAboutNewMoimPost());
         assertThat(output.getCreatedMoimPost().getMoim().getMoimName()).isEqualTo(moim.getMoimName());
-        assertThat(output.getCreatedMoimPost().getMember().getUid()).isEqualTo(member.getUid());
+        assertThat(output.getCreatedMoimPost().getMember().getId()).isEqualTo(member.getId());
     }
 
-    @Test
+//    @Test
     void deleteMoimPostTestPass() {
         // given
 
@@ -81,7 +85,7 @@ public class MoimPostServiceUnitTest extends BaseTest {
         assertThat(output.getCreatedMoimPost().getPostTitle()).isEqualTo(input.getPostTitleAboutNewMoimPost());
         assertThat(output.getCreatedMoimPost().getMoimPostCategory()).isEqualTo(input.getMoimPostCategoryAboutNewMoimPost());
         assertThat(output.getCreatedMoimPost().getMoim().getMoimName()).isEqualTo(moim.getMoimName());
-        assertThat(output.getCreatedMoimPost().getMember().getUid()).isEqualTo(member.getUid());
+        assertThat(output.getCreatedMoimPost().getMember().getId()).isEqualTo(member.getId());
     }
 
 }

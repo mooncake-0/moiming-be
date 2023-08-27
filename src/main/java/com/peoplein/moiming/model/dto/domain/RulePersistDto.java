@@ -1,7 +1,5 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.DomainChecker;
-import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.rules.RulePersist;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -20,9 +18,9 @@ public class RulePersistDto {
     private int attendCount;
 
     private LocalDateTime createdAt;
-    private String createdUid;
+    private Long createdMemberId;
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
 
 
     /*
@@ -36,9 +34,9 @@ public class RulePersistDto {
             this.attendMonthly = rulePersist.getAttendMonthly();
             this.attendCount = rulePersist.getAttendCount();
             this.createdAt = rulePersist.getCreatedAt();
-            this.createdUid = rulePersist.getCreatedUid();
+            this.createdMemberId = rulePersist.getCreatedMemberId();
             this.updatedAt = rulePersist.getUpdatedAt();
-            this.updatedUid = rulePersist.getUpdatedUid();
+            this.updatedMemberId = rulePersist.getUpdatedMemberId();
         }
     }
 
@@ -47,16 +45,15 @@ public class RulePersistDto {
      각 필드 주입을 통한 Dto 형성
      */
     public RulePersistDto(Long moimId, boolean doGreeting, int attendMonthly, int attendCount
-            , LocalDateTime createdAt, String createdUid, LocalDateTime updatedAt, String updatedUid) {
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), moimId);
+            , LocalDateTime createdAt, Long createdMemberId, LocalDateTime updatedAt, Long updatedMemberId) {
         this.moimId = moimId;
         this.doGreeting = doGreeting;
         this.attendMonthly = attendMonthly;
         this.attendCount = attendCount;
         this.createdAt = createdAt;
-        this.createdUid = createdUid;
+        this.createdMemberId = createdMemberId;
         this.updatedAt = updatedAt;
-        this.updatedUid = updatedUid;
+        this.updatedMemberId = updatedMemberId;
     }
 
 

@@ -23,7 +23,7 @@ public class QueryMoimPostDetails {
     private boolean hasFiles;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
 
     // Member
     private Long postCreatorId;
@@ -32,7 +32,7 @@ public class QueryMoimPostDetails {
     private MoimMemberInfoDto postCreatorInfoDto;
 
     public QueryMoimPostDetails(Long moimPostId, String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean isNotice, boolean hasFiles
-            , LocalDateTime createdAt, LocalDateTime updatedAt, String updatedUid, Long postCreatorId) {
+            , LocalDateTime createdAt, LocalDateTime updatedAt, Long updatedMemberId, Long postCreatorId) {
         this.moimPostId = moimPostId;
         this.postTitle = postTitle;
         this.postContent = postContent;
@@ -41,7 +41,7 @@ public class QueryMoimPostDetails {
         this.hasFiles = hasFiles;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.updatedUid = updatedUid;
+        this.updatedMemberId = updatedMemberId;
         this.postCreatorId = postCreatorId;
     }
 

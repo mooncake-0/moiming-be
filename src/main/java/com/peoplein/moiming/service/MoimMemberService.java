@@ -1,17 +1,12 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberInfo;
 import com.peoplein.moiming.domain.MemberMoimLinker;
 import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.enums.*;
-import com.peoplein.moiming.domain.rules.RuleJoin;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
-import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
-import com.peoplein.moiming.model.dto.domain.NotificationDto;
-import com.peoplein.moiming.model.dto.request.MoimJoinRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.inner.NotificationInput;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MemberRepository;
@@ -20,12 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -46,6 +37,7 @@ public class MoimMemberService {
         List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findWithMemberInfoAndMoimByMoimId(moimId);
         return getMoimMemberInfos(memberMoimLinkers);
     }
+
     /**
      * 특정 유저의 모임 가입 요청을 처리한다
      *
@@ -114,6 +106,7 @@ public class MoimMemberService {
 
         return memberMoimLinker;
     }
+
     public MoimMemberInfoDto exitMoim(MoimMemberActionRequestDto moimMemberActionRequestDto, Member curMember) {
 
         // 영속화
@@ -159,9 +152,9 @@ public class MoimMemberService {
 
         // 그 Member 의 MoimMemberInfo 를 전달
         MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(
-                memberMoimLinker.getMember().getId(), memberMoimLinker.getMember().getUid()
-                , memberMoimLinker.getMember().getMemberInfo().getMemberName(), memberMoimLinker.getMember().getMemberInfo().getMemberEmail()
-                , memberMoimLinker.getMember().getMemberInfo().getMemberGender(), memberMoimLinker.getMember().getMemberInfo().getMemberPfImg()
+                memberMoimLinker.getMember().getId()
+                , memberMoimLinker.getMember().getMemberInfo().getMemberName(), memberMoimLinker.getMember().getMemberEmail()
+                , memberMoimLinker.getMember().getMemberInfo().getMemberGender()
                 , memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState()
                 , memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt()
         );

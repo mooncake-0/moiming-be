@@ -2,27 +2,20 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.ErrorResponse;
-import com.peoplein.moiming.model.ResponseModel;
+import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.domain.MoimPostDto;
-import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import com.peoplein.moiming.service.MoimPostService;
 import com.peoplein.moiming.service.PostCommentService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@Tag(name = "Moim 게시물 관련")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_POST)
@@ -32,25 +25,11 @@ public class MoimPostController {
     private final PostCommentService postCommentService;
 
 
-    @Operation(summary = "게시물 생성 요청", description = "성공시 생성된 게시물에 대한 정보를 전달한다")
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "게시물 생성 성공",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = MoimPostDto.class))
-                            }),
-                    @ApiResponse(responseCode = "400", description = "잘못된 변수 전달, 잘못된 JSON 형식",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-                    @ApiResponse(responseCode = "500", description = "내부 Null Pointer 발생, Response 형성 에러 발생 (Report Need)",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-            }
-    )
+    /*
+     게시물 생성 요청
+     */
     @PostMapping("/create")
-    public ResponseModel<MoimPostDto> createPost(@RequestBody MoimPostRequestDto moimPostRequestDto
+    public ResponseEntity<?> createPost(@RequestBody MoimPostRequestDto moimPostRequestDto
             , List<MultipartFile> file) {
 
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -61,68 +40,36 @@ public class MoimPostController {
                 MultipartFile 을 다시 사용 + 받아온 url 을 통해서 PostFile Entity 를 만든다
                 그리고 게시물과의 연관관계를 매핑해준다
          */
-
-        return ResponseModel.createResponse(moimPostService.createPost(moimPostRequestDto, curMember));
+        MoimPostDto responseData = moimPostService.createPost(moimPostRequestDto, curMember);
+        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "게시물 생성 완료", responseData), HttpStatus.CREATED);
     }
 
 
-    // 모임 모든 게시물 일반 조회
-    @Operation(summary = "모임 모든 게시물 일반 조회", description = "해당 모임의 모든 게사물들에 대한 일반 조회 정보를 전달한다 (사진정보, 댓글정보 X)")
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "모임 생성 성공",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = MoimPostDto.class))
-                            }),
-                    @ApiResponse(responseCode = "400", description = "잘못된 변수 전달, 잘못된 JSON 형식",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-                    @ApiResponse(responseCode = "500", description = "내부 Null Pointer 발생, Response 형성 에러 발생 (Report Need)",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-            }
-    )
+    // 해당 모임의 모든 게사물들에 대한 일반 조회 정보를 전달한다 (사진정보, 댓글정보 X)
     @GetMapping("")
-    public ResponseModel<List<MoimPostDto>> viewAllMoimPost(@RequestParam(name = "moimId") Long moimId) {
+    public ResponseEntity<?> viewAllMoimPost(@RequestParam(name = "moimId") Long moimId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimPostService.viewAllMoimPost(moimId, curMember));
+        List<MoimPostDto> responseData = moimPostService.viewAllMoimPost(moimId, curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "모든 게시물 조회 완료", responseData));
     }
 
 
-    // 특정 게시물 전체 조회
-    @Operation(summary = "게시물에 대한 전체 정보 조회", description = "게시물에 대한 모든 정보를 조회한다 (사진정보, 댓글정보 포함)")
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "모임 생성 성공",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = MoimPostDto.class))
-                            }),
-                    @ApiResponse(responseCode = "400", description = "잘못된 변수 전달, 잘못된 JSON 형식",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-                    @ApiResponse(responseCode = "500", description = "내부 Null Pointer 발생, Response 형성 에러 발생 (Report Need)",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-            }
-    )
+    // 특정 게시물 일반조회 : 모든 정보를 조회한다 (사진정보, 댓글정보 포함)
     @GetMapping("/{moimPostId}")
-    public ResponseModel<MoimPostDto> getMoimPostData(@PathVariable(name = "moimPostId") Long moimPostId) {
+    public ResponseEntity<?> getMoimPostData(@PathVariable(name = "moimPostId") Long moimPostId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseModel.createResponse(moimPostService.getMoimPostData(moimPostId, curMember));
+        MoimPostDto responseData = moimPostService.getMoimPostData(moimPostId, curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "게시물 일반 조회 완료 ", responseData));
     }
 
     /*
      특정 게시물 수정
      */
     @PatchMapping("/update")
-    public ResponseModel<MoimPostDto> updatePost(@RequestBody MoimPostRequestDto moimPostRequestDto, List<MultipartFile> file) {
+    public ResponseEntity<?> updatePost(@RequestBody MoimPostRequestDto moimPostRequestDto, List<MultipartFile> file) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimPostDto moimPostDto = moimPostService.updatePost(moimPostRequestDto, curMember);
-        return ResponseModel.createResponse(moimPostDto);
+        MoimPostDto responseData = moimPostService.updatePost(moimPostRequestDto, curMember);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "게시물 정보 수정 완료", responseData));
     }
 
 
@@ -130,9 +77,10 @@ public class MoimPostController {
      특정 게시물 삭제
      */
     @DeleteMapping("/{moimPostId}")
-    public ResponseModel<String> deletePost(@PathVariable(name = "moimPostId") Long moimPostId) {
+    public ResponseEntity<?> deletePost(@PathVariable(name = "moimPostId") Long moimPostId) {
         Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         moimPostService.deletePost(moimPostId, curMember);
-        return ResponseModel.createResponse("OK");
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "게시물 삭제 완료", null));
     }
+
 }

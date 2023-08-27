@@ -1,7 +1,6 @@
 package com.peoplein.moiming.model.dto.domain;
 
 import com.peoplein.moiming.domain.session.MoimSession;
-import com.peoplein.moiming.model.dto.response.MoimSessionResponseDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,17 +28,16 @@ public class MoimSessionDto {
     private int curCost;
     private int curSenderCount;
     private LocalDateTime createdAt;
-    private String createdUid;
+    private Long createdMemberId;
     private LocalDateTime updatedAt;
-    private String updatedUid;
+    private Long updatedMemberId;
 
     /*
      요청시 사용 X, 응답시에는 moimId, scheduleId 필요하지 않는다
      MoimSession 도메인 정보를 가지고 DTO 를 만들어내는 Constructor
      */
     public MoimSessionDto(MoimSession moimSession) {
-        // ID 만 조회하는 것은 QUERY 에 영향을 주지 않는다
-        // 생성 요청시 NULL
+
         this.moimId = moimSession.getMoim().getId();
         if (!Objects.isNull(moimSession.getSchedule())) { // 없을 수도 있음
             this.scheduleId = moimSession.getSchedule().getId();
@@ -53,22 +51,10 @@ public class MoimSessionDto {
         this.curCost = moimSession.getCurCost();
         this.curSenderCount = moimSession.getCurSenderCount();
         this.createdAt = moimSession.getCreatedAt();
-        this.createdUid = moimSession.getCreatedUid();
+        this.createdMemberId = moimSession.getCreatedMemberId();
         this.updatedAt = moimSession.getUpdatedAt();
-        this.updatedUid = moimSession.getUpdatedUid();
+        this.updatedMemberId = moimSession.getUpdatedMemberId();
         this.isFinished = moimSession.isFinished();
     }
 
-//    /*
-//     Constructor -2
-//     요청 Object Mapper 를 위한 생성자
-//     */
-//    public MoimSessionDto(Long moimId, Long scheduleId, String sessionName, String sessionInfo, int totalCost, int totalSenderCount) {
-//        this.moimId = moimId;
-//        this.scheduleId = scheduleId;
-//        this.sessionName = sessionName;
-//        this.sessionInfo = sessionInfo;
-//        this.totalCost = totalCost;
-//        this.totalSenderCount = totalSenderCount;
-//    }
 }

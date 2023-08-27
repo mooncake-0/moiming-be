@@ -42,8 +42,6 @@ public class PostComment {
 
     private PostComment(String commentContent, Member member, MoimPost moimPost) {
 
-        DomainChecker.checkRightString(this.getClass().getName(), false, commentContent);
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), member, moimPost);
         this.commentContent = commentContent;
 
         /*

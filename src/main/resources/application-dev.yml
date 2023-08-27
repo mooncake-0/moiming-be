@@ -1,0 +1,36 @@
+spring:
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  #DB
+  #Local DB Source
+  datasource:
+    url: jdbc:mysql://localhost:3306/moiming_dev_db?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username: root
+    password: peoplein
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database: mysql
+    properties:
+      dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+      hibernate:
+        show_sql: true
+        format_sql: true
+        default_batch_fetch_size: 100
+    defer-datasource-initialization: true
+    generate-ddl: true
+    open-in-view: false
+
+app_files:
+  fcm_path: src/main/resources/fcm/moiming-b2ae3-firebase-adminsdk-21zjr-11c77c69f7.json
+
+open_api_keys:
+  naver_sens_sms: ncp:sms:kr:307383565992:moiming_phone_certi
+  naver_access_key_id: rJNU8kRQi1b4Z9QFrCKK
+  naver_secret_key_id: 2z0LxdrRcqMCWgADLCTnwlw6SnlYV6YmYK5Z8zzk
+
+file.dir: C:/dev/230715/demo

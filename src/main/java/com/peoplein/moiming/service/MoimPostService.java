@@ -1,11 +1,10 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MoimPostDto;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
-import com.peoplein.moiming.model.dto.request.MoimPostRequestDto;
+import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import com.peoplein.moiming.model.query.QueryMoimPostDetails;
 import com.peoplein.moiming.model.query.QueryPostCommentDetails;
 import com.peoplein.moiming.repository.*;
@@ -20,9 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -73,7 +70,7 @@ public class MoimPostService {
 
         for (QueryMoimPostDetails queryMoimPost : queryDetails) {
 
-            boolean isPostCreatorCurrentMember = queryMoimPost.getPostCreatorInfoDto().getMemberUid().equals(curMember.getUid());
+            boolean isPostCreatorCurrentMember = queryMoimPost.getPostCreatorInfoDto().getMemberId().equals(curMember.getId());
 
             MoimMemberInfoDto postCreatorInfoDto = null;
 
@@ -84,7 +81,7 @@ public class MoimPostService {
             MoimPostDto moimPostDto = new MoimPostDto(
                     queryMoimPost.getMoimPostId()
                     , queryMoimPost.getPostTitle(), queryMoimPost.getPostContent(), queryMoimPost.getMoimPostCategory(), queryMoimPost.isNotice()
-                    , queryMoimPost.getCreatedAt(), queryMoimPost.getUpdatedAt(), queryMoimPost.getUpdatedUid(), queryMoimPost.isHasFiles()
+                    , queryMoimPost.getCreatedAt(), queryMoimPost.getUpdatedAt(), queryMoimPost.getUpdatedMemberId(), queryMoimPost.isHasFiles()
                     , isPostCreatorCurrentMember, postCreatorInfoDto
             );
 
@@ -105,7 +102,7 @@ public class MoimPostService {
 
         for (QueryPostCommentDetails queryDetail : queryPostCommentDetails) {
 
-            boolean isCommentCreatorCurMember = queryDetail.getCommentCreatorInfoDto().getMemberUid().equals(curMember.getUid());
+            boolean isCommentCreatorCurMember = queryDetail.getCommentCreatorInfoDto().getMemberId().equals(curMember.getId());
 
             MoimMemberInfoDto commentCreatorInfo = null;
             if (!isCommentCreatorCurMember) {
@@ -128,17 +125,16 @@ public class MoimPostService {
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoAndMoimByMemberAndMoimId(curMember.getId()
                 , moimPost.getMoim().getId());
 
-        boolean isPostCreatorCurMember = moimPost.getMember().getUid().equals(curMember.getUid());
+        boolean isPostCreatorCurMember = moimPost.getMember().getId().equals(curMember.getId());
 
         MoimMemberInfoDto moimMemberInfoDto = null;
 
         if (!isPostCreatorCurMember) {
             moimMemberInfoDto = new MoimMemberInfoDto(
-                    moimPost.getMember().getId(), moimPost.getMember().getUid()
+                    moimPost.getMember().getId()
                     , moimPost.getMember().getMemberInfo().getMemberName()
-                    , moimPost.getMember().getMemberInfo().getMemberEmail()
+                    , moimPost.getMember().getMemberEmail()
                     , moimPost.getMember().getMemberInfo().getMemberGender()
-                    , moimPost.getMember().getMemberInfo().getMemberPfImg()
                     , memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState()
                     , memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt()
             );
@@ -146,7 +142,7 @@ public class MoimPostService {
 
         MoimPostDto moimPostDto = new MoimPostDto(
                 moimPost.getId(), moimPost.getPostTitle(), moimPost.getPostContent(), moimPost.getMoimPostCategory()
-                , moimPost.isNotice(), moimPost.getCreatedAt(), moimPost.getUpdatedAt(), moimPost.getUpdatedUid(), moimPost.isHasFiles()
+                , moimPost.isNotice(), moimPost.getCreatedAt(), moimPost.getUpdatedAt(), moimPost.getUpdatedMemberId(), moimPost.isHasFiles()
                 , isPostCreatorCurMember, moimMemberInfoDto
         );
 
@@ -170,7 +166,7 @@ public class MoimPostService {
                 moimPostRequestDto.getPostContent(),
                 moimPostRequestDto.isNotice(),
                 moimPostRequestDto.getMoimPostCategory(),
-                curMember.getUid());
+                curMember.getId());
 
         if (updated) {
             return MoimPostDto.createMoimPostDto(moimPost, true);
@@ -200,4 +196,3 @@ public class MoimPostService {
         moimPostRepository.removeMoimPostExecute(moimPost);
     }
 }
-

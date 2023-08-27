@@ -1,101 +1,131 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.BaseTest;
-import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberInfo;
-import com.peoplein.moiming.domain.MemberRoleLinker;
+import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.repository.MemberRepository;
-import com.peoplein.moiming.repository.MemberRoleLinkerRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import org.junit.jupiter.api.BeforeAll;
+import com.peoplein.moiming.support.RepositoryTestConfiguration;
+import com.peoplein.moiming.support.TestObjectCreator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MySQLContainer;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.persistence.EntityManager;
 
-import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+import java.util.Optional;
+
+import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@Transactional
-@Rollback(value = false)
-public class MemberJpaRepositoryTest extends BaseTest{
+@Import({RepositoryTestConfiguration.class, MemberJpaRepository.class, RoleJpaRepository.class})
+@ActiveProfiles("test")
+@DataJpaTest
+public class MemberJpaRepositoryTest extends TestObjectCreator {
 
     @Autowired
-    MemberRepository repository;
-    @Autowired
-    MemberRoleLinkerRepository memberRoleLinkerRepository;
-    @Autowired
-    RoleRepository roleRepository;
-    @Autowired
-    EntityManager em;
+    private MemberRepository memberRepository;
 
-    private Member member;
-    private MemberInfo memberInfo;
+    @Autowired
+    private RoleRepository roleRepository;
 
+    @Autowired
+    private EntityManager em;
 
     @BeforeEach
-    void initInstance() {
+    void be() {
 
-        member = TestUtils.initMemberAndMemberInfo();
-        memberInfo = member.getMemberInfo();
-        MemberRoleLinker memberRoleLinker = member.getRoles().get(0);
-        memberRoleLinkerRepository.save(memberRoleLinker);
-        roleRepository.save(memberRoleLinker.getRole());
-    }
+        // 1번 유저 주입
+        Role testRole = makeTestRole(RoleType.USER);
+        roleRepository.save(testRole);
 
+        Member member1 = makeTestMember(memberEmail, "01023456789", memberName, testRole);
+        member1.changeNickname(nickname);
+        memberRepository.save(member1);
 
-    @Test
-    @DisplayName("성공 @ 멤버 저장")
-    @Rollback(value = false)
-    void testSaveMember() {
+        // 2번 유저 주입
+        Member member2 = makeTestMember("hello@abc.com", memberPhone, memberName, testRole);
+        member2.changeNickname(nickname + "1");
+        memberRepository.save(member2);
 
-        Long memberId = repository.save(member);
-
-        assertEquals(memberId, member.getId());
-    }
-
-    @Test
-    @DisplayName("")
-    void testFindMemberById() {
-
-        repository.save(member);
+        // Data Jpa 아님
         em.flush();
         em.clear();
 
-        Member findMember = repository.findMemberById(member.getId());
-
-        assertThat(findMember.getId()).isEqualTo(member.getId());
-        assertThat(findMember.getMemberInfo().getId()).isEqualTo(memberInfo.getId());
-        assertThat(findMember.getPassword()).isEqualTo(member.getPassword());
-        assertThat(findMember.getId()).isEqualTo(member.getId());
-        assertThat(findMember.getRoles().get(0).getId()).isEqualTo(member.getRoles().get(0).getId());
     }
 
     @Test
-    @DisplayName("")
-    void testFindMemberByUid() {
+    void findMembersByEmailOrPhone_shouldReturnEmptyList_whenNotFound() throws Exception {
+        //given
+        String notRegisteredEmail = "not@registered.com";
+        String notRegisteredPhone = "01000000000";
 
-        Long saveMemberId = repository.save(member);
-        em.flush();
-        em.clear();
+        //when
+        List<Member> members = memberRepository.findMembersByEmailOrPhone(notRegisteredEmail, notRegisteredPhone);
 
-        Member findMember = repository.findMemberByUid(member.getUid());
+        //then
+        assertTrue(members.isEmpty());
+    }
 
-        assertThat(findMember.getId()).isEqualTo(member.getId());
-        assertThat(findMember.getMemberInfo().getId()).isEqualTo(memberInfo.getId());
-        assertThat(findMember.getPassword()).isEqualTo(member.getPassword());
-        assertThat(findMember.getId()).isEqualTo(member.getId());
-        assertThat(findMember.getMemberInfo().getId()).isEqualTo(member.getMemberInfo().getId());
-        assertThat(findMember.getRoles().get(0).getId()).isEqualTo(member.getRoles().get(0).getId());
+
+    @Test
+    void findMembersByEmailOrPhone_shouldReturnList_whenEmailFound() throws Exception {
+        // given
+        String notRegisteredPhone = "01000000000";
+
+        // when
+        List<Member> members = memberRepository.findMembersByEmailOrPhone(memberEmail, notRegisteredPhone);
+
+        // then
+        assertFalse(members.isEmpty());
+    }
+
+    @Test
+    void findMembersByEmailOrPhone_shouldReturnList_whenPhoneFound() throws Exception {
+        // given
+        String notRegisteredEmail = "not@registered.com";
+
+        // when
+        List<Member> members = memberRepository.findMembersByEmailOrPhone(notRegisteredEmail, memberPhone);
+
+        // then
+        assertFalse(members.isEmpty());
+    }
+
+
+    @Test
+    void findByNickname_shouldReturn_whenFound() {
+
+        // given
+        String findingNickname = nickname;
+
+        // when
+        Optional<Member> memberOp = memberRepository.findByNickname(findingNickname);
+
+        // then
+        assertTrue(memberOp.isPresent());
+        assertThat(memberOp.get().getMemberEmail()).isEqualTo(memberEmail);
+
+    }
+
+    @Test
+    void findByNickname_shouldReturnEmpty_whenNotFound() {
+
+        // given
+        String findingNickname = nickname + "2";
+
+        // when
+        Optional<Member> memberOp = memberRepository.findByNickname(findingNickname);
+
+        // then
+        assertTrue(memberOp.isEmpty());
+
     }
 }

@@ -1,27 +1,28 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.NetworkSetting;
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.exception.DuplicateAuthValueException;
-import com.peoplein.moiming.model.ErrorResponse;
-import com.peoplein.moiming.model.ResponseModel;
-import com.peoplein.moiming.model.dto.auth.*;
-import com.peoplein.moiming.model.dto.response.MemberResponseDto;
+import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.request.TokenReqDto;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
+import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.AuthService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.headers.Header;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
-@Tag(name = "Auth 관련")
+import java.util.Map;
+
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
+
+@Api(tags = "회원 & 회원 인증 관련 (토큰 불필요)")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_AUTH_VER + NetworkSetting.API_AUTH)
@@ -29,49 +30,57 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "중복 ID 확인 요청 (적용성 검토 중)")
-    @GetMapping("/uidAvailable/{uid}")
-    private ResponseModel<String> checkUidAvailable(@PathVariable String uid) {
 
-        if (authService.checkUidAvailable(uid)) {
-            return ResponseModel.createResponse("OK");
-        } else {
-            throw new DuplicateAuthValueException("[" + uid + "]" + "는 이미 존재하는 ID 입니다", "AS002");
-        }
+    @ApiOperation("이메일 중복 확인")
+    @GetMapping("/available/{email}")
+    public ResponseEntity<?> checkUidAvailable(@PathVariable String email) {
+        authService.checkEmailAvailable(email);
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "사용가능", null));
     }
+
+
+    @ApiOperation("최종 회원 가입")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "회원 가입 성공", response = MemberSignInRespDto.class,
+                    responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
+            @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
+    })
+    @PostMapping("/signin")
+    public ResponseEntity<?> signInMember(@RequestBody @Valid MemberSignInReqDto requestDto, BindingResult br
+            , HttpServletResponse response) {
+
+        Map<String, Object> transmit = authService.signIn(requestDto);
+
+        // 응답 준비
+        String jwtAccessToken = transmit.get(authService.KEY_ACCESS_TOKEN).toString();
+        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "회원 생성 성공", transmit.get(authService.KEY_RESPONSE_DATA)), HttpStatus.CREATED);
+
+    }
+
 
     /*
-     회원가입 요청 수신
+     Refresh Token 재발급 요청
      */
-    @Operation(description = "회원가입 요청 형식 및 응답 (약관 동의 항목들도 BODY에 한번에 전달)", summary = "회원가입 요청")
-    @PostMapping("/signin")
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "200", description = "회원 가입 성공",
-                            headers = {
-                                    @Header(name = "ACCESS_TOKEN", description = "로그인 성공시 발급되는 액세스 토큰이며, 유효기간 30분입니다"),
-                                    @Header(name = "REFRESH_TOKEN", description = "로그인 성공시 발급되는 리프레스 토큰이며, 유효기간 2주입니다")
-                            },
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = MemberResponseDto.class))
-                            }),
-                    @ApiResponse(responseCode = "400", description = "ID / PW / Email 공란",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-                    @ApiResponse(responseCode = "500", description = "존재하는 ID or Email 중복, 혹은 그 외(errorCode 로 구분)",
-                            content = {
-                                    @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))
-                            }),
-            }
-    )
-    private ResponseModel<MemberResponseDto> signinMember(@RequestBody MemberSigninRequestDto requestDto, HttpServletResponse response) {
-        MemberResponseDto dto = authService.signin(requestDto, response);
-        return ResponseModel.createResponse(dto);
+    @ApiOperation("갱신 토큰 - 토큰 재발급 요청")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "접근 / 갱신 토큰 재발급 성공", response = TokenRespDto.class,
+                    responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
+            @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
+    })
+    @PostMapping("/token")
+    public ResponseEntity<?> reissueToken(@RequestBody @Valid TokenReqDto requestDto, BindingResult br, HttpServletResponse response) {
+
+        Map<String, Object> transmit = authService.reissueToken(requestDto);
+
+        // 응답 준비
+        String jwtAccessToken = transmit.get(authService.KEY_ACCESS_TOKEN).toString();
+        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "재발급 성공", transmit.get(authService.KEY_RESPONSE_DATA)));
+
     }
-
-
-    // TODO:: SMS Verifiy 관련된건 해당 Domain 으로 요청을 보낸다
-    //        실제 Id 찾기, Pw 찾기, Pw 변경 자체에 대한 요청을 Auth Domain 에서 진행한다
-
 }

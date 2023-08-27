@@ -1,18 +1,14 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.rules.MoimRule;
 import com.peoplein.moiming.domain.rules.RuleJoin;
-import com.peoplein.moiming.domain.rules.RulePersist;
-import com.peoplein.moiming.model.ResponseModel;
 import com.peoplein.moiming.model.dto.domain.*;
-import com.peoplein.moiming.model.dto.request.MoimMemberActionRequestDto;
-import com.peoplein.moiming.model.dto.request.MoimRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MoimRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimResponseDto;
 import com.peoplein.moiming.model.query.QueryJoinedMoimBasic;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.query.MoimJpaQueryRepository;
@@ -25,12 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.html.Option;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,7 +48,7 @@ public class MoimService {
        유저가 소속된 모든 모임의 Basic 정보를 반환한다
      > TODO : 등록되어 있는 일정 확인 들어가면 좋을 듯
      */
-    public ResponseModel<List<MoimResponseDto>> viewMemberMoim(Member curMember) {
+    public List<MoimResponseDto> viewMemberMoim(Member curMember) {
 
         List<MoimResponseDto> moimResponseDtos = new ArrayList<>();
         List<QueryJoinedMoimBasic> queryDataList
@@ -64,8 +57,8 @@ public class MoimService {
         for (QueryJoinedMoimBasic queryData : queryDataList) {
 
             MoimDto moimDto = new MoimDto(
-                    queryData.getMoimId(), queryData.getMoimName(), queryData.getMoimInfo(), queryData.getMoimPfImg(), queryData.getMoimArea(), queryData.getCurMemberCount()
-                    , queryData.isHasRuleJoin(), queryData.isHasRulePersist(), queryData.getCreatedAt(), queryData.getCreatedUid(), queryData.getUpdatedAt(), queryData.getUpdatedUid()
+                    queryData.getMoimId(), queryData.getMoimName(), queryData.getMoimInfo(), queryData.getMoimArea(), queryData.getCurMemberCount()
+                    , queryData.isHasRuleJoin(), queryData.isHasRulePersist(), queryData.getCreatedAt(), queryData.getCreatedMemberId(), queryData.getUpdatedAt(), queryData.getUpdatedMemberId()
             );
 
             MyMoimLinkerDto myMoimLinkerDto = new MyMoimLinkerDto(
@@ -92,7 +85,7 @@ public class MoimService {
             ));
         }
 
-        return ResponseModel.createResponse(moimResponseDtos);
+        return moimResponseDtos;
     }
 
 
@@ -132,7 +125,7 @@ public class MoimService {
 
         MoimMembersDto moimMembersDto = new MoimMembersDto();
         moim.getMemberMoimLinkers().stream().filter(memberMoimLinker -> memberMoimLinker.getMember().getId().equals(curMember.getId()))
-                        .forEach(memberMoimLinker -> moimMembersDto.setMyMoimLinkerDto(new MyMoimLinkerDto(memberMoimLinker)));
+                .forEach(memberMoimLinker -> moimMembersDto.setMyMoimLinkerDto(new MyMoimLinkerDto(memberMoimLinker)));
 
         List<MoimMemberInfoDto> moimMemberInfoDtos = moim.getMemberMoimLinkers().stream().filter(memberMoimLinker -> !memberMoimLinker.getMember().getId().equals(curMember.getId()))
                 .map(MoimMemberInfoDto::createMemberInfoDto).collect(Collectors.toList());
@@ -207,7 +200,7 @@ public class MoimService {
                 ruleJoinDto.getMoimMaxCount(),
                 ruleJoinDto.isDupLeaderAvailable(),
                 ruleJoinDto.isDupManagerAvailable(),
-                createdMoim, curMember.getUid());
+                createdMoim, curMember.getId());
     }
 
     public MoimServiceCore getMoimServiceCore() {

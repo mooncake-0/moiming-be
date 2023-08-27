@@ -45,7 +45,6 @@ public class Notification extends BaseEntity {
     private Notification(Long senderId, String notiTitle, String notiBody, Long domainId, NotificationDomain notiDomain, NotificationDomainCategory notiCategory, Member member) {
 
         // NULL 조건 추가 검증 필요
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), senderId, notiDomain, notiCategory, member);
 
         this.senderId = senderId;
         this.notiTitle = notiTitle;

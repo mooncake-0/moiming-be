@@ -38,7 +38,7 @@ public class PostCommentJpaQueryRepository {
 
         List<MoimMemberInfoDto> dataList =
                 queryFactory.select(Projections.constructor(MoimMemberInfoDto.class,
-                                member.id, member.uid, memberInfo.memberName, memberInfo.memberEmail, memberInfo.memberGender, memberInfo.memberPfImg
+                                member.id, memberInfo.memberName, member.memberEmail, memberInfo.memberGender
                                 , memberMoimLinker.moimRoleType, memberMoimLinker.memberState)
                         ).from(memberMoimLinker)
                         .join(memberMoimLinker.member, member)

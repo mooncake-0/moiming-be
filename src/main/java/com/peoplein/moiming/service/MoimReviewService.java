@@ -8,11 +8,11 @@ import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.QuestionChoiceDto;
 import com.peoplein.moiming.model.dto.domain.ReviewAnswerDto;
 import com.peoplein.moiming.model.dto.domain.ReviewQuestionDto;
-import com.peoplein.moiming.model.dto.request.MoimReviewRequestDto;
-import com.peoplein.moiming.model.dto.request.ReviewAnswerRequestDto;
-import com.peoplein.moiming.model.dto.response.MoimReviewResponseDto;
-import com.peoplein.moiming.model.dto.response.ReviewQuestionAnswerDto;
-import com.peoplein.moiming.model.dto.response.ReviewQuestionResponseDto;
+import com.peoplein.moiming.model.dto.request_b.MoimReviewRequestDto;
+import com.peoplein.moiming.model.dto.request_b.ReviewAnswerRequestDto;
+import com.peoplein.moiming.model.dto.response_b.MoimReviewResponseDto;
+import com.peoplein.moiming.model.dto.response_b.ReviewQuestionAnswerDto;
+import com.peoplein.moiming.model.dto.response_b.ReviewQuestionResponseDto;
 import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.MoimReviewRepository;
@@ -44,8 +44,8 @@ public class MoimReviewService {
         Optional<MoimReview> existCheck = moimReviewRepository.findOptionalWithMemberByMemberAndMoimId(curMember.getId(), moimReviewRequestDto.getMoimId());
 
         if (existCheck.isPresent()) {
-            log.error(curMember.getUid() + "님은 이미 후기를 작성하셨습니다");
-            throw new RuntimeException(curMember.getUid() + "님은 이미 후기를 작성하셨습니다");
+            log.error(curMember.getId() + "님은 이미 후기를 작성하셨습니다");
+            throw new RuntimeException(curMember.getId() + "님은 이미 후기를 작성하셨습니다");
         }
         // Repository 단 접근을 통해서 필요한 객체들
         // 목적 : Review 객체 및 ReviewAnswer 객체들을 만든다
@@ -81,7 +81,7 @@ public class MoimReviewService {
 
         moimReviewRepository.save(moimReview);
 
-        // curMember 가 보낸 create 에 대한 response 이므로, moimMemberInfo 는 추가하지 않는다
+        // curMember 가 보낸 create 에 대한 response_b 이므로, moimMemberInfo 는 추가하지 않는다
 
         MoimReviewResponseDto moimReviewResponseDto = new MoimReviewResponseDto();
 
@@ -161,7 +161,10 @@ public class MoimReviewService {
         Member reviewCreator = moimReview.getMember();
         MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(reviewCreator.getId(), moimReview.getMoim().getId());
 
-        MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(reviewCreator.getId(), reviewCreator.getUid(), reviewCreator.getMemberInfo().getMemberName(), reviewCreator.getMemberInfo().getMemberEmail(), reviewCreator.getMemberInfo().getMemberGender(), reviewCreator.getMemberInfo().getMemberPfImg(), memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState(), memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt());
+        MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(reviewCreator.getId()
+                , reviewCreator.getMemberInfo().getMemberName(), reviewCreator.getMemberEmail()
+                , reviewCreator.getMemberInfo().getMemberGender(), memberMoimLinker.getMoimRoleType()
+                , memberMoimLinker.getMemberState(), memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt());
 
         moimReviewResponseDto.setMoimMemberInfoDto(moimMemberInfoDto);
 
@@ -203,7 +206,9 @@ public class MoimReviewService {
             });
 
             // 미리 아래 매칭을 위해서 Member 를 가능한 정보들로 세틍해 놓는다.
-            moimReviewResponseDto.setMoimMemberInfoDto(new MoimMemberInfoDto(moimReview.getMember().getId(), moimReview.getMember().getUid(), moimReview.getMember().getMemberInfo().getMemberName(), moimReview.getMember().getMemberInfo().getMemberEmail(), moimReview.getMember().getMemberInfo().getMemberGender(), moimReview.getMember().getMemberInfo().getMemberPfImg()));
+            moimReviewResponseDto.setMoimMemberInfoDto(new MoimMemberInfoDto(moimReview.getMember().getId()
+                    ,  moimReview.getMember().getMemberInfo().getMemberName()
+                    , moimReview.getMember().getMemberEmail(), moimReview.getMember().getMemberInfo().getMemberGender()));
             moimReviewResponseDto.setMoimReviewQuestionAnswerDto(moimReviewQuestionAnswerDto);
             moimReviewResponseDtos.add(moimReviewResponseDto);
         });
@@ -230,7 +235,7 @@ public class MoimReviewService {
         MoimReview moimReview = moimReviewRepository.findOptionalWithMemberById(moimReviewRequestDto.getMoimReviewId()).orElseThrow(() -> new RuntimeException("해당 MoimReview 는 존재하지 않는디..?"));
 
         // 2. curMember 를 통한 권한 확인
-        if (!curMember.getUid().equals(moimReview.getMember().getUid())) {
+        if (!curMember.getId().equals(moimReview.getMember().getId())) {
             log.error("후기는 후기 작성자만이 수정할 수 있습니다");
             throw new RuntimeException("후기는 후기 작성자만이 수정할 수 있습니다");
         }
@@ -290,7 +295,7 @@ public class MoimReviewService {
         MoimReview moimReview = moimReviewRepository.findOptionalWithMemberById(reviewId).orElseThrow(() -> new RuntimeException("해당 MoimReview 는 존재하지 않는디..?"));
 
         // 2. 권한 확인
-        if (!curMember.getUid().equals(moimReview.getMember().getUid())) { // 1. 모임 생성자인지 확인
+        if (!curMember.getId().equals(moimReview.getMember().getId())) { // 1. 모임 생성자인지 확인
             // MML 조회를 통한 권한 확인
             MemberMoimLinker curMemberMoimLinker = memberMoimLinkerRepository.findOptionalByMemberAndMoimId(curMember.getId(), moimReview.getMoim().getId())
                     .orElseThrow(() -> new RuntimeException("해당 모임에 연관관계가 존재하지 않는 유저입니다"));

@@ -1,7 +1,6 @@
 package com.peoplein.moiming.domain.session;
 
 
-import com.peoplein.moiming.domain.DomainChecker;
 import com.peoplein.moiming.domain.fixed.SessionCategory;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -35,7 +34,6 @@ public class MemberSessionCategoryLinker {
 
 
     public MemberSessionCategoryLinker(MemberSessionLinker memberSessionLinker, SessionCategory sessionCategory) {
-        DomainChecker.checkWrongObjectParams(this.getClass().getName(), memberSessionLinker, sessionCategory);
 
         this.memberSessionLinker = memberSessionLinker;
         this.sessionCategory = sessionCategory;
