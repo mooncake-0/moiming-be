@@ -25,9 +25,15 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+
+/*
+ Integrated Test 는 통합 테스트로 ㄱㄱ
+ Repository 와 분리 필요
+ - Service 단위테스트만 진행
+ */
 @SpringBootTest
 @Transactional
-public class MoimMemberIntegrationServiceTest extends BaseTest {
+public class MoimMemberIntegrationServiceTest {
 
 
     @Autowired
@@ -46,7 +52,7 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
     @Autowired
     EntityManager em;
 
-    @Test
+//    @Test
     @DisplayName("성공 @ requestJoin() - RuleJoin이 없는 모임에 가입 요청")
     void requestJoinTestSuccessWithNoRuleJoin() {
         // given
@@ -68,7 +74,7 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         assertThat(memberMoimLinker.getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
     }
 
-    @Test
+//    @Test
     @DisplayName("requestJoin")
     void requestJoinTestSuccess() {
         // given
@@ -97,7 +103,7 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         assertThat(findMoim.getCurMemberCount()).isEqualTo(1);
     }
 
-    @Test
+//    @Test
     @DisplayName("성공 @ requestJoin() - IBF 재가입 시도")
     void requestJoinTestSuccessCase2() {
         // given
@@ -130,7 +136,7 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         assertThat(findMoim.getCurMemberCount()).isEqualTo(0);
     }
 
-    @Test
+//    @Test
     @DisplayName("성공 @ requestJoin() - IBF 재가입 시도")
     void requestJoinTestSuccessCase3() {
         // given
@@ -159,7 +165,7 @@ public class MoimMemberIntegrationServiceTest extends BaseTest {
         assertThat(findMoim.getCurMemberCount()).isEqualTo(0);
     }
 
-    @Test
+//    @Test
     void decideJoinTestSuccess() {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();

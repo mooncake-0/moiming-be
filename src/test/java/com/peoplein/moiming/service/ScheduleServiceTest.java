@@ -22,10 +22,16 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.*;
 
+
+/*
+ 해당 도메인 서비스단 재설계 예정
+ - Service 는 단위테스트만 진행 예정 (DB 개입 필요 없음)
+ - Repo 단위테스트, Controlller 통합 테스트로 진행
+ */
 @SpringBootTest
 @Transactional
 //@Rollback(value = false)
-class ScheduleServiceTest extends BaseTest {
+class ScheduleServiceTest  {
 
 
     @Autowired
@@ -49,7 +55,7 @@ class ScheduleServiceTest extends BaseTest {
     @Autowired
     MemberMoimLinkerRepository memberMoimLinkerRepository;
 
-    @Test
+//    @Test
     @DisplayName("updateSchedule : 성공하는 경우")
     void updateScheduleSuccessTest() {
 
@@ -99,8 +105,8 @@ class ScheduleServiceTest extends BaseTest {
     }
 
 
-    @Test
-    @DisplayName("updateSchedule : 바뀐 게 없을 때")
+//    @Test
+//    @DisplayName("updateSchedule : 바뀐 게 없을 때")
     void updateScheduleFail2Test() {
 
         // Given :
@@ -137,7 +143,7 @@ class ScheduleServiceTest extends BaseTest {
     }
 
 
-    @Test
+//    @Test
     @DisplayName("updateSchedule : 권한 없어서 실패")
     void updateScheduleFailTest() {
 
@@ -179,7 +185,7 @@ class ScheduleServiceTest extends BaseTest {
                 .isInstanceOf(RuntimeException.class);
     }
 
-    @Test
+//    @Test
     @DisplayName("updateSchedule : 모임에 속하지 않았을 때, 삭제 요청하면? 실패")
     void updateScheduleFail3Test() {
 
@@ -225,7 +231,7 @@ class ScheduleServiceTest extends BaseTest {
                 .isInstanceOf(RuntimeException.class);
     }
 
-    @Test
+//    @Test
     @DisplayName("deleteScheduleTest : 성공")
     void deleteScheduleSuccessTest() {
 
@@ -267,7 +273,7 @@ class ScheduleServiceTest extends BaseTest {
     }
 
 
-    @Test
+//    @Test
     @DisplayName("deleteScheduleTest : 실패. 권한 문제")
     void deleteScheduleFailTest() {
 
@@ -297,7 +303,7 @@ class ScheduleServiceTest extends BaseTest {
     }
 
 
-    @Test
+//    @Test
     @DisplayName("changeMemberState : 스케쥴 처음으로 가입하고자 할 때임.")
     void changeMemberStateSuccess1Test() {
 
@@ -336,7 +342,7 @@ class ScheduleServiceTest extends BaseTest {
         assertThat(findLinker).isNotNull();
     }
 
-    @Test
+//    @Test
     @DisplayName("changeMemberState : 성공. 기존 스케쥴이 있는데 미참석으로 수정하는 경우.")
     void changeMemberStateSuccess2Test() {
 

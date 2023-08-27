@@ -260,7 +260,8 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(-1));
 
     }
- 
+    //
+
 
     // 토큰 재발급
     @Test
@@ -327,6 +328,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         String requestData = om.writeValueAsString(reqDto);
         Thread.sleep(3000); // 토큰을 만료시키자 (가끔 만료 안돼서 오류나서, 충분한 시간을 줌)
+
 
         // when
         ResultActions resultActions = mvc.perform(post(AUTH_URL + "/token").content(requestData).contentType(MediaType.APPLICATION_JSON));

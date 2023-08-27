@@ -15,7 +15,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-//@SpringBootTest
+
+/*
+ 해당 도메인 서비스단 재설계 예정 - core 등의 구조 개편 예정
+ - 재설계 예정이지만 Test 통과하므로 일단 둠
+ */
+
 class SearchServiceTest {
 
     SearchService searchService;

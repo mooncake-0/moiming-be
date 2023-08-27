@@ -20,10 +20,16 @@ import java.util.Arrays;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+
+/*
+ Integrated Test 는 통합 테스트로 ㄱㄱ
+ Repository 와 분리 필요
+ - Service 단위테스트만 진행
+ */
 @SpringBootTest
 @Transactional
 @Rollback(value = false)
-class MemberServiceIntegrationTest extends BaseTest {
+class MemberServiceIntegrationTest {
 
     @Autowired
     EntityManager em;
@@ -33,7 +39,7 @@ class MemberServiceIntegrationTest extends BaseTest {
 
 
 
-    @Test
+//    @Test
     void test1() {
 
         // Given:

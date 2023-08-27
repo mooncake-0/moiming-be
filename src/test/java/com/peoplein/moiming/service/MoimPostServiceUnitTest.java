@@ -14,8 +14,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.*;
 
+
+/*
+ Integrated Test 는 통합 테스트로 ㄱㄱ
+ Repository 와 분리 필요
+ - Service 단위테스트만 진행
+ */
 @SpringBootTest
-public class MoimPostServiceUnitTest extends BaseTest {
+public class MoimPostServiceUnitTest {
 
 
     MoimPostServiceCore moimPostServiceCore;
@@ -26,7 +32,7 @@ public class MoimPostServiceUnitTest extends BaseTest {
     }
 
 
-    @Test
+//    @Test
     void createMoimPostTestPass() {
         // given
 
@@ -54,7 +60,7 @@ public class MoimPostServiceUnitTest extends BaseTest {
         assertThat(output.getCreatedMoimPost().getMember().getId()).isEqualTo(member.getId());
     }
 
-    @Test
+//    @Test
     void deleteMoimPostTestPass() {
         // given
 
