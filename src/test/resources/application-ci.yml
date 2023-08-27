@@ -1,7 +1,4 @@
 spring:
-  profiles:
-    active:
-      - ci
 
   datasource:
     url: jdbc:mysql://localhost:${MYSQL_PORT}/test
@@ -17,16 +14,3 @@ spring:
       hibernate:
         show_sql: true
     defer-datasource-initialization: true
-
-# TEST 통과를 위해 기재
-
-app_files:
-  fcm_path: test
-
-
-open_api_keys:
-  naver_sens_sms: test
-  naver_access_key_id: test
-  naver_secret_key_id: test
-
-file.dir: test
