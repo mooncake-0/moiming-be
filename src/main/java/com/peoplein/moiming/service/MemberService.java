@@ -1,13 +1,12 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.repository.*;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 

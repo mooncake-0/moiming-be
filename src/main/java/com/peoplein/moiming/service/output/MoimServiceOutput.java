@@ -1,7 +1,7 @@
 package com.peoplein.moiming.service.output;
 
 import com.peoplein.moiming.domain.MemberMoimLinker;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import lombok.Builder;
 import lombok.Getter;

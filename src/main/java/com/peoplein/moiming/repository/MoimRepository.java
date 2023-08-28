@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
 
@@ -11,7 +11,7 @@ public interface MoimRepository {
 
     Long save(Moim moim);
 
-    Moim findById(Long moimId);
+    Optional<Moim> findById(Long moimId);
     Optional<Moim> findOptionalById(Long moimId);
 
     Moim findWithRulesById(Long moimId);

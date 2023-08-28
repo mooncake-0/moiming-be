@@ -4,17 +4,16 @@ import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.rules.MoimRule;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
-import com.peoplein.moiming.service.MoimService;
 import com.peoplein.moiming.service.input.MoimServiceInput;
 import com.peoplein.moiming.service.output.MoimServiceOutput;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import javax.naming.NoPermissionException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;

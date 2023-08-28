@@ -1,7 +1,7 @@
 package com.peoplein.moiming.domain.session;
 
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.Schedule;
 import lombok.AccessLevel;
 import lombok.Getter;

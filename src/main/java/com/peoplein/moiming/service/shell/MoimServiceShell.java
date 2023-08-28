@@ -3,6 +3,7 @@ package com.peoplein.moiming.service.shell;
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MoimMembersDto;

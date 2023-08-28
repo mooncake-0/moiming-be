@@ -1,6 +1,5 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.domain.Moim;
 import com.peoplein.moiming.domain.rules.MoimRule;
 
 

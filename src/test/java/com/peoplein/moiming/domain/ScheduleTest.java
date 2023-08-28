@@ -1,14 +1,12 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.TestUtils;
-import org.assertj.core.api.Assertions;
+import com.peoplein.moiming.domain.moim.Moim;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 class ScheduleTest {
 

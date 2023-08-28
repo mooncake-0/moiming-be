@@ -1,18 +1,15 @@
 package com.peoplein.moiming.domain.rules;
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "rule_persist")
+//@Entity
+//@Table(name = "rule_persist")
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RulePersist extends MoimRule {
@@ -40,7 +37,7 @@ public class RulePersist extends MoimRule {
          */
         this.moim = moim;
         this.moim.setHasRulePersist(true);
-        this.moim.getMoimRules().add(this);
+//        this.moim.getMoimRules().add(this);
     }
 
 }

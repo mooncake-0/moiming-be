@@ -2,6 +2,7 @@ package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.ScheduleDto;
 import com.peoplein.moiming.model.dto.domain.ScheduleMemberDto;

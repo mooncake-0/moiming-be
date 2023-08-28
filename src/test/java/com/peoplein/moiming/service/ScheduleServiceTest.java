@@ -1,9 +1,9 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
 import com.peoplein.moiming.model.dto.request_b.ScheduleRequestDto;
 import com.peoplein.moiming.model.dto.response_b.ScheduleResponseDto;
@@ -11,7 +11,6 @@ import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
 import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
 import com.peoplein.moiming.repository.ScheduleRepository;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +43,7 @@ class ScheduleServiceTest  {
     MoimMemberService moimMemberService;
 
     @Autowired
-    MoimService moimService;
+    MoimServiceOld moimServiceOld;
 
     @Autowired
     MemberScheduleLinkerRepository memberScheduleLinkerRepository;

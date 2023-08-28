@@ -3,13 +3,12 @@ package com.peoplein.moiming.domain;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
-import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
+import com.peoplein.moiming.domain.moim.Moim;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 

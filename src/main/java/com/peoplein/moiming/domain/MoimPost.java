@@ -2,7 +2,7 @@ package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
-import com.peoplein.moiming.model.dto.domain.PostCommentDto;
+import com.peoplein.moiming.domain.moim.Moim;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

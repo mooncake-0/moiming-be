@@ -1,6 +1,6 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.embeddable.Area;
 import lombok.AccessLevel;
 import lombok.Data;

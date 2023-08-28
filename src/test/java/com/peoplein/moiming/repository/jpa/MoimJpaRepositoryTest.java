@@ -1,29 +1,23 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.rules.MoimRule;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.MoimRuleRepository;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertEquals;

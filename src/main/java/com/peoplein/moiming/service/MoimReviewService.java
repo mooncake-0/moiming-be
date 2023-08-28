@@ -4,6 +4,7 @@ import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.enums.ReviewQuestionType;
 import com.peoplein.moiming.domain.fixed.ReviewQuestion;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.QuestionChoiceDto;
 import com.peoplein.moiming.model.dto.domain.ReviewAnswerDto;

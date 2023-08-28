@@ -1,14 +1,14 @@
 package com.peoplein.moiming.domain.rules;
 
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
+//@Entity
 @Getter @Setter
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class MoimRule {

@@ -1,10 +1,9 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MemberMoimLinker;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
@@ -18,7 +17,6 @@ import com.peoplein.moiming.repository.jpa.query.MoimJpaQueryRepository;
 import com.peoplein.moiming.service.core.MoimServiceCore;
 import com.peoplein.moiming.service.shell.MoimServiceShell;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -34,7 +32,7 @@ import static org.mockito.Mockito.*;
  */
 @SpringBootTest
 //@Transactional
-class MoimServiceTest  {
+class MoimServiceOldTest {
 
 
     @Mock
@@ -67,7 +65,7 @@ class MoimServiceTest  {
     @Mock
     MoimServiceShell moimServiceShell;
 
-    MoimService moimService;
+    MoimServiceOld moimServiceOld;
 
 
     Member baseMember;
@@ -78,7 +76,7 @@ class MoimServiceTest  {
     void initTestInstance() {
 
         MoimServiceCore moimServiceCore = new MoimServiceCore();
-        moimService = new MoimService(moimRepository,
+        moimServiceOld = new MoimServiceOld(moimRepository,
                 categoryRepository,
                 moimCategoryLinkerRepository,
                 moimJpaQueryRepository,
@@ -115,7 +113,7 @@ class MoimServiceTest  {
                 .thenReturn(List.of(category));
 
         // when
-        MoimResponseDto result = moimService.createMoim(member, requestDto);
+        MoimResponseDto result = moimServiceOld.createMoim(member, requestDto);
 
 
         // then
@@ -147,7 +145,7 @@ class MoimServiceTest  {
 
 
         // when
-        MoimResponseDto result = moimService.getMoim(moim.getId(), member);
+        MoimResponseDto result = moimServiceOld.getMoim(moim.getId(), member);
 
         // then
         assertThat(result.getMoimDto().getMoimId()).isEqualTo(moim.getId());
@@ -168,7 +166,7 @@ class MoimServiceTest  {
         when(moimRepository.findById(moim.getId())).thenReturn(null);
 
         // when + then
-        assertThatThrownBy(() -> moimService.getMoim(moim.getId(), member))
+        assertThatThrownBy(() -> moimServiceOld.getMoim(moim.getId(), member))
                 .isInstanceOf(RuntimeException.class);
     }
 

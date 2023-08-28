@@ -1,7 +1,7 @@
 package com.peoplein.moiming.model.dto.response_b;
 
 import com.peoplein.moiming.domain.fixed.Category;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.domain.rules.RulePersist;
 import com.peoplein.moiming.model.dto.domain.*;

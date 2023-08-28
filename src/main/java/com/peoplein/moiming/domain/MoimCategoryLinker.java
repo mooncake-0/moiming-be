@@ -1,6 +1,7 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.fixed.Category;
+import com.peoplein.moiming.domain.moim.Moim;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

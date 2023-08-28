@@ -1,9 +1,8 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
@@ -12,10 +11,7 @@ import com.peoplein.moiming.service.core.MoimServiceCore;
 import com.peoplein.moiming.service.input.MoimServiceInput;
 import com.peoplein.moiming.service.output.MoimServiceOutput;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
 
@@ -28,10 +24,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  - Repo 단위테스트, Controlller 통합 테스트로 진행
  */
 //@SpringBootTest
-public class MoimServiceUnitTest {
+public class MoimServiceOldUnitTest {
 
     @Autowired
-    MoimService moimService;
+    MoimServiceOld moimServiceOld;
 
     Member baseMember;
     Moim baseMoim;
@@ -54,7 +50,7 @@ public class MoimServiceUnitTest {
                 .updatePermission(MoimRoleType.LEADER)
                 .curMember(baseMember)
                 .build();
-        MoimServiceCore moimServiceCore = moimService.getMoimServiceCore();
+        MoimServiceCore moimServiceCore = moimServiceOld.getMoimServiceCore();
 
         // when
         MoimServiceOutput result = moimServiceCore.hasAnyUpdated(input);
@@ -74,7 +70,7 @@ public class MoimServiceUnitTest {
                 .updatePermission(MoimRoleType.NORMAL)
                 .curMember(baseMember)
                 .build();
-        MoimServiceCore moimServiceCore = moimService.getMoimServiceCore();
+        MoimServiceCore moimServiceCore = moimServiceOld.getMoimServiceCore();
 
         // when + then
         assertThatThrownBy(() -> moimServiceCore.hasAnyUpdated(input))
@@ -93,7 +89,7 @@ public class MoimServiceUnitTest {
                 .updatePermission(MoimRoleType.NORMAL)
                 .curMember(baseMember)
                 .build();
-        MoimServiceCore moimServiceCore = moimService.getMoimServiceCore();
+        MoimServiceCore moimServiceCore = moimServiceOld.getMoimServiceCore();
 
         // when + then
         assertThatThrownBy(() -> moimServiceCore.hasAnyUpdated(input))
@@ -114,7 +110,7 @@ public class MoimServiceUnitTest {
                 .moimCategoriesForCreate(moimCategories)
                 .build();
 
-        MoimServiceCore moimServiceCore = moimService.getMoimServiceCore();
+        MoimServiceCore moimServiceCore = moimServiceOld.getMoimServiceCore();
 
         // when
         MoimServiceOutput result = moimServiceCore.createMoim(input);

@@ -1,16 +1,13 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.QMoim;
-import com.peoplein.moiming.domain.QMoimCategoryLinker;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.embeddable.QArea;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +20,6 @@ import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QMoim.*;
 import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
-import static com.peoplein.moiming.domain.embeddable.QArea.*;
-import static com.peoplein.moiming.domain.embeddable.QArea.area;
 import static com.peoplein.moiming.domain.rules.QMoimRule.*;
 
 @Repository
