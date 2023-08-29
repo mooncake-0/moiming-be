@@ -1,6 +1,6 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.NetworkSetting;
+import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.request_b.PolicyAgreeRequestDto;
 import com.peoplein.moiming.model.dto.response_b.PolicyAgreeResponseDto;
@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.peoplein.moiming.config.AppUrlPath.*;
+
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_POLICY_VER + NetworkSetting.API_POLICY)
+@RequestMapping(API_SERVER + API_POLICY_VER + API_POLICY)
 public class PolicyAgreeController {
 
     private final PolicyAgreeService policyAgreeService;

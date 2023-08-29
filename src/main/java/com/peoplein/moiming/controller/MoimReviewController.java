@@ -1,6 +1,6 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.NetworkSetting;
+import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.request_b.MoimReviewRequestDto;
 import com.peoplein.moiming.service.MoimReviewService;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_REVIEW)
+@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_MOIM_VER + AppUrlPath.API_MOIM + AppUrlPath.API_MOIM_REVIEW)
 public class MoimReviewController {
 
     private final MoimReviewService moimReviewService;

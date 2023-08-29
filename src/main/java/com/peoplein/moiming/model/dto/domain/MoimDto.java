@@ -39,15 +39,15 @@ public class MoimDto {
         this.moimId = moim.getId();
         this.moimName = moim.getMoimName();
         this.moimInfo = moim.getMoimInfo();
-        this.moimPfImg = moim.getMoimPfImg();
+//        this.moimPfImg = moim.getMoimPfImg();
         this.area = moim.getMoimArea();
         this.curMemberCount = moim.getCurMemberCount();
-        this.hasRuleJoin = moim.isHasRuleJoin();
-        this.hasRulePersist = moim.isHasRulePersist();
+//        this.hasRuleJoin = moim.isHasRuleJoin();
+//        this.hasRulePersist = moim.isHasRulePersist();
         this.createdAt = moim.getCreatedAt();
-        this.createdMemberId = moim.getCreatedMemberId();
+//        this.createdMemberId = moim.getCreatedMemberId();
         this.updatedAt = moim.getUpdatedAt();
-        this.updatedMemberId = moim.getUpdatedMemberId();
+//        this.updatedMemberId = moim.getUpdatedMemberId();
 
     }
 

@@ -1,7 +1,6 @@
 package com.peoplein.moiming.controller;
 
 
-import com.peoplein.moiming.NetworkSetting;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
@@ -24,10 +23,9 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.EntityManager;
 
-import static com.peoplein.moiming.NetworkSetting.*;
+import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.support.TestDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
-import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;

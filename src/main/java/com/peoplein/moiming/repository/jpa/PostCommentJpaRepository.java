@@ -13,7 +13,7 @@ import java.util.List;
 
 import static com.peoplein.moiming.domain.QPostComment.*;
 import static com.peoplein.moiming.domain.QMoimPost.*;
-import static com.peoplein.moiming.domain.QMoim.*;
+import static com.peoplein.moiming.domain.moim.QMoim.*;
 
 @Repository
 @RequiredArgsConstructor

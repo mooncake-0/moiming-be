@@ -16,7 +16,7 @@ public class NotificationServiceShell {
 
     public void initMoim(Long moimId) {
 
-        moim = moimRepository.findById(moimId);
+        moim = moimRepository.findById(moimId).orElseThrow();
 
     }
 }

@@ -1,6 +1,6 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.NetworkSetting;
+import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.auth.*;
 import com.peoplein.moiming.service.SmsVerificationService;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_SMS_VER + NetworkSetting.API_SMS)
+@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_SMS_VER + AppUrlPath.API_SMS)
 public class SmsVerificationController {
 
     private final SmsVerificationService smsVerificationService;

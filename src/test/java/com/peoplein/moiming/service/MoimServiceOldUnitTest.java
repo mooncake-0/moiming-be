@@ -2,14 +2,11 @@ package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
 import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
-import com.peoplein.moiming.service.core.MoimServiceCore;
-import com.peoplein.moiming.service.input.MoimServiceInput;
-import com.peoplein.moiming.service.output.MoimServiceOutput;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,7 +44,7 @@ public class MoimServiceOldUnitTest {
         MoimServiceInput input = MoimServiceInput.builder()
                 .inputMoimDto(moimDto)
                 .findMoim(baseMoim)
-                .updatePermission(MoimRoleType.LEADER)
+                .updatePermission(MoimMemberRoleType.LEADER)
                 .curMember(baseMember)
                 .build();
         MoimServiceCore moimServiceCore = moimServiceOld.getMoimServiceCore();
@@ -67,7 +64,7 @@ public class MoimServiceOldUnitTest {
         MoimServiceInput input = MoimServiceInput.builder()
                 .inputMoimDto(moimDto)
                 .findMoim(baseMoim)
-                .updatePermission(MoimRoleType.NORMAL)
+                .updatePermission(MoimMemberRoleType.NORMAL)
                 .curMember(baseMember)
                 .build();
         MoimServiceCore moimServiceCore = moimServiceOld.getMoimServiceCore();
@@ -86,7 +83,7 @@ public class MoimServiceOldUnitTest {
         MoimServiceInput input = MoimServiceInput.builder()
                 .inputMoimDto(moimDto)
                 .findMoim(null)
-                .updatePermission(MoimRoleType.NORMAL)
+                .updatePermission(MoimMemberRoleType.NORMAL)
                 .curMember(baseMember)
                 .build();
         MoimServiceCore moimServiceCore = moimServiceOld.getMoimServiceCore();
@@ -118,7 +115,7 @@ public class MoimServiceOldUnitTest {
         // then
         assertThat(result.getCreatedMoim().getMoimName()).isEqualTo(moimDto.getMoimName());
         assertThat(result.getCreatedMoimCategoryLinkers().get(0).getCategory()).isEqualTo(moimCategories.get(0));
-        assertThat(result.getCreatedMemberMoimLinker()).isNotNull();
+        assertThat(result.getCreatedMoimMember()).isNotNull();
     }
 
 }

@@ -34,7 +34,7 @@ public class MoimPostServiceShell {
      * - @member
      */
     public MoimPostServiceInput readyForCreatingNewMoimPost(MoimPostRequestDto moimPostRequestDto, Member member) {
-        Moim moim = moimRepository.findById(moimPostRequestDto.getMoimId());
+        Moim moim = moimRepository.findById(moimPostRequestDto.getMoimId()).orElseThrow();
         return MoimPostServiceInput.builder()
                 .postTitleAboutNewMoimPost(moimPostRequestDto.getPostTitle())
                 .postContentAboutNewMoimPost(moimPostRequestDto.getPostContent())

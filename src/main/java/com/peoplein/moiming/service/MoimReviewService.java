@@ -1,9 +1,10 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.ReviewQuestionType;
 import com.peoplein.moiming.domain.fixed.ReviewQuestion;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.QuestionChoiceDto;
@@ -14,7 +15,7 @@ import com.peoplein.moiming.model.dto.request_b.ReviewAnswerRequestDto;
 import com.peoplein.moiming.model.dto.response_b.MoimReviewResponseDto;
 import com.peoplein.moiming.model.dto.response_b.ReviewQuestionAnswerDto;
 import com.peoplein.moiming.model.dto.response_b.ReviewQuestionResponseDto;
-import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
+import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.MoimReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class MoimReviewService {
 
     private final MoimRepository moimRepository;
     private final MoimReviewRepository moimReviewRepository;
-    private final MemberMoimLinkerRepository memberMoimLinkerRepository;
+    private final MoimMemberRepository moimMemberRepository;
 
 
     public MoimReviewResponseDto createReview(MoimReviewRequestDto moimReviewRequestDto, Member curMember) {
@@ -51,7 +52,7 @@ public class MoimReviewService {
         // Repository 단 접근을 통해서 필요한 객체들
         // 목적 : Review 객체 및 ReviewAnswer 객체들을 만든다
         List<ReviewAnswerRequestDto> requests = moimReviewRequestDto.getReviewAnswerRequestDtos();
-        Moim moim = moimRepository.findById(moimReviewRequestDto.getMoimId());
+        Moim moim = moimRepository.findById(moimReviewRequestDto.getMoimId()).orElseThrow();
 
         // 해당 멤버가 해당 모임에 대해 작성한 MoimReview 가 없는지 확인한다
 
@@ -160,12 +161,12 @@ public class MoimReviewService {
         moimReviewResponseDto.setUpdatedAt(moimReviewResponseDto.getUpdatedAt());
 
         Member reviewCreator = moimReview.getMember();
-        MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(reviewCreator.getId(), moimReview.getMoim().getId());
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(reviewCreator.getId(), moimReview.getMoim().getId()).orElseThrow();
 
         MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(reviewCreator.getId()
                 , reviewCreator.getMemberInfo().getMemberName(), reviewCreator.getMemberEmail()
-                , reviewCreator.getMemberInfo().getMemberGender(), memberMoimLinker.getMoimRoleType()
-                , memberMoimLinker.getMemberState(), memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt());
+                , reviewCreator.getMemberInfo().getMemberGender(), moimMember.getMoimMemberRoleType()
+                , moimMember.getMemberState(), moimMember.getCreatedAt(), moimMember.getUpdatedAt());
 
         moimReviewResponseDto.setMoimMemberInfoDto(moimMemberInfoDto);
 
@@ -215,14 +216,14 @@ public class MoimReviewService {
         });
 
         // MMInfoDto 도 같이 세팅해준다
-        List<MemberMoimLinker> membersLinkers = memberMoimLinkerRepository.findByMoimIdAndMemberIds(moimId, memberIds);
+        List<MoimMember> membersLinkers = moimMemberRepository.findByMoimIdAndMemberIds(moimId, memberIds);
 
         membersLinkers.forEach(mml -> {
 
             MoimReviewResponseDto moimReviewResponseDto = moimReviewResponseDtos.stream().filter(reviewDto -> reviewDto.getMoimMemberInfoDto().getMemberId().equals(mml.getMember().getId())).findAny().orElseThrow(() -> new RuntimeException("이상한 에러입니다"));
 
             moimReviewResponseDto.getMoimMemberInfoDto().setMoimMemberState(mml.getMemberState());
-            moimReviewResponseDto.getMoimMemberInfoDto().setMoimRoleType(mml.getMoimRoleType());
+            moimReviewResponseDto.getMoimMemberInfoDto().setMoimMemberRoleType(mml.getMoimMemberRoleType());
             moimReviewResponseDto.getMoimMemberInfoDto().setCreatedAt(mml.getCreatedAt());
             moimReviewResponseDto.getMoimMemberInfoDto().setUpdatedAt(mml.getUpdatedAt());
 
@@ -298,11 +299,11 @@ public class MoimReviewService {
         // 2. 권한 확인
         if (!curMember.getId().equals(moimReview.getMember().getId())) { // 1. 모임 생성자인지 확인
             // MML 조회를 통한 권한 확인
-            MemberMoimLinker curMemberMoimLinker = memberMoimLinkerRepository.findOptionalByMemberAndMoimId(curMember.getId(), moimReview.getMoim().getId())
+            MoimMember curMoimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), moimReview.getMoim().getId())
                     .orElseThrow(() -> new RuntimeException("해당 모임에 연관관계가 존재하지 않는 유저입니다"));
 
             // 둘 다 아닐 경우 에러가 발생해야 한다
-            if (!curMemberMoimLinker.getMoimRoleType().equals(MoimRoleType.LEADER) && !curMemberMoimLinker.getMoimRoleType().equals(MoimRoleType.MANAGER)) {
+            if (!curMoimMember.getMoimMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
                 log.error("후기를 삭제할 권한이 없습니다");
                 throw new RuntimeException("후기를 삭제할 권한이 없습니다");
             }

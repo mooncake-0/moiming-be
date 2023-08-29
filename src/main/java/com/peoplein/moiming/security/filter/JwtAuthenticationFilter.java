@@ -51,7 +51,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
                 String tokenEmailValue = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, jwtToken);
                 SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(tokenEmailValue);
-                JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(securityMember.getMember(), null, securityMember.getAuthorities());
+                JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
 
                 // Access Token Verify 성공시 AuthenticationToken 이 저장된다
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);

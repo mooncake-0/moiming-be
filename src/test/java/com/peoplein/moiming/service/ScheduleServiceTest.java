@@ -7,7 +7,7 @@ import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
 import com.peoplein.moiming.model.dto.request_b.ScheduleRequestDto;
 import com.peoplein.moiming.model.dto.response_b.ScheduleResponseDto;
-import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
+import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
 import com.peoplein.moiming.repository.ScheduleRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +52,7 @@ class ScheduleServiceTest  {
     ScheduleRepository scheduleRepository;
 
     @Autowired
-    MemberMoimLinkerRepository memberMoimLinkerRepository;
+    MoimMemberRepository moimMemberRepository;
 
 //    @Test
     @DisplayName("updateSchedule : 성공하는 경우")

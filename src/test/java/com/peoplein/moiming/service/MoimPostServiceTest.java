@@ -2,6 +2,7 @@ package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.*;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.domain.MoimPostDto;
 import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
@@ -108,7 +109,7 @@ public class MoimPostServiceTest {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
         Moim moim = TestUtils.createMoimOnly();
-        MemberMoimLinker moimLinker = TestUtils.createLeaderMemberMoimLinker(member, moim);
+        MoimMember moimLinker = TestUtils.createLeaderMemberMoimLinker(member, moim);
         MoimPost moimPost = TestUtils.initMoimPost(moim, member);
         PostComment comment = PostComment.createPostComment("hello", member, moimPost);
         PostComment comment1 = PostComment.createPostComment("hello", member, moimPost);

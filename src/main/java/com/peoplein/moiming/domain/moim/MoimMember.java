@@ -1,9 +1,10 @@
-package com.peoplein.moiming.domain;
+package com.peoplein.moiming.domain.moim;
 
+import com.peoplein.moiming.domain.BaseEntity;
+import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
-import com.peoplein.moiming.domain.moim.Moim;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ import java.util.Optional;
 @Table(name = "member_moim_linker")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberMoimLinker extends BaseEntity {
+public class MoimMember extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +33,7 @@ public class MemberMoimLinker extends BaseEntity {
     private Moim moim;
 
     @Enumerated(value = EnumType.STRING)
-    private MoimRoleType moimRoleType;
+    private MoimMemberRoleType moimMemberRoleType;
 
     @Enumerated(value = EnumType.STRING)
     private MoimMemberState memberState;
@@ -42,15 +43,15 @@ public class MemberMoimLinker extends BaseEntity {
 
     // 생성자
 
-    public static MemberMoimLinker memberJoinMoim(Member member, Moim moim, MoimRoleType moimRoleType, MoimMemberState memberState) {
-        MemberMoimLinker memberMoimLinker = new MemberMoimLinker(member, moim, moimRoleType, memberState);
-        return memberMoimLinker;
+    public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
+        MoimMember moimMember = new MoimMember(member, moim, moimMemberRoleType, memberState);
+        return moimMember;
     }
 
-    private MemberMoimLinker(Member member, Moim moim, MoimRoleType moimRoleType, MoimMemberState memberState) {
+    private MoimMember(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
 
         this.member = member;
-        this.moimRoleType = moimRoleType;
+        this.moimMemberRoleType = moimMemberRoleType;
         this.memberState = memberState;
 
         /*
@@ -62,7 +63,7 @@ public class MemberMoimLinker extends BaseEntity {
          연관관계 매핑 및 편의 메소드
          */
         this.moim = moim;
-        this.moim.getMemberMoimLinkers().add(this);
+        this.moim.getMoimMembers().add(this);
 
         if (memberState.equals(MoimMemberState.ACTIVE)) {
             this.moim.addCurMemberCount();
@@ -74,8 +75,8 @@ public class MemberMoimLinker extends BaseEntity {
     }
 
 
-    public void setMoimRoleType(MoimRoleType moimRoleType) {
-        this.moimRoleType = moimRoleType;
+    public void setMoimMemberRoleType(MoimMemberRoleType moimMemberRoleType) {
+        this.moimMemberRoleType = moimMemberRoleType;
     }
 
 
@@ -87,8 +88,8 @@ public class MemberMoimLinker extends BaseEntity {
         this.banRejoin = banRejoin;
     }
 
-    public void upDateRoleTypeAndState(MoimRoleType moimRoleType, MoimMemberState memberState) {
-        this.moimRoleType = moimRoleType;
+    public void upDateRoleTypeAndState(MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
+        this.moimMemberRoleType = moimMemberRoleType;
         this.memberState = memberState;
     }
 
@@ -97,22 +98,22 @@ public class MemberMoimLinker extends BaseEntity {
     }
 
     // 비즈니스 로직
-    public static MemberMoimLinker processRequestJoin(Member curMember, Moim moim, MoimMemberState memberState, Optional<MemberMoimLinker> previousMemberMoimLinker) {
+    public static MoimMember processRequestJoin(Member curMember, Moim moim, MoimMemberState memberState, Optional<MoimMember> previousMemberMoimLinker) {
         if (moim.shouldCreateNewMemberMoimLinker(previousMemberMoimLinker)) {
             // 신규 가입하는 경우
-            return MemberMoimLinker.memberJoinMoim(curMember, moim, MoimRoleType.NORMAL, memberState);
+            return MoimMember.memberJoinMoim(curMember, moim, MoimMemberRoleType.NORMAL, memberState);
         } else {
             // 탈퇴 후 재가입 하는 경우
-            MemberMoimLinker memberMoimLinker = previousMemberMoimLinker.get();
-            memberMoimLinker.upDateRoleTypeAndState(MoimRoleType.NORMAL, memberState);
-            return memberMoimLinker;
+            MoimMember moimMember = previousMemberMoimLinker.get();
+            moimMember.upDateRoleTypeAndState(MoimMemberRoleType.NORMAL, memberState);
+            return moimMember;
         }
     }
 
     public void changeMemberState(MoimMemberState memberState) {
-        if(!memberState.equals(MoimMemberState.ACTIVE)) {
+        if (!memberState.equals(MoimMemberState.ACTIVE)) {
             this.moim.minusCurMemberCount();
-        }else{ // 기존에 INACTIVE 상태 쪽이던 회원이 다시 ACTIVE 하게 됨
+        } else { // 기존에 INACTIVE 상태 쪽이던 회원이 다시 ACTIVE 하게 됨
             this.moim.addCurMemberCount();
         }
         // 이미 있던 모임 상태이므로
@@ -121,15 +122,15 @@ public class MemberMoimLinker extends BaseEntity {
 
 
     public void judgeJoin(MoimMemberStateAction stateAction) {
-        if (stateAction.equals(MoimMemberStateAction.PERMIT)) {
-            doActiveMemberState();
-        } else if (stateAction.equals(MoimMemberStateAction.DECLINE)) {
-            // TODO :: 이 멤버에게 [해당 모임에서 까였다고] 알림을 보내야 한다 (MEMBERINFO 를 JOIN 한 이유)
-            this.memberState = MoimMemberState.DECLINE;
-        } else { // 여기 들어오면 안되는 에러 요청
-            // TODO :: ERROR
-            throw new IllegalArgumentException("unexpected State");
-        }
+//        if (stateAction.equals(MoimMemberStateAction.PERMIT)) {
+//            doActiveMemberState();
+//        } else if (stateAction.equals(MoimMemberStateAction.DECLINE)) {
+//            // TODO :: 이 멤버에게 [해당 모임에서 까였다고] 알림을 보내야 한다 (MEMBERINFO 를 JOIN 한 이유)
+//            this.memberState = MoimMemberState.DECLINE;
+//        } else { // 여기 들어오면 안되는 에러 요청
+//            // TODO :: ERROR
+//            throw new IllegalArgumentException("unexpected State");
+//        }
     }
 
     private void doActiveMemberState() {
@@ -144,7 +145,6 @@ public class MemberMoimLinker extends BaseEntity {
 
     // 스케쥴 변경 권한은 LEADER / MANAGER만 있음.
     public boolean hasPermissionForUpdate() {
-        return this.moimRoleType.equals(MoimRoleType.LEADER) ||
-                this.moimRoleType.equals(MoimRoleType.MANAGER);
+        return this.moimMemberRoleType.equals(MoimMemberRoleType.MANAGER);
     }
 }

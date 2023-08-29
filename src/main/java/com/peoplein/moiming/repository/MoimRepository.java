@@ -9,16 +9,15 @@ import java.util.Optional;
 
 public interface MoimRepository {
 
-    Long save(Moim moim);
+    void save(Moim moim);
 
     Optional<Moim> findById(Long moimId);
-    Optional<Moim> findOptionalById(Long moimId);
 
-    Moim findWithRulesById(Long moimId);
-
-    void remove(Moim moim);
+    Optional<Moim> findWithJoinRuleById(Long moimId);
 
     List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category);
 
     List<Moim> findAllMoim();
+
+    void remove(Moim moim);
 }

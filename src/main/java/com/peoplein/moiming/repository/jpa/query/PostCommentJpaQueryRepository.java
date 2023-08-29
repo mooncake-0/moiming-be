@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.domain.QMember.*;
 import static com.peoplein.moiming.domain.QMemberInfo.*;
-import static com.peoplein.moiming.domain.QMemberMoimLinker.*;
-import static com.peoplein.moiming.domain.QMoim.*;
+import static com.peoplein.moiming.domain.moim.QMoim.*;
+import static com.peoplein.moiming.domain.moim.QMoimMember.*;
 import static com.peoplein.moiming.domain.QMoimPost.*;
 import static com.peoplein.moiming.domain.QPostComment.*;
 
@@ -39,10 +39,10 @@ public class PostCommentJpaQueryRepository {
         List<MoimMemberInfoDto> dataList =
                 queryFactory.select(Projections.constructor(MoimMemberInfoDto.class,
                                 member.id, memberInfo.memberName, member.memberEmail, memberInfo.memberGender
-                                , memberMoimLinker.moimRoleType, memberMoimLinker.memberState)
-                        ).from(memberMoimLinker)
-                        .join(memberMoimLinker.member, member)
-                        .join(memberMoimLinker.moim, moim)
+                                , moimMember.moimMemberRoleType, moimMember.memberState)
+                        ).from(moimMember)
+                        .join(moimMember.member, member)
+                        .join(moimMember.moim, moim)
                         .join(member.memberInfo, memberInfo)
                         .where(member.id.in(commentCreatorMemberIds))
                         .fetch();

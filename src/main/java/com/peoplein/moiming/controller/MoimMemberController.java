@@ -1,88 +1,51 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.NetworkSetting;
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberMoimLinker;
-import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
-import com.peoplein.moiming.model.dto.domain.MyMoimLinkerDto;
-import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
-import com.peoplein.moiming.model.dto.request_b.MoimMemberActionRequestDto;
+import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.MoimMemberService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import static com.peoplein.moiming.config.AppUrlPath.*;
 
+
+@Api(tags = "모임 내 멤버 관리 관련")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MEMBER)
+@RequestMapping(API_SERVER + API_MOIM_VER + API_MOIM_MEMBER)
 public class MoimMemberController {
 
     private final MoimMemberService moimMemberService;
 
-    /*
-     모임 내 모든 회원 및 상태 조회
-     */
-    @GetMapping("/viewMoimMember/{moimId}")
-    public ResponseEntity<?> viewMoimMember(@PathVariable(name = "moimId") Long moimId) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<MoimMemberInfoDto> moimMemberInfoDto = moimMemberService.viewMoimMember(moimId, curMember);
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(moimMemberInfoDto);
+    // 1. 모임 내 모든 회원 및 상태 조회 (조회의 종류를 파악해보면 좋을 듯)
+
+    // 2. 가입 요청 (Rule Join 판별 - Front 에서 걸러줄테지만) // 해당 Id 와 moimId 의 요청이 있다 (해당 대상을 필터링 할 것이므로, Query Parameter)
+    @ApiOperation("모임 가입하기")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @GetMapping("/join")
+    public String joinMoim(@PathVariable("moimId") Long moimId,
+                           @AuthenticationPrincipal SecurityMember principal) {
+
+        moimMemberService.joinMoim(moimId, principal.getMember());
+
+        return "";
     }
 
-    /*
-     Join 요청하기 (Rule Join 판별)
-     */
-    @PostMapping("/requestJoin")
-    public ResponseEntity<?> requestJoin(@RequestBody MoimJoinRequestDto moimJoinRequestDto) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MemberMoimLinker memberMoimLinker = moimMemberService.requestJoin(moimJoinRequestDto, curMember);
-        MyMoimLinkerDto myMoimLinkerDto = new MyMoimLinkerDto(memberMoimLinker);
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(myMoimLinkerDto);
-    }
+    // 3.
 
-    /*
-     MemberState 이 WAIT 인 회원의 Join Request 를 처리한다 - 모임장, 운영진의 요청
-     */
-    @PatchMapping("/decideJoin")
-    public ResponseEntity<?> decideJoin(@RequestBody MoimMemberActionRequestDto moimMemberActionRequestDto) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MemberMoimLinker memberMoimLinker = moimMemberService.decideJoin(moimMemberActionRequestDto, curMember);
-        MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(memberMoimLinker);
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(moimMemberInfoDto);
-    }
+    // 4. 모임 나가기 - IBW 전환
+    //    강퇴하기 (MANAGER 권한) - IBF 전환, inactiveReason 기입
+    //    스스로 강퇴 불가
 
-    /*
-     모임 나가기 or 강퇴하기
-     */
-    @PatchMapping("/exitMoim")
-    public ResponseEntity<?> exitMoim(@RequestBody MoimMemberActionRequestDto moimMemberActionRequestDto) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimMemberInfoDto moimMemberInfoDto = moimMemberService.exitMoim(moimMemberActionRequestDto, curMember);
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(moimMemberInfoDto);
-    }
-
-    /*
-     모임 내 권한 임명하기 (동일한 Request Model 을 받으나, 함유 정보가 다름)
-     */
-    @PatchMapping("/changeRole")
-    public ResponseEntity<?> changeRole(@RequestBody MoimMemberActionRequestDto moimMemberActionRequestDto) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimMemberInfoDto moimMemberInfoDto = moimMemberService.changeRole(moimMemberActionRequestDto, curMember);
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(moimMemberInfoDto);
-    }
-
+    // 5. 운영진 임명하기 (권한으로 부여)
 
 }

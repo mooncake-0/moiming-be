@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberRoleLinker {
+public class MemberRoleLinker extends BaseEntity{
 
     @Id
     @GeneratedValue
@@ -31,8 +31,6 @@ public class MemberRoleLinker {
     @JoinColumn(name = "role_id")
     private Role role;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     public static MemberRoleLinker grantRoleToMember(Member member, Role role) {
         MemberRoleLinker memberRoleLinker = new MemberRoleLinker(member, role);
@@ -44,7 +42,6 @@ public class MemberRoleLinker {
         this.role = role;
         this.member = member;
         this.member.addRole(this);
-        this.createdAt = LocalDateTime.now();
     }
 
 }

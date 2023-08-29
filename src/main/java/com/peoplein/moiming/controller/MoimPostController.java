@@ -1,6 +1,6 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.NetworkSetting;
+import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.domain.MoimPostDto;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_POST)
+@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_MOIM_VER + AppUrlPath.API_MOIM + AppUrlPath.API_MOIM_POST)
 public class MoimPostController {
 
     private final MoimPostService moimPostService;

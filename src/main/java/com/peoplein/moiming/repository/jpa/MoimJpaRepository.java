@@ -1,7 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.domain.QMoim;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.repository.MoimRepository;
@@ -18,9 +17,9 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
-import static com.peoplein.moiming.domain.QMoim.*;
+import static com.peoplein.moiming.domain.moim.QMoimJoinRule.*;
+import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
-import static com.peoplein.moiming.domain.rules.QMoimRule.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -31,46 +30,35 @@ public class MoimJpaRepository implements MoimRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Long save(Moim moim) {
+    public void save(Moim moim) {
 
         em.persist(moim);
-        return moim.getId();
     }
 
+
     @Override
-    public Moim findById(Long moimId) {
-        return queryFactory.selectFrom(moim)
+    public Optional<Moim> findById(Long moimId) {
+
+        return Optional.ofNullable(queryFactory.selectFrom(moim)
                 .where(moim.id.eq(moimId))
-                .fetchOne();
+                .fetchOne());
     }
 
     @Override
-    public Optional<Moim> findOptionalById(Long moimId) {
-        Moim moim = queryFactory.selectFrom(QMoim.moim)
-                .where(QMoim.moim.id.eq(moimId))
-                .fetchOne();
-        return Optional.ofNullable(moim);
-    }
-
-    @Override
-    public Moim findWithRulesById(Long moimId) {
+    public Optional<Moim> findWithJoinRuleById(Long moimId) {
         /*
          Query : select m from Moim m
                     join fetch m.moimRules mr
                     where m.id = :moimId;
         */
 
-        return queryFactory.selectFrom(moim)
-                .join(moim.moimRules, moimRule).fetchJoin()
+        return Optional.ofNullable(queryFactory.selectFrom(moim)
+                .join(moim.moimJoinRule, moimJoinRule).fetchJoin()
                 .where(moim.id.eq(moimId))
-                .fetchOne();
+                .fetchOne());
     }
 
-    @Override
-    public void
-    remove(Moim moim) {
-        em.remove(moim);
-    }
+
 
     @Override
     public List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category) {
@@ -86,6 +74,12 @@ public class MoimJpaRepository implements MoimRepository {
                 .selectFrom(moim)
                 .fetch();
     }
+
+    @Override
+    public void remove(Moim moim) {
+        em.remove(moim);
+    }
+
 
     private void addJoinQuery(JPAQuery<Moim> query, Category category) {
         if (category == null)

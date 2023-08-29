@@ -3,8 +3,7 @@ package com.peoplein.moiming.security.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.peoplein.moiming.NetworkSetting;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
+import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.security.exception.BadLoginInputException;
 import com.peoplein.moiming.security.exception.ExtraAuthenticationException;
 import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
@@ -34,9 +33,9 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
     */
     public MoimingLoginFilter() {
 
-        super(new AntPathRequestMatcher(NetworkSetting.API_SERVER
-                + NetworkSetting.API_AUTH_VER
-                + NetworkSetting.API_AUTH
+        super(new AntPathRequestMatcher(AppUrlPath.API_SERVER
+                + AppUrlPath.API_AUTH_VER
+                + AppUrlPath.API_AUTH
                 + "/login"
         ));
 

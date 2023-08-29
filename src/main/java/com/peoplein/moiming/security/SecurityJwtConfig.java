@@ -1,7 +1,7 @@
 package com.peoplein.moiming.security;
 
 
-import com.peoplein.moiming.NetworkSetting;
+import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.security.filter.JwtAuthenticationFilter;
 import com.peoplein.moiming.security.filter.MoimingLoginFilter;
 import com.peoplein.moiming.security.handler.ExceptionFilterHandler;
@@ -112,7 +112,7 @@ public class SecurityJwtConfig {
                 .antMatchers("/swagger-ui.html", "/v2/**", "/configuration/ui",
                         "/swagger-resources/**", "/configuration/security",
                         "/swagger-ui/**", "/webjars/**", "/swagger/**").permitAll()
-                .antMatchers(NetworkSetting.API_SERVER + NetworkSetting.API_AUTH_VER + NetworkSetting.API_AUTH + "/**").permitAll()
+                .antMatchers(AppUrlPath.API_SERVER + AppUrlPath.API_AUTH_VER + AppUrlPath.API_AUTH + "/**").permitAll()
                 .anyRequest().authenticated();
 
 

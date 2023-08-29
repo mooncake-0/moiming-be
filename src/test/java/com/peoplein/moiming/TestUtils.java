@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
@@ -75,7 +76,7 @@ public class TestUtils {
     // moimService
 
     public static MoimMemberStateAction MOIM_MEMBER_STATE_ACTION = MoimMemberStateAction.PERMIT;
-    public static MoimRoleType MOIM_SERVICE_ROLE_TYPE = MoimRoleType.NORMAL;
+    public static MoimMemberRoleType MOIM_SERVICE_ROLE_TYPE = MoimMemberRoleType.NORMAL;
     public static String INACTIVE_REASON = "temporary";
     public static boolean BAN_REJOIN = true;
 
@@ -170,16 +171,16 @@ public class TestUtils {
         return new RuleJoinDto(BIRTH_MAX, BIRTH_MIN, memberGender, MOIM_MAX_COUNT, DUPLICATED_LEADER_ENABLE, DUPLICATED_MANAGER_ENABLE);
     }
 
-    public static MemberMoimLinker createLeaderMemberMoimLinker(Member member, Moim moim) {
-        return MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.LEADER, MoimMemberState.ACTIVE);
+    public static MoimMember createLeaderMemberMoimLinker(Member member, Moim moim) {
+        return MoimMember.memberJoinMoim(member, moim, MoimMemberRoleType.LEADER, MoimMemberState.ACTIVE);
     }
 
-    public static MemberMoimLinker createNormalMemberMoimLinker(Member member, Moim moim) {
-        return MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
+    public static MoimMember createNormalMemberMoimLinker(Member member, Moim moim) {
+        return MoimMember.memberJoinMoim(member, moim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
     }
 
-    public static MemberMoimLinker createNormalMemberMoimLinkerWithWait(Member member, Moim moim) {
-        return MemberMoimLinker.memberJoinMoim(member, moim, MoimRoleType.NORMAL, MoimMemberState.WAIT_BY_MOIM_CNT);
+    public static MoimMember createNormalMemberMoimLinkerWithWait(Member member, Moim moim) {
+        return MoimMember.memberJoinMoim(member, moim, MoimMemberRoleType.NORMAL, MoimMemberState.WAIT_BY_MOIM_CNT);
     }
 
 
@@ -223,7 +224,7 @@ public class TestUtils {
 
     public static MoimMemberActionRequestDto createActionRequestDto(Long moimId, Long memberId, MoimMemberStateAction moimMemberStateAction) {
         return new MoimMemberActionRequestDto(
-                moimId, memberId, moimMemberStateAction, MoimRoleType.NORMAL, "", true);
+                moimId, memberId, moimMemberStateAction, MoimMemberRoleType.NORMAL, "", true);
     }
 
     public static void truncateAllTable(JdbcTemplate jdbcTemplate) {

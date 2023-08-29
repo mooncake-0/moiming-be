@@ -1,6 +1,7 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.repository.*;
 import lombok.Getter;
@@ -14,18 +15,18 @@ import java.util.stream.Collectors;
 @Service
 public class MemberService {
 
-    private final MemberMoimLinkerRepository memberMoimLinkerRepository;
+    private final MoimMemberRepository moimMemberRepository;
     private final MoimPostRepository moimPostRepository;
     private final MemberScheduleLinkerRepository memberScheduleLinkerRepository;
     private final MoimRepository moimRepository;
     private final ScheduleRepository scheduleRepository;
 
-    public MemberService(MemberMoimLinkerRepository memberMoimLinkerRepository,
+    public MemberService(MoimMemberRepository moimMemberRepository,
                          MoimPostRepository moimPostRepository,
                          MemberScheduleLinkerRepository memberScheduleLinkerRepository,
                          MoimRepository moimRepository,
                          ScheduleRepository scheduleRepository) {
-        this.memberMoimLinkerRepository = memberMoimLinkerRepository;
+        this.moimMemberRepository = moimMemberRepository;
         this.moimPostRepository = moimPostRepository;
         this.memberScheduleLinkerRepository = memberScheduleLinkerRepository;
         this.moimRepository = moimRepository;
@@ -54,13 +55,13 @@ public class MemberService {
     }
 
     private List<MoimPost> getMoimNoticesLatestTop3(Member curMember) {
-        List<MemberMoimLinker> findMemberMoimLinkers = memberMoimLinkerRepository.findByMemberId(curMember.getId());
-        List<Long> uniqueMoimIds = getUniqueMoimIds(findMemberMoimLinkers);
+        List<MoimMember> findMoimMembers = moimMemberRepository.findByMemberId(curMember.getId());
+        List<Long> uniqueMoimIds = getUniqueMoimIds(findMoimMembers);
         return moimPostRepository.findNoticesLatest3ByMoimIds(uniqueMoimIds);
     }
 
-    private List<Long> getUniqueMoimIds(List<MemberMoimLinker> findMemberMoimLinkers) {
-        return findMemberMoimLinkers.stream()
+    private List<Long> getUniqueMoimIds(List<MoimMember> findMoimMembers) {
+        return findMoimMembers.stream()
                 .map(memberMoimLinker -> memberMoimLinker.getMoim().getId())
                 .distinct()
                 .collect(Collectors.toList());

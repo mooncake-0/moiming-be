@@ -4,7 +4,7 @@
 //import com.peoplein.moiming.domain.embeddable.Area;
 //import com.peoplein.moiming.domain.enums.MemberGender;
 //import com.peoplein.moiming.domain.enums.MoimMemberState;
-//import com.peoplein.moiming.domain.enums.MoimRoleType;
+//import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 //import com.peoplein.moiming.domain.enums.RoleType;
 //import com.peoplein.moiming.domain.fixed.Role;
 //import com.peoplein.moiming.domain.rules.RuleJoin;
@@ -159,7 +159,7 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
-//        List<MemberMoimLinker> memberMoimLinkers = List.of();
+//        List<MoimMember> memberMoimLinkers = List.of();
 //
 //
 //        // birthMax, birthMin
@@ -180,7 +180,7 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin-1, 1, 1));
-//        List<MemberMoimLinker> memberMoimLinkers = List.of();
+//        List<MoimMember> memberMoimLinkers = List.of();
 //
 //        // birthMax, birthMin
 //        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
@@ -200,7 +200,7 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
-//        List<MemberMoimLinker> memberMoimLinkers = List.of();
+//        List<MoimMember> memberMoimLinkers = List.of();
 //
 //        // birthMax, birthMin
 //        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
@@ -220,7 +220,7 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
-//        List<MemberMoimLinker> memberMoimLinkers = List.of();
+//        List<MoimMember> memberMoimLinkers = List.of();
 //
 //        // Gender: N
 //        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.N, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
@@ -240,7 +240,7 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
-//        List<MemberMoimLinker> memberMoimLinkers = List.of();
+//        List<MoimMember> memberMoimLinkers = List.of();
 //
 //        // Gender : F
 //        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.F, TestUtils.MOIM_MAX_COUNT, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
@@ -260,7 +260,7 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
-//        List<MemberMoimLinker> memberMoimLinkers = List.of();
+//        List<MoimMember> memberMoimLinkers = List.of();
 //
 //        // moimMaxCount: 1
 //        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 1, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
@@ -279,8 +279,8 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
-//        MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, dummyMoim1, MoimRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+//        MoimMember memberMoimLinker1 = MoimMember.memberJoinMoim(member, dummyMoim1, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
+//        List<MoimMember> memberMoimLinkers = List.of(memberMoimLinker1);
 //
 //        // moimMaxCount : 1
 //        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 1, TestUtils.dupLeaderAvailable, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
@@ -300,8 +300,8 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
-//        MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, dummyMoim1, MoimRoleType.LEADER, MoimMemberState.ACTIVE);
-//        List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+//        MoimMember memberMoimLinker1 = MoimMember.memberJoinMoim(member, dummyMoim1, MoimMemberRoleType.LEADER, MoimMemberState.ACTIVE);
+//        List<MoimMember> memberMoimLinkers = List.of(memberMoimLinker1);
 //
 //        // dupLeaderAvailable : false
 //        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, false, TestUtils.dupManagerAvailable, moim, member.getUid(), false, false);
@@ -321,8 +321,8 @@
 //        int birthMin = 1990;
 //        Moim moim = Moim.createMoim(TestUtils.moimName, TestUtils.moimInfo, TestUtils.moimPfImg, new Area(TestUtils.areaState, TestUtils.areaCity), TestUtils.createdUid);
 //        Member member = createMember(MemberGender.M, LocalDate.of(birthMin + 1, 1, 1));
-//        MemberMoimLinker memberMoimLinker1 = MemberMoimLinker.memberJoinMoim(member, dummyMoim1, MoimRoleType.MANAGER, MoimMemberState.ACTIVE);
-//        List<MemberMoimLinker> memberMoimLinkers = List.of(memberMoimLinker1);
+//        MoimMember memberMoimLinker1 = MoimMember.memberJoinMoim(member, dummyMoim1, MoimMemberRoleType.MANAGER, MoimMemberState.ACTIVE);
+//        List<MoimMember> memberMoimLinkers = List.of(memberMoimLinker1);
 //
 //        // dupManagerAvailable : false
 //        RuleJoin ruleJoin = new RuleJoin(birthMax, birthMin, MemberGender.M, 2, TestUtils.dupLeaderAvailable, false, moim, member.getUid(), false, false);

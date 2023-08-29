@@ -1,6 +1,6 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.NetworkSetting;
+import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.dto.request_b.RuleRequestDto;
 import com.peoplein.moiming.service.MoimRulesService;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_MOIM_VER + NetworkSetting.API_MOIM + NetworkSetting.API_MOIM_RULES)
+@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_MOIM_VER + AppUrlPath.API_MOIM + AppUrlPath.API_MOIM_RULES)
 public class MoimRulesController {
     private final MoimRulesService moimRulesService;
 
@@ -26,16 +26,6 @@ public class MoimRulesController {
 //        return ResponseModel.createResponse(moimRulesService.createJoinRule(ruleRequestDto, curMember));
     }
 
-    /*
-     Persist Rule 생성
-     */
-    @PostMapping("/persist/create")
-    public ResponseEntity<?> createPersistRule(@RequestBody RuleRequestDto ruleRequestDto) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(moimRulesService.createPersistRule(ruleRequestDto, curMember));
-    }
 
     /*
      Join Rule 조회
@@ -48,16 +38,6 @@ public class MoimRulesController {
 //        return ResponseModel.createResponse(moimRulesService.getJoinRule(moimId, curMember));
     }
 
-    /*
-     Persist Rule 조회
-     */
-    @GetMapping("/persist/{moimId}")
-    public ResponseEntity<?> getPersistRule(@PathVariable(name = "moimId") Long moimId) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(moimRulesService.getPersistRule(moimId, curMember));
-    }
 
     /*
      Join Rule 수정
@@ -71,16 +51,6 @@ public class MoimRulesController {
 //        return ResponseModel.createResponse(moimRulesService.changeJoinRule(ruleRequestDto, curMember));
     }
 
-    /*
-     Persist Rule 수정
-     */
-    @PatchMapping("/persist/update")
-    public ResponseEntity<?> changePersistRule(@RequestBody RuleRequestDto ruleRequestDto) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(moimRulesService.changePersistRule(ruleRequestDto, curMember));
-    }
 
     /*
      Join Rule 삭제
@@ -94,16 +64,5 @@ public class MoimRulesController {
 //        return ResponseModel.createResponse("OK");
     }
 
-    /*
-     Persist Rule 삭제
-     */
-    @DeleteMapping("/persist/{moimId}")
-    public ResponseEntity<?> deletePersistRule(@PathVariable(name = "moimId") Long moimId) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        moimRulesService.deletePersistRule(moimId, curMember);
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse("OK");
-    }
 
 }

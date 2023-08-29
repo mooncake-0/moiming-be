@@ -1,16 +1,9 @@
 package com.peoplein.moiming.domain.moim;
 
-import com.peoplein.moiming.domain.BaseEntity;
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberInfo;
-import com.peoplein.moiming.domain.MemberMoimLinker;
+import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
-import com.peoplein.moiming.domain.rules.MoimRule;
-import com.peoplein.moiming.domain.rules.RuleJoin;
-import com.peoplein.moiming.domain.rules.RulePersist;
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -54,14 +47,16 @@ public class Moim extends BaseEntity {
     @JoinColumn(name = "moim_join_rule_id")
     private MoimJoinRule moimJoinRule;
 
-    @OneToMany(mappedBy = "moim", cascade = CascadeType.ALL)
-    private List<MemberMoimLinker> memberMoimLinkers = new ArrayList<>();
+    @OneToMany(mappedBy = "moim", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MoimMember> moimMembers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "moim", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MoimCategoryLinker> moimCategoryLinkers = new ArrayList<>();
 
     public static Moim createMoim(String moimName, String moimInfo, int maxMember, Area moimArea, Member creator) {
         // 생성 시점에서 수정자는 동일
         Moim moim = new Moim(moimName, moimInfo, maxMember, moimArea, creator.getId());
-        MemberMoimLinker.memberJoinMoim(creator, moim, MoimRoleType.CREATOR, MoimMemberState.ACTIVE);
+        MoimMember.memberJoinMoim(creator, moim, MoimMemberRoleType.MANAGER, MoimMemberState.ACTIVE);
         return moim;
     }
 
@@ -94,7 +89,7 @@ public class Moim extends BaseEntity {
     }
 
 //    // 똑같은 게 있을 수도 있고, 아닐 수도 있다.
-//    public MoimMemberState checkRuleJoinCondition(MemberInfo memberInfo, List<MemberMoimLinker> memberMoimLinkers) {
+//    public MoimMemberState checkRuleJoinCondition(MemberInfo memberInfo, List<MoimMember> moimMembers) {
 //
 //        RuleJoin ruleJoin = this.getRuleJoin();
 //
@@ -119,11 +114,11 @@ public class Moim extends BaseEntity {
 //            boolean isMemberAnyManager = false;
 //            int cntInactiveMoim = 0;
 //
-//            for (MemberMoimLinker memberMoimLinker : memberMoimLinkers) {
-//                if (memberMoimLinker.getMoimRoleType().equals(MoimRoleType.LEADER)) {
+//            for (MoimMember memberMoimLinker : moimMembers) {
+//                if (memberMoimLinker.getMoimMemberRoleType().equals(MoimMemberRoleType.LEADER)) {
 //                    isMemberAnyLeader = true;
 //                }
-//                if (memberMoimLinker.getMoimRoleType().equals(MoimRoleType.MANAGER)) {
+//                if (memberMoimLinker.getMoimMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
 //                    isMemberAnyManager = true;
 //                }
 //                if (memberMoimLinker.getMemberState() != MoimMemberState.ACTIVE) {
@@ -141,7 +136,7 @@ public class Moim extends BaseEntity {
 //            }
 //
 //            // 4. 가입 모임 수 제한
-//            if (ruleJoin.getMoimMaxCount() <= memberMoimLinkers.size() - cntInactiveMoim) {
+//            if (ruleJoin.getMoimMaxCount() <= moimMembers.size() - cntInactiveMoim) {
 //                return MoimMemberState.WAIT_BY_MOIM_CNT;
 //            }
 //        }
@@ -150,7 +145,7 @@ public class Moim extends BaseEntity {
 //        return MoimMemberState.ACTIVE;
 //    }
 
-    public boolean shouldCreateNewMemberMoimLinker(Optional<MemberMoimLinker> memberMoimLinker) {
+    public boolean shouldCreateNewMemberMoimLinker(Optional<MoimMember> memberMoimLinker) {
         return memberMoimLinker.isEmpty();
     }
 }

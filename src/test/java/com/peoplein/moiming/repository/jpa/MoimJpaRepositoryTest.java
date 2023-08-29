@@ -97,7 +97,7 @@ public class MoimJpaRepositoryTest  {
         Long ruleId = moimRuleRepository.save(moimRule);
         flushAndClear();
 
-        Moim findMoim = moimRepository.findWithRulesById(moimId);
+        Moim findMoim = moimRepository.findWithJoinRuleById(moimId).orElseThrow();
 
         assertThat(findMoim.getId()).isEqualTo(moimId);
         assertThat(findMoim.getRuleJoin().getId()).isEqualTo(ruleId);

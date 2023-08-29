@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QSchedule.*;
-import static com.peoplein.moiming.domain.QMoim.*;
+import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.QMemberScheduleLinker.*;
 
 @Repository

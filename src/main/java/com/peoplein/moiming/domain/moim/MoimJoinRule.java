@@ -1,7 +1,9 @@
 package com.peoplein.moiming.domain.moim;
 
 import com.peoplein.moiming.domain.BaseEntity;
+import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,6 +46,20 @@ public class MoimJoinRule extends BaseEntity {
         this.ageMax = ageMax;
         this.ageMin = ageMin;
         this.memberGender = memberGender;
+    }
+
+    public void judgeByRule(Member member) {
+
+        if (this.isAgeRule) {
+            // 나이 판별
+        }
+
+        if (this.memberGender != MemberGender.N) {
+            if (!member.getMemberInfo().getMemberGender().equals(this.memberGender)) {
+                throw new MoimingApiException("요청한 유저가 가입 조건에 부합하지 않습니다: 요구성별 - " +  this.memberGender.toString());
+            }
+        }
+
     }
 
 }
