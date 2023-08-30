@@ -16,6 +16,8 @@ import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.moim.QMoimMember.*;
 import static com.peoplein.moiming.domain.QMember.*;
 import static com.peoplein.moiming.domain.QMemberInfo.*;
+import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
+import static com.peoplein.moiming.domain.fixed.QCategory.*;
 
 @Repository
 @Transactional
@@ -38,13 +40,17 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                 .fetch();
     }
 
+
     @Override
-    public List<MoimMember> findWithMoimByMemberId(Long memberId) {
+    public List<MoimMember> findWithMoimAndCategoryByMemberId(Long memberId) {
         return queryFactory.selectFrom(moimMember)
                 .join(moimMember.moim, moim).fetchJoin()
+                .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
+                .join(moimCategoryLinker.category, category).fetchJoin()
                 .where(moimMember.member.id.eq(memberId))
                 .fetch();
     }
+
 
     @Override
     public Optional<MoimMember> findByMemberAndMoimId(Long memberId, Long moimId) {
@@ -54,15 +60,6 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                 .fetchOne());
     }
 
-
-    @Override
-    public MoimMember findWithMoimByMemberAndMoimId(Long memberId, Long moimId) {
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.moim, moim).fetchJoin()
-                .where(moimMember.member.id.eq(memberId),
-                        moimMember.moim.id.eq(moimId))
-                .fetchOne();
-    }
 
     @Override
     public MoimMember findWithMemberInfoByMemberAndMoimId(Long memberId, Long moimId) { // Join 없음

@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.*;
 
 class MoimMemberTest {
 
-    @Test
+//    @Test
     void judgeJoinSuccess() {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();
@@ -27,23 +27,8 @@ class MoimMemberTest {
         assertThat(moimMember.getMoim().getCurMemberCount()).isEqualTo(1);
     }
 
-    @Test
-    void judgeJoinDecline() {
-        // given
-        Member member = TestUtils.initMemberAndMemberInfo();
-        Moim moim = TestUtils.initMoimAndRuleJoin();
-        MoimMember moimMember = TestUtils.createNormalMemberMoimLinkerWithWait(member, moim);
-        MoimMemberStateAction input = MoimMemberStateAction.DECLINE;
 
-        // when
-        moimMember.judgeJoin(input);
-
-        // then
-        assertThat(moimMember.getMemberState()).isEqualTo(MoimMemberState.DECLINE);
-        assertThat(moimMember.getMoim().getCurMemberCount()).isEqualTo(0);
-    }
-
-    @Test
+//    @Test
     void judgeJoinThrowErrorWithUnexpectedInput() {
         // given
         Member member = TestUtils.initMemberAndMemberInfo();

@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
+import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,6 +45,9 @@ public class MoimMember extends BaseEntity {
     // 생성자
 
     public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
+        if (moim.getCurMemberCount() + 1 > moim.getMaxMember()) {
+            throw new MoimingApiException("모임 정원이 가득찼습니다");
+        }
         MoimMember moimMember = new MoimMember(member, moim, moimMemberRoleType, memberState);
         return moimMember;
     }
@@ -97,25 +101,20 @@ public class MoimMember extends BaseEntity {
         return banRejoin;
     }
 
-    // 비즈니스 로직
-    public static MoimMember processRequestJoin(Member curMember, Moim moim, MoimMemberState memberState, Optional<MoimMember> previousMemberMoimLinker) {
-        if (moim.shouldCreateNewMemberMoimLinker(previousMemberMoimLinker)) {
-            // 신규 가입하는 경우
-            return MoimMember.memberJoinMoim(curMember, moim, MoimMemberRoleType.NORMAL, memberState);
-        } else {
-            // 탈퇴 후 재가입 하는 경우
-            MoimMember moimMember = previousMemberMoimLinker.get();
-            moimMember.upDateRoleTypeAndState(MoimMemberRoleType.NORMAL, memberState);
-            return moimMember;
-        }
-    }
 
     public void changeMemberState(MoimMemberState memberState) {
         if (!memberState.equals(MoimMemberState.ACTIVE)) {
             this.moim.minusCurMemberCount();
-        } else { // 기존에 INACTIVE 상태 쪽이던 회원이 다시 ACTIVE 하게 됨
+
+        } else { // ACTIVE 하지 않던 유저를 다시 ACTIVE 하게 하려고 한다
+
+            if (moim.getCurMemberCount() + 1 > moim.getMaxMember()) {
+                throw new MoimingApiException("모임 정원이 가득찼습니다");
+            }
+
             this.moim.addCurMemberCount();
         }
+
         // 이미 있던 모임 상태이므로
         this.memberState = memberState;
     }

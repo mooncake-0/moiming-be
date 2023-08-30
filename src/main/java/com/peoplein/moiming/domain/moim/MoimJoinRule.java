@@ -37,6 +37,11 @@ public class MoimJoinRule extends BaseEntity {
             ageMax = -1;
             ageMin = -1;
         }
+
+        if (ageMin >= ageMax) {
+            throw new MoimingApiException("잘못된 설정입니다: 최소 나이가 더 큰 값");
+        }
+
         return new MoimJoinRule(isAgeRule, ageMax, ageMin, memberGender);
     }
 
@@ -51,7 +56,10 @@ public class MoimJoinRule extends BaseEntity {
     public void judgeByRule(Member member) {
 
         if (this.isAgeRule) {
-            // 나이 판별
+            int memberAge = member.getMemberAge();
+            if (this.ageMin > memberAge || this.ageMax < memberAge) { // 최소 나이보다 작거나 최대 나이보다 많다면
+                throw new MoimingApiException("요청한 유저가 가입 조건에 부합하지 않습니다: 나이 부적합");
+            }
         }
 
         if (this.memberGender != MemberGender.N) {

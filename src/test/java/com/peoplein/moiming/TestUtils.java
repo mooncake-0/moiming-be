@@ -7,9 +7,7 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.domain.rules.RuleJoin;
 import com.peoplein.moiming.model.dto.domain.MoimDto;
-import com.peoplein.moiming.model.dto.domain.RuleJoinDto;
 import com.peoplein.moiming.model.dto.request_b.MoimMemberActionRequestDto;
 import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -129,23 +127,27 @@ public class TestUtils {
 
 
     public static Moim initMoimAndRuleJoin() {
-        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
-        RuleJoin ruleJoin = new RuleJoin(1, 1, MemberGender.F, 1, true, true, moim, 1L);
-        return moim;
+        return null;
+//        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
+//        RuleJoin ruleJoin = new RuleJoin(1, 1, MemberGender.F, 1, true, true, moim, 1L);
+//        return moim;
     }
 
     public static Moim createMoimOnly() {
-        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
-        moim.setHasRuleJoin(false);
-        return moim;
+        return null;
+//        Moim moim = Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
+//        moim.setHasRuleJoin(false);
+//        return moim;
     }
 
     public static Moim createMoimOnly(String moimName) {
-        return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
+        return null;
+//        return Moim.createMoim(moimName, moimInfo, moimPfImg, new Area(areaState, areaCity), 1L);
     }
 
     public static Moim createOtherMoimOnly(String moimName, Area area) {
-        return Moim.createMoim(moimName, "other" + moimInfo, "other" + moimPfImg, area, 1L);
+        return null;
+//        return Moim.createMoim(moimName, "other" + moimInfo, "other" + moimPfImg, area, 1L);
     }
 
     public static MoimPost initMoimPost(Moim moim, Member member) {
@@ -167,12 +169,9 @@ public class TestUtils {
     }
 
 
-    public static RuleJoinDto initRuleJoinDto() {
-        return new RuleJoinDto(BIRTH_MAX, BIRTH_MIN, memberGender, MOIM_MAX_COUNT, DUPLICATED_LEADER_ENABLE, DUPLICATED_MANAGER_ENABLE);
-    }
-
     public static MoimMember createLeaderMemberMoimLinker(Member member, Moim moim) {
-        return MoimMember.memberJoinMoim(member, moim, MoimMemberRoleType.LEADER, MoimMemberState.ACTIVE);
+        return null;
+//        return MoimMember.memberJoinMoim(member, moim, MoimMemberRoleType.LEADER, MoimMemberState.ACTIVE);
     }
 
     public static MoimMember createNormalMemberMoimLinker(Member member, Moim moim) {
@@ -180,36 +179,13 @@ public class TestUtils {
     }
 
     public static MoimMember createNormalMemberMoimLinkerWithWait(Member member, Moim moim) {
-        return MoimMember.memberJoinMoim(member, moim, MoimMemberRoleType.NORMAL, MoimMemberState.WAIT_BY_MOIM_CNT);
+        return null;
+//        return MoimMember.memberJoinMoim(member, moim, MoimMemberRoleType.NORMAL, MoimMemberState.WAIT_BY_MOIM_CNT);
     }
 
 
     public static List<CategoryName> initCategoryName() {
-        return List.of(CategoryName.ALCOHOL, CategoryName.CODING);
-    }
-
-
-    public static RuleJoinDto createRuleJoinDto() {
-
-        return null;
-    }
-
-    public static List<Category> createMoimCategories() {
-        List<CategoryName> categoryNames = TestUtils.initCategoryName();
-        Category newCategory = new Category();
-        newCategory.setCategoryName(categoryNames.get(0));
-        return List.of(newCategory);
-    }
-
-    public static List<Category> createMoimCategoriesWithTwo() {
-        List<CategoryName> categoryNames = TestUtils.initCategoryName();
-        Category newCategory1 = new Category();
-        newCategory1.setCategoryName(categoryNames.get(0));
-
-        Category newCategory2 = new Category();
-        newCategory2.setCategoryName(categoryNames.get(1));
-
-        return List.of(newCategory1, newCategory2);
+        return List.of(CategoryName.DANCE, CategoryName.BELLY_DANCE);
     }
 
 
@@ -263,6 +239,6 @@ public class TestUtils {
     }
 
     public static Category createCategoryForTest() {
-        return new Category();
+        return new Category(1L, CategoryName.AMITY, 1, null);
     }
 }

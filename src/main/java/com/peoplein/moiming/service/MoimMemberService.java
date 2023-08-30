@@ -25,7 +25,7 @@ public class MoimMemberService {
 
     // 1. 모임 내 모든 회원 및 상태 조회
 
-    // 2. 가입 요청 (Rule Join 판별 - Front 에서 걸러줄테지만)
+    // 2. 가입 요청 (Rule Join 판별 - Front 에서 걸러줄테지만 /Rule Join + 정원확인 - 모두 도메인 단에서 확인)
     public MoimMember joinMoim(Long moimId, Member curMember) {
 
         // 해당 모임이 있는지 확인한다

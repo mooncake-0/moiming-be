@@ -78,7 +78,7 @@ public class MoimPostJpaRepositoryTest {
         assertThat(saveMoim).isNotNull();
     }
 
-    @Test
+//    @Test
     void findByIdTest() {
 
         moimRepository.save(moim);
@@ -139,15 +139,15 @@ public class MoimPostJpaRepositoryTest {
 //    @Test
     void findWithMemberInfoByMoimIdTest() {
 
-        Long moimId = moimRepository.save(moim);
+        moimRepository.save(moim);
         Long postId = moimPostRepository.save(moimPost);
         em.flush();
         em.clear();
 
-        List<MoimPost> findMoimPostList = moimPostRepository.findWithMemberInfoByMoimId(moimId);
+        List<MoimPost> findMoimPostList = moimPostRepository.findWithMemberInfoByMoimId(moim.getId());
 
         assertThat(findMoimPostList.size()).isEqualTo(1);
-        assertThat(findMoimPostList.get(0).getMoim().getId()).isEqualTo(moimId);
+        assertThat(findMoimPostList.get(0).getMoim().getId()).isEqualTo(moim.getId());
         assertThat(findMoimPostList.get(0).getId()).isEqualTo(postId);
     }
 

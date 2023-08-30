@@ -88,63 +88,8 @@ public class Moim extends BaseEntity {
         this.moimJoinRule = moimJoinRule;
     }
 
-//    // 똑같은 게 있을 수도 있고, 아닐 수도 있다.
-//    public MoimMemberState checkRuleJoinCondition(MemberInfo memberInfo, List<MoimMember> moimMembers) {
-//
-//        RuleJoin ruleJoin = this.getRuleJoin();
-//
-//        // 1. 생년월일 판별
-//        if (ruleJoin.getBirthMax() != 0 && ruleJoin.getBirthMin() != 0) { // 판별조건이 있다면
-//            if (memberInfo.getMemberBirth().getYear() < ruleJoin.getBirthMin()
-//                    || memberInfo.getMemberBirth().getYear() > ruleJoin.getBirthMax()) {
-//                return MoimMemberState.WAIT_BY_AGE;
-//            }
-//        }
-//
-//        // 2. 성별 판별
-//        if (ruleJoin.getGender() != MemberGender.N) { // 판별조건이 있다면
-//            if (ruleJoin.getGender() != memberInfo.getMemberGender()) {
-//                return MoimMemberState.WAIT_BY_GENDER;
-//            }
-//        }
-//
-//        // count 부분이 자기 자신이라면 항상 빼야한다. 즉, 그 부분을 나눠줘야함.
-//        if (!ruleJoin.isDupLeaderAvailable() || !ruleJoin.isDupManagerAvailable() || ruleJoin.getMoimMaxCount() > 0) { // 겸직 조건이 하나라도 있거나 최대 모임 갯수 조건이 있음
-//            boolean isMemberAnyLeader = false;
-//            boolean isMemberAnyManager = false;
-//            int cntInactiveMoim = 0;
-//
-//            for (MoimMember memberMoimLinker : moimMembers) {
-//                if (memberMoimLinker.getMoimMemberRoleType().equals(MoimMemberRoleType.LEADER)) {
-//                    isMemberAnyLeader = true;
-//                }
-//                if (memberMoimLinker.getMoimMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
-//                    isMemberAnyManager = true;
-//                }
-//                if (memberMoimLinker.getMemberState() != MoimMemberState.ACTIVE) {
-//                    cntInactiveMoim++;
-//                }
-//            }
-//
-//            // 3. 겸직 여부 판별
-//            if (!ruleJoin.isDupLeaderAvailable()) { // 모임장 겸직 금지인데
-//                if (isMemberAnyLeader) return MoimMemberState.WAIT_BY_DUP;
-//            }
-//
-//            if (!ruleJoin.isDupManagerAvailable()) { // 운영진 겸직 금지인데
-//                if (isMemberAnyManager) return MoimMemberState.WAIT_BY_DUP;
-//            }
-//
-//            // 4. 가입 모임 수 제한
-//            if (ruleJoin.getMoimMaxCount() <= moimMembers.size() - cntInactiveMoim) {
-//                return MoimMemberState.WAIT_BY_MOIM_CNT;
-//            }
-//        }
-//
-//        // 모임 가입 조건 충족시 그냥 가입된다
-//        return MoimMemberState.ACTIVE;
-//    }
 
+    // 내가 만든거 아님
     public boolean shouldCreateNewMemberMoimLinker(Optional<MoimMember> memberMoimLinker) {
         return memberMoimLinker.isEmpty();
     }

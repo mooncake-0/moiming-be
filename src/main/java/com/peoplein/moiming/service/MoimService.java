@@ -7,7 +7,10 @@ import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
+import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.model.dto.response.MoimRespDto;
 import com.peoplein.moiming.repository.CategoryRepository;
+import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
+import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
 
 @Service
 @Transactional
@@ -25,6 +29,7 @@ import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto
 public class MoimService {
 
     private final MoimRepository moimRepository;
+    private final MoimMemberRepository moimMemberRepository;
     private final CategoryRepository categoryRepository;
 
     // 모임 생성
@@ -52,7 +57,13 @@ public class MoimService {
         return moim;
     }
 
+
     // 모임 일반 조회
+    public List<MoimViewRespDto> getMemberMoims(Member curMember) {
+
+        List<MoimMember> moimMembers = moimMemberRepository.findWithMoimAndCategoryByMemberId(curMember.getId());
+        return moimMembers.stream().map(MoimViewRespDto::new).collect(Collectors.toList());
+    }
 
     // 모임 세부 조회
 

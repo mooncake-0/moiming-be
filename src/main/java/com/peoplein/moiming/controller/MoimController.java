@@ -3,18 +3,17 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.MoimService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 
@@ -36,10 +35,14 @@ public class MoimController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 생성 성공", response = MoimCreateRespDto.class),
+            @ApiResponse(code = 400, message = "모임 생성 실패, ERR MSG 확인")
+    })
     @PostMapping("/create")
     public ResponseEntity<?> createMoim(@RequestBody @Valid MoimCreateReqDto requestDto
             , BindingResult br
-            , @AuthenticationPrincipal SecurityMember principal) {
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         Moim moimOut = moimService.createMoim(requestDto, principal.getMember());
         List<String> categoryNameValues = MoimCategoryLinker.convertLinkersToNameValues(moimOut.getMoimCategoryLinkers());
@@ -49,16 +52,18 @@ public class MoimController {
     }
 
 
-
     @ApiOperation("모임 일반 조회 - 특정 유저의 모든 모임 조회")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "유저 모든 모임 조회 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 400, message = "유저 모든 모임 조회 실패, ERR MSG 확인")
+    })
     @GetMapping("")
-    public String getUserMoims(@PathVariable("memberId") Long memberId,
-                               @AuthenticationPrincipal SecurityMember principal) {
-
-        return "";
+    public ResponseEntity<?> getMemberMoims(@AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+        List<MoimViewRespDto> responseData = moimService.getMemberMoims(principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "조회 성공", responseData));
     }
 
 
@@ -80,7 +85,6 @@ public class MoimController {
     public String updateMoim() {
         return "";
     }
-
 
 
     @ApiOperation("모임 삭제")

@@ -62,7 +62,7 @@ public class MoimReqDto {
             @Max(100)
             private int ageMax;
 
-            @Min(20)
+            @Min(15)
             private int ageMin;
 
             @NotNull

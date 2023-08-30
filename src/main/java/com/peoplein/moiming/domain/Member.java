@@ -25,7 +25,7 @@ import java.util.Objects;
 @Entity
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"member_email"}, name = "unique_member_email"),
-        @UniqueConstraint(columnNames = {"nickname"}, name= "unique_nickname")
+        @UniqueConstraint(columnNames = {"nickname"}, name = "unique_nickname")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -131,4 +131,11 @@ public class Member extends BaseEntity {
     }
 
 
+    // MemberInfo 정보긴 하지만, Member 도메인이 훨씬 Active 하기 떄문에
+    // 앱 내에서 [나이] 란, 이전 한국 나이를 말한다
+    public int getMemberAge() {
+        int birthYear = this.memberInfo.getMemberBirth().getYear();
+        int todayYear = LocalDate.now().getYear();
+        return todayYear - birthYear + 1;
+    }
 }
