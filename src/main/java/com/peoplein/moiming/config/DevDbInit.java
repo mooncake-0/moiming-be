@@ -27,19 +27,19 @@ public class DevDbInit {
 
             // Category 추가
             int i = 1;
-            Category cDANCE = new Category((long) i++, CategoryName.DANCE, 2, null);
-            Category cOUTDOOR = new Category((long) i++, CategoryName.OUTDOOR, 2, null);
-            Category cEXERCISE = new Category((long) i++, CategoryName.EXERCISE, 2, null);
-            Category cBOOK = new Category((long) i++, CategoryName.BOOK, 2, null);
-            Category cJOB = new Category((long) i++, CategoryName.JOB, 2, null);
-            Category cLANGUAGE = new Category((long) i++, CategoryName.LANGUAGE, 2, null);
-            Category cCULTURAL = new Category((long) i++, CategoryName.CULTURAL, 2, null);
-            Category cMUSIC = new Category((long) i++, CategoryName.MUSIC, 2, null);
-            Category cCRAFTS = new Category((long) i++, CategoryName.CRAFTS, 2, null);
-            Category cCOOK = new Category((long) i++, CategoryName.COOK, 2, null);
-            Category cPET = new Category((long) i++, CategoryName.PET, 2, null);
-            Category cAMITY = new Category((long) i++, CategoryName.AMITY, 2, null);
-            Category cHOBBY = new Category((long) i++, CategoryName.HOBBY, 2, null);
+            Category cDANCE = new Category((long) i++, CategoryName.DANCE, 1, null);
+            Category cOUTDOOR = new Category((long) i++, CategoryName.OUTDOOR, 1, null);
+            Category cEXERCISE = new Category((long) i++, CategoryName.EXERCISE, 1, null);
+            Category cBOOK = new Category((long) i++, CategoryName.BOOK, 1, null);
+            Category cJOB = new Category((long) i++, CategoryName.JOB, 1, null);
+            Category cLANGUAGE = new Category((long) i++, CategoryName.LANGUAGE, 1, null);
+            Category cCULTURAL = new Category((long) i++, CategoryName.CULTURAL, 1, null);
+            Category cMUSIC = new Category((long) i++, CategoryName.MUSIC, 1, null);
+            Category cCRAFTS = new Category((long) i++, CategoryName.CRAFTS, 1, null);
+            Category cCOOK = new Category((long) i++, CategoryName.COOK, 1, null);
+            Category cPET = new Category((long) i++, CategoryName.PET, 1, null);
+            Category cAMITY = new Category((long) i++, CategoryName.AMITY, 1, null);
+            Category cHOBBY = new Category((long) i++, CategoryName.HOBBY, 1, null);
 
             categoryRepository.save(cDANCE);
             categoryRepository.save(cOUTDOOR);

@@ -32,6 +32,7 @@ public class MoimJoinRule extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private MemberGender memberGender;
+
     public static MoimJoinRule createMoimJoinRule(boolean isAgeRule, int ageMax, int ageMin, MemberGender memberGender) {
         if (!isAgeRule) {
             ageMax = -1;
@@ -67,7 +68,14 @@ public class MoimJoinRule extends BaseEntity {
                 throw new MoimingApiException("요청한 유저가 가입 조건에 부합하지 않습니다: 요구성별 - " +  this.memberGender.toString());
             }
         }
+    }
 
+
+    // WARN: ID 변경은 MOCK 용
+    public void changeMockObjectIdForTest(Long mockObjectId, String className) {
+        if (className.equals("TestMockCreator")) {
+            this.id = mockObjectId;
+        }
     }
 
 }

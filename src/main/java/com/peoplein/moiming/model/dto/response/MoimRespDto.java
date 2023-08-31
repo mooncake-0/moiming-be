@@ -41,7 +41,9 @@ public class MoimRespDto {
             this.maxMember = moim.getMaxMember();
             this.areaCity = moim.getMoimArea().getCity();
             this.areaState = moim.getMoimArea().getState();
-            this.joinRuleDto = new JoinRuleCreateRespDto(moim.getMoimJoinRule());
+            if (moim.getMoimJoinRule() != null) {
+                this.joinRuleDto = new JoinRuleCreateRespDto(moim.getMoimJoinRule());
+            }
             this.categoryNameValues = categoryNameValues;
         }
 

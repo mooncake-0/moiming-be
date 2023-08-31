@@ -40,6 +40,7 @@ public class MoimMember extends BaseEntity {
     private MoimMemberState memberState;
 
     private String inactiveReason;
+
     private boolean banRejoin;
 
     // 생성자

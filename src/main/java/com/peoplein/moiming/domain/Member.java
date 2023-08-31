@@ -115,13 +115,6 @@ public class Member extends BaseEntity {
         this.password = password;
     }
 
-    // TODO :: 더 나은 방법 강구 필요
-    // WARN: ID 변경은 MOCK 용
-    public void changeMockObjectIdForTest(Long mockObjectId, String className) {
-        if (className.equals("TestMockCreator")) {
-            this.id = mockObjectId;
-        }
-    }
 
     public void changeNickname(String nickname) {
         if (!StringUtils.hasText(nickname)) {
@@ -137,5 +130,13 @@ public class Member extends BaseEntity {
         int birthYear = this.memberInfo.getMemberBirth().getYear();
         int todayYear = LocalDate.now().getYear();
         return todayYear - birthYear + 1;
+    }
+
+
+    // WARN: ID 변경은 MOCK 용
+    public void changeMockObjectIdForTest(Long mockObjectId, String className) {
+        if (className.equals("TestMockCreator")) {
+            this.id = mockObjectId;
+        }
     }
 }

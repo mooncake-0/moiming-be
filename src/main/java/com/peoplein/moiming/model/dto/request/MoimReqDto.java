@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ public class MoimReqDto {
     @Getter
     @Setter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class MoimCreateReqDto {
 
         @NotEmpty
@@ -54,6 +56,7 @@ public class MoimReqDto {
         @Getter
         @Setter
         @NoArgsConstructor
+        @AllArgsConstructor
         public static class JoinRuleCreateReqDto {
 
             @NotNull

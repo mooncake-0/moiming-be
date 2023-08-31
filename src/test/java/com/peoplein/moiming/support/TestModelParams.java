@@ -1,6 +1,7 @@
 package com.peoplein.moiming.support;
 
 
+import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import org.springframework.context.annotation.Profile;
 
@@ -23,5 +24,25 @@ public abstract class TestModelParams {
 
     public static String accessToken = "ACCESS_TOKEN";
     public static String refreshToken = "REFRESH_TOKEN";
+
+
+    // 1번 Moim 변수
+    public static String moimName = "모이밍 모임";
+    public static String moimInfo = "모이밍 앱 MVP를 만들어 나가는 사람들의 모임입니다";
+    public static int maxMember = 10;
+    public static Area moimArea = new Area("서울시", "중구");
+    public static String depth1SampleCategory = "운동/스포츠";
+    public static String depth2SampleCategory = "골프";
+
+
+    // 2번 Moim 변수
+    public static String moimName2 = "디지몬어드벤쳐";
+    public static String moimInfo2 = "선택받은 아이들의 모임입니다";
+    public static int maxMember2 = 20;
+    public static Area moimArea2 = new Area("성남시", "분당구");
+    public static String depth1SampleCategory2 = "댄스/무용";
+    public static String depth2SampleCategory2 = "재즈댄스";
+
+
 
 }
