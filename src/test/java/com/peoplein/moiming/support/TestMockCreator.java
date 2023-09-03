@@ -4,13 +4,12 @@ package com.peoplein.moiming.support;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.enums.CategoryName;
-import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.dto.request.MoimReqDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
@@ -79,16 +78,24 @@ public class TestMockCreator {
             moim.setMoimJoinRule(mockMoimJoinRule(isAgeRule, maxAge, minAge, memberGender));
         }
 
-
         return moim;
     }
 
 
+    protected MoimMember mockMoimMember(Long id, Member member, Moim moim) {
+        MoimMember moimMember = MoimMember.memberJoinMoim(member, moim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
+        moimMember.changeMockObjectIdForTest(id, this.getClass().getSimpleName());
+        return moimMember;
+    }
+
+
+
     protected MoimJoinRule mockMoimJoinRule(boolean isAgeRule, int maxAge, int minAge, MemberGender memberGender) {
         MoimJoinRule joinRule = MoimJoinRule.createMoimJoinRule(isAgeRule, maxAge, minAge, memberGender);
-        joinRule.changeMockObjectIdForTest(1L, getClass().getName());
+        joinRule.changeMockObjectIdForTest(1L, this.getClass().getSimpleName());
         return joinRule;
     }
+
 
     protected Role mockRole(Long id, RoleType roleType) {
         Role testRole = new Role();
@@ -118,6 +125,8 @@ public class TestMockCreator {
                 .withClaim(JwtParams.CLAIM_KEY_MEMBER_EMAIL, testMember.getMemberEmail())
                 .sign(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET));
     }
+
+
 
 
 }

@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.request.MoimReqDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,8 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 
 @Entity
 @Getter
@@ -93,6 +96,65 @@ public class Moim extends BaseEntity {
 
     public void setMoimJoinRule(MoimJoinRule moimJoinRule) {
         this.moimJoinRule = moimJoinRule;
+    }
+
+
+    // 값 존재 > Update 해야함
+    public void updateMoim(MoimUpdateReqDto requestDto) {
+
+        if (requestDto.getMoimName() != null) {
+            this.setMoimName(requestDto.getMoimName());
+        }
+
+        if (requestDto.getMoimInfo() != null) {
+            this.setMoimInfo(requestDto.getMoimInfo());
+        }
+
+        if (requestDto.getMaxMember() != null) {
+            this.setMaxMember(requestDto.getMaxMember());
+        }
+
+        if (requestDto.getAreaState() != null || requestDto.getAreaCity() != null) {
+            // 둘 중 적어도 하나는 값이 존재한다
+            String newAreaState = this.moimArea.getState();
+            String newAreaCity = this.moimArea.getCity();
+
+            if (requestDto.getAreaState() != null) {
+                newAreaState = requestDto.getAreaState();
+            }
+
+            if (requestDto.getAreaCity() != null) {
+                newAreaCity = requestDto.getAreaCity();
+            }
+
+            this.setMoimArea(new Area(newAreaState, newAreaCity));
+        }
+    }
+
+    public void changeCategory(List<Category> categories) {
+        for (Category category : categories) {
+            MoimCategoryLinker.addMoimCategory(this, category);
+        }
+    }
+
+    /*
+     private 하게 바꿀 수 있도록 해서, update 함수 외에는 실행할 수 없게 한다
+     update() 함수로 오는 과정에선 충분히 validation 거침
+     */
+    private void setMoimName(String moimName) {
+        this.moimName = moimName;
+    }
+
+    private void setMoimInfo(String moimInfo) {
+        this.moimInfo = moimInfo;
+    }
+
+    private void setMaxMember(int maxMember) {
+        this.maxMember = maxMember;
+    }
+
+    private void setMoimArea(Area moimArea) {
+        this.moimArea = moimArea;
     }
 
 

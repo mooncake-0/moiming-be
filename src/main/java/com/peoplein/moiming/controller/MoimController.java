@@ -3,6 +3,7 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.request.MoimReqDto;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.MoimService;
@@ -52,6 +53,8 @@ public class MoimController {
     }
 
 
+
+
     @ApiOperation("모임 일반 조회 - 특정 유저의 모든 모임 조회")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
@@ -65,6 +68,8 @@ public class MoimController {
         List<MoimViewRespDto> responseData = moimService.getMemberMoims(principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "조회 성공", responseData));
     }
+
+
 
 
     @ApiOperation("모임 세부 조회 - 특정 모임 전체 정보 조회")
@@ -81,8 +86,17 @@ public class MoimController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
-    @PatchMapping("/{moimId}")
-    public String updateMoim() {
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 정보 수정 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 400, message = "모임 정보 수정 실패, ERR MSG 확인")
+    })
+    @PatchMapping("")
+    public String updateMoim(@RequestBody @Valid MoimUpdateReqDto requestDto
+            , BindingResult br
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        Moim moimOut = moimService.updateMoim(requestDto, principal.getMember());
+
         return "";
     }
 

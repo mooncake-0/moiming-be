@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MoimRespDto {
 
@@ -91,8 +92,11 @@ public class MoimRespDto {
             this.areaCity = moimMember.getMoim().getMoimArea().getCity();
             this.areaState = moimMember.getMoim().getMoimArea().getState();
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(moimMember.getMoim().getMoimCategoryLinkers());
-            this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());
+            if (!Objects.isNull(moimMember.getMoim().getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
+                this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());
+            }
         }
+
 
         @Getter
         @Setter

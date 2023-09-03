@@ -147,4 +147,13 @@ public class MoimMember extends BaseEntity {
     public boolean hasPermissionForUpdate() {
         return this.moimMemberRoleType.equals(MoimMemberRoleType.MANAGER);
     }
+
+
+
+    // WARN: ID 변경은 MOCK 용
+    public void changeMockObjectIdForTest(Long mockObjectId, String className) {
+        if (className.equals("TestMockCreator")) {
+            this.id = mockObjectId;
+        }
+    }
 }

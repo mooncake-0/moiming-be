@@ -66,9 +66,37 @@ public class MoimService {
         return moimMembers.stream().map(MoimViewRespDto::new).collect(Collectors.toList());
     }
 
+
+
     // 모임 세부 조회
 
+
+
     // 모임 수정 (MANAGER 권한)
+    public Moim updateMoim(MoimUpdateReqDto requestDto, Member curMember) {
+
+        // 차피 Moim 존속 여부랑은 별개로, MoimMember 가 있으면 되는 것이니, MoimMember 로 그냥 join 해와버리자
+        MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() -> new MoimingApiException("찾을 수 없습니다"));
+
+        if (!moimMemberPs.hasPermissionForUpdate()) {
+            throw new MoimingApiException("해당 모임에 대한 수정 권한이 없는 회원입니다");
+        }
+
+        moimMemberPs.getMoim().updateMoim(requestDto); // Moim 도 영속화됨
+
+        if (requestDto.getCategoryNameValues() != null) { // Category 변경은 따로 진행되어야 한다 // isEmpty 면 NullException 발생할 수도
+
+            moimMemberPs.getMoim().getMoimCategoryLinkers().clear(); // 현재 저장된 SessionCategory 들을 모두 삭제
+
+            List<Category> categories = generateCategoryList(requestDto.getCategoryNameValues()); // 새로운 CategoryLinker 로 다시 저장
+            moimMemberPs.getMoim().changeCategory(categories);
+
+        }
+
+        return moimMemberPs.getMoim();
+    }
+
+
 
     // 모임 삭제 (MANAGER 권한)
 

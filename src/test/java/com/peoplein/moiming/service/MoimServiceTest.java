@@ -1,13 +1,12 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.enums.CategoryName;
-import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.response.MoimRespDto;
 import com.peoplein.moiming.repository.CategoryRepository;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
@@ -26,6 +25,7 @@ import java.util.Objects;
 
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 
+import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -144,19 +144,35 @@ public class MoimServiceTest extends TestMockCreator {
     }
 
 
+    // 어차피 mock 써도 get val 값들 다 넣어줘야함.. 그냥 실객체로 Mocking 처럼 쓰자
     @Test
     void getMemberMoims_shouldReturnCollection_whenSuccessful() {
 
-        // given - curMember 가 가입된 모임이 두개이다
-        Moim mockedMoim = mockMoim(1L, moimName, maxMember, true, true, 40, 20, MemberGender.N, depth1SampleCategory, depth2SampleCategory, curMember);
-        Moim mockedMoim2 = mockMoim(2L, moimName2, maxMember2, false, false, 0, 0, null, depth2SampleCategory, depth2SampleCategory2, curMember);
+        // given
+        // given - return val ready
+        Moim moim1 = mockMoim(1L, moimName, maxMember, false, false, 0, 0, null, depth1SampleCategory, depth2SampleCategory, curMember);
+        Moim moim2 = mockMoim(2L, moimName2, maxMember2, true, true, 20, 15, null, depth1SampleCategory2, depth2SampleCategory2, curMember);
+        MoimMember moimMember = mockMoimMember(1L, curMember, moim1);
+        MoimMember moimMember2 = mockMoimMember(2L, curMember, moim2);
+        List<MoimMember> mockedMoimMembers = List.of(moimMember, moimMember2);
 
-
+        // given - stub
+        doReturn(mockedMoimMembers).when(moimMemberRepository).findWithMoimAndCategoryByMemberId(curMember.getId());
 
         // when
-//        doReturn().when(moimMemberRepository).findWithMoimAndCategoryByMemberId(curMember.getId());
+        List<MoimViewRespDto> curMemberMoims = moimService.getMemberMoims(curMember);
 
         // then
+        assertThat(curMemberMoims.size()).isEqualTo(2);
+        for (MoimViewRespDto curMemberMoim : curMemberMoims) {
+            if (curMemberMoim.getMoimJoinRuleDto() == null) {
+                assertThat(curMemberMoim.getMoimId()).isEqualTo(1L);
+            } else {
+                assertThat(curMemberMoim.getMoimId()).isEqualTo(2L);
+            }
+        }
+
+
 
     }
 }

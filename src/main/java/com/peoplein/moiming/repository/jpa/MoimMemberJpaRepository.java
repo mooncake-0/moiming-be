@@ -43,7 +43,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
     @Override
     public List<MoimMember> findWithMoimAndCategoryByMemberId(Long memberId) {
-        return queryFactory.selectFrom(moimMember)
+        return queryFactory.selectFrom(moimMember).distinct() // MoimCategoryLinker 의 Collection 조회로 인한 중복 데이터 제거 필요
                 .join(moimMember.moim, moim).fetchJoin()
                 .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
                 .join(moimCategoryLinker.category, category).fetchJoin()
