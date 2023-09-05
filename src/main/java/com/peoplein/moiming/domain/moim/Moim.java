@@ -12,6 +12,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -94,13 +98,9 @@ public class Moim extends BaseEntity {
         }
     }
 
-    public void setMoimJoinRule(MoimJoinRule moimJoinRule) {
-        this.moimJoinRule = moimJoinRule;
-    }
 
-
-    // 값 존재 > Update 해야함
-    public void updateMoim(MoimUpdateReqDto requestDto) {
+    // 값 존재 > Update 해야함 > Create 처럼 List<Category> 는 따로 넣어주는게 맞다
+    public void updateMoim(MoimUpdateReqDto requestDto, List<Category> categories, Long updaterId) {
 
         if (requestDto.getMoimName() != null) {
             this.setMoimName(requestDto.getMoimName());
@@ -115,20 +115,20 @@ public class Moim extends BaseEntity {
         }
 
         if (requestDto.getAreaState() != null || requestDto.getAreaCity() != null) {
-            // 둘 중 적어도 하나는 값이 존재한다
-            String newAreaState = this.moimArea.getState();
-            String newAreaCity = this.moimArea.getCity();
-
-            if (requestDto.getAreaState() != null) {
-                newAreaState = requestDto.getAreaState();
-            }
-
-            if (requestDto.getAreaCity() != null) {
-                newAreaCity = requestDto.getAreaCity();
-            }
-
-            this.setMoimArea(new Area(newAreaState, newAreaCity));
+            // 둘 중 적어도 하나는 바뀌므로, 새 Area 필요
+            this.setMoimArea(this.moimArea.checkToIssueNewArea(requestDto.getAreaState(), requestDto.getAreaCity()));
         }
+
+        if (!categories.isEmpty()) {
+
+            this.getMoimCategoryLinkers().clear(); // 현재 저장된 SessionCategory 들을 모두 삭제
+            this.changeCategory(categories);
+
+        }
+
+        this.updaterId = updaterId; // validate 통과이므로 call 되면 수정되는 것
+
+
     }
 
     public void changeCategory(List<Category> categories) {
@@ -136,6 +136,7 @@ public class Moim extends BaseEntity {
             MoimCategoryLinker.addMoimCategory(this, category);
         }
     }
+
 
     /*
      private 하게 바꿀 수 있도록 해서, update 함수 외에는 실행할 수 없게 한다
@@ -157,17 +158,26 @@ public class Moim extends BaseEntity {
         this.moimArea = moimArea;
     }
 
-
-    // 내가 만든거 아님
-    public boolean shouldCreateNewMemberMoimLinker(Optional<MoimMember> memberMoimLinker) {
-        return memberMoimLinker.isEmpty();
+    // 유일한 Open Setter
+    public void setMoimJoinRule(MoimJoinRule moimJoinRule) {
+        this.moimJoinRule = moimJoinRule;
     }
 
 
-    // WARN: ID 변경은 MOCK 용
-    public void changeMockObjectIdForTest(Long mockObjectId, Class<?> callClass) {
-        if (callClass.getName().equals("TestMockCreator")) {
-            this.id = mockObjectId;
+    // WARN: ID 변경은 MOCK 용: 호출된 곳이 test Pckg 인지 확인
+    public void changeMockObjectIdForTest(Long mockObjectId, URL classUrl) {
+
+        try {
+            URI uri = classUrl.toURI();
+            File file = new File(uri);
+            String absolutePath = file.getAbsolutePath();
+
+            if (absolutePath.contains("test")) { // 빌드 Class 경로가 test 내부일경우
+                this.id = mockObjectId;
+            }
+
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
         }
     }
 }

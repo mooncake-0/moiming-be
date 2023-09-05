@@ -11,6 +11,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -150,10 +154,20 @@ public class MoimMember extends BaseEntity {
 
 
 
-    // WARN: ID 변경은 MOCK 용
-    public void changeMockObjectIdForTest(Long mockObjectId, String className) {
-        if (className.equals("TestMockCreator")) {
-            this.id = mockObjectId;
+    // WARN: ID 변경은 MOCK 용: 호출된 곳이 test Pckg 인지 확인
+    public void changeMockObjectIdForTest(Long mockObjectId, URL classUrl) {
+
+        try {
+            URI uri = classUrl.toURI();
+            File file = new File(uri);
+            String absolutePath = file.getAbsolutePath();
+
+            if (absolutePath.contains("test")) { // 빌드 Class 경로가 test 내부일경우
+                this.id = mockObjectId;
+            }
+
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -87,6 +87,7 @@ public class MoimReqDto {
     @Getter
     @Setter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class MoimUpdateReqDto {
 
         @NotNull
@@ -102,9 +103,9 @@ public class MoimReqDto {
         @Max(100)
         private Integer maxMember;
 
-        private String areaCity;
-
         private String areaState;
+
+        private String areaCity;
 
         @Size(min = 2, max = 2, message = "카테고리는 수정될때도 부모/자식 두 개의 값이 들어와야 합니다")
         @JsonProperty("categories")
