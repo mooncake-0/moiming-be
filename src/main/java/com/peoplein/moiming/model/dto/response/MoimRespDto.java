@@ -34,7 +34,7 @@ public class MoimRespDto {
         @JsonProperty("categories")
         private List<String> categoryNameValues;
 
-        public MoimCreateRespDto(Moim moim, List<String> categoryNameValues){
+        public MoimCreateRespDto(Moim moim){
             this.moimId = moim.getId();
             this.moimName = moim.getMoimName();
             this.moimInfo = moim.getMoimInfo();
@@ -45,19 +45,19 @@ public class MoimRespDto {
             if (moim.getMoimJoinRule() != null) {
                 this.joinRuleDto = new JoinRuleCreateRespDto(moim.getMoimJoinRule());
             }
-            this.categoryNameValues = categoryNameValues;
+            this.categoryNameValues = MoimCategoryLinker.convertLinkersToNameValues(moim.getMoimCategoryLinkers());
         }
 
         @Getter
         @Setter
         public static class JoinRuleCreateRespDto {
-            private boolean isAgeRule;
+            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public JoinRuleCreateRespDto(MoimJoinRule moimJoinRule) {
-                this.isAgeRule = moimJoinRule.isAgeRule();
+                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
@@ -103,13 +103,13 @@ public class MoimRespDto {
         @NoArgsConstructor
         public static class MoimJoinRuleDto {
 
-            private boolean isAgeRule;
+            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public MoimJoinRuleDto(MoimJoinRule moimJoinRule) {
-                this.isAgeRule = moimJoinRule.isAgeRule();
+                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
@@ -151,19 +151,18 @@ public class MoimRespDto {
         @NoArgsConstructor
         public static class MoimJoinRuleDto {
 
-            private boolean isAgeRule;
+            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public MoimJoinRuleDto(MoimJoinRule moimJoinRule) {
-                this.isAgeRule = moimJoinRule.isAgeRule();
+                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
             }
         }
-
     }
 
 
@@ -172,7 +171,25 @@ public class MoimRespDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class MoimUpdateRespDto{
+    public static class MoimUpdateRespDto {
 
+        private Long moimId;
+        private String moimName;
+        private String moimInfo;
+        private int maxMember;
+        private String areaState;
+        private String areaCity;
+
+        private List<String> categories;
+
+        public MoimUpdateRespDto(Moim moim) {
+            this.moimId = moim.getId();
+            this.moimName = moim.getMoimName();
+            this.moimInfo = moim.getMoimInfo();
+            this.maxMember = moim.getMaxMember();
+            this.areaState = moim.getMoimArea().getState();
+            this.areaCity = moim.getMoimArea().getCity();
+            this.categories = MoimCategoryLinker.convertLinkersToNameValues(moim.getMoimCategoryLinkers());
+        }
     }
 }

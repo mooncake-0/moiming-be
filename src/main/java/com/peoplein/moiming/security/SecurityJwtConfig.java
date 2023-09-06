@@ -152,13 +152,13 @@ public class SecurityJwtConfig {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        DefaultSecurityFilterChain filterChain = http.build();
-        List<Filter> filters = filterChain.getFilters();
-        for (Filter filter : filters) {
-            System.out.println("filter.getClass() = " + filter.getClass());
-        }
+//        DefaultSecurityFilterChain filterChain = http.build();
+//        List<Filter> filters = filterChain.getFilters();
+//        for (Filter filter : filters) {
+//            System.out.println("filter.getClass() = " + filter.getClass());
+//        }
 
-        return filterChain;
+        return http.build();
     }
 
 }

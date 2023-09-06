@@ -49,7 +49,7 @@ public class MoimService {
 
 
         // 가입조건 있을시 SU
-        if (requestDto.hasJoinRule()) {
+        if (requestDto.getHasJoinRule()) {
             moim.setMoimJoinRule(generateJoinRule(requestDto.getJoinRuleDto()));
         }
 
@@ -97,7 +97,7 @@ public class MoimService {
 
     // Entity 에 DTO 누수하지 않기 위함
     private MoimJoinRule generateJoinRule(JoinRuleCreateReqDto ruleDto) {
-        return MoimJoinRule.createMoimJoinRule(ruleDto.isAgeRule(), ruleDto.getAgeMax(), ruleDto.getAgeMin(), ruleDto.getMemberGender());
+        return MoimJoinRule.createMoimJoinRule(ruleDto.getHasAgeRule(), ruleDto.getAgeMax(), ruleDto.getAgeMin(), ruleDto.getMemberGender());
     }
 
 }

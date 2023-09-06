@@ -46,9 +46,7 @@ public class MoimController {
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         Moim moimOut = moimService.createMoim(requestDto, principal.getMember());
-        List<String> categoryNameValues = MoimCategoryLinker.convertLinkersToNameValues(moimOut.getMoimCategoryLinkers());
-
-        MoimCreateRespDto respDto = new MoimCreateRespDto(moimOut, categoryNameValues);
+        MoimCreateRespDto respDto = new MoimCreateRespDto(moimOut);
         return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "모임 생성 성공", respDto), HttpStatus.CREATED);
     }
 
@@ -82,6 +80,8 @@ public class MoimController {
     }
 
 
+
+
     @ApiOperation("모임 정보 수정")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
@@ -91,14 +91,16 @@ public class MoimController {
             @ApiResponse(code = 400, message = "모임 정보 수정 실패, ERR MSG 확인")
     })
     @PatchMapping("")
-    public String updateMoim(@RequestBody @Valid MoimUpdateReqDto requestDto
+    public ResponseEntity<?> updateMoim(@RequestBody @Valid MoimUpdateReqDto requestDto
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         Moim moimOut = moimService.updateMoim(requestDto, principal.getMember());
+        MoimUpdateRespDto respDto = new MoimUpdateRespDto(moimOut);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모임 정보 수정 성공", respDto));
 
-        return "";
     }
+
 
 
     @ApiOperation("모임 삭제")

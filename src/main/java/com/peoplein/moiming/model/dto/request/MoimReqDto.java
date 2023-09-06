@@ -41,7 +41,7 @@ public class MoimReqDto {
         private int maxMember;
 
         @NotNull
-        private boolean hasJoinRule;
+        private Boolean hasJoinRule;
 
         @JsonProperty("joinRule")
         private JoinRuleCreateReqDto joinRuleDto;
@@ -50,9 +50,6 @@ public class MoimReqDto {
         @JsonProperty("categories")
         private List<String> categoryNameValues = new ArrayList<>();
 
-        public boolean hasJoinRule() {
-            return this.hasJoinRule;
-        }
 
         @Getter
         @Setter
@@ -61,7 +58,7 @@ public class MoimReqDto {
         public static class JoinRuleCreateReqDto {
 
             @NotNull
-            private boolean isAgeRule;
+            private Boolean hasAgeRule;
 
             @Max(100)
             private int ageMax;
@@ -72,10 +69,6 @@ public class MoimReqDto {
             @NotNull
             private MemberGender memberGender;
 
-            // LOMBOK Getter 동장방식과 OM 의 동작방식 충돌 해결
-            public void setIsAgeRule(boolean isAgeRule) {
-                this.isAgeRule = isAgeRule;
-            }
         }
     }
 

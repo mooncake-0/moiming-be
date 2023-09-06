@@ -11,10 +11,14 @@ import java.time.LocalDate;
 public abstract class TestModelParams {
 
     public static String memberEmail = "a@moiming.io";
+    public static String memberEmail2 = "b@moiming.io";
     public static String password = "1234";
     public static String memberName = "강우석";
+    public static String memberName2 = "이현주";
     public static String nickname = "NICKNAME";
+    public static String nickname2 = "NICKNAME2";
     public static String memberPhone = "01012345678";
+    public static String memberPhone2 = "01023456789";
     public static MemberGender memberGender = MemberGender.M;
     public static boolean notForeigner = false;
     public static boolean foreigner = true;
