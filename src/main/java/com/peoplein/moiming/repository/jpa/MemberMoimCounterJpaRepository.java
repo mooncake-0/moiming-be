@@ -1,8 +1,8 @@
 package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.MemberMoimCounter;
-import com.peoplein.moiming.domain.QMemberMoimCounter;
 import com.peoplein.moiming.repository.MemberMoimCounterRepository;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QMemberMoimCounter.*;
@@ -61,5 +62,21 @@ public class MemberMoimCounterJpaRepository implements MemberMoimCounterReposito
     public void releaseLock(String lockName) {
         final Query query = em.createNativeQuery("SELECT RELEASE_LOCK(:lockName)");
         query.setParameter("lockName", lockName);
+    }
+
+    @Override
+    public List<MoimViewCountTuple> findByGroupByMoimId() {
+        // MoimId + Counter
+        return query.select(Projections.constructor(MoimViewCountTuple.class, memberMoimCounter.moimId, memberMoimCounter.count()))
+                .from(memberMoimCounter)
+                .groupBy(memberMoimCounter.moimId)
+                .fetch();
+    }
+
+    @Override
+    public void deleteByMoimIds(List<Long> moimIds) {
+        query.delete(memberMoimCounter)
+                .where(memberMoimCounter.moimId.in(moimIds))
+                .execute();
     }
 }
