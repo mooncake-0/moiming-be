@@ -45,10 +45,8 @@ public class MoimMember extends BaseEntity {
 
     private String inactiveReason;
 
-    private boolean banRejoin;
 
     // 생성자
-
     public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
         if (moim.getCurMemberCount() + 1 > moim.getMaxMember()) {
             throw new MoimingApiException("모임 정원이 가득찼습니다");
@@ -63,10 +61,6 @@ public class MoimMember extends BaseEntity {
         this.moimMemberRoleType = moimMemberRoleType;
         this.memberState = memberState;
 
-        /*
-         초기화
-         */
-        this.banRejoin = false;
 
         /*
          연관관계 매핑 및 편의 메소드
@@ -79,9 +73,6 @@ public class MoimMember extends BaseEntity {
         }
     }
 
-    public boolean shouldPersist() {
-        return Objects.isNull(this.id);
-    }
 
 
     public void setMoimMemberRoleType(MoimMemberRoleType moimMemberRoleType) {
@@ -93,17 +84,16 @@ public class MoimMember extends BaseEntity {
         this.inactiveReason = inactiveReason;
     }
 
-    public void setBanRejoin(boolean banRejoin) {
-        this.banRejoin = banRejoin;
-    }
 
-    public void upDateRoleTypeAndState(MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
-        this.moimMemberRoleType = moimMemberRoleType;
-        this.memberState = memberState;
-    }
 
-    public boolean canRejoin() {
-        return banRejoin;
+    public void checkRejoinAvailable() {
+        if (getMemberState().equals(MoimMemberState.IBF)) {
+            throw new MoimingApiException("강퇴 유저는 재가입할 수 없습니다");
+        }
+
+        if (!getMemberState().equals(MoimMemberState.ACTIVE)) {
+            throw new MoimingApiException("가입할 수 있는 유저가 아닙니다 (시스템 오류)");
+        }
     }
 
 
@@ -125,33 +115,10 @@ public class MoimMember extends BaseEntity {
     }
 
 
-    public void judgeJoin(MoimMemberStateAction stateAction) {
-//        if (stateAction.equals(MoimMemberStateAction.PERMIT)) {
-//            doActiveMemberState();
-//        } else if (stateAction.equals(MoimMemberStateAction.DECLINE)) {
-//            // TODO :: 이 멤버에게 [해당 모임에서 까였다고] 알림을 보내야 한다 (MEMBERINFO 를 JOIN 한 이유)
-//            this.memberState = MoimMemberState.DECLINE;
-//        } else { // 여기 들어오면 안되는 에러 요청
-//            // TODO :: ERROR
-//            throw new IllegalArgumentException("unexpected State");
-//        }
-    }
 
-    private void doActiveMemberState() {
-        this.moim.addCurMemberCount();
-        this.memberState = MoimMemberState.ACTIVE;
-    }
-
-    private void doInactiveMemberState(MoimMemberState moimMemberState) {
-        this.moim.minusCurMemberCount();
-        this.memberState = moimMemberState;
-    }
-
-    // 스케쥴 변경 권한은 LEADER / MANAGER만 있음.
-    public boolean hasPermissionForUpdate() {
+    public boolean hasPermissionOfManager() {
         return this.moimMemberRoleType.equals(MoimMemberRoleType.MANAGER);
     }
-
 
 
     // WARN: ID 변경은 MOCK 용: 호출된 곳이 test Pckg 인지 확인

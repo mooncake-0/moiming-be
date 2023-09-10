@@ -17,6 +17,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
+import static com.peoplein.moiming.domain.moim.QMoimMember.*;
 import static com.peoplein.moiming.domain.moim.QMoimJoinRule.*;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
@@ -59,6 +60,14 @@ public class MoimJpaRepository implements MoimRepository {
     }
 
 
+    @Override
+    public Optional<Moim> findWithMoimMembersById(Long moimId) {
+        return Optional.ofNullable(queryFactory.selectFrom(moim).distinct()
+                .join(moim.moimMembers, moimMember).fetchJoin()
+                .where(moim.id.eq(moimId))
+                .fetchOne());
+    }
+
 
     @Override
     public List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category) {
@@ -67,6 +76,7 @@ public class MoimJpaRepository implements MoimRepository {
         addJoinQuery(query, category);
         return query.fetch();
     }
+
 
     @Override
     public List<Moim> findAllMoim() {

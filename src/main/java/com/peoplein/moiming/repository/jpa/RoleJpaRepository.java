@@ -16,8 +16,8 @@ import static com.peoplein.moiming.domain.fixed.QRole.role;
 @RequiredArgsConstructor
 public class RoleJpaRepository implements RoleRepository {
 
-    private final JPAQueryFactory queryFactory;
     private final EntityManager em;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public Role findById(Long id) {

@@ -278,7 +278,7 @@ public class ScheduleService {
 
     private boolean hasPermissionForUpdateSchedule(Member curMember, Schedule schedule, MoimMember moimMember) {
         // TODO : 변경 필요
-        return curMember.getId().equals(schedule.getCreatedMemberId()) || moimMember.hasPermissionForUpdate();
+        return curMember.getId().equals(schedule.getCreatedMemberId()) || moimMember.hasPermissionOfManager();
 //        return curMember.isSameUid(schedule.getCreatedUid()) || moimMember.hasPermissionForUpdate();
     }
 

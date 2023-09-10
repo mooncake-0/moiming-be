@@ -78,7 +78,7 @@ public class MoimServiceTestV2 {
 
         // given - stub
         doReturn(Optional.ofNullable(mockMoimMember)).when(moimMemberRepository).findByMemberAndMoimId(any(), any()); // 뭘 찾아오든 상관 없음, 동작만 하면 됨
-        doReturn(true).when(mockMoimMember).hasPermissionForUpdate(); // 이것도 state 자체를 바꾼다면 hasPermissionUpdate 가 뭔지 확인하러 들어가봐야 함 (이 함수의 동작은 아무짝에 관심없음)
+        doReturn(true).when(mockMoimMember).hasPermissionOfManager(); // 이것도 state 자체를 바꾼다면 hasPermissionUpdate 가 뭔지 확인하러 들어가봐야 함 (이 함수의 동작은 아무짝에 관심없음)
         doReturn(new ArrayList<>()).when(categoryService).generateCategoryList(any()); // generateCategoryList 가 잘되는지는 거기서 확인하게된다
         doReturn(mockMoim).when(mockMoimMember).getMoim(); // mockMoim 반환하도록 한다
 
@@ -123,7 +123,7 @@ public class MoimServiceTestV2 {
 
         // given - stub
         doReturn(Optional.ofNullable(mockMoimMember)).when(moimMemberRepository).findByMemberAndMoimId(any(), any());
-        doReturn(false).when(mockMoimMember).hasPermissionForUpdate();
+        doReturn(false).when(mockMoimMember).hasPermissionOfManager();
 
         // when
         // then

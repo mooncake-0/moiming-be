@@ -13,6 +13,7 @@ import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,12 @@ import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -66,8 +69,8 @@ public class MoimControllerTest extends TestObjectCreator {
     private RoleRepository roleRepository;
 
     private String testAccessToken;
-
     private Member curMember;
+    private Moim createdMoim;
     private Role testRole;
     private Category testCategory1;
     private Category testCategory1_1;
@@ -97,8 +100,8 @@ public class MoimControllerTest extends TestObjectCreator {
 
 
         // 2번 1번 Member 가 Moim 형성
-        Moim moim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), curMember);
-        moimRepository.save(moim);
+        createdMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), curMember);
+        moimRepository.save(createdMoim);
 
         // 3번 Member의 Access Token 발급
         testAccessToken = createTestJwtToken(curMember, 2000);
@@ -288,4 +291,162 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data").isArray()); // Collection 이 반환된다
         resultActions.andExpect(jsonPath("$.data", hasSize(0))); // 갯수가 현재 2개의 모임에 가입되어 있다.
     }
+
+
+    ////// update 요청 TEST
+    @Test
+    void updateMember_shouldReturn200_whenRightInfoPassed() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.moimName").value(moimName2)); // 변경됨
+        resultActions.andExpect(jsonPath("$.data.moimInfo").value(moimInfo)); // 변경되지 않음
+        resultActions.andExpect(jsonPath("$.data.categories[*]", hasItem(depth1SampleCategory2))); // 변경된 Category 를 포함하고 있다
+
+        // updator 확인
+        assertThat(createdMoim.getUpdaterId()).isEqualTo(curMember.getId());
+
+    }
+
+    // moimId Validation
+    @Test
+    void updateMember_shouldReturn400_whenMoimIdMissing_byMoimingValidationException() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(null, moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+
+    }
+
+
+    // moimName Validation
+    @Test
+    void updateMember_shouldReturn400_whenMoimNameWrong_byMoimingValidationException() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), "WRNG", null, null, depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+
+    }
+
+
+    // maxMember Validation
+    @Test
+    void updateMember_shouldReturn400_whenMaxMemberWrong_byMoimingValidationException() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, 101, null, "", ""); // 사실 인 앱으로 안가기 때문에 아무거나 넣어도 될듯
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+    }
+
+
+    // 수정하려는 필드가 없을 경우
+    @Test
+    void updateMember_shouldReturn200_whenNoValuesEdited() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, null, null, depth1SampleCategory2, depth1SampleCategory2);
+        reqDto.setCategoryNameValues(null); // Category List 는 이렇게 필드 없음을 명시해야함 - null 통과시 List.of 함수 때문에 NULL 통과 불가
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.moimName").value(moimName)); // 변경됨
+        resultActions.andExpect(jsonPath("$.data.moimInfo").value(moimInfo)); // 변경되지 않음
+        resultActions.andExpect(jsonPath("$.data.categories[*]", hasItem(depth1SampleCategory))); // 변경되기 전  Category 를 포함하고 있다
+
+        // updator 확인 // 수정된게 없어도 수정자 설정은 들어가도록 설계함 > 필요시 변경하기
+        assertThat(createdMoim.getUpdaterId()).isEqualTo(curMember.getId());
+    }
+
+
+    // Category Null Validation > 통과해야함 (수정하지 않겠다는 뜻)
+    @Test
+    void updateMember_shouldReturn200_whenCategoryFieldNull() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
+        reqDto.setCategoryNameValues(null);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.moimName").value(moimName2)); // 변경됨
+        resultActions.andExpect(jsonPath("$.data.moimInfo").value(moimInfo)); // 변경되지 않음
+        resultActions.andExpect(jsonPath("$.data.categories[*]", hasItem(depth1SampleCategory))); // 변경되기 전 Category 를 포함하고 있다
+
+
+        // updator 확인 // Category 외 수정한게 있음
+        assertThat(createdMoim.getUpdaterId()).isEqualTo(curMember.getId());
+    }
+
+
+    // Category Num Validation > 잘못됨
+    @Test
+    void updateMember_shouldReturn400_whenCategoryWrong_byMoimingValidationException() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
+        reqDto.setCategoryNameValues(List.of(depth1SampleCategory2));
+        String requestBody = om.writeValueAsString(reqDto);
+
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+
+    }
+
 }

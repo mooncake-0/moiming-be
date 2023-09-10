@@ -167,7 +167,7 @@ public class MoimServiceTest extends TestMockCreator {
         // moimMember.setMoimMemberRoleType(MoimMemberRoleType.MANAGER); // 다른 함수의 문제가 개입될 수 있는건 모두  Stubbing 해야함 (종속관계에 있는 것)
 
         // given - stub
-        doReturn(true).when(moimMember).hasPermissionForUpdate();
+        doReturn(true).when(moimMember).hasPermissionOfManager();
         doReturn(Optional.ofNullable(moimMember)).when(moimMemberRepository).findByMemberAndMoimId(any(), any());
         doReturn(new ArrayList<>()).when(categoryService).generateCategoryList(any());
         doReturn(moim).when(moimMember).getMoim();

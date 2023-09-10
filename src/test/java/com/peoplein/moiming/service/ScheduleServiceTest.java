@@ -4,6 +4,7 @@ import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.model.dto.request.MoimMemberReqDto;
 import com.peoplein.moiming.model.dto.request_b.MoimJoinRequestDto;
 import com.peoplein.moiming.model.dto.request_b.ScheduleRequestDto;
 import com.peoplein.moiming.model.dto.response_b.ScheduleResponseDto;
@@ -19,6 +20,7 @@ import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
+import static com.peoplein.moiming.model.dto.request.MoimMemberReqDto.*;
 import static org.assertj.core.api.Assertions.*;
 
 
@@ -72,9 +74,9 @@ class ScheduleServiceTest  {
                 joiner,
                 moim);
 
-        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), creator);
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), joiner);
+        MoimMemberJoinReqDto moimJoinRequestDto = new MoimMemberJoinReqDto(moim.getId());
+        moimMemberService.joinMoim(moimJoinRequestDto, creator);
+        moimMemberService.joinMoim(moimJoinRequestDto, joiner);
 
         Schedule schedule = createScheduleForUpdate(moim, creator);
         MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
@@ -116,9 +118,9 @@ class ScheduleServiceTest  {
                 joiner,
                 moim);
 
-        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), creator);
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), joiner);
+        MoimMemberJoinReqDto moimJoinRequestDto = new MoimMemberJoinReqDto(moim.getId());
+        moimMemberService.joinMoim(moimJoinRequestDto, creator);
+        moimMemberService.joinMoim(moimJoinRequestDto, joiner);
 
         Schedule schedule = createScheduleForUpdate(moim, creator);
         MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
@@ -159,9 +161,9 @@ class ScheduleServiceTest  {
                 joiner,
                 moim);
 
-        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), creator);
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), joiner);
+        MoimMemberJoinReqDto moimJoinRequestDto = new MoimMemberJoinReqDto(moim.getId());
+        moimMemberService.joinMoim(moimJoinRequestDto, creator);
+        moimMemberService.joinMoim(moimJoinRequestDto, joiner);
 
         Schedule schedule = createScheduleForUpdate(moim, creator);
         MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
@@ -203,10 +205,10 @@ class ScheduleServiceTest  {
                 moim,
                 otherMoim);
 
-        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
-        MoimJoinRequestDto ohterMoimJoinRequestDto = new MoimJoinRequestDto(otherMoim.getId());
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), creator);
-        moimMemberService.joinMoim(ohterMoimJoinRequestDto.getMoimId(), joiner);
+        MoimMemberJoinReqDto moimJoinRequestDto = new MoimMemberJoinReqDto(moim.getId());
+        MoimMemberJoinReqDto otherMoimJoinRequestDto = new MoimMemberJoinReqDto(otherMoim.getId());
+        moimMemberService.joinMoim(moimJoinRequestDto, creator);
+        moimMemberService.joinMoim(otherMoimJoinRequestDto, joiner);
 
         Schedule schedule = createScheduleForUpdate(moim, creator);
         MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
@@ -243,9 +245,9 @@ class ScheduleServiceTest  {
                 moim,
                 otherMoim);
 
-        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), creator);
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), joiner);
+        MoimMemberJoinReqDto moimJoinRequestDto = new MoimMemberJoinReqDto(moim.getId());
+        moimMemberService.joinMoim(moimJoinRequestDto, creator);
+        moimMemberService.joinMoim(moimJoinRequestDto, joiner);
 
         Schedule schedule = createScheduleForUpdate(moim, creator);
         MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
@@ -285,9 +287,9 @@ class ScheduleServiceTest  {
                 moim,
                 otherMoim);
 
-        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), creator);
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), joiner);
+        MoimMemberJoinReqDto moimJoinRequestDto = new MoimMemberJoinReqDto(moim.getId());
+        moimMemberService.joinMoim(moimJoinRequestDto, creator);
+        moimMemberService.joinMoim(moimJoinRequestDto, joiner);
 
         Schedule schedule = createScheduleForUpdate(moim, creator);
         MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);
@@ -315,9 +317,9 @@ class ScheduleServiceTest  {
                 moim,
                 otherMoim);
 
-        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), creator);
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), joiner);
+        MoimMemberJoinReqDto moimJoinRequestDto = new MoimMemberJoinReqDto(moim.getId());
+        moimMemberService.joinMoim(moimJoinRequestDto, creator);
+        moimMemberService.joinMoim(moimJoinRequestDto, joiner);
 
         Schedule schedule = createScheduleForUpdate(moim, creator);
         persist(schedule);
@@ -354,9 +356,9 @@ class ScheduleServiceTest  {
                 moim,
                 otherMoim);
 
-        MoimJoinRequestDto moimJoinRequestDto = new MoimJoinRequestDto(moim.getId());
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), creator);
-        moimMemberService.joinMoim(moimJoinRequestDto.getMoimId(), joiner);
+        MoimMemberJoinReqDto moimJoinRequestDto = new MoimMemberJoinReqDto(moim.getId());
+        moimMemberService.joinMoim(moimJoinRequestDto, creator);
+        moimMemberService.joinMoim(moimJoinRequestDto, joiner);
 
         Schedule schedule = createScheduleForUpdate(moim, creator);
         MemberScheduleLinker linker = MemberScheduleLinker.memberJoinSchedule(joiner, schedule, ScheduleMemberState.ATTEND);

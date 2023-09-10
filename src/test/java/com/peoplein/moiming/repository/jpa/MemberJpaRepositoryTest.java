@@ -25,7 +25,7 @@ import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Import({RepositoryTestConfiguration.class, MemberJpaRepository.class, RoleJpaRepository.class})
+@Import({RepositoryTestConfiguration.class, MemberJpaRepository.class})
 @ActiveProfiles("test")
 @DataJpaTest
 public class MemberJpaRepositoryTest extends TestObjectCreator {
@@ -33,8 +33,6 @@ public class MemberJpaRepositoryTest extends TestObjectCreator {
     @Autowired
     private MemberRepository memberRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
 
     @Autowired
     private EntityManager em;
@@ -44,7 +42,7 @@ public class MemberJpaRepositoryTest extends TestObjectCreator {
 
         // 1번 유저 주입
         Role testRole = makeTestRole(RoleType.USER);
-        roleRepository.save(testRole);
+        em.persist(testRole);
 
         Member member1 = makeTestMember(memberEmail, "01023456789", memberName, testRole);
         member1.changeNickname(nickname);

@@ -15,6 +15,8 @@ public interface MoimRepository {
 
     Optional<Moim> findWithJoinRuleById(Long moimId);
 
+    Optional<Moim> findWithMoimMembersById(Long moimId);
+
     List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category);
 
     List<Moim> findAllMoim();

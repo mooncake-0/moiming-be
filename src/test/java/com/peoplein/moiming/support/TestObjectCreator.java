@@ -9,6 +9,7 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import com.peoplein.moiming.model.dto.request.MoimReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
@@ -43,6 +44,10 @@ public class TestObjectCreator {
     }
 
 
+    protected MoimJoinRule makeTestMoimJoinRule(boolean flag, int max, int min, MemberGender gender) {
+        return MoimJoinRule.createMoimJoinRule(flag, max, min, gender);
+    }
+
 
 
     /*
@@ -65,6 +70,11 @@ public class TestObjectCreator {
         );
     }
 
+
+    // moimInfo, moimAreaCity 는 변경하지 않는다고 가정
+    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state, String category1, String category2) {
+        return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
+    }
 
 
 

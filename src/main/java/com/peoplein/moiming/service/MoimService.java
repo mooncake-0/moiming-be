@@ -79,7 +79,7 @@ public class MoimService {
         // 차피 Moim 존속 여부랑은 별개로, MoimMember 가 있으면 되는 것이니, MoimMember 로 그냥 join 해와버리자
         MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() -> new MoimingApiException("찾을 수 없습니다"));
 
-        if (!moimMemberPs.hasPermissionForUpdate()) {
+        if (!moimMemberPs.hasPermissionOfManager()) {
             throw new MoimingApiException("해당 모임에 대한 수정 권한이 없는 회원입니다");
         }
 
