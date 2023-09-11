@@ -60,9 +60,9 @@ public class MoimMemberController {
                                       BindingResult br,
                                       @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        MoimMember moimMember = moimMemberService.joinMoim(requestDto, principal.getMember());
+        moimMemberService.joinMoim(requestDto, principal.getMember());
 
-        // 뭘 보내줘야 할까?
+        // 가입 성공 응답만 보내준다
         return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "가입 성공", null));
     }
 

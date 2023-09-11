@@ -1,13 +1,13 @@
 package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.enums.CategoryName;
-import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
+import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.support.RepositoryTestConfiguration;
@@ -45,7 +45,9 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
     private EntityManager em;
 
 
-    private Member moimCreator;
+    private Role testRole;
+    private Member testMember1;
+    private Member testMember2;
 
 
     private Moim sampleMoim1;
@@ -56,23 +58,33 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
     @BeforeEach
     void be() {
         // Role 및 Member 저장
-        Role testRole = makeTestRole(RoleType.USER);
-        moimCreator = makeTestMember(memberEmail, memberPhone, memberName, testRole);
+        testRole = makeTestRole(RoleType.USER);
+        testMember1 = makeTestMember(memberEmail, memberPhone, memberName, testRole);
 
         // Moim Cateogry 저장
         Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
         Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 2, testCategory1);
 
         // Moim 저장
-        sampleMoim1 = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), moimCreator);
+        sampleMoim1 = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), testMember1);
         sampleMoim1JoinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
         sampleMoim1.setMoimJoinRule(sampleMoim1JoinRule);
 
+
         em.persist(testRole);
-        em.persist(moimCreator);
+        em.persist(testMember1);
         em.persist(testCategory1);
         em.persist(testCategory1_1);
         moimRepository.save(sampleMoim1);
+
+        em.flush();
+        em.clear();
+    }
+
+
+    void makeAnotherMember() {
+        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, testRole);
+        em.persist(testMember2);
 
         em.flush();
         em.clear();
@@ -119,7 +131,7 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
         // given
         Long moimId = sampleMoim1.getId();
 
-        em.persist(sampleMoim1);
+        sampleMoim1 = em.find(Moim.class, moimId); // em.persist 에서 변경, merge 는 권장하지 않음 (재영속화)
         sampleMoim1.setMoimJoinRule(null);
 
         em.flush();
@@ -133,6 +145,83 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
         assertThat(moimOp.get().getMoimName()).isEqualTo(moimName);
         assertThat(moimOp.get().getMoimJoinRule()).isEqualTo(null);
         assertThat(moimOp.get().getMoimCategoryLinkers().size()).isEqualTo(2);
+
+    }
+
+
+    // moimId 가 잘못되었을 경우 Optional.empty 반환 CASE
+    @Test
+    void findWithJoinRuleById_shouldReturnEmptyOptional_whenNotFound() {
+
+        // given
+        Long wrongMoimId = 1234L;
+
+        // when
+        Optional<Moim> moimOp = moimRepository.findWithJoinRuleById(wrongMoimId);
+
+        // then
+        assertTrue(moimOp.isEmpty());
+
+    }
+
+
+    // moimId 가 Null 일 겨우
+    @Test
+    void findWithJoinRuleById_shouldThrowException_whenNullPassed_byInvalidQueryParameterException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> moimRepository.findWithJoinRuleById(null)).isInstanceOf(InvalidQueryParameterException.class);
+
+    }
+
+
+    // findWithMoimMembersById Test
+    // 정상동작 2명까지 다 가져오고, moim 도 가져온다 (추가 쿼리도 안나감)
+    @Test
+    void findWithMoimMembersById_shouldReturnOptionalMoim_whenMoimIdPassed() {
+
+        // given
+        makeAnotherMember();
+        sampleMoim1 = em.find(Moim.class, sampleMoim1.getId()); // sampleMoim1 재영속화
+        MoimMember.memberJoinMoim(testMember2, sampleMoim1, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE); // 연관관계 맺기
+
+        em.flush();
+        em.clear();
+
+        // when (한방 쿼리 필요)
+        Optional<Moim> moimOp = moimRepository.findWithMoimMembersById(sampleMoim1.getId());
+
+        // then
+        assertTrue(moimOp.isPresent());
+        assertThat(moimOp.get().getMoimMembers().size()).isEqualTo(2);
+    }
+
+
+    // moimId 잘못되었을 경우 - Optional.empty() 반환
+    @Test
+    void findWithMoimMembersById_shouldReturnEmpty_whenWrongIdPassed() {
+
+        // given
+        Long wrongMoimId = 1234L;
+
+        // when
+        Optional<Moim> moimOp = moimRepository.findWithMoimMembersById(wrongMoimId);
+
+        // then
+        assertTrue(moimOp.isEmpty());
+    }
+
+
+    // moimId Null 인 경우
+    @Test
+    void findWithMoimMembersById_shouldThrowException_whenNullPassed_byInvalidQueryParameterException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> moimRepository.findWithMoimMembersById(null)).isInstanceOf(InvalidQueryParameterException.class);
 
     }
 

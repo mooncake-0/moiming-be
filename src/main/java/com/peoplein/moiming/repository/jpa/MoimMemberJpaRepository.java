@@ -1,6 +1,7 @@
 package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.peoplein.moiming.domain.moim.QMoim.*;
@@ -27,14 +29,23 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
+    private void checkIllegalQueryParams(Object ... objs) {
+        for (Object obj : objs) {
+            if (Objects.isNull(obj)) {
+                throw new InvalidQueryParameterException("쿼리 파라미터는 NULL 일 수 없습니다");
+            }
+        }
+    }
+
     @Override
     public void save(MoimMember moimMember) {
+        checkIllegalQueryParams(moimMember);
         em.persist(moimMember);
     }
 
     @Override
     public List<MoimMember> findByMemberId(Long memberId) {
-
+        checkIllegalQueryParams(memberId);
         return queryFactory.selectFrom(moimMember)
                 .where(moimMember.member.id.eq(memberId))
                 .fetch();
@@ -43,6 +54,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
     @Override
     public List<MoimMember> findWithMoimAndCategoryByMemberId(Long memberId) {
+        checkIllegalQueryParams(memberId);
         return queryFactory.selectFrom(moimMember).distinct() // MoimCategoryLinker 의 Collection 조회로 인한 중복 데이터 제거 필요
                 .join(moimMember.moim, moim).fetchJoin()
                 .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
@@ -54,6 +66,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
     @Override
     public Optional<MoimMember> findByMemberAndMoimId(Long memberId, Long moimId) {
+        checkIllegalQueryParams(memberId, moimId);
         return Optional.ofNullable(queryFactory.selectFrom(moimMember)
                 .where(moimMember.member.id.eq(memberId),
                         moimMember.moim.id.eq(moimId))
@@ -63,6 +76,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
     @Override
     public MoimMember findWithMemberInfoByMemberAndMoimId(Long memberId, Long moimId) { // Join 없음
+
         return queryFactory.selectFrom(moimMember)
                 .join(moimMember.member, member).fetchJoin()
                 .join(member.memberInfo, memberInfo).fetchJoin()

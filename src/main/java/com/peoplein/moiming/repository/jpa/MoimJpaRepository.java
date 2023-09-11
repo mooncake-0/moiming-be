@@ -3,6 +3,7 @@ package com.peoplein.moiming.repository.jpa;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
+import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -10,11 +11,14 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.QueryParameterException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.peoplein.moiming.domain.moim.QMoimMember.*;
@@ -30,16 +34,24 @@ public class MoimJpaRepository implements MoimRepository {
     private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
+    private void checkIllegalQueryParams(Object ... objs) {
+        for (Object obj : objs) {
+            if (Objects.isNull(obj)) {
+                throw new InvalidQueryParameterException("쿼리 파라미터는 NULL 일 수 없습니다");
+            }
+        }
+    }
+
     @Override
     public void save(Moim moim) {
-
+        checkIllegalQueryParams(moim);
         em.persist(moim);
     }
 
 
     @Override
     public Optional<Moim> findById(Long moimId) {
-
+        checkIllegalQueryParams(moimId);
         return Optional.ofNullable(queryFactory.selectFrom(moim)
                 .where(moim.id.eq(moimId))
                 .fetchOne());
@@ -52,9 +64,9 @@ public class MoimJpaRepository implements MoimRepository {
                     join fetch m.moimRules mr
                     where m.id = :moimId;
         */
-
+        checkIllegalQueryParams(moimId);
         return Optional.ofNullable(queryFactory.selectFrom(moim)
-                .join(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
                 .where(moim.id.eq(moimId))
                 .fetchOne());
     }
@@ -62,6 +74,9 @@ public class MoimJpaRepository implements MoimRepository {
 
     @Override
     public Optional<Moim> findWithMoimMembersById(Long moimId) {
+
+        checkIllegalQueryParams(moimId);
+
         return Optional.ofNullable(queryFactory.selectFrom(moim).distinct()
                 .join(moim.moimMembers, moimMember).fetchJoin()
                 .where(moim.id.eq(moimId))
@@ -87,6 +102,7 @@ public class MoimJpaRepository implements MoimRepository {
 
     @Override
     public void remove(Moim moim) {
+        checkIllegalQueryParams(moim);
         em.remove(moim);
     }
 

@@ -56,6 +56,7 @@ public class Moim extends BaseEntity {
     private MoimJoinRule moimJoinRule;
 
 
+    // MEMO :: Fetch 시 MoimMember 는 모든 상태를 불러온다 // curMemberCount 값과 size 가 다를 수 있음
     @OneToMany(mappedBy = "moim", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MoimMember> moimMembers = new ArrayList<>();
 
@@ -99,6 +100,21 @@ public class Moim extends BaseEntity {
     }
 
 
+    public void judgeMemberJoinByRule(MoimMember moimMember, Member curMember) {
+
+        if (this.moimJoinRule != null) { // 없으면 바로 가입 시도이다
+            this.moimJoinRule.judgeByRule(curMember);
+        }
+
+        if (moimMember != null) {
+            moimMember.changeMemberState(MoimMemberState.ACTIVE);
+        } else {
+            MoimMember.memberJoinMoim(curMember, this, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
+        }
+    }
+
+
+
     // 값 존재 > Update 해야함 > Create 처럼 List<Category> 는 따로 넣어주는게 맞다
     public void updateMoim(MoimUpdateReqDto requestDto, List<Category> categories, Long updaterId) {
 
@@ -127,8 +143,6 @@ public class Moim extends BaseEntity {
         }
 
         this.updaterId = updaterId; // validate 통과이므로 call 되면 수정되는 것
-
-
     }
 
     public void changeCategory(List<Category> categories) {

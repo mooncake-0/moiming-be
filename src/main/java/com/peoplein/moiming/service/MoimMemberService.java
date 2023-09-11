@@ -38,8 +38,8 @@ public class MoimMemberService {
 
 
 
-    // 2. 가입 요청 (Rule Join 판별 - Front 에서 걸러줄테지만 /Rule Join + 정원확인 - 모두 도메인 단에서 확인)
-    public MoimMember joinMoim(MoimMemberJoinReqDto requestDto, Member curMember) {
+    // 2. 가입 요청
+    public void joinMoim(MoimMemberJoinReqDto requestDto, Member curMember) {
 
         // 해당 모임이 있는지 확인한다
         Moim moimPs = moimRepository.findWithJoinRuleById(requestDto.getMoimId()).orElseThrow(
@@ -47,24 +47,9 @@ public class MoimMemberService {
         );
 
         // 둘 관계가 맺어진 적이 있는지 확인한다
-        Optional<MoimMember> moimMemberOp = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId());
-        moimMemberOp.ifPresent(MoimMember::checkRejoinAvailable);
+        MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElse(null);
+        moimPs.judgeMemberJoinByRule(moimMemberPs, curMember);
 
-        // Rule Join 을 판별한다
-        moimPs.getMoimJoinRule().judgeByRule(curMember);
-
-        // 도달시 생성
-        MoimMember moimMemberPs;
-
-
-        if (moimMemberOp.isPresent()) {
-            moimMemberPs = moimMemberOp.get();
-            moimMemberPs.changeMemberState(MoimMemberState.ACTIVE);
-        } else {
-            moimMemberPs = MoimMember.memberJoinMoim(curMember, moimPs, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE); // 저장은 된다
-        }
-
-        return moimMemberPs;
     }
 
 
