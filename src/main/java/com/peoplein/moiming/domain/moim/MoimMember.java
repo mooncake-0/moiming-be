@@ -48,6 +48,8 @@ public class MoimMember extends BaseEntity {
 
     private String inactiveReason;
 
+    private MoimMemberState stateBeforeDormant; // 휴면계정으로 전환시 이전 상태가 어떤 상태였는지 저장한다 -> 평소에는 NULL
+
 
     // 생성자
     public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
@@ -92,6 +94,14 @@ public class MoimMember extends BaseEntity {
 
     public void setInactiveReason(String inactiveReason) {
         this.inactiveReason = inactiveReason;
+    }
+
+
+    public void setStateBeforeDormant(MoimMemberState stateBeforeDormant) {
+        if (Objects.isNull(stateBeforeDormant)) {
+            throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
+        }
+        this.stateBeforeDormant = stateBeforeDormant;
     }
 
 
