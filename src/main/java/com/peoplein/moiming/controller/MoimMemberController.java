@@ -81,7 +81,7 @@ public class MoimMemberController {
                                        BindingResult br,
                                        @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        String sr = moimMemberService.leaveMoim(requestDto, principal.getMember());
+        moimMemberService.leaveMoim(requestDto, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모임 나가기 성공", null));
     }
 
@@ -100,7 +100,7 @@ public class MoimMemberController {
                                          BindingResult br,
                                          @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        String sr = moimMemberService.expelMember(requestDto, principal.getMember());
+        moimMemberService.expelMember(requestDto, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "유저 강퇴 성공", null));
     }
 
@@ -120,7 +120,7 @@ public class MoimMemberController {
             BindingResult br,
             @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        String sr = moimMemberService.grantMemberManager(requestDto, principal.getMember());
+        moimMemberService.grantMemberManager(requestDto, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "운영진 임명 성공", null));
     }
 }

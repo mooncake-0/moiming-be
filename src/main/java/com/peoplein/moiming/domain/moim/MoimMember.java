@@ -15,6 +15,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.InvalidParameterException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -50,6 +51,11 @@ public class MoimMember extends BaseEntity {
 
     // 생성자
     public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
+
+        if (Objects.isNull(member) || Objects.isNull(moim) || Objects.isNull(moimMemberRoleType) || Objects.isNull(memberState)) {
+            throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
+        }
+
         if (moim.getCurMemberCount() + 1 > moim.getMaxMember()) {
             throw new MoimingApiException("모임 정원이 가득찼습니다");
         }
@@ -76,8 +82,10 @@ public class MoimMember extends BaseEntity {
     }
 
 
-
-    public void setMoimMemberRoleType(MoimMemberRoleType moimMemberRoleType) {
+    public void changeMoimMemberRoleType(MoimMemberRoleType moimMemberRoleType) {
+        if (Objects.isNull(moimMemberRoleType)) {
+            throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
+        }
         this.moimMemberRoleType = moimMemberRoleType;
     }
 
@@ -87,7 +95,22 @@ public class MoimMember extends BaseEntity {
     }
 
 
+    public boolean hasPermissionOfManager() {
+        return getMoimMemberRoleType().equals(MoimMemberRoleType.MANAGER);
+    }
+
+
     public void changeMemberState(MoimMemberState memberState) {
+
+        if (Objects.isNull(memberState)) {
+            throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
+        }
+
+        if (memberState == getMemberState()) {
+            throw new MoimingApiException("같은 상태로의 전환 요청입니다");
+        }
+
+
         // ACTIVE 외의 이동시 ACTIVE 에서 이동일 경우 minus 필요
         if (memberState.equals(ACTIVE)) {
             checkAndProcessRejoin();
@@ -121,7 +144,7 @@ public class MoimMember extends BaseEntity {
     private void checkAndProcessLeave() {// ACTIVE -> IBW 가능
         if (getMemberState().equals(ACTIVE)) {
             this.moim.minusCurMemberCount();
-        }else{
+        } else {
             throw new MoimingApiException("모임을 나갈 수 있는 대상이 아닙니다");
         }
     }
@@ -131,15 +154,15 @@ public class MoimMember extends BaseEntity {
             if (getMemberState().equals(ACTIVE)) {
                 this.moim.minusCurMemberCount();
             }
-        }else{
+        } else {
             throw new MoimingApiException("모임에서 강퇴할 수 있는 대상이 아닙니다");
         }
     }
 
     private void checkAndProcessDormant() {// ACTIVE, IBW, IBF -> DORMANT 가능
-        if(getMemberState().equals(DORMANT) || getMemberState().equals(NOTFOUND)){
+        if (getMemberState().equals(NOTFOUND)) {
             throw new MoimingApiException("휴면 상태로 전환될 수 있는 대상이 아닙니다");
-        }else{
+        } else {
             if (getMemberState().equals(ACTIVE)) {
                 this.moim.minusCurMemberCount();
             }
@@ -148,20 +171,9 @@ public class MoimMember extends BaseEntity {
 
 
     private void checkAndProcessNotFound() {// ACTIVE, IBW, IBF, DORMANT -> NOTFOUND 가능
-        if (getMemberState().equals(NOTFOUND)) {
-            throw new MoimingApiException("탈퇴 상태로 전환될 수 있는 대상이 아닙니다");
-        }else{ // 모두 전환 가능
-            if (getMemberState().equals(ACTIVE)) {
-                this.moim.minusCurMemberCount();
-            }
+        if (getMemberState().equals(ACTIVE)) {
+            this.moim.minusCurMemberCount();
         }
-    }
-
-
-
-
-    public boolean hasPermissionOfManager() {
-        return this.moimMemberRoleType.equals(MoimMemberRoleType.MANAGER);
     }
 
 

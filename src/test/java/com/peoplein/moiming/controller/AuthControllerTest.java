@@ -89,6 +89,7 @@ public class AuthControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.code").value(1));
+
     }
 
 

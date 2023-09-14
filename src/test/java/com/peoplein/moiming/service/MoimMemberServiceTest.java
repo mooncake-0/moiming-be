@@ -3,6 +3,7 @@ package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.request.MoimMemberReqDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
@@ -117,8 +118,37 @@ public class MoimMemberServiceTest {
     @Test
     void leaveMoim_shouldLeaveMoim_whenRightInfoPassed() {
 
+        // given
+        MoimMemberLeaveReqDto requestDto = mock(MoimMemberLeaveReqDto.class);
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.ofNullable(moimMember));
+
+        // when
+        moimMemberService.leaveMoim(requestDto, member);
+
+        // then
+        verify(moimMember, times(1)).changeMemberState(any());
+
     }
 
+
     // 1. MoimMember 를 못찾음
-    //
+    @Test
+    void leaveMoim_shouldThrowException_whenNotFound_byMoimingApiException() {
+
+        // given
+        MoimMemberLeaveReqDto requestDto = mock(MoimMemberLeaveReqDto.class);
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMemberService.leaveMoim(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
 }

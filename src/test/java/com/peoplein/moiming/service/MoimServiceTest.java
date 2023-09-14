@@ -221,7 +221,7 @@ public class MoimServiceTest extends TestMockCreator {
         Moim mockMoim = mockMoimWithoutRuleJoin(1L, moimName, maxMember, depth1SampleCategory, depth2SampleCategory, curMember);
         MoimUpdateReqDto reqDto = mockMoimUpdateReqDto(mockMoim.getId(), moimName2, maxMember2, moimArea2.getState(), moimArea2.getCity());
         MoimMember mockMoimMember = mockMoimMember(1L, curMember, mockMoim);
-        mockMoimMember.setMoimMemberRoleType(MoimMemberRoleType.MANAGER); // 실객체들의 함수는 정말 동작해야한다 // 근데 이런게 관심 없는게 맞음
+        mockMoimMember.changeMoimMemberRoleType(MoimMemberRoleType.MANAGER); // 실객체들의 함수는 정말 동작해야한다 // 근데 이런게 관심 없는게 맞음
 
         Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory2), 1, null); // 수정되려는 애임
         Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory2), 2, category1);
