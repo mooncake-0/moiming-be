@@ -112,77 +112,53 @@ public class MoimMember extends BaseEntity {
 
     public void changeMemberState(MoimMemberState memberState) {
 
+        MoimMemberState curState = getMemberState();
+
         if (Objects.isNull(memberState)) {
             throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
         }
 
-        if (memberState == getMemberState()) {
+        if (curState == memberState) {
             throw new MoimingApiException("같은 상태로의 전환 요청입니다");
         }
 
-
-        // ACTIVE 외의 이동시 ACTIVE 에서 이동일 경우 minus 필요
-        if (memberState.equals(ACTIVE)) {
-            checkAndProcessRejoin();
-        } else if (memberState.equals(IBW)) {
-            checkAndProcessLeave();
-        } else if (memberState.equals(IBF)) {
-            checkAndProcessExpel();
-        } else if (memberState.equals(DORMANT)) {
-            checkAndProcessDormant();
-        } else { // 회원탈퇴로 인한 변경
-            checkAndProcessNotFound();
+        if (curState == ACTIVE) { // 어떤 상태로도 변환이 가능하다
+            this.moim.minusCurMemberCount();
+        } else if (curState == IBW) {
+            changeStateFromIBW(memberState);
+        } else if (curState == IBF) {
+            changeStateFromIBF(memberState);
+        } else if (curState == IBD) {
+            changeStateFromIBD(memberState);
+        } else {
+            throw new MoimingApiException("삭제된 계정의 연결 관계는 변경할 수 없습니다");
         }
+
         this.memberState = memberState;
     }
 
 
-    private void checkAndProcessRejoin() { // IBW, DORMANT -> ACTIVE 가능, add 필요
-
-        if (getMemberState().equals(IBW) || getMemberState().equals(DORMANT)) {
-            if (moim.getCurMemberCount() + 1 > moim.getMaxMember()) {
-                throw new MoimingApiException("모임 정원이 가득찼습니다");
-            }
-
+    private void changeStateFromIBW(MoimMemberState memberState) {
+        if(memberState == ACTIVE){
             this.moim.addCurMemberCount();
-
-        } else {
-            throw new MoimingApiException("재가입할 수 있는 대상이 아닙니다");
+        } else if (memberState == IBF) { // 불가능 CASE
+            throw new MoimingApiException("불가능한 상태로 전환 요청입니다");
         }
     }
 
-    private void checkAndProcessLeave() {// ACTIVE -> IBW 가능
-        if (getMemberState().equals(ACTIVE)) {
-            this.moim.minusCurMemberCount();
-        } else {
-            throw new MoimingApiException("모임을 나갈 수 있는 대상이 아닙니다");
+    private void changeStateFromIBF(MoimMemberState memberState) {
+        if (memberState == ACTIVE) {
+            throw new MoimingApiException("강퇴 유저는 재가입할 수 없습니다");
+        } else if (memberState == IBW || memberState == IBD) {
+            throw new MoimingApiException("불가능한 상태로 전환 요청입니다");
         }
     }
 
-    private void checkAndProcessExpel() {// ACTIVE, DORMANT -> IBF 가능
-        if (getMemberState().equals(ACTIVE) || getMemberState().equals(DORMANT)) {
-            if (getMemberState().equals(ACTIVE)) {
-                this.moim.minusCurMemberCount();
-            }
-        } else {
-            throw new MoimingApiException("모임에서 강퇴할 수 있는 대상이 아닙니다");
-        }
-    }
-
-    private void checkAndProcessDormant() {// ACTIVE, IBW, IBF -> DORMANT 가능
-        if (getMemberState().equals(NOTFOUND)) {
-            throw new MoimingApiException("휴면 상태로 전환될 수 있는 대상이 아닙니다");
-        } else {
-            if (getMemberState().equals(ACTIVE)) {
-                this.moim.minusCurMemberCount();
-            }
-        }
-    }
-
-
-    private void checkAndProcessNotFound() {// ACTIVE, IBW, IBF, DORMANT -> NOTFOUND 가능
-        if (getMemberState().equals(ACTIVE)) {
-            this.moim.minusCurMemberCount();
+    private void changeStateFromIBD(MoimMemberState memberState) {
+        if (memberState == ACTIVE) {
+            this.moim.addCurMemberCount();
+        } else if (memberState == IBW || memberState == IBF) {
+            throw new MoimingApiException("불가능한 상태로 전환 요청입니다");
         }
     }
 

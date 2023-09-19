@@ -87,6 +87,9 @@ public class Moim extends BaseEntity {
 
 
     public void addCurMemberCount() {
+        if (this.curMemberCount + 1 > this.maxMember) {
+            throw new MoimingApiException("모임 정원이 가득찼습니다");
+        }
         this.curMemberCount++;
     }
 

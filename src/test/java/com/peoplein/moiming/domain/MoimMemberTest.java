@@ -188,7 +188,6 @@ public class MoimMemberTest {
         assertFalse(result);
 
     }
-
     // all 동작
 
 
@@ -225,10 +224,25 @@ public class MoimMemberTest {
     }
 
 
+    // NOT FOUND 에서 변경 시도
+    @Test
+    void changeMemberState_shouldThrowException_whenTryChangingNOTFOUND_byMoimingApiException() {
+        // given
+        MoimMember moimMember = spy(MoimMember.class);
+
+        // given - stub
+        when(moimMember.getMemberState()).thenReturn(NOTFOUND);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMember.changeMemberState(ACTIVE)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
     // stubbing 없이 상태변화를 봐야한다 (value based 체킹 필요) - 실제 객체 동작성 검증 필요
     // MoimMember 에는 setMemberState 이 없어서, private field 지정 불가
     // 초기 상태를 원하는 상태로 초기화한다
-
     private MoimMember prepareChangeMemberState(MoimMemberState preState) {
 
         Moim moim = mock(Moim.class);
@@ -239,6 +253,66 @@ public class MoimMemberTest {
         when(moim.getCurMemberCount()).thenReturn(1);
 
         return  MoimMember.memberJoinMoim(member, moim, NORMAL, preState);
+    }
+
+
+    // ACTIVE --> IBW
+    @Test
+    void changeMemberState_shouldChange_whenACTIVEtoIBW() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(ACTIVE);
+
+        // when
+        moimMember.changeMemberState(IBW);
+
+        // then
+        assertThat(moimMember.getMemberState()).isEqualTo(IBW);
+    }
+
+
+    // ACTIVE --> IBF
+    @Test
+    void changeMemberState_shouldChange_whenACTIVEtoIBF() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(ACTIVE);
+
+        // when
+        moimMember.changeMemberState(IBF);
+
+        // then
+        assertThat(moimMember.getMemberState()).isEqualTo(IBF);
+    }
+
+
+    // ACTIVE --> IBD
+    @Test
+    void changeMemberState_shouldChange_whenACTIVEtoIBD() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(ACTIVE);
+
+        // when
+        moimMember.changeMemberState(IBD);
+
+        // then
+        assertThat(moimMember.getMemberState()).isEqualTo(IBD);
+    }
+
+
+    // ACTIVE --> NOTFOUND
+    @Test
+    void changeMemberState_shouldChange_whenACTIVEtoNOTFOUND() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(ACTIVE);
+
+        // when
+        moimMember.changeMemberState(NOTFOUND);
+
+        // then
+        assertThat(moimMember.getMemberState()).isEqualTo(NOTFOUND);
     }
 
 
@@ -257,7 +331,52 @@ public class MoimMemberTest {
     }
 
 
-    // IBF --> ACTIVE (불가능)
+    // IBW --> IBF (불가능)
+    @Test
+    void changeMemberState_shouldThrowException_whenIBWtoIBF_byMoimingApiException() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(IBW);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMember.changeMemberState(IBF)).isInstanceOf(MoimingApiException.class);
+        assertThat(moimMember.getMemberState()).isEqualTo(IBW); // 바뀌지 않음을 검증
+
+    }
+
+
+    // IBW --> IBD (가능 : 휴면 전환)
+    @Test
+    void changeMemberState_shouldChange_whenIBWtoIBD() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(IBW);
+
+        // when
+        moimMember.changeMemberState(IBD);
+
+        // then
+        assertThat(moimMember.getMemberState()).isEqualTo(IBD);
+    }
+
+
+    // IBW --> NOTFOUND (가능)
+    @Test
+    void changeMemberState_shouldChange_whenIBWtoNOTFOUND() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(IBW);
+
+        // when
+        moimMember.changeMemberState(NOTFOUND);
+
+        // then
+        assertThat(moimMember.getMemberState()).isEqualTo(NOTFOUND);
+    }
+
+
+    // IBF --> ACTIVE (불가)
     @Test
     void changeMemberState_shouldThrowException_whenIBFtoACTIVE_byMoimingApiException() {
 
@@ -268,36 +387,107 @@ public class MoimMemberTest {
         // then
         assertThatThrownBy(() -> moimMember.changeMemberState(ACTIVE)).isInstanceOf(MoimingApiException.class);
         assertThat(moimMember.getMemberState()).isEqualTo(IBF); // 바뀌지 않음을 검증
+    }
+
+
+    // IBF --> IBW (불가)
+    @Test
+    void changeMemberState_shouldThrowException_whenIBFtoIBW_byMoimingApiException() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(IBF);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMember.changeMemberState(IBW)).isInstanceOf(MoimingApiException.class);
+        assertThat(moimMember.getMemberState()).isEqualTo(IBF); // 바뀌지 않음을 검증
+    }
+
+
+    // IBF --> IBD (불가능)
+    @Test
+    void changeMemberState_shouldThrowException_whenIBFtoIBD_byMoimingApiException() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(IBF);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMember.changeMemberState(IBD)).isInstanceOf(MoimingApiException.class);
+        assertThat(moimMember.getMemberState()).isEqualTo(IBF); // 바뀌지 않음을 검증
+    }
+
+
+    // IBF --> NOTFOUND (가능)
+    @Test
+    void changeMemberState_shouldChange_whenIBFtoNOTFOUND() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(IBF);
+
+        // when
+        moimMember.changeMemberState(NOTFOUND);
+
+        // then
+        assertThat(moimMember.getMemberState()).isEqualTo(NOTFOUND);
 
     }
 
 
-    // DORMANT --> ACTIVE (가능) 계정 활성화
+    // IBD --> ACTIVE (가능) 계정 활성화
     @Test
-    void changeMemberState_shouldChange_whenDORMANTtoACTIVE() {
+    void changeMemberState_shouldChange_whenIBDtoACTIVE() {
 
         // given
-        MoimMember moimMember = prepareChangeMemberState(DORMANT);
+        MoimMember moimMember = prepareChangeMemberState(IBD);
 
         // when
         moimMember.changeMemberState(ACTIVE);
 
         // then
         assertThat(moimMember.getMemberState()).isEqualTo(ACTIVE);
-
     }
 
 
-    // NOTFOUND --> ACTIVE (불가능)
+    // IBD --> IBW (불가)
     @Test
-    void changeMemberState_shouldThrowException_whenNOTFOUNDtoACTIVE_byMoimingApiException() {
+    void changeMemberState_shouldThrowException_whenIBDtoIBW_byMoimingApiException() {
 
         // given
-        MoimMember moimMember = prepareChangeMemberState(NOTFOUND);
+        MoimMember moimMember = prepareChangeMemberState(IBD);
 
         // when
         // then
-        assertThatThrownBy(() -> moimMember.changeMemberState(ACTIVE)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimMember.changeMemberState(IBW)).isInstanceOf(MoimingApiException.class);
+        assertThat(moimMember.getMemberState()).isEqualTo(IBD); // 바뀌지 않음을 검증
+    }
 
+
+    // IBD --> IBF (불가)
+    @Test
+    void changeMemberState_shouldThrowException_whenIBDtoIBF_byMoimingApiException() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(IBD);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMember.changeMemberState(IBF)).isInstanceOf(MoimingApiException.class);
+        assertThat(moimMember.getMemberState()).isEqualTo(IBD); // 바뀌지 않음을 검증
+    }
+
+
+    // IBD --> NOTFOUND (가능)
+    @Test
+    void changeMemberState_shouldChange_whenIBDtoNOTFOUND() {
+
+        // given
+        MoimMember moimMember = prepareChangeMemberState(IBD);
+
+        // when
+        moimMember.changeMemberState(NOTFOUND);
+
+        // then
+        assertThat(moimMember.getMemberState()).isEqualTo(NOTFOUND);
     }
 }

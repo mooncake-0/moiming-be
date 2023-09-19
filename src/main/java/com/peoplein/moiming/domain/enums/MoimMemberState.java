@@ -5,33 +5,29 @@ public enum MoimMemberState {
     ACTIVE,
     IBW, // INACTIVE_BY_WILL (자의로 나간 유저)
     IBF, // INACTIVE_BY_FORCE (강퇴 유저)
-    DORMANT, // 휴면 유저 (휴면은 전상태를 기억해야한다)
+    IBD, // INACTIVE_BY_DORMANT (휴면으로 나가진 유저)
     NOTFOUND, // 탈퇴 유저
 }
 
-// IBW --> ACTIVE (가능) 모임 재가입
-// IBF --> ACTIVE (불가능)
-// DORMANT --> ACTIVE (가능) 계정 활성화
-// NOTFOUND --> ACTIVE (불가능)
+// ACTIVE   > IBW       (가능 : 모임 나가기)
+//          > IBF       (가능 : 강퇴)
+//          > IBD       (가능 : 휴면 전환)
+//          > NOTFOUND  (가능 : 계정 삭제)
+
+// IBW      > ACTIVE    (가능 : 모임 재가입)
+//          > IBF       (불가능)
+//          > IBD       (가능 : 휴면 전환) > 개념적으로 더 큰 쪽으로는 전환 가능
+//          > NOTFOUND  (가능 : 계정 삭제)
+
+// IBF      > ACTIVE    (불가능 : 강퇴 유저 재가입 불가)
+//          > IBW       (불가능)
+//          > IBD       (불가능 : 휴면이 되어도 강퇴 낙인은 지워지지 않는다)
+//          > NOTFOUND  (가능 : 계정을 삭제한다면 상태가 변경된다)
 
 
-// ACTIVE --> IBW (가능) 모임 나가기
-// IBF --> IBW (불가능)
-// DORMANT --> IBW (불가능 : ACTIVE 로 변경해야함)
-// NOTFOUND --> IBW (불가능)
+// IBD      > ACTIVE    (가능 : 휴면게정 복구 후 재가입)
+//          > IBW       (불가능 : 휴면으로 나가진 상태에서 바뀔 수 없다, 변경이 되는 경우는 ACTIVE 로 먼저 바뀌어야 함)
+//          > IBF       (불가능 : 위와 동일)
+//          > NOTFOUND  (가능 : 계정 삭제시 변경된다)
 
-
-// ACTIVE --> IBF (가능)  강퇴
-// IBW --> IBF  (불가능)
-// DORMANT --> IBF (가능) 휴면계정 강퇴 가능
-// NOTFOUND --> IBF (불가능)
-
-// ACTIVE --> DORMANT (가능) 휴면계정전환
-// IBW --> DORMANT (가능) 휴면계정전환
-// IBF --> DORMANT (불가능) - 논의 필요
-// NOTFOUND --> DORMANT (불가능)
-
-// ACTIVE --> NOTFOUND (가능) 계정 삭제
-// IBW --> NOTFOUND (가능) 계정 삭제
-// IBF --> NOTFOUND (가능) 계정 삭제
-// DORMANT --> NOTFOUND (가능) 계정 삭제
+// NOTFOUND (어떠한 상태로도 변경 불가능하다)
