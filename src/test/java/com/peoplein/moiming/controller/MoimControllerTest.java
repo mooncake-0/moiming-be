@@ -295,7 +295,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     ////// update 요청 TEST
     @Test
-    void updateMember_shouldReturn200_whenRightInfoPassed() throws Exception {
+    void updateMoim_shouldReturn200_whenRightInfoPassed() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
@@ -319,7 +319,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     // moimId Validation
     @Test
-    void updateMember_shouldReturn400_whenMoimIdMissing_byMoimingValidationException() throws Exception {
+    void updateMoim_shouldReturn400_whenMoimIdMissing_byMoimingValidationException() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(null, moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
@@ -339,7 +339,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     // moimName Validation
     @Test
-    void updateMember_shouldReturn400_whenMoimNameWrong_byMoimingValidationException() throws Exception {
+    void updateMoim_shouldReturn400_whenMoimNameWrong_byMoimingValidationException() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), "WRNG", null, null, depth1SampleCategory2, depth2SampleCategory2);
@@ -359,7 +359,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     // maxMember Validation
     @Test
-    void updateMember_shouldReturn400_whenMaxMemberWrong_byMoimingValidationException() throws Exception {
+    void updateMoim_shouldReturn400_whenMaxMemberWrong_byMoimingValidationException() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, 101, null, "", ""); // 사실 인 앱으로 안가기 때문에 아무거나 넣어도 될듯
@@ -378,7 +378,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     // 수정하려는 필드가 없을 경우
     @Test
-    void updateMember_shouldReturn200_whenNoValuesEdited() throws Exception {
+    void updateMoim_shouldReturn200_whenNoValuesEdited() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, null, null, depth1SampleCategory2, depth1SampleCategory2);
@@ -403,7 +403,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     // Category Null Validation > 통과해야함 (수정하지 않겠다는 뜻)
     @Test
-    void updateMember_shouldReturn200_whenCategoryFieldNull() throws Exception {
+    void updateMoim_shouldReturn200_whenCategoryFieldNull() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
@@ -429,7 +429,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     // Category Num Validation > 잘못됨
     @Test
-    void updateMember_shouldReturn400_whenCategoryWrong_byMoimingValidationException() throws Exception {
+    void updateMoim_shouldReturn400_whenCategoryWrong_byMoimingValidationException() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);

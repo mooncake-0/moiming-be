@@ -83,6 +83,9 @@ public class MoimMemberTest {
         MoimMember moimMember = spy(MoimMember.class); // 실제 TEST 메소드 반영을 위한 SPY 사용
         MoimMemberRoleType newMoimMemberRoleType = MANAGER;
 
+        // given - stub
+        when(moimMember.getMemberState()).thenReturn(ACTIVE);
+
         // when
         moimMember.changeMoimMemberRoleType(newMoimMemberRoleType);
 
