@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.peoplein.moiming.domain.enums.MoimMemberState.ACTIVE;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 
 @Entity
@@ -68,7 +69,7 @@ public class Moim extends BaseEntity {
     public static Moim createMoim(String moimName, String moimInfo, int maxMember, Area moimArea, List<Category> categories, Member creator) {
         // 생성 시점에서 수정자는 동일
         Moim moim = new Moim(moimName, moimInfo, maxMember, moimArea, creator.getId());
-        MoimMember.memberJoinMoim(creator, moim, MoimMemberRoleType.MANAGER, MoimMemberState.ACTIVE);
+        MoimMember.memberJoinMoim(creator, moim, MoimMemberRoleType.MANAGER, ACTIVE);
         for (Category category : categories) {
             MoimCategoryLinker.addMoimCategory(moim, category);
         }
@@ -110,9 +111,9 @@ public class Moim extends BaseEntity {
         }
 
         if (moimMember != null) {
-            moimMember.changeMemberState(MoimMemberState.ACTIVE);
+            moimMember.changeMemberState(ACTIVE);
         } else {
-            MoimMember.memberJoinMoim(curMember, this, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
+            MoimMember.memberJoinMoim(curMember, this, MoimMemberRoleType.NORMAL, ACTIVE);
         }
     }
 
@@ -148,12 +149,6 @@ public class Moim extends BaseEntity {
         this.updaterId = updaterId; // validate 통과이므로 call 되면 수정되는 것
     }
 
-    public void changeCategory(List<Category> categories) {
-        for (Category category : categories) {
-            MoimCategoryLinker.addMoimCategory(this, category);
-        }
-    }
-
 
     /*
      private 하게 바꿀 수 있도록 해서, update 함수 외에는 실행할 수 없게 한다
@@ -174,6 +169,13 @@ public class Moim extends BaseEntity {
     private void setMoimArea(Area moimArea) {
         this.moimArea = moimArea;
     }
+
+    private void changeCategory(List<Category> categories) {
+        for (Category category : categories) {
+            MoimCategoryLinker.addMoimCategory(this, category);
+        }
+    }
+
 
     // 유일한 Open Setter
     public void setMoimJoinRule(MoimJoinRule moimJoinRule) {

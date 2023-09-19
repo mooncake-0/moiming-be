@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 import static com.peoplein.moiming.model.dto.request.MoimMemberReqDto.*;
 
 
@@ -60,7 +61,7 @@ public class MoimMemberService {
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException("요청하는 유저가 가입한 적 없는 모임입니다"));
 
-        moimMember.changeMemberState(MoimMemberState.IBW);
+        moimMember.changeMemberState(IBW);
 
     }
 
@@ -70,20 +71,20 @@ public class MoimMemberService {
     //    스스로 강퇴 불가
     public void expelMember(MoimMemberExpelReqDto requestDto, Member curMember) {
 
-        MoimMember requestMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
+        MoimMember requestMoimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException("요청하는 유저가 가입한 적 없는 모임입니다")
         );
 
-        if (!requestMember.hasPermissionOfManager()) {
+        if (!requestMoimMember.hasPermissionOfManager()) {
             throw new MoimingApiException("요청하는 유저는 강퇴 권한이 없습니다");
         }
 
-        MoimMember expelMember = moimMemberRepository.findByMemberAndMoimId(requestDto.getExpelMemberId(), requestDto.getMoimId()).orElseThrow(
+        MoimMember expelMoimMember = moimMemberRepository.findByMemberAndMoimId(requestDto.getExpelMemberId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException("에러 상황 :: 모임에 없는 유저를 강퇴하려 합니다"));
 
 
-        expelMember.changeMemberState(MoimMemberState.IBF);
-        expelMember.setInactiveReason(requestDto.getInactiveReason());
+        expelMoimMember.changeMemberState(IBF);
+        expelMoimMember.setInactiveReason(requestDto.getInactiveReason());
 
     }
 
@@ -93,18 +94,18 @@ public class MoimMemberService {
     // 5. 운영진 임명하기 (권한으로 부여)
     public void grantMemberManager(MoimMemberGrantReqDto requestDto, Member curMember) {
 
-        MoimMember requestMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
+        MoimMember requestMoimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException("요청하는 유저가 가입한 적 없는 모임입니다")
         );
 
-        if (!requestMember.hasPermissionOfManager()) {
+        if (!requestMoimMember.hasPermissionOfManager()) {
             throw new MoimingApiException("요청하는 유저는 임명 권한이 없습니다");
         }
 
-        MoimMember grantMember = moimMemberRepository.findByMemberAndMoimId(requestDto.getGrantMemberId(), requestDto.getMoimId()).orElseThrow(
+        MoimMember grantMoimMember = moimMemberRepository.findByMemberAndMoimId(requestDto.getGrantMemberId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException("에러 상황 :: 모임에 없는 유저를 임명하려 합니다"));
 
-        grantMember.changeMoimMemberRoleType(MoimMemberRoleType.MANAGER);
+        grantMoimMember.changeMoimMemberRoleType(MoimMemberRoleType.MANAGER);
     }
 
 }

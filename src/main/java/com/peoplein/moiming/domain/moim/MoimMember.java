@@ -48,8 +48,6 @@ public class MoimMember extends BaseEntity {
 
     private String inactiveReason;
 
-    private MoimMemberState stateBeforeDormant; // 휴면계정으로 전환시 이전 상태가 어떤 상태였는지 저장한다 -> 평소에는 NULL
-
 
     // 생성자
     public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
@@ -88,6 +86,11 @@ public class MoimMember extends BaseEntity {
         if (Objects.isNull(moimMemberRoleType)) {
             throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
         }
+
+        if (getMemberState() != ACTIVE) {
+            throw new MoimingApiException("활동중이지 않은 유저에게 운영진을 임명할 수 없습니다");
+        }
+
         this.moimMemberRoleType = moimMemberRoleType;
     }
 
@@ -96,13 +99,6 @@ public class MoimMember extends BaseEntity {
         this.inactiveReason = inactiveReason;
     }
 
-
-    public void setStateBeforeDormant(MoimMemberState stateBeforeDormant) {
-        if (Objects.isNull(stateBeforeDormant)) {
-            throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
-        }
-        this.stateBeforeDormant = stateBeforeDormant;
-    }
 
 
     public boolean hasPermissionOfManager() {

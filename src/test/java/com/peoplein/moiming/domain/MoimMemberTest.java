@@ -103,6 +103,24 @@ public class MoimMemberTest {
 
     }
 
+
+    @Test
+    void changeMoimMemberRoleType_shouldThrowException_whenNotActiveMember_byMoimingApiException() {
+
+        // given
+        MoimMember moimMember = spy(MoimMember.class);
+        MoimMemberRoleType newMoimMemberRoleType = MANAGER;
+
+        // given - stub
+        when(moimMember.getMemberState()).thenReturn(IBW);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMember.changeMoimMemberRoleType(newMoimMemberRoleType)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
     // setInactiveReason = 정상
     @Test
     void setInactiveReason_shouldSetField_whenNormalTestPassed() {
