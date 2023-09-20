@@ -110,7 +110,7 @@ public class PostCommentService {
 
             if (!postComment.getMember().getId().equals(curMember.getId())) {
                 // 작성자가 아니라면, 관리자인가?
-                if (!moimMember.getMoimMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
+                if (!moimMember.getMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
                     log.error("삭제할 권한이 없는 유저의 요청입니다");
                     throw new RuntimeException("삭제할 권한이 없는 유저의 요청입니다");
                 }

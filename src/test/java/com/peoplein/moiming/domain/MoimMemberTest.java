@@ -33,7 +33,7 @@ public class MoimMemberTest {
         MoimMember moimMember = MoimMember.memberJoinMoim(member, moim, NORMAL, ACTIVE);
 
         // then - private 생성자 확인을 위한 value 확인 필요
-        assertThat(moimMember.getMoimMemberRoleType()).isEqualTo(NORMAL);
+        assertThat(moimMember.getMemberRoleType()).isEqualTo(NORMAL);
         assertThat(moimMember.getMemberState()).isEqualTo(ACTIVE);
 
         // then - verify - 값이랑 상관 없이 해당 함수들이 정상호출되는지 확인 (연관관계 편의 메소드들 호출 확인)
@@ -81,16 +81,16 @@ public class MoimMemberTest {
 
         // given
         MoimMember moimMember = spy(MoimMember.class); // 실제 TEST 메소드 반영을 위한 SPY 사용
-        MoimMemberRoleType newMoimMemberRoleType = MANAGER;
+        MoimMemberRoleType newMemberRoleType = MANAGER;
 
         // given - stub
         when(moimMember.getMemberState()).thenReturn(ACTIVE);
 
         // when
-        moimMember.changeMoimMemberRoleType(newMoimMemberRoleType);
+        moimMember.changeMoimMemberRoleType(newMemberRoleType);
 
         // then
-        assertThat(moimMember.getMoimMemberRoleType()).isEqualTo(newMoimMemberRoleType);
+        assertThat(moimMember.getMemberRoleType()).isEqualTo(newMemberRoleType);
     }
 
 
@@ -112,14 +112,14 @@ public class MoimMemberTest {
 
         // given
         MoimMember moimMember = spy(MoimMember.class);
-        MoimMemberRoleType newMoimMemberRoleType = MANAGER;
+        MoimMemberRoleType newMemberRoleType = MANAGER;
 
         // given - stub
         when(moimMember.getMemberState()).thenReturn(IBW);
 
         // when
         // then
-        assertThatThrownBy(() -> moimMember.changeMoimMemberRoleType(newMoimMemberRoleType)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimMember.changeMoimMemberRoleType(newMemberRoleType)).isInstanceOf(MoimingApiException.class);
 
     }
 
@@ -182,7 +182,7 @@ public class MoimMemberTest {
         MoimMember moimMember = spy(MoimMember.class);
 
         // given - stub
-        when(moimMember.getMoimMemberRoleType()).thenReturn(MANAGER);
+        when(moimMember.getMemberRoleType()).thenReturn(MANAGER);
 
         // when
         boolean result = moimMember.hasPermissionOfManager();
@@ -200,7 +200,7 @@ public class MoimMemberTest {
         MoimMember moimMember = spy(MoimMember.class);
 
         // given - stub
-        when(moimMember.getMoimMemberRoleType()).thenReturn(NORMAL);
+        when(moimMember.getMemberRoleType()).thenReturn(NORMAL);
 
         // when
         boolean result = moimMember.hasPermissionOfManager();

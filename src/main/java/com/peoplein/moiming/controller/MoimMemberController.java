@@ -3,6 +3,7 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.request.MoimMemberReqDto;
+import com.peoplein.moiming.model.dto.response.MoimMemberRespDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.MoimMemberService;
 import io.swagger.annotations.*;
@@ -15,8 +16,12 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MoimMemberReqDto.*;
+import static com.peoplein.moiming.model.dto.response.MoimMemberRespDto.*;
 
 
 @Api(tags = "모임 내 멤버 관리 관련")
@@ -37,13 +42,14 @@ public class MoimMemberController {
             @ApiResponse(code = 400, message = "모든 모임원 일반 조회 실패, ERR MSG 확인")
     })
     @GetMapping("/{moimId}")
-    public ResponseEntity<?> getMoimMembers(@PathVariable(value = "moimId", required = true) Long moimId,
+    public ResponseEntity<?> getActiveMoimMembers(@PathVariable(value = "moimId", required = true) Long moimId,
                                             @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        moimMemberService.getMoimMembers(moimId, principal.getMember());
+        List<MoimMember> moimMembers = moimMemberService.getActiveMoimMembers(moimId, principal.getMember());
+        List<ActiveMoimMemberRespDto> responseData = moimMembers.stream().map(ActiveMoimMemberRespDto::new).collect(Collectors.toList());
 
         // 뭘 보내줘야 할까?
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모든 모임원 일반 조회 성공", null));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모든 모임원 일반 조회 성공", responseData));
     }
 
 
@@ -104,23 +110,4 @@ public class MoimMemberController {
         return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "유저 강퇴 성공", null));
     }
 
-
-    // 5. 운영진 임명하기 (MANAGER 권한)
-    @ApiOperation("운영진으로 임명하기")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "운영진 임명 성공"),
-            @ApiResponse(code = 400, message = "운영진 임명 실패, ERR MSG 확인")
-    })
-    @PatchMapping("/grantRole")
-    public ResponseEntity<?> grantMemberManager(
-            @RequestBody @Valid MoimMemberGrantReqDto requestDto,
-            BindingResult br,
-            @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-
-        moimMemberService.grantMemberManager(requestDto, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "운영진 임명 성공", null));
-    }
 }

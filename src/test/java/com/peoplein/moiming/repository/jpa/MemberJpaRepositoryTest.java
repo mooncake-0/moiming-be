@@ -44,13 +44,11 @@ public class MemberJpaRepositoryTest extends TestObjectCreator {
         Role testRole = makeTestRole(RoleType.USER);
         em.persist(testRole);
 
-        Member member1 = makeTestMember(memberEmail, "01023456789", memberName, testRole);
-        member1.changeNickname(nickname);
+        Member member1 = makeTestMember(memberEmail, "01023456789", memberName, nickname, testRole);
         memberRepository.save(member1);
 
         // 2번 유저 주입
-        Member member2 = makeTestMember("hello@abc.com", memberPhone, memberName, testRole);
-        member2.changeNickname(nickname + "1");
+        Member member2 = makeTestMember("hello@abc.com", memberPhone, memberName, nickname2, testRole);
         memberRepository.save(member2);
 
         // Data Jpa 아님

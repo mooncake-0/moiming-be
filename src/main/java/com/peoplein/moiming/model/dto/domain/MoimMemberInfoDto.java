@@ -29,7 +29,7 @@ public class MoimMemberInfoDto {
                 , moimMember.getMember().getMemberInfo().getMemberName()
                 , moimMember.getMember().getMemberEmail()
                 , moimMember.getMember().getMemberInfo().getMemberGender()
-                , moimMember.getMoimMemberRoleType(), moimMember.getMemberState()
+                , moimMember.getMemberRoleType(), moimMember.getMemberState()
                 , moimMember.getCreatedAt(), moimMember.getUpdatedAt());
     }
 
@@ -48,7 +48,7 @@ public class MoimMemberInfoDto {
         this.memberName = moimMember.getMember().getMemberInfo().getMemberName();
         this.memberEmail = moimMember.getMember().getMemberEmail();
         this.memberGender = moimMember.getMember().getMemberInfo().getMemberGender();
-        this.moimMemberRoleType = moimMember.getMoimMemberRoleType();
+        this.moimMemberRoleType = moimMember.getMemberRoleType();
         this.moimMemberState = moimMember.getMemberState();
         this.createdAt = moimMember.getCreatedAt();
 
@@ -66,7 +66,7 @@ public class MoimMemberInfoDto {
                 moimMember.getMember().getMemberInfo().getMemberName(),
                 moimMember.getMember().getMemberEmail(),
                 moimMember.getMember().getMemberInfo().getMemberGender(),
-                moimMember.getMoimMemberRoleType(), moimMember.getMemberState(),
+                moimMember.getMemberRoleType(), moimMember.getMemberState(),
                 moimMember.getCreatedAt(), moimMember.getUpdatedAt());
     }
 

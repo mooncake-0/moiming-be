@@ -27,7 +27,7 @@ public class MyMoimLinkerDto {
     }
 
     public MyMoimLinkerDto(MoimMember moimMember) {
-        this.moimMemberRoleType = moimMember.getMoimMemberRoleType();
+        this.moimMemberRoleType = moimMember.getMemberRoleType();
         this.memberState = moimMember.getMemberState();
         this.createdAt = moimMember.getCreatedAt();
         this.updatedAt = moimMember.getUpdatedAt();

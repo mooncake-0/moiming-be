@@ -82,7 +82,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
         // 1번 Member 형성
         testRole = makeTestRole(RoleType.USER);
-        curMember = makeTestMember(memberEmail, memberPhone, memberName, testRole);
+        curMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, testRole);
 
         roleRepository.save(testRole);
         memberRepository.save(curMember);
@@ -274,7 +274,7 @@ public class MoimControllerTest extends TestObjectCreator {
     void getMemberMoims_shouldReturn200_whenRightInfoPassedAndNoMoimJoined() throws Exception {
 
         // given
-        Member curMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, testRole);
+        Member curMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, testRole);
         memberRepository.save(curMember2);
         em.flush();
         em.clear();

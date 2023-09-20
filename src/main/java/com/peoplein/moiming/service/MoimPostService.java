@@ -136,7 +136,7 @@ public class MoimPostService {
                     , moimPost.getMember().getMemberInfo().getMemberName()
                     , moimPost.getMember().getMemberEmail()
                     , moimPost.getMember().getMemberInfo().getMemberGender()
-                    , moimMember.getMoimMemberRoleType(), moimMember.getMemberState()
+                    , moimMember.getMemberRoleType(), moimMember.getMemberState()
                     , moimMember.getCreatedAt(), moimMember.getUpdatedAt()
             );
         }

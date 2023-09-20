@@ -59,7 +59,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void be_input_user_db() {
 
         Role role = makeTestRole(RoleType.USER);
-        member = makeTestMember(memberEmail, memberPhone, memberName, role);
+        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, role);
 
         roleRepository.save(role);
         memberRepository.save(member);

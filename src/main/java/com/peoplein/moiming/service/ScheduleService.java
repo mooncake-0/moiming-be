@@ -70,7 +70,7 @@ public class ScheduleService {
                     mml.getMember().getId(),
                     mml.getMember().getMemberInfo().getMemberName(), mml.getMember().getMemberEmail(),
                     mml.getMember().getMemberInfo().getMemberGender(),
-                    mml.getMoimMemberRoleType(), mml.getMemberState(), mml.getCreatedAt(), mml.getUpdatedAt()
+                    mml.getMemberRoleType(), mml.getMemberState(), mml.getCreatedAt(), mml.getUpdatedAt()
             ));
         });
 

@@ -165,7 +165,7 @@ public class MoimReviewService {
 
         MoimMemberInfoDto moimMemberInfoDto = new MoimMemberInfoDto(reviewCreator.getId()
                 , reviewCreator.getMemberInfo().getMemberName(), reviewCreator.getMemberEmail()
-                , reviewCreator.getMemberInfo().getMemberGender(), moimMember.getMoimMemberRoleType()
+                , reviewCreator.getMemberInfo().getMemberGender(), moimMember.getMemberRoleType()
                 , moimMember.getMemberState(), moimMember.getCreatedAt(), moimMember.getUpdatedAt());
 
         moimReviewResponseDto.setMoimMemberInfoDto(moimMemberInfoDto);
@@ -223,7 +223,7 @@ public class MoimReviewService {
             MoimReviewResponseDto moimReviewResponseDto = moimReviewResponseDtos.stream().filter(reviewDto -> reviewDto.getMoimMemberInfoDto().getMemberId().equals(mml.getMember().getId())).findAny().orElseThrow(() -> new RuntimeException("이상한 에러입니다"));
 
             moimReviewResponseDto.getMoimMemberInfoDto().setMoimMemberState(mml.getMemberState());
-            moimReviewResponseDto.getMoimMemberInfoDto().setMoimMemberRoleType(mml.getMoimMemberRoleType());
+            moimReviewResponseDto.getMoimMemberInfoDto().setMoimMemberRoleType(mml.getMemberRoleType());
             moimReviewResponseDto.getMoimMemberInfoDto().setCreatedAt(mml.getCreatedAt());
             moimReviewResponseDto.getMoimMemberInfoDto().setUpdatedAt(mml.getUpdatedAt());
 
@@ -303,7 +303,7 @@ public class MoimReviewService {
                     .orElseThrow(() -> new RuntimeException("해당 모임에 연관관계가 존재하지 않는 유저입니다"));
 
             // 둘 다 아닐 경우 에러가 발생해야 한다
-            if (!curMoimMember.getMoimMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
+            if (!curMoimMember.getMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
                 log.error("후기를 삭제할 권한이 없습니다");
                 throw new RuntimeException("후기를 삭제할 권한이 없습니다");
             }

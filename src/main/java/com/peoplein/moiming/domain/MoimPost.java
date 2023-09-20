@@ -160,7 +160,7 @@ public class MoimPost extends BaseEntity {
     }
 
     private boolean canDelete(MoimMember moimMember) {
-        MoimMemberRoleType moimMemberRoleType = moimMember.getMoimMemberRoleType();
+        MoimMemberRoleType moimMemberRoleType = moimMember.getMemberRoleType();
         return moimMemberRoleType.equals(MoimMemberRoleType.MANAGER);
     }
 

@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 import static com.peoplein.moiming.model.dto.request.MoimMemberReqDto.*;
@@ -28,13 +29,17 @@ public class MoimMemberService {
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
 
-    public List<MoimMember> getMoimMembers(Long moimId, Member curMember) {
+
+    // TODO :: 모임원일 경우, 모임원이 아닐경우에 대한 구분
+    //         모임원이 아니여도 모임페이지에 어느정도 노출은 있는데 그 구분이 확인되어야 한다
+    public List<MoimMember> getActiveMoimMembers(Long moimId, Member curMember) {
 
         Moim moimOp = moimRepository.findWithMoimMembersById(moimId).orElseThrow(
                 () -> new MoimingApiException("모임을 찾을 수 없습니다")
         );
 
-        return moimOp.getMoimMembers();
+        return moimOp.getMoimMembers().stream().filter(moimMember -> moimMember.getMemberState().equals(ACTIVE))
+                .collect(Collectors.toList());
     }
 
 
@@ -86,26 +91,6 @@ public class MoimMemberService {
         expelMoimMember.changeMemberState(IBF);
         expelMoimMember.setInactiveReason(requestDto.getInactiveReason());
 
-    }
-
-
-
-
-    // 5. 운영진 임명하기 (권한으로 부여)
-    public void grantMemberManager(MoimMemberGrantReqDto requestDto, Member curMember) {
-
-        MoimMember requestMoimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
-                () -> new MoimingApiException("요청하는 유저가 가입한 적 없는 모임입니다")
-        );
-
-        if (!requestMoimMember.hasPermissionOfManager()) {
-            throw new MoimingApiException("요청하는 유저는 임명 권한이 없습니다");
-        }
-
-        MoimMember grantMoimMember = moimMemberRepository.findByMemberAndMoimId(requestDto.getGrantMemberId(), requestDto.getMoimId()).orElseThrow(
-                () -> new MoimingApiException("에러 상황 :: 모임에 없는 유저를 임명하려 합니다"));
-
-        grantMoimMember.changeMoimMemberRoleType(MoimMemberRoleType.MANAGER);
     }
 
 }

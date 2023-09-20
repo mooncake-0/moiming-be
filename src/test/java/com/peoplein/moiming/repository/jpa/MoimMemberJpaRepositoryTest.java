@@ -50,7 +50,7 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
         Role testRole = makeTestRole(RoleType.USER);
 
         // Member 주입
-        testMember = makeTestMember(memberEmail, memberPhone, memberName, testRole);
+        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, testRole);
 
         // Category 주입
         Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
@@ -71,7 +71,7 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
     }
 
     void makeAnotherMember() {
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, testRole);
+        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, testRole);
         em.persist(testMember2);
 
         em.flush();
@@ -93,7 +93,7 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
         assertTrue(moimMemberOp.isPresent());
         assertThat(moimMemberOp.get().getMember().getId()).isEqualTo(memberId);
         assertThat(moimMemberOp.get().getMoim().getId()).isEqualTo(moimId);
-        assertThat(moimMemberOp.get().getMoimMemberRoleType()).isEqualTo(MoimMemberRoleType.MANAGER);
+        assertThat(moimMemberOp.get().getMemberRoleType()).isEqualTo(MoimMemberRoleType.MANAGER);
         assertThat(moimMemberOp.get().getMemberState()).isEqualTo(MoimMemberState.ACTIVE);
     }
 

@@ -49,25 +49,4 @@ public class MoimMemberReqDto {
         private String inactiveReason;
     }
 
-
-    @ApiModel(value = "Moim Member API - 요청 - 운영진 임명하기")
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MoimMemberGrantReqDto {
-
-        @NotNull
-        private Long moimId;
-
-        @NotNull
-        private Long grantMemberId;
-
-        @NotNull
-        @Pattern(regexp = "MANAGER")
-        private MoimMemberRoleType roleType;
-
-    }
-
-
 }

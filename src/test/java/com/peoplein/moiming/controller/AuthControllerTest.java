@@ -64,7 +64,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
         Role testRole = makeTestRole(RoleType.USER);
-        registeredMember = makeTestMember("registered@mail.com", "01000000000", "등록된", testRole);
+        registeredMember = makeTestMember("registered@mail.com", "01000000000", "등록된", "등록된닉네임", testRole);
         savedToken = createTestJwtToken(registeredMember, 2000);
         registeredMember.changeRefreshToken(savedToken); // reissue 단 test 를 위해 Test token 을 주입해둔다
 

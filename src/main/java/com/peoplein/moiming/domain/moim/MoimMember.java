@@ -41,7 +41,7 @@ public class MoimMember extends BaseEntity {
     private Moim moim;
 
     @Enumerated(value = EnumType.STRING)
-    private MoimMemberRoleType moimMemberRoleType;
+    private MoimMemberRoleType memberRoleType;
 
     @Enumerated(value = EnumType.STRING)
     private MoimMemberState memberState;
@@ -50,23 +50,23 @@ public class MoimMember extends BaseEntity {
 
 
     // 생성자
-    public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
+    public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType memberRoleType, MoimMemberState memberState) {
 
-        if (Objects.isNull(member) || Objects.isNull(moim) || Objects.isNull(moimMemberRoleType) || Objects.isNull(memberState)) {
+        if (Objects.isNull(member) || Objects.isNull(moim) || Objects.isNull(memberRoleType) || Objects.isNull(memberState)) {
             throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
         }
 
         if (moim.getCurMemberCount() + 1 > moim.getMaxMember()) {
             throw new MoimingApiException("모임 정원이 가득찼습니다");
         }
-        MoimMember moimMember = new MoimMember(member, moim, moimMemberRoleType, memberState);
+        MoimMember moimMember = new MoimMember(member, moim, memberRoleType, memberState);
         return moimMember;
     }
 
-    private MoimMember(Member member, Moim moim, MoimMemberRoleType moimMemberRoleType, MoimMemberState memberState) {
+    private MoimMember(Member member, Moim moim, MoimMemberRoleType memberRoleType, MoimMemberState memberState) {
 
         this.member = member;
-        this.moimMemberRoleType = moimMemberRoleType;
+        this.memberRoleType = memberRoleType;
         this.memberState = memberState;
 
 
@@ -82,8 +82,8 @@ public class MoimMember extends BaseEntity {
     }
 
 
-    public void changeMoimMemberRoleType(MoimMemberRoleType moimMemberRoleType) {
-        if (Objects.isNull(moimMemberRoleType)) {
+    public void changeMoimMemberRoleType(MoimMemberRoleType memberRoleType) {
+        if (Objects.isNull(memberRoleType)) {
             throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
         }
 
@@ -91,7 +91,7 @@ public class MoimMember extends BaseEntity {
             throw new MoimingApiException("활동중이지 않은 유저에게 운영진을 임명할 수 없습니다");
         }
 
-        this.moimMemberRoleType = moimMemberRoleType;
+        this.memberRoleType = memberRoleType;
     }
 
 
@@ -102,7 +102,7 @@ public class MoimMember extends BaseEntity {
 
 
     public boolean hasPermissionOfManager() {
-        return getMoimMemberRoleType().equals(MoimMemberRoleType.MANAGER);
+        return getMemberRoleType().equals(MoimMemberRoleType.MANAGER);
     }
 
 

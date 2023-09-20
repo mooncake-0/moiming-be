@@ -163,7 +163,7 @@ public class MoimSessionServiceShell {
     }
 
     private boolean hasAuthority(MoimMember mml, MoimMemberRoleType moimMemberRoleType) {
-        return mml.getMoimMemberRoleType().equals(moimMemberRoleType);
+        return mml.getMemberRoleType().equals(moimMemberRoleType);
     }
 
     public void processDelete(MoimSession moimSession) {

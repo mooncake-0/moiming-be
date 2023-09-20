@@ -13,6 +13,7 @@ import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import com.peoplein.moiming.model.dto.request.MoimReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
+import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.format.DateTimeFormatter;
@@ -27,10 +28,14 @@ import static com.peoplein.moiming.support.TestModelParams.*;
 
 public class TestObjectCreator {
 
-    protected Member makeTestMember(String email, String phone, String name, Role role) {
+    protected Member makeTestMember(String email, String phone, String name, String nickname, Role role) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode(password);
-        return Member.createMember(email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, role);
+
+        Member testMember =  Member.createMember(email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, role);
+        testMember.changeNickname(nickname);
+
+        return testMember;
     }
 
     protected Role makeTestRole(RoleType roleType) {
