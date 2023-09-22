@@ -42,7 +42,7 @@ public class MoimPostJpaQueryRepository {
         List<MoimMemberInfoDto> dataList =
                 queryFactory.select(Projections.constructor(MoimMemberInfoDto.class,
                                 member.id, memberInfo.memberName, member.memberEmail, memberInfo.memberGender
-                                , moimMember.moimMemberRoleType, moimMember.memberState)
+                                , moimMember.memberRoleType, moimMember.memberState)
                         ).from(moimMember)
                         .join(moimMember.member, member)
                         .join(moimMember.moim, moim)
