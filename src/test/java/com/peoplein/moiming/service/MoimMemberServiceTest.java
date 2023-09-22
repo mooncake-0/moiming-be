@@ -254,4 +254,23 @@ public class MoimMemberServiceTest {
         assertThatThrownBy(() -> moimMemberService.expelMember(requestDto, member)).isInstanceOf(MoimingApiException.class);
 
     }
+
+
+    // CASE 4 : 스스로 강퇴를 요청함
+    @Test
+    void expelMember_shouldThrowException_whenAttemptSelfExpel_byMoimingApiException() {
+
+        // given
+        MoimMemberExpelReqDto requestDto = mock(MoimMemberExpelReqDto.class);
+        Member member = mock(Member.class);
+
+        // given - stub 1
+        when(member.getId()).thenReturn(1L);
+        when(requestDto.getExpelMemberId()).thenReturn(1L);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMemberService.expelMember(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
 }

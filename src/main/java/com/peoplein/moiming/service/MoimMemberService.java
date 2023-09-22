@@ -66,6 +66,10 @@ public class MoimMemberService {
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException("요청하는 유저가 가입한 적 없는 모임입니다"));
 
+        if (moimMember.hasPermissionOfManager()) {
+            throw new MoimingApiException("운영자(개설자)는 모임을 나갈 수 없습니다");
+        }
+
         moimMember.changeMemberState(IBW);
 
     }
@@ -75,6 +79,10 @@ public class MoimMemberService {
     //    강퇴하기 (MANAGER 권한) - IBF 전환, inactiveReason 기입z
     //    스스로 강퇴 불가
     public void expelMember(MoimMemberExpelReqDto requestDto, Member curMember) {
+
+        if (requestDto.getExpelMemberId().equals(curMember.getId())) {
+            throw new MoimingApiException("스스로 강퇴하는 요청을 할 수 없습니다");
+        }
 
         MoimMember requestMoimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException("요청하는 유저가 가입한 적 없는 모임입니다")
