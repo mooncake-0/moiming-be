@@ -1,7 +1,7 @@
 package com.peoplein.moiming.service.shell;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.model.dto.domain.MoimPostDto;
 import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
@@ -34,7 +34,7 @@ public class MoimPostServiceShell {
      * - @member
      */
     public MoimPostServiceInput readyForCreatingNewMoimPost(MoimPostRequestDto moimPostRequestDto, Member member) {
-        Moim moim = moimRepository.findById(moimPostRequestDto.getMoimId());
+        Moim moim = moimRepository.findById(moimPostRequestDto.getMoimId()).orElseThrow();
         return MoimPostServiceInput.builder()
                 .postTitleAboutNewMoimPost(moimPostRequestDto.getPostTitle())
                 .postContentAboutNewMoimPost(moimPostRequestDto.getPostContent())

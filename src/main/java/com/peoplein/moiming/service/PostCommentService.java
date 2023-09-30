@@ -1,13 +1,13 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberMoimLinker;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
 import com.peoplein.moiming.model.dto.request_b.PostCommentRequestDto;
-import com.peoplein.moiming.repository.MemberMoimLinkerRepository;
+import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class PostCommentService {
 
     private final MoimPostRepository moimPostRepository;
     private final PostCommentRepository postCommentRepository;
-    private final MemberMoimLinkerRepository memberMoimLinkerRepository;
+    private final MoimMemberRepository moimMemberRepository;
 
     public PostComment fetchAndCheckPostComment(Long postCommentId) {
 
@@ -106,11 +106,11 @@ public class PostCommentService {
             throw new RuntimeException("해당 PK 의 댓글을 찾을 수 없습니다");
         } else {
 
-            MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), postComment.getMoimPost().getMoim().getId());
+            MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), postComment.getMoimPost().getMoim().getId()).orElseThrow();
 
             if (!postComment.getMember().getId().equals(curMember.getId())) {
                 // 작성자가 아니라면, 관리자인가?
-                if (!memberMoimLinker.getMoimRoleType().equals(MoimRoleType.LEADER) && !memberMoimLinker.getMoimRoleType().equals(MoimRoleType.MANAGER)) {
+                if (!moimMember.getMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
                     log.error("삭제할 권한이 없는 유저의 요청입니다");
                     throw new RuntimeException("삭제할 권한이 없는 유저의 요청입니다");
                 }

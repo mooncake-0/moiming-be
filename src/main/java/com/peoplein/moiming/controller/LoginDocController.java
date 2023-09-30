@@ -1,7 +1,6 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.NetworkSetting;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
+import com.peoplein.moiming.config.AppUrlPath;
 import io.swagger.annotations.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +17,7 @@ import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
  */
 @Api(tags = "로그인")
 @RestController
-@RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_AUTH_VER + NetworkSetting.API_AUTH)
+@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_AUTH_VER + AppUrlPath.API_AUTH)
 public class LoginDocController {
 
 

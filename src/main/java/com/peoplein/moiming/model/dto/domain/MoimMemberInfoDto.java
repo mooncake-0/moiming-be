@@ -1,10 +1,9 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberMoimLinker;
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -18,20 +17,20 @@ public class MoimMemberInfoDto {
     private String memberName;
     private String memberEmail;
     private MemberGender memberGender;
-    private MoimRoleType moimRoleType;
+    private MoimMemberRoleType moimMemberRoleType;
     private MoimMemberState moimMemberState;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static MoimMemberInfoDto createMemberInfoDto(MemberMoimLinker memberMoimLinker) {
+    public static MoimMemberInfoDto createMemberInfoDto(MoimMember moimMember) {
         return new MoimMemberInfoDto(
-                memberMoimLinker.getMember().getId()
-                , memberMoimLinker.getMember().getMemberInfo().getMemberName()
-                , memberMoimLinker.getMember().getMemberEmail()
-                , memberMoimLinker.getMember().getMemberInfo().getMemberGender()
-                , memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState()
-                , memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt());
+                moimMember.getMember().getId()
+                , moimMember.getMember().getMemberInfo().getMemberName()
+                , moimMember.getMember().getMemberEmail()
+                , moimMember.getMember().getMemberInfo().getMemberGender()
+                , moimMember.getMemberRoleType(), moimMember.getMemberState()
+                , moimMember.getCreatedAt(), moimMember.getUpdatedAt());
     }
 
     /*
@@ -44,39 +43,39 @@ public class MoimMemberInfoDto {
         this.memberGender = memberGender;
     }
 
-    public MoimMemberInfoDto(MemberMoimLinker memberMoimLinker) {
-        this.memberId = memberMoimLinker.getMember().getId();
-        this.memberName = memberMoimLinker.getMember().getMemberInfo().getMemberName();
-        this.memberEmail = memberMoimLinker.getMember().getMemberEmail();
-        this.memberGender = memberMoimLinker.getMember().getMemberInfo().getMemberGender();
-        this.moimRoleType = memberMoimLinker.getMoimRoleType();
-        this.moimMemberState = memberMoimLinker.getMemberState();
-        this.createdAt = memberMoimLinker.getCreatedAt();
+    public MoimMemberInfoDto(MoimMember moimMember) {
+        this.memberId = moimMember.getMember().getId();
+        this.memberName = moimMember.getMember().getMemberInfo().getMemberName();
+        this.memberEmail = moimMember.getMember().getMemberEmail();
+        this.memberGender = moimMember.getMember().getMemberInfo().getMemberGender();
+        this.moimMemberRoleType = moimMember.getMemberRoleType();
+        this.moimMemberState = moimMember.getMemberState();
+        this.createdAt = moimMember.getCreatedAt();
 
         if (updatedAt == null) {
             // 강퇴당한 경우 updateAt 생성되지 않음.
             this.updatedAt = LocalDateTime.now();
         } else {
-            this.updatedAt = memberMoimLinker.getUpdatedAt();
+            this.updatedAt = moimMember.getUpdatedAt();
         }
     }
 
-    public static MoimMemberInfoDto createWithMemberMoimLinker(MemberMoimLinker memberMoimLinker) {
+    public static MoimMemberInfoDto createWithMemberMoimLinker(MoimMember moimMember) {
         return new MoimMemberInfoDto(
-                memberMoimLinker.getMember().getId(),
-                memberMoimLinker.getMember().getMemberInfo().getMemberName(),
-                memberMoimLinker.getMember().getMemberEmail(),
-                memberMoimLinker.getMember().getMemberInfo().getMemberGender(),
-                memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState(),
-                memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt());
+                moimMember.getMember().getId(),
+                moimMember.getMember().getMemberInfo().getMemberName(),
+                moimMember.getMember().getMemberEmail(),
+                moimMember.getMember().getMemberInfo().getMemberGender(),
+                moimMember.getMemberRoleType(), moimMember.getMemberState(),
+                moimMember.getCreatedAt(), moimMember.getUpdatedAt());
     }
 
     /*
-     MemberMoimLinker 정보 세팅을 위한 setter open
+     MoimMember 정보 세팅을 위한 setter open
      */
 
-    public void setMoimRoleType(MoimRoleType moimRoleType) {
-        this.moimRoleType = moimRoleType;
+    public void setMoimMemberRoleType(MoimMemberRoleType moimMemberRoleType) {
+        this.moimMemberRoleType = moimMemberRoleType;
     }
 
     public void setMoimMemberState(MoimMemberState moimMemberState) {

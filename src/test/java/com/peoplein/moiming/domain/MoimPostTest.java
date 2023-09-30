@@ -2,6 +2,7 @@ package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.moim.Moim;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

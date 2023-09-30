@@ -1,5 +1,9 @@
 package com.peoplein.moiming.support;
 
+import com.peoplein.moiming.repository.MemberRepository;
+import com.peoplein.moiming.repository.RoleRepository;
+import com.peoplein.moiming.repository.jpa.MemberJpaRepository;
+import com.peoplein.moiming.repository.jpa.RoleJpaRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

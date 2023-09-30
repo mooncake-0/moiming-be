@@ -1,15 +1,13 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.TestUtils;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
 import com.peoplein.moiming.service.core.MoimPostServiceCore;
 import com.peoplein.moiming.service.input.MoimPostServiceInput;
 import com.peoplein.moiming.service.output.MoimPostServiceOutput;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.*;

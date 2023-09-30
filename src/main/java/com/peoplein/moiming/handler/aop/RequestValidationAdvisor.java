@@ -18,14 +18,22 @@ public class RequestValidationAdvisor {
 
     /*
     POST 요청 내 Body 데이터가 있을 시 사용되는 Validation AOP
-     */
-
+    */
     @Pointcut("@annotation(org.springframework.web.bind.annotation.PostMapping)")
     public void postMapping() {
     }
 
+
+    /*
+    Patch 요청 내 Body 데이터가 있을 시 사용되는 Validation AOP
+    */
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.PatchMapping)")
+    public void patchMapping() {
+    }
+
+
     // JoinPoint, 전후 제어 // @After, @Before 는 각각 하나
-    @Around("postMapping()")
+    @Around("postMapping() || patchMapping()")
     public Object catchValidationError(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
         Object[] args = proceedingJoinPoint.getArgs();// 해당 AOP 대상 메소드로 진입하는 PARAMS 들을 받아온다
         for (Object arg : args) {

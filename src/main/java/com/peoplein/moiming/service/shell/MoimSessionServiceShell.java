@@ -1,10 +1,10 @@
 package com.peoplein.moiming.service.shell;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberMoimLinker;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
+import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.Schedule;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
 import com.peoplein.moiming.domain.enums.DomainRequestType;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
 import com.peoplein.moiming.domain.fixed.SessionCategory;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class MoimSessionServiceShell {
 
     private final MemberRepository memberRepository;
-    private final MemberMoimLinkerRepository memberMoimLinkerRepository;
+    private final MoimMemberRepository moimMemberRepository;
     private final MoimRepository moimRepository;
     private final ScheduleRepository scheduleRepository;
     private final MoimSessionRepository moimSessionRepository;
@@ -40,7 +40,7 @@ public class MoimSessionServiceShell {
 
     public MoimSessionServiceInput createInputForNewMoimSesion(MoimSessionRequestDto moimSessionRequestDto) {
 
-        Moim moim = moimRepository.findOptionalById(moimSessionRequestDto.getMoimSessionDto().getMoimId()).orElseThrow(() -> new RuntimeException("해당 모임이 존재하지 않습니다"));
+        Moim moim = moimRepository.findById(moimSessionRequestDto.getMoimSessionDto().getMoimId()).orElseThrow(() -> new RuntimeException("해당 모임이 존재하지 않습니다"));
         Schedule schedule = null;
 
         if (!Objects.isNull(moimSessionRequestDto.getMoimSessionDto().getScheduleId())) {
@@ -118,11 +118,11 @@ public class MoimSessionServiceShell {
 
         ////////////// 회원들 Data 연결
 
-        // MemberMoimLinker 들도 Batch 로 불러오고, 아래에서 매핑해서 가져가주기 위해서 Id 및 List 준비
+        // MoimMember 들도 Batch 로 불러오고, 아래에서 매핑해서 가져가주기 위해서 Id 및 List 준비
         List<Long> memberIds = moimSession.getMemberSessionLinkers().stream()
                 .map(memberSessionLinker -> memberSessionLinker.getMember().getId()).collect(Collectors.toList());
 
-        List<MemberMoimLinker> sessionMembersMoimLinkers = memberMoimLinkerRepository.findByMoimIdAndMemberIds(moimSession.getMoim().getId(), memberIds);
+        List<MoimMember> sessionMembersMoimLinkers = moimMemberRepository.findByMoimIdAndMemberIds(moimSession.getMoim().getId(), memberIds);
 
 
         List<MemberSessionLinkerDto> memberSessionLinkerDtos = new ArrayList<>();
@@ -130,11 +130,11 @@ public class MoimSessionServiceShell {
         moimSession.getMemberSessionLinkers().forEach(memberSessionLinker -> {
 
             // 이미 Member, MemberInfo 까지 영컨에 올라온 상태
-            MemberMoimLinker thisMemberMoimLinker = sessionMembersMoimLinkers.stream().filter(
+            MoimMember thisMoimMember = sessionMembersMoimLinkers.stream().filter(
                     memberMoimLinker -> memberMoimLinker.getMember().getId().equals(memberSessionLinker.getMember().getId())
             ).findAny().orElseThrow(() -> new RuntimeException("가지고 온 MoimMember 정보 중 " + memberSessionLinker.getMember().getId() + "의 정보를 찾을 수 없습니다"));
 
-            MoimMemberInfoDto moimMemberInfoDto = MoimMemberInfoDto.createMemberInfoDto(thisMemberMoimLinker);
+            MoimMemberInfoDto moimMemberInfoDto = MoimMemberInfoDto.createMemberInfoDto(thisMoimMember);
 
             MemberSessionLinkerDto memberSessionLinkerDto = new MemberSessionLinkerDto(
                     memberSessionLinker.getMember().getId(), memberSessionLinker.getSingleCost()
@@ -156,14 +156,14 @@ public class MoimSessionServiceShell {
     // REQUEST TYPE 확인 불필요 (정산활동은 생성~삭제 권한 모두 일정)
     // 요구사항 변경 가능성으로 일단 유지
     public void checkAuthority(DomainRequestType requestType, Long moimId, Member curMember) {
-        MemberMoimLinker mml = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimId);
-        if (hasAuthority(mml, MoimRoleType.NORMAL)) {
+        MoimMember mml = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), moimId).orElseThrow();
+        if (hasAuthority(mml, MoimMemberRoleType.NORMAL)) {
             throw new RuntimeException("정산활동 관여 권한이 없는 유저입니다");
         }
     }
 
-    private boolean hasAuthority(MemberMoimLinker mml, MoimRoleType moimRoleType) {
-        return mml.getMoimRoleType().equals(moimRoleType);
+    private boolean hasAuthority(MoimMember mml, MoimMemberRoleType moimMemberRoleType) {
+        return mml.getMemberRoleType().equals(moimMemberRoleType);
     }
 
     public void processDelete(MoimSession moimSession) {
@@ -181,9 +181,9 @@ public class MoimSessionServiceShell {
 
     }
 
-    public MemberMoimLinker findMemberMoimLinker(Long memberId, Long moimId) {
+    public MoimMember findMemberMoimLinker(Long memberId, Long moimId) {
 
-        Optional<MemberMoimLinker> optionalMml = memberMoimLinkerRepository.findOptionalByMemberAndMoimId(memberId, moimId);
+        Optional<MoimMember> optionalMml = moimMemberRepository.findByMemberAndMoimId(memberId, moimId);
         return optionalMml.orElseThrow(() -> new RuntimeException("대상 유저는 해당 모임에 속하지 않습니다"));
     }
 

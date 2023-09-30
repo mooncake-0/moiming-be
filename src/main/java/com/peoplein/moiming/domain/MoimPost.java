@@ -1,8 +1,9 @@
 package com.peoplein.moiming.domain;
 
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
-import com.peoplein.moiming.domain.enums.MoimRoleType;
-import com.peoplein.moiming.model.dto.domain.PostCommentDto;
+import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.domain.moim.Moim;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -147,10 +147,10 @@ public class MoimPost extends BaseEntity {
                 !this.moimPostCategory.equals(moimPostCategory);
     }
 
-    public void delete(MemberMoimLinker memberMoimLinker) {
+    public void delete(MoimMember moimMember) {
 
         System.out.println("HERE1");
-        if (!canDelete(memberMoimLinker)) {
+        if (!canDelete(moimMember)) {
             log.error("삭제할 권한이 없는 유저의 요청입니다");
             throw new RuntimeException("삭제할 권한이 없는 유저의 요청입니다");
         }
@@ -159,10 +159,9 @@ public class MoimPost extends BaseEntity {
         this.member = null;
     }
 
-    private boolean canDelete(MemberMoimLinker memberMoimLinker) {
-        MoimRoleType moimRoleType = memberMoimLinker.getMoimRoleType();
-        return moimRoleType.equals(MoimRoleType.LEADER) ||
-                moimRoleType.equals(MoimRoleType.MANAGER);
+    private boolean canDelete(MoimMember moimMember) {
+        MoimMemberRoleType moimMemberRoleType = moimMember.getMemberRoleType();
+        return moimMemberRoleType.equals(MoimMemberRoleType.MANAGER);
     }
 
 }

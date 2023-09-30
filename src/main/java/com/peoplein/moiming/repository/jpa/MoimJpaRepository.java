@@ -1,31 +1,30 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.domain.Moim;
-import com.peoplein.moiming.domain.QMoim;
-import com.peoplein.moiming.domain.QMoimCategoryLinker;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.embeddable.QArea;
 import com.peoplein.moiming.domain.fixed.Category;
+import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.QueryParameterException;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-import static com.peoplein.moiming.domain.QMoim.*;
+import static com.peoplein.moiming.domain.moim.QMoimMember.*;
+import static com.peoplein.moiming.domain.moim.QMoimJoinRule.*;
+import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
-import static com.peoplein.moiming.domain.embeddable.QArea.*;
-import static com.peoplein.moiming.domain.embeddable.QArea.area;
-import static com.peoplein.moiming.domain.rules.QMoimRule.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -35,47 +34,55 @@ public class MoimJpaRepository implements MoimRepository {
     private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
-    @Override
-    public Long save(Moim moim) {
+    private void checkIllegalQueryParams(Object ... objs) {
+        for (Object obj : objs) {
+            if (Objects.isNull(obj)) {
+                throw new InvalidQueryParameterException("쿼리 파라미터는 NULL 일 수 없습니다");
+            }
+        }
+    }
 
+    @Override
+    public void save(Moim moim) {
+        checkIllegalQueryParams(moim);
         em.persist(moim);
-        return moim.getId();
     }
 
+
     @Override
-    public Moim findById(Long moimId) {
-        return queryFactory.selectFrom(moim)
+    public Optional<Moim> findById(Long moimId) {
+        checkIllegalQueryParams(moimId);
+        return Optional.ofNullable(queryFactory.selectFrom(moim)
                 .where(moim.id.eq(moimId))
-                .fetchOne();
+                .fetchOne());
     }
 
     @Override
-    public Optional<Moim> findOptionalById(Long moimId) {
-        Moim moim = queryFactory.selectFrom(QMoim.moim)
-                .where(QMoim.moim.id.eq(moimId))
-                .fetchOne();
-        return Optional.ofNullable(moim);
-    }
-
-    @Override
-    public Moim findWithRulesById(Long moimId) {
+    public Optional<Moim> findWithJoinRuleById(Long moimId) {
         /*
          Query : select m from Moim m
                     join fetch m.moimRules mr
                     where m.id = :moimId;
         */
-
-        return queryFactory.selectFrom(moim)
-                .join(moim.moimRules, moimRule).fetchJoin()
+        checkIllegalQueryParams(moimId);
+        return Optional.ofNullable(queryFactory.selectFrom(moim)
+                .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
                 .where(moim.id.eq(moimId))
-                .fetchOne();
+                .fetchOne());
     }
+
 
     @Override
-    public void
-    remove(Moim moim) {
-        em.remove(moim);
+    public Optional<Moim> findWithMoimMembersById(Long moimId) {
+
+        checkIllegalQueryParams(moimId);
+
+        return Optional.ofNullable(queryFactory.selectFrom(moim).distinct()
+                .join(moim.moimMembers, moimMember).fetchJoin()
+                .where(moim.id.eq(moimId))
+                .fetchOne());
     }
+
 
     @Override
     public List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category) {
@@ -85,12 +92,20 @@ public class MoimJpaRepository implements MoimRepository {
         return query.fetch();
     }
 
+
     @Override
     public List<Moim> findAllMoim() {
         return queryFactory
                 .selectFrom(moim)
                 .fetch();
     }
+
+    @Override
+    public void remove(Moim moim) {
+        checkIllegalQueryParams(moim);
+        em.remove(moim);
+    }
+
 
     private void addJoinQuery(JPAQuery<Moim> query, Category category) {
         if (category == null)

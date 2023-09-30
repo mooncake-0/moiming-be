@@ -1,6 +1,7 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.MoimPostDto;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
@@ -31,7 +32,7 @@ public class MoimPostService {
 
     private final MoimPostRepository moimPostRepository;
     private final MoimRepository moimRepository;
-    private final MemberMoimLinkerRepository memberMoimLinkerRepository;
+    private final MoimMemberRepository moimMemberRepository;
     private final MoimPostJpaQueryRepository moimPostJpaQueryRepository;
     private final PostCommentJpaQueryRepository postCommentJpaQueryRepository;
 
@@ -122,7 +123,7 @@ public class MoimPostService {
 
         MoimPost moimPost = moimPostRepository.findWithMoimAndMemberInfoById(moimPostId); // MemberInfo 사용을 위해 변경
 
-        MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoAndMoimByMemberAndMoimId(curMember.getId()
+        MoimMember moimMember = moimMemberRepository.findWithMemberInfoAndMoimByMemberAndMoimId(curMember.getId()
                 , moimPost.getMoim().getId());
 
         boolean isPostCreatorCurMember = moimPost.getMember().getId().equals(curMember.getId());
@@ -135,8 +136,8 @@ public class MoimPostService {
                     , moimPost.getMember().getMemberInfo().getMemberName()
                     , moimPost.getMember().getMemberEmail()
                     , moimPost.getMember().getMemberInfo().getMemberGender()
-                    , memberMoimLinker.getMoimRoleType(), memberMoimLinker.getMemberState()
-                    , memberMoimLinker.getCreatedAt(), memberMoimLinker.getUpdatedAt()
+                    , moimMember.getMemberRoleType(), moimMember.getMemberState()
+                    , moimMember.getCreatedAt(), moimMember.getUpdatedAt()
             );
         }
 
@@ -189,8 +190,8 @@ public class MoimPostService {
         }
 
         // 여기서 Member, Moim, MemberMoimLinker에 대한 3개 쿼리가 나감. --> MemberMoimLinker의 Member, Moim이 Eager이기 때문에 N+1 문제 발생
-        MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), moimPost.getMoim().getId());
-        moimPost.delete(memberMoimLinker);
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), moimPost.getMoim().getId()).orElseThrow();
+        moimPost.delete(moimMember);
 
 
         moimPostRepository.removeMoimPostExecute(moimPost);

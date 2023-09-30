@@ -1,6 +1,6 @@
 package com.peoplein.moiming.service.shell;
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.repository.MoimRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ public class NotificationServiceShell {
 
     public void initMoim(Long moimId) {
 
-        moim = moimRepository.findById(moimId);
+        moim = moimRepository.findById(moimId).orElseThrow();
 
     }
 }

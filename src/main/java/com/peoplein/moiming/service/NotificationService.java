@@ -1,11 +1,10 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.enums.NotificationDomain;
 import com.peoplein.moiming.domain.enums.NotificationDomainCategory;
-import com.peoplein.moiming.model.dto.domain.NotificationDto;
 import com.peoplein.moiming.model.inner.NotificationInput;
 import com.peoplein.moiming.repository.NotificationRepository;
 import com.peoplein.moiming.service.shell.NotificationServiceShell;

@@ -2,6 +2,8 @@ package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
+import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 import com.peoplein.moiming.model.dto.domain.ScheduleDto;
 import com.peoplein.moiming.model.dto.domain.ScheduleMemberDto;
@@ -10,7 +12,7 @@ import com.peoplein.moiming.model.dto.response_b.ScheduleResponseDto;
 import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.ScheduleRepository;
-import com.peoplein.moiming.repository.jpa.MemberMoimLinkerJpaRepository;
+import com.peoplein.moiming.repository.jpa.MoimMemberJpaRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +32,7 @@ public class ScheduleService {
 
     private final MoimRepository moimRepository;
     private final ScheduleRepository scheduleRepository;
-    private final MemberMoimLinkerJpaRepository memberMoimLinkerRepository;
+    private final MoimMemberJpaRepository memberMoimLinkerRepository;
     private final MemberScheduleLinkerRepository memberScheduleLinkerRepository;
 
     private LocalDateTime transferStringToLdt(String date) {
@@ -44,7 +46,7 @@ public class ScheduleService {
         // TODO :: 현재 모임원들에게 FCM Push 를 전송한다
         if (requestDto.isFullNotice()) {
         }
-        Moim findMoim = moimRepository.findById(requestDto.getMoimId());
+        Moim findMoim = moimRepository.findById(requestDto.getMoimId()).orElseThrow();
 
         Schedule newSchedule = createNewScheduleWithDto(requestDto, findMoim, curMember);
         scheduleRepository.save(newSchedule);
@@ -59,16 +61,16 @@ public class ScheduleService {
         List<Schedule> schedules = scheduleRepository.findByMoimId(moimId);
 
         // 각 Member 의 MemberInfo 를 Join 해주기 위해 추가 Query
-        List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findWithMemberInfoAndMoimByMoimId(moimId);
+        List<MoimMember> moimMembers = memberMoimLinkerRepository.findWithMemberInfoAndMoimByMoimId(moimId);
 
         // ScheduleMemberDto 에 set 될 MoimMemberInfo 를 미리 형성해둔다
         Map<Long, MoimMemberInfoDto> memberInfoMap = new HashMap<>();
-        memberMoimLinkers.forEach(mml -> {
+        moimMembers.forEach(mml -> {
             memberInfoMap.put(mml.getMember().getId(), new MoimMemberInfoDto(
                     mml.getMember().getId(),
                     mml.getMember().getMemberInfo().getMemberName(), mml.getMember().getMemberEmail(),
                     mml.getMember().getMemberInfo().getMemberGender(),
-                    mml.getMoimRoleType(), mml.getMemberState(), mml.getCreatedAt(), mml.getUpdatedAt()
+                    mml.getMemberRoleType(), mml.getMemberState(), mml.getCreatedAt(), mml.getUpdatedAt()
             ));
         });
 
@@ -137,7 +139,7 @@ public class ScheduleService {
 
     private ScheduleResponseDto buildScheduleResponseDto(Schedule schedule) {
 
-        // 모든 ScheduleLinker 들과 MemberMoimLinker 들과 연계 필요
+        // 모든 ScheduleLinker 들과 MoimMember 들과 연계 필요
         // MSL 의 정보를 가져오기 위해 조회, 사실 N+1 이지만 Batch 설정으로 인해 한번에 들고와준다.
         List<MemberScheduleLinker> memberScheduleLinkers = schedule.getMemberScheduleLinkers();
         List<Long> memberIds = memberScheduleLinkers.stream()
@@ -146,10 +148,10 @@ public class ScheduleService {
                 .collect(Collectors.toList());
 
         // memberId 들로 해당 MemberMoimLinker들을 들고온다.
-        List<MemberMoimLinker> memberMoimLinkers = memberMoimLinkerRepository.findByMoimIdAndMemberIds(schedule.getMoim().getId(), memberIds);
+        List<MoimMember> moimMembers = memberMoimLinkerRepository.findByMoimIdAndMemberIds(schedule.getMoim().getId(), memberIds);
 
         // Moim에서 Member / Shedule 정보가 있는 녀석들을 찾아서 ScheduleMemberDto를 만듦.
-        List<ScheduleMemberDto> scheduleMemberDtos = getDtosIfMoimHasScheduleAndMember(memberScheduleLinkers, memberMoimLinkers);
+        List<ScheduleMemberDto> scheduleMemberDtos = getDtosIfMoimHasScheduleAndMember(memberScheduleLinkers, moimMembers);
 
         ScheduleDto scheduleDto = ScheduleDto.createScheduleDto(schedule);
         return ScheduleResponseDto.create(scheduleDto, scheduleMemberDtos);
@@ -177,9 +179,9 @@ public class ScheduleService {
         String errorMessageForSchedule = "잘못된 요청 : 해당 PK의 일정이 존재하지 않습니다";
         throwIfObjectIsNull(schedule, errorMessageForSchedule);
 
-        MemberMoimLinker curMemberMoimLinker = memberMoimLinkerRepository.findWithMemberInfoByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
+        MoimMember curMoimMember = memberMoimLinkerRepository.findWithMemberInfoByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
         String errorMessageForLinker = "잘못된 요청 : 모임원이 아닙니다";
-        throwIfObjectIsNull(curMemberMoimLinker, errorMessageForLinker);
+        throwIfObjectIsNull(curMoimMember, errorMessageForLinker);
 
         // 해당 멤버에 대한 ScheduleLinker 가 있는지 우선 조회
         MemberScheduleLinker memberScheduleLinker = memberScheduleLinkerRepository.findWithScheduleByMemberAndScheduleId(curMember.getId(), scheduleId);
@@ -191,7 +193,7 @@ public class ScheduleService {
             memberScheduleLinker.changeMemberState(scheduleMemberState);
         }
 
-        MoimMemberInfoDto moimMemberInfoDto = MoimMemberInfoDto.createWithMemberMoimLinker(curMemberMoimLinker);
+        MoimMemberInfoDto moimMemberInfoDto = MoimMemberInfoDto.createWithMemberMoimLinker(curMoimMember);
         return new ChangeMemberTuple(memberScheduleLinker, moimMemberInfoDto);
     }
 
@@ -222,18 +224,18 @@ public class ScheduleService {
 
     private List<ScheduleMemberDto> getDtosIfMoimHasScheduleAndMember(
             List<MemberScheduleLinker> memberScheduleLinkers,
-            List<MemberMoimLinker> memberMoimLinkers) {
+            List<MoimMember> moimMembers) {
 
         return memberScheduleLinkers.stream()
-                .filter(memberScheduleLinker -> getMemberMoimLinkerCorrspondScheduleLinker(memberMoimLinkers, memberScheduleLinker).isPresent())
+                .filter(memberScheduleLinker -> getMemberMoimLinkerCorrspondScheduleLinker(moimMembers, memberScheduleLinker).isPresent())
                 .map(memberScheduleLinker ->
-                        new Tuple(memberScheduleLinker, getMemberMoimLinkerCorrspondScheduleLinker(memberMoimLinkers, memberScheduleLinker).orElseThrow()))
+                        new Tuple(memberScheduleLinker, getMemberMoimLinkerCorrspondScheduleLinker(moimMembers, memberScheduleLinker).orElseThrow()))
                 .map(Tuple::asScheduleMemberDto)
                 .collect(Collectors.toList());
     }
 
-    private Optional<MemberMoimLinker> getMemberMoimLinkerCorrspondScheduleLinker(List<MemberMoimLinker> memberMoimLinkers, MemberScheduleLinker msl) {
-        return memberMoimLinkers.stream()
+    private Optional<MoimMember> getMemberMoimLinkerCorrspondScheduleLinker(List<MoimMember> moimMembers, MemberScheduleLinker msl) {
+        return moimMembers.stream()
                 .filter(memberMoimLinker -> msl.getMember().getId().equals(memberMoimLinker.getMember().getId()))
                 .findFirst();
     }
@@ -244,9 +246,9 @@ public class ScheduleService {
         private final MemberScheduleLinker memberScheduleLinker;
         private final MoimMemberInfoDto moimMemberInfoDto;
 
-        public Tuple(MemberScheduleLinker memberScheduleLinker, MemberMoimLinker memberMoimLinker) {
+        public Tuple(MemberScheduleLinker memberScheduleLinker, MoimMember moimMember) {
             this.memberScheduleLinker = memberScheduleLinker;
-            this.moimMemberInfoDto = MoimMemberInfoDto.createWithMemberMoimLinker(memberMoimLinker);
+            this.moimMemberInfoDto = MoimMemberInfoDto.createWithMemberMoimLinker(moimMember);
         }
 
         public ScheduleMemberDto asScheduleMemberDto() {
@@ -267,17 +269,17 @@ public class ScheduleService {
     // 변경할 권한 유저 체킹 - 생성자, 리더, 운영진 가능
     // 요청한 유저와 이 Schedule 의 Moim Id 확보 필요
     private void checkAuthority(Member curMember, Schedule schedule, String failMessage) {
-        MemberMoimLinker memberMoimLinker = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId());
-        if (!hasPermissionForUpdateSchedule(curMember, schedule, memberMoimLinker)) { // 일정 생성자가 아니다
+        MoimMember moimMember = memberMoimLinkerRepository.findByMemberAndMoimId(curMember.getId(), schedule.getMoim().getId()).orElseThrow();
+        if (!hasPermissionForUpdateSchedule(curMember, schedule, moimMember)) { // 일정 생성자가 아니다
             log.error(failMessage);
             throw new RuntimeException(failMessage);
         }
     }
 
-    private boolean hasPermissionForUpdateSchedule(Member curMember, Schedule schedule, MemberMoimLinker memberMoimLinker) {
+    private boolean hasPermissionForUpdateSchedule(Member curMember, Schedule schedule, MoimMember moimMember) {
         // TODO : 변경 필요
-        return curMember.getId().equals(schedule.getCreatedMemberId()) || memberMoimLinker.hasPermissionForUpdate();
-//        return curMember.isSameUid(schedule.getCreatedUid()) || memberMoimLinker.hasPermissionForUpdate();
+        return curMember.getId().equals(schedule.getCreatedMemberId()) || moimMember.hasPermissionOfManager();
+//        return curMember.isSameUid(schedule.getCreatedUid()) || moimMember.hasPermissionForUpdate();
     }
 
     private void throwIfObjectIsNull(Object object, String message) {

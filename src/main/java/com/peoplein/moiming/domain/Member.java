@@ -14,6 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -25,7 +29,7 @@ import java.util.Objects;
 @Entity
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"member_email"}, name = "unique_member_email"),
-        @UniqueConstraint(columnNames = {"nickname"}, name= "unique_nickname")
+        @UniqueConstraint(columnNames = {"nickname"}, name = "unique_nickname")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -115,13 +119,6 @@ public class Member extends BaseEntity {
         this.password = password;
     }
 
-    // TODO :: 더 나은 방법 강구 필요
-    // WARN: ID 변경은 MOCK 용
-    public void changeMockObjectIdForTest(Long mockObjectId, String className) {
-        if (className.equals("TestMockCreator")) {
-            this.id = mockObjectId;
-        }
-    }
 
     public void changeNickname(String nickname) {
         if (!StringUtils.hasText(nickname)) {
@@ -131,4 +128,29 @@ public class Member extends BaseEntity {
     }
 
 
+    // MemberInfo 정보긴 하지만, Member 도메인이 훨씬 Active 하기 떄문에
+    // 앱 내에서 [나이] 란, 이전 한국 나이를 말한다
+    public int getMemberAge() {
+        int birthYear = this.memberInfo.getMemberBirth().getYear();
+        int todayYear = LocalDate.now().getYear();
+        return todayYear - birthYear + 1;
+    }
+
+
+    // WARN: ID 변경은 MOCK 용: 호출된 곳이 test Pckg 인지 확인
+    public void changeMockObjectIdForTest(Long mockObjectId, URL classUrl) {
+
+        try {
+            URI uri = classUrl.toURI();
+            File file = new File(uri);
+            String absolutePath = file.getAbsolutePath();
+
+            if (absolutePath.contains("test")) { // 빌드 Class 경로가 test 내부일경우
+                this.id = mockObjectId;
+            }
+
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
 }

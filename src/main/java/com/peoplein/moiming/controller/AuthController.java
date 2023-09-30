@@ -1,6 +1,6 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.NetworkSetting;
+import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;
@@ -25,7 +25,7 @@ import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 @Api(tags = "회원 & 회원 인증 관련 (토큰 불필요)")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(NetworkSetting.API_SERVER + NetworkSetting.API_AUTH_VER + NetworkSetting.API_AUTH)
+@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_AUTH_VER + AppUrlPath.API_AUTH)
 public class AuthController {
 
     private final AuthService authService;

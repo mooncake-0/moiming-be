@@ -5,6 +5,7 @@ import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingValidationException;
+import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -53,5 +54,12 @@ public class MoimingExceptionHandler {
         ResponseBodyDto responseBody = ResponseBodyDto.createResponse(errCode, exception.getMessage(), data);
 
         return new ResponseEntity<>(responseBody, HttpStatus.valueOf(statusCode));
+    }
+
+
+    // Repository Exception
+    @ExceptionHandler(InvalidQueryParameterException.class)
+    public ResponseEntity<?> invalidQueryParameterException(InvalidQueryParameterException exception) {
+        return ResponseEntity.internalServerError().body(ResponseBodyDto.createResponse(-1, "정보를 불러오는 중 오류가 발생하였습니다", null));
     }
 }

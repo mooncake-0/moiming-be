@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
 
@@ -9,16 +9,17 @@ import java.util.Optional;
 
 public interface MoimRepository {
 
-    Long save(Moim moim);
+    void save(Moim moim);
 
-    Moim findById(Long moimId);
-    Optional<Moim> findOptionalById(Long moimId);
+    Optional<Moim> findById(Long moimId);
 
-    Moim findWithRulesById(Long moimId);
+    Optional<Moim> findWithJoinRuleById(Long moimId);
 
-    void remove(Moim moim);
+    Optional<Moim> findWithMoimMembersById(Long moimId);
 
     List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category);
 
     List<Moim> findAllMoim();
+
+    void remove(Moim moim);
 }

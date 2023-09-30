@@ -1,6 +1,6 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.Moim;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.embeddable.Area;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -39,15 +39,15 @@ public class MoimDto {
         this.moimId = moim.getId();
         this.moimName = moim.getMoimName();
         this.moimInfo = moim.getMoimInfo();
-        this.moimPfImg = moim.getMoimPfImg();
+//        this.moimPfImg = moim.getMoimPfImg();
         this.area = moim.getMoimArea();
         this.curMemberCount = moim.getCurMemberCount();
-        this.hasRuleJoin = moim.isHasRuleJoin();
-        this.hasRulePersist = moim.isHasRulePersist();
+//        this.hasRuleJoin = moim.isHasRuleJoin();
+//        this.hasRulePersist = moim.isHasRulePersist();
         this.createdAt = moim.getCreatedAt();
-        this.createdMemberId = moim.getCreatedMemberId();
+//        this.createdMemberId = moim.getCreatedMemberId();
         this.updatedAt = moim.getUpdatedAt();
-        this.updatedMemberId = moim.getUpdatedMemberId();
+//        this.updatedMemberId = moim.getUpdatedMemberId();
 
     }
 

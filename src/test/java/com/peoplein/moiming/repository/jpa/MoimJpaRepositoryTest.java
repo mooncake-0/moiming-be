@@ -1,352 +1,229 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.BaseTest;
-import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.Moim;
-import com.peoplein.moiming.domain.MoimCategoryLinker;
-import com.peoplein.moiming.domain.embeddable.Area;
+import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
-import com.peoplein.moiming.domain.rules.MoimRule;
+import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimJoinRule;
+import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimRepository;
-import com.peoplein.moiming.repository.MoimRuleRepository;
+import com.peoplein.moiming.repository.RoleRepository;
+import com.peoplein.moiming.support.RepositoryTestConfiguration;
+import com.peoplein.moiming.support.TestModelParams;
+import com.peoplein.moiming.support.TestObjectCreator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.persistence.EntityManager;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
+import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 
-/*
- TODO TC::
- Test 해제
- Docker 미사용으로 기본적인 Test 환경 구축 우선
- - MSL Refactor 이후 재진행 예정
- */
-@SpringBootTest
-@Transactional
-public class MoimJpaRepositoryTest  {
+@Import({RepositoryTestConfiguration.class, MoimJpaRepository.class})
+@ActiveProfiles("test")
+@DataJpaTest
+public class MoimJpaRepositoryTest extends TestObjectCreator {
+
+
+    @Autowired
+    private MoimRepository moimRepository;
+
 
     @Autowired
     private EntityManager em;
 
-    @Autowired
-    MoimRuleRepository moimRuleRepository;
 
-    @Autowired
-    MoimRepository moimRepository;
+    private Role testRole;
+    private Member testMember1;
+    private Member testMember2;
 
-    private Moim moim;
-    private MoimRule moimRule;
-    private List<Category> moimCategories;
+
+    private Moim sampleMoim1;
+
+
+    private MoimJoinRule sampleMoim1JoinRule;
 
     @BeforeEach
-    void initInstance() {
-        moim = TestUtils.initMoimAndRuleJoin();
-        moimRule = moim.getMoimRules().get(0);
-        moimCategories = TestUtils.createMoimCategoriesWithTwo();
+    void be() {
+        // Role 및 Member 저장
+        testRole = makeTestRole(RoleType.USER);
+        testMember1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, testRole);
+
+        // Moim Cateogry 저장
+        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
+        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 2, testCategory1);
+
+        // Moim 저장
+        sampleMoim1 = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), testMember1);
+        sampleMoim1JoinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
+        sampleMoim1.setMoimJoinRule(sampleMoim1JoinRule);
+
+
+        em.persist(testRole);
+        em.persist(testMember1);
+        em.persist(testCategory1);
+        em.persist(testCategory1_1);
+        moimRepository.save(sampleMoim1);
 
-        for (int i = 0; i < moimCategories.size(); i++) {
-            Category category = moimCategories.get(i);
-            category.setId((long) i);
-            em.persist(category);
-        }
-    }
-
-//    @Test
-    @DisplayName("성공 @ 저장")
-    void save() {
-        //given
-        //when
-        Long moimId = moimRepository.save(moim);
-
-        flushAndClear();
-        Moim moim1 = em.find(Moim.class, moimId);
-        //then
-        assertEquals(moim1.getId(), moim.getId());
-    }
-
-
-//    @Test
-    @DisplayName("성공 @ findMoimById")
-    void findById() {
-        // given
-        Long moimId = moimRepository.save(moim);
-        flushAndClear();
-        // when
-        Moim foundMoim = moimRepository.findById(moim.getId());
-        // then (동등성 비교 필요, 동일성 X - EM이 초기화 되었기 때문)
-        assertEquals(moimId, foundMoim.getId());
-        assertEquals(moim.getMoimName(), foundMoim.getMoimName());
-        assertEquals(moim.getMoimInfo(), foundMoim.getMoimInfo());
-        assertEquals(moim.getMoimPfImg(), foundMoim.getMoimPfImg());
-        assertEquals(moim.getCreatedMemberId(), foundMoim.getCreatedMemberId());
-        assertEquals(moim.getMoimArea().getState(), foundMoim.getMoimArea().getState());
-    }
-
-//    @Test
-    void findWithRuleByIdTest() {
-
-        Long moimId = moimRepository.save(moim);
-        Long ruleId = moimRuleRepository.save(moimRule);
-        flushAndClear();
-
-        Moim findMoim = moimRepository.findWithRulesById(moimId);
-
-        assertThat(findMoim.getId()).isEqualTo(moimId);
-        assertThat(findMoim.getRuleJoin().getId()).isEqualTo(ruleId);
-    }
-
-//    @Test
-    @DisplayName("Keyword 1개 기본")
-    void findMoimBySearchConditionTest1() {
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        persist(moim1, moimCategoryLinker1);
-        flushAndClear();
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(List.of(moim1.getMoimName()), null, null);
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(1);
-        assertThat(findMoimList)
-                .extracting("moimName")
-                .contains(moim1.getMoimName());
-    }
-
-//    @Test
-    @DisplayName("KeyWord Like 조건")
-    void findMoimBySearchConditionTest2() {
-
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        Moim moim2 = TestUtils.createOtherMoimOnly("other" + TestUtils.moimName, new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker2 = new MoimCategoryLinker(moim2, moimCategories.get(1));
-
-        Moim moim3 = TestUtils.createOtherMoimOnly("other moim", new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker3 = new MoimCategoryLinker(moim3, moimCategories.get(1));
-
-        persist(moim1, moim2, moimCategoryLinker1, moimCategoryLinker2, moim3, moimCategoryLinker3);
-        flushAndClear();
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(List.of(TestUtils.moimName), null, null);
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(2);
-        assertThat(findMoimList)
-                .extracting("moimName")
-                .contains(
-                        "other" + TestUtils.moimName,
-                        TestUtils.moimName
-                );
-    }
-
-//    @Test
-    @DisplayName("KeyWord Like 조건 여러 개")
-    void findMoimBySearchConditionTest3() {
-
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        Moim moim2 = TestUtils.createOtherMoimOnly("other" + TestUtils.moimName, new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker2 = new MoimCategoryLinker(moim2, moimCategories.get(1));
-
-        Moim moim3 = TestUtils.createOtherMoimOnly("other moim", new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker3 = new MoimCategoryLinker(moim3, moimCategories.get(1));
-
-        persist(moim1, moim2, moimCategoryLinker1, moimCategoryLinker2, moim3, moimCategoryLinker3);
-        flushAndClear();
-
-        List<String> keywords = List.of(TestUtils.moimName, "moim");
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(keywords, null, null);
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(3);
-        assertThat(findMoimList)
-                .extracting("moimName")
-                .contains(
-                        "other" + TestUtils.moimName,
-                        TestUtils.moimName,
-                        "other moim"
-                );
-    }
-
-//    @Test
-    @DisplayName("이름 && Area 조건")
-    void findMoimBySearchConditionTest4() {
-
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        Moim moim2 = TestUtils.createOtherMoimOnly("other" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker2 = new MoimCategoryLinker(moim2, moimCategories.get(1));
-
-        persist(moim1, moim2, moimCategoryLinker1, moimCategoryLinker2);
-        flushAndClear();
-
-        List<String> keywords = List.of(TestUtils.moimName);
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(keywords, new Area("경상북도", "대구"), null);
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(0);
-    }
-
-//    @Test
-    @DisplayName("이름 && Area 조건")
-    void findMoimBySearchConditionTest5() {
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        Moim moim2 = TestUtils.createOtherMoimOnly("other" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker2 = new MoimCategoryLinker(moim2, moimCategories.get(1));
-
-        persist(moim1, moim2, moimCategoryLinker1, moimCategoryLinker2);
-        flushAndClear();
-
-        List<String> keywords = List.of("other");
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(keywords, new Area("경상북도", "대구"), null);
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(1);
-    }
-
-//    @Test
-    @DisplayName("이름 && Area 조건")
-    void findMoimBySearchConditionTest6() {
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        Moim moim2 = TestUtils.createOtherMoimOnly("other" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker2 = new MoimCategoryLinker(moim2, moimCategories.get(1));
-
-        persist(moim1, moim2, moimCategoryLinker1, moimCategoryLinker2);
-        flushAndClear();
-
-        List<String> keywords = List.of("other");
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(keywords, new Area("경상북도", "경산"), null);
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(0);
-    }
-
-
-//    @Test
-    @DisplayName("이름 && category 조건")
-    void findMoimBySearchConditionTest7() {
-
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        Moim moim2 = TestUtils.createOtherMoimOnly("the" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker2 = new MoimCategoryLinker(moim2, moimCategories.get(1));
-
-        Moim moim3 = TestUtils.createOtherMoimOnly("other" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker3 = new MoimCategoryLinker(moim2, moimCategories.get(0));
-
-        persist(moim1, moim2, moimCategoryLinker1, moimCategoryLinker2, moim3, moimCategoryLinker3);
-        flushAndClear();
-
-        List<String> keywords = List.of("other", TestUtils.moimName);
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(keywords, null, moimCategories.get(0));
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(2);
-    }
-
-
-//    @Test
-    @DisplayName("이름 && category 조건")
-    void findMoimBySearchConditionTest8() {
-
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        Moim moim2 = TestUtils.createOtherMoimOnly("the" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker2 = new MoimCategoryLinker(moim2, moimCategories.get(1));
-
-        Moim moim3 = TestUtils.createOtherMoimOnly("other" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker3 = new MoimCategoryLinker(moim2, moimCategories.get(0));
-
-        persist(moim1, moim2, moimCategoryLinker1, moimCategoryLinker2, moim3, moimCategoryLinker3);
-        flushAndClear();
-
-        List<String> keywords = List.of("other");
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(keywords, null, moimCategories.get(0));
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(1);
-    }
-
-
-//    @Test
-    @DisplayName("전체 조건")
-    void findMoimBySearchConditionTest9() {
-
-        // Given
-        Moim moim1 = TestUtils.createMoimOnly();
-        MoimCategoryLinker moimCategoryLinker1 = new MoimCategoryLinker(moim1, moimCategories.get(0));
-
-        Moim moim2 = TestUtils.createOtherMoimOnly("the" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker2 = new MoimCategoryLinker(moim2, moimCategories.get(1));
-
-        Moim moim3 = TestUtils.createOtherMoimOnly("other" , new Area("경상북도", "대구"));
-        MoimCategoryLinker moimCategoryLinker3 = new MoimCategoryLinker(moim2, moimCategories.get(0));
-
-        persist(moim1, moim2, moimCategoryLinker1, moimCategoryLinker2, moim3, moimCategoryLinker3);
-        flushAndClear();
-
-        List<String> keywords = List.of("other");
-
-        // When
-        List<Moim> findMoimList = moimRepository.findMoimBySearchCondition(keywords, new Area("제주도","서귀포"), moimCategories.get(1));
-
-        // Then
-        assertThat(findMoimList.size()).isEqualTo(0);
-    }
-
-    private void flushAndClear() {
         em.flush();
         em.clear();
     }
 
-    private void persist(Object ...objects) {
-        Arrays.stream(objects).forEach(o -> em.persist(o));
+
+    void makeAnotherMember() {
+        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, testRole);
+        em.persist(testMember2);
+
+        em.flush();
+        em.clear();
     }
+
+
+    @Test
+    void save_shouldSave_whenMoimEntityPassed() {
+
+    }
+
+    @Test
+    void findById_shouldReturnOptionalMoim_whenMoimIdPassed() {
+
+    }
+
+    @Test
+    void findWithJoinRuleById_shouldReturnOptionalMoim_whenMoimIdPassed() {
+
+        // given
+        Long moimId = sampleMoim1.getId();
+
+
+        em.flush();
+        em.clear();
+
+
+        // when
+        Optional<Moim> moimOp = moimRepository.findWithJoinRuleById(moimId);
+
+
+        // then
+        assertTrue(moimOp.isPresent());
+        assertThat(moimOp.get().getMoimName()).isEqualTo(moimName);
+        assertThat(moimOp.get().getMoimJoinRule().getId()).isEqualTo(sampleMoim1JoinRule.getId());
+        assertThat(moimOp.get().getMoimCategoryLinkers().size()).isEqualTo(2);
+
+    }
+
+
+    @Test
+    void findWithJoinRuleById_shouldReturnOptionalMoimWithoutJoinRule_whenMoimIdPassed() {
+
+        // given
+        Long moimId = sampleMoim1.getId();
+
+        sampleMoim1 = em.find(Moim.class, moimId); // em.persist 에서 변경, merge 는 권장하지 않음 (재영속화)
+        sampleMoim1.setMoimJoinRule(null);
+
+        em.flush();
+        em.clear();
+
+        // when
+        Optional<Moim> moimOp = moimRepository.findWithJoinRuleById(moimId);
+
+        // then
+        assertTrue(moimOp.isPresent());
+        assertThat(moimOp.get().getMoimName()).isEqualTo(moimName);
+        assertThat(moimOp.get().getMoimJoinRule()).isEqualTo(null);
+        assertThat(moimOp.get().getMoimCategoryLinkers().size()).isEqualTo(2);
+
+    }
+
+
+    // moimId 가 잘못되었을 경우 Optional.empty 반환 CASE
+    @Test
+    void findWithJoinRuleById_shouldReturnEmptyOptional_whenNotFound() {
+
+        // given
+        Long wrongMoimId = 1234L;
+
+        // when
+        Optional<Moim> moimOp = moimRepository.findWithJoinRuleById(wrongMoimId);
+
+        // then
+        assertTrue(moimOp.isEmpty());
+
+    }
+
+
+    // moimId 가 Null 일 겨우
+    @Test
+    void findWithJoinRuleById_shouldThrowException_whenNullPassed_byInvalidQueryParameterException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> moimRepository.findWithJoinRuleById(null)).isInstanceOf(InvalidQueryParameterException.class);
+
+    }
+
+
+    // findWithMoimMembersById Test
+    // 정상동작 2명까지 다 가져오고, moim 도 가져온다 (추가 쿼리도 안나감)
+    @Test
+    void findWithMoimMembersById_shouldReturnOptionalMoim_whenMoimIdPassed() {
+
+        // given
+        makeAnotherMember();
+        sampleMoim1 = em.find(Moim.class, sampleMoim1.getId()); // sampleMoim1 재영속화
+        MoimMember.memberJoinMoim(testMember2, sampleMoim1, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE); // 연관관계 맺기
+
+        em.flush();
+        em.clear();
+
+        // when (한방 쿼리 필요)
+        Optional<Moim> moimOp = moimRepository.findWithMoimMembersById(sampleMoim1.getId());
+
+        // then
+        assertTrue(moimOp.isPresent());
+        assertThat(moimOp.get().getMoimMembers().size()).isEqualTo(2);
+    }
+
+
+    // moimId 잘못되었을 경우 - Optional.empty() 반환
+    @Test
+    void findWithMoimMembersById_shouldReturnEmpty_whenWrongIdPassed() {
+
+        // given
+        Long wrongMoimId = 1234L;
+
+        // when
+        Optional<Moim> moimOp = moimRepository.findWithMoimMembersById(wrongMoimId);
+
+        // then
+        assertTrue(moimOp.isEmpty());
+    }
+
+
+    // moimId Null 인 경우
+    @Test
+    void findWithMoimMembersById_shouldThrowException_whenNullPassed_byInvalidQueryParameterException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> moimRepository.findWithMoimMembersById(null)).isInstanceOf(InvalidQueryParameterException.class);
+
+    }
+
 
 }
