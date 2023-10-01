@@ -71,10 +71,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         Role testRole = makeTestRole(RoleType.USER);
         em.persist(testRole);
 
-        testMember1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, testRole);
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, testRole);
-        testMember3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, testRole);
-        testMember = makeTestMember(memberEmail4, memberPhone4, memberName4, nickname4, testRole);
+        testMember1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        testMember3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
+        testMember = makeTestMember(memberEmail4, memberPhone4, memberName4, nickname4, ci4, testRole);
         em.persist(testMember1);
         em.persist(testMember2);
         em.persist(testMember3);

@@ -70,5 +70,10 @@ public class MemberReqDto {
         @NotEmpty
         private String fcmToken;
 
+
+        @NotEmpty
+        @Size(max = 90, message = "CI 값은 88 byte 의 문자열입니다")
+        private String ci;
+
     }
 }

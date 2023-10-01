@@ -59,7 +59,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void be_input_user_db() {
 
         Role role = makeTestRole(RoleType.USER);
-        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, role);
+        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
 
         roleRepository.save(role);
         memberRepository.save(member);
@@ -70,7 +70,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_shouldLogin_whenRightInfoPassed() throws Exception{
+    void filter_shouldLogin_whenRightInfoPassed() throws Exception {
 
         //given
         MemberLoginReqDto loginReqDto = new MemberLoginReqDto(memberEmail, password);

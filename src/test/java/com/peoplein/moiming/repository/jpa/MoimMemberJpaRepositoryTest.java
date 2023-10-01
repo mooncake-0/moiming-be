@@ -50,7 +50,7 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
         Role testRole = makeTestRole(RoleType.USER);
 
         // Member 주입
-        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, testRole);
+        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
 
         // Category 주입
         Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
@@ -71,7 +71,7 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
     }
 
     void makeAnotherMember() {
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, testRole);
+        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
         em.persist(testMember2);
 
         em.flush();

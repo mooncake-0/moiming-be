@@ -28,11 +28,11 @@ import static com.peoplein.moiming.support.TestModelParams.*;
 
 public class TestObjectCreator {
 
-    protected Member makeTestMember(String email, String phone, String name, String nickname, Role role) {
+    protected Member makeTestMember(String email, String phone, String name, String nickname, String ci, Role role) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode(password);
 
-        Member testMember =  Member.createMember(email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, role);
+        Member testMember = Member.createMember(email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, ci, role);
         testMember.changeNickname(nickname);
 
         return testMember;
@@ -54,12 +54,11 @@ public class TestObjectCreator {
     }
 
 
-
     /*
      DTO Creator
      */
-    protected TestMemberRequestDto makeMemberReqDto(String email, String name, String phone) {
-        return new TestMemberRequestDto(email, password, name, phone, memberGender, notForeigner, memberBirthStringFormat, fcmToken);
+    protected TestMemberRequestDto makeMemberReqDto(String email, String name, String phone, String ci) {
+        return new TestMemberRequestDto(email, password, name, phone, memberGender, notForeigner, memberBirthStringFormat, fcmToken, ci);
     }
 
     protected MoimCreateReqDto makeMoimReqDtoNoJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
@@ -80,7 +79,6 @@ public class TestObjectCreator {
     protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state, String category1, String category2) {
         return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
     }
-
 
 
     /*

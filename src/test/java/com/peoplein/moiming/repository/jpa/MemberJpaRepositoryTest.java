@@ -44,11 +44,11 @@ public class MemberJpaRepositoryTest extends TestObjectCreator {
         Role testRole = makeTestRole(RoleType.USER);
         em.persist(testRole);
 
-        Member member1 = makeTestMember(memberEmail, "01023456789", memberName, nickname, testRole);
+        Member member1 = makeTestMember(memberEmail, "01023456789", memberName, nickname, ci, testRole);
         memberRepository.save(member1);
 
         // 2번 유저 주입
-        Member member2 = makeTestMember("hello@abc.com", memberPhone, memberName, nickname2, testRole);
+        Member member2 = makeTestMember("hello@abc.com", memberPhone, memberName, nickname2, ci2, testRole);
         memberRepository.save(member2);
 
         // Data Jpa 아님
@@ -58,13 +58,14 @@ public class MemberJpaRepositoryTest extends TestObjectCreator {
     }
 
     @Test
-    void findMembersByEmailOrPhone_shouldReturnEmptyList_whenNotFound() throws Exception {
+    void findMembersByEmailOrPhoneOrCi_shouldReturnEmptyList_whenNotFound() throws Exception {
         //given
         String notRegisteredEmail = "not@registered.com";
         String notRegisteredPhone = "01000000000";
+        String notRegisteredCi = "not-registered";
 
         //when
-        List<Member> members = memberRepository.findMembersByEmailOrPhone(notRegisteredEmail, notRegisteredPhone);
+        List<Member> members = memberRepository.findMembersByEmailOrPhoneOrCi(notRegisteredEmail, notRegisteredPhone, notRegisteredCi);
 
         //then
         assertTrue(members.isEmpty());
@@ -72,24 +73,40 @@ public class MemberJpaRepositoryTest extends TestObjectCreator {
 
 
     @Test
-    void findMembersByEmailOrPhone_shouldReturnList_whenEmailFound() throws Exception {
+    void findMembersByEmailOrPhoneOrCi_shouldReturnList_whenEmailFound() throws Exception {
         // given
         String notRegisteredPhone = "01000000000";
+        String notRegisteredCi = "not-registered";
 
         // when
-        List<Member> members = memberRepository.findMembersByEmailOrPhone(memberEmail, notRegisteredPhone);
+        List<Member> members = memberRepository.findMembersByEmailOrPhoneOrCi(memberEmail, notRegisteredPhone, notRegisteredCi);
 
         // then
         assertFalse(members.isEmpty());
     }
 
     @Test
-    void findMembersByEmailOrPhone_shouldReturnList_whenPhoneFound() throws Exception {
+    void findMembersByEmailOrPhoneOrCi_shouldReturnList_whenPhoneFound() throws Exception {
         // given
         String notRegisteredEmail = "not@registered.com";
+        String notRegisteredCi = "not-registered";
+
 
         // when
-        List<Member> members = memberRepository.findMembersByEmailOrPhone(notRegisteredEmail, memberPhone);
+        List<Member> members = memberRepository.findMembersByEmailOrPhoneOrCi(notRegisteredEmail, memberPhone, notRegisteredCi);
+
+        // then
+        assertFalse(members.isEmpty());
+    }
+
+    @Test
+    void findMembersByEmailOrPhoneOrCi_shouldReturnList_whenCiFound() throws Exception {
+        // given
+        String notRegisteredEmail = "not@registered.com";
+        String notRegisteredPhone = "01000000000";
+
+        // when
+        List<Member> members = memberRepository.findMembersByEmailOrPhoneOrCi(notRegisteredEmail, notRegisteredPhone, ci);
 
         // then
         assertFalse(members.isEmpty());

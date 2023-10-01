@@ -20,7 +20,7 @@ public interface MemberRepository {
 
     List<Member> findMembersByIds(List<Long> memberIds);
 
-    List<Member> findMembersByEmailOrPhone(String memberEmail, String memberPhone);
+    List<Member> findMembersByEmailOrPhoneOrCi(String memberEmail, String memberPhone, String ci);
 
     void updateRefreshTokenByEmail(Long id, String refreshToken);
 }

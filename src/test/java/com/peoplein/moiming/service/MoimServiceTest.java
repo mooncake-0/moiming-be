@@ -54,7 +54,7 @@ public class MoimServiceTest extends TestMockCreator {
 
     @BeforeEach
     void be() {
-        curMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
+        curMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole(1L, RoleType.USER));
     }
 
 
@@ -120,7 +120,6 @@ public class MoimServiceTest extends TestMockCreator {
         assertTrue(Objects.isNull(moimOut.getMoimJoinRule()));
         assertThat(moimOut.getMoimCategoryLinkers().size()).isEqualTo(2);
     }
-
 
 
     // 어차피 mock 써도 get val 값들 다 넣어줘야함.. 그냥 실객체로 Mocking 처럼 쓰자\

@@ -59,7 +59,7 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
     void be() {
         // Role 및 Member 저장
         testRole = makeTestRole(RoleType.USER);
-        testMember1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, testRole);
+        testMember1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci,testRole);
 
         // Moim Cateogry 저장
         Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
@@ -83,7 +83,7 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
 
 
     void makeAnotherMember() {
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, testRole);
+        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
         em.persist(testMember2);
 
         em.flush();

@@ -23,6 +23,8 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.EntityManager;
 
+import java.util.Optional;
+
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.support.TestDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
@@ -62,9 +64,8 @@ public class AuthControllerTest extends TestObjectCreator {
     @BeforeEach
     void dataSu() {
 
-
         Role testRole = makeTestRole(RoleType.USER);
-        registeredMember = makeTestMember("registered@mail.com", "01000000000", "등록된", "등록된닉네임", testRole);
+        registeredMember = makeTestMember("registered@mail.com", "01000000000", "등록된", "등록된닉네임", "registered-ci", testRole);
         savedToken = createTestJwtToken(registeredMember, 2000);
         registeredMember.changeRefreshToken(savedToken); // reissue 단 test 를 위해 Test token 을 주입해둔다
 
@@ -133,7 +134,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturnMemberDtoAnd200_whenSuccessful() throws Exception {
 
         // given
-        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci);
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -156,9 +157,10 @@ public class AuthControllerTest extends TestObjectCreator {
     @Test
     void signIn_shouldReturn400_whenEmailDuplicates_byMoimingApiException() throws Exception {
 
+//        System.out.println("========== STARTING TEST ========= ");
         // given
         String unavailableEmail = "registered@mail.com";
-        TestMemberRequestDto reqDto = makeMemberReqDto(unavailableEmail, memberName, memberPhone);
+        TestMemberRequestDto reqDto = makeMemberReqDto(unavailableEmail, memberName, memberPhone, ci);
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -167,6 +169,13 @@ public class AuthControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(-1));
+
+        //
+//        Optional<Member> email = memberRepository.findByEmail(unavailableEmail);
+//        System.out.println("end of TEST ===================================");
+//        System.out.println(email.get());
+
+
     }
 
 
@@ -176,7 +185,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // given
         String unavailablePhone = "01000000000";
-        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, unavailablePhone);
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, unavailablePhone, ci);
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -188,12 +197,33 @@ public class AuthControllerTest extends TestObjectCreator {
     }
 
 
-    // VALIDATION 에서 걸릴 때 (없는 값 하나 대표적으로)
+
+    // 중복 CI 값 유저 - 불가능
     @Test
-    void signIn_shouldReturn400_whenRequestDtoValidationFails_byMoimingValidationException() throws Exception{
+    void signIn_shouldReturn400_whenCiDuplicates_byMoimingApiException() throws Exception {
 
         // given
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
+        String unavailableCi = "registered-ci";
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone, unavailableCi);
+        String requestString = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+    }
+
+
+
+
+    // VALIDATION 에서 걸릴 때 (없는 값 하나 대표적으로)
+    @Test
+    void signIn_shouldReturn400_whenRequestDtoValidationFails_byMoimingValidationException() throws Exception {
+
+        // given
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci);
         requestDto.setFcmToken(""); // 빈값 치환
         String requestString = om.writeValueAsString(requestDto);
 
@@ -215,7 +245,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // given
         String wrongEmailFormat = "hellonaver.com";
-        TestMemberRequestDto requestDto = makeMemberReqDto(wrongEmailFormat, memberName, memberPhone);
+        TestMemberRequestDto requestDto = makeMemberReqDto(wrongEmailFormat, memberName, memberPhone, ci);
         String requestString = om.writeValueAsString(requestDto);
 
         // when
@@ -229,7 +259,6 @@ public class AuthControllerTest extends TestObjectCreator {
     }
 
 
-
     // TODO :: 이메일 길이로 인한 형식 오류 및 비밀번호 형식 DTO 에 제대로 명시 후 Test
     // 비밀번호 형식 오류 TODO : 비밀번호 조건 제대로 설정 후 재 Test 필요
 
@@ -238,7 +267,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn400_whenPasswordConditionFails_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci);
         requestDto.setPassword("123");
         String requestString = om.writeValueAsString(requestDto);
 

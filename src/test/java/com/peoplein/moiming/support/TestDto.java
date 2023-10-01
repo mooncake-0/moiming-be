@@ -29,6 +29,8 @@ public class TestDto {
         private String memberBirth; // 사실 얘 때문 ..
         private String fcmToken;
 
+        private String ci;
+
         /*public TestMemberRequestDto() {
 
         }
