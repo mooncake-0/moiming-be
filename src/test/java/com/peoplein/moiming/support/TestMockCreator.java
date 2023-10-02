@@ -16,6 +16,7 @@ import com.peoplein.moiming.security.token.JwtParams;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +33,8 @@ public class TestMockCreator {
 
 
     protected MemberSignInReqDto mockSigninReqDto() { // 모델들 추가되면 그 때 분할
-        return new MemberSignInReqDto(memberEmail, password, memberName, memberPhone, memberGender, notForeigner, memberBirth,  fcmToken, ci);
+        return new MemberSignInReqDto(memberEmail, password, memberName, memberPhone, memberGender, notForeigner, memberBirth,  fcmToken, ci,
+                new ArrayList<>());
     }
 
     protected TokenReqDto mockTokenReqDto(String refreshToken) {

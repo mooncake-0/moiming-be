@@ -4,7 +4,9 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
+import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.domain.PolicyAgreeDto;
+import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import com.peoplein.moiming.model.dto.request_b.PolicyAgreeRequestDto;
 import com.peoplein.moiming.model.dto.response_b.PolicyAgreeResponseDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
@@ -16,7 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
 
 @Slf4j
 @Service
@@ -24,24 +30,25 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PolicyAgreeService {
 
-    private final int MOIMING_CUR_POLICY_REQUEST_COUNT = 6;
     private final PolicyAgreeRepository policyAgreeRepository;
 
-    public void createUserPolicyAgree(Member signInMember, List<PolicyAgreeRequestDto> policyAgreeList) { // 초기 회원가입 로직 중 일부
+    // 회원 가입시에만 사용됨
+    public void createPolicyAgree(Member member, List<PolicyAgreeReqDto> policyDtos) {
 
-        if (policyAgreeList.isEmpty()) {
-            throw new RuntimeException("잘못된 형식입니다 - 약관 타입 없음");
+        if (member == null || policyDtos == null) {
+            throw new MoimingApiException("요청자와 약관 항목 인자는 Null일 수 없습니다");
         }
 
-        if (policyAgreeList.size() != MOIMING_CUR_POLICY_REQUEST_COUNT) {
-            throw new RuntimeException("전달 약관 갯수 부족 : " + policyAgreeList.size() + " 개 전달됨");
+        if (policyDtos.size() != PolicyAgree.CUR_MOIMING_REQ_POLICY_CNT) {
+            throw new MoimingApiException("필요 약관 항목의 개수와 요청받은 약관 항목의 개수가 다릅니다");
         }
 
-        for (PolicyAgreeRequestDto policyAgreeDto : policyAgreeList) {
-            PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(signInMember, policyAgreeDto.getPolicyType(), policyAgreeDto.isAgreed());
+        for (PolicyAgreeReqDto reqDto : policyDtos) {
+            PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, reqDto.getPolicyType(), reqDto.isHasAgreed());
             policyAgreeRepository.save(policyAgree);
         }
     }
+
 
     /*
      전달된 내역들을 통해 요청한 유저의 (선택) 약관 내역들을 변경한다
@@ -90,10 +97,9 @@ public class PolicyAgreeService {
                 PolicyAgree thisAgree = findPolicy.get();
 
                 // 지금 요청하는 내역과 반대의 경우를 가지고 있다면, 바꿔준다.
-                if (thisAgree.isAgreed() != updatingPolicy.isAgreed()) { // 수정한다
-                    thisAgree.setAgreed(updatingPolicy.isAgreed());
-                    thisAgree.setUpdatedAt(LocalDateTime.now());
-                    thisAgree.setUpdatedMemberId(curMember.getId());
+                if (thisAgree.isHasAgreed() != updatingPolicy.isAgreed()) { // 수정한다
+                    thisAgree.setHasAgreed(updatingPolicy.isAgreed());
+                    thisAgree.setUpdaterId(curMember.getId());
                 }
 
             } else { // 없다 - 객체 생성 필요 (추가된 약관 항목으로 보임)

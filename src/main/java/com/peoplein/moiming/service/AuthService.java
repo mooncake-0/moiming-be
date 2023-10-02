@@ -43,6 +43,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
     private final MoimingTokenProvider moimingTokenProvider;
+    private final PolicyAgreeService policyAgreeService;
 
 
     public void checkEmailAvailable(String email) {
@@ -72,6 +73,10 @@ public class AuthService {
 
         // member 저장
         memberRepository.save(signInMember);
+
+        // Policy 저장 분리
+        policyAgreeService.createPolicyAgree(signInMember, requestDto.getPolicyDtos());
+
 
         // Refresh 토큰 발급 & Response Data 생성
         String jwtAccessToken = issueJwtTokens(signInMember);

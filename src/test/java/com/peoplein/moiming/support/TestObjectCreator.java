@@ -3,8 +3,10 @@ package com.peoplein.moiming.support;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
@@ -17,10 +19,12 @@ import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
 import static com.peoplein.moiming.support.TestDto.*;
@@ -57,8 +61,20 @@ public class TestObjectCreator {
     /*
      DTO Creator
      */
-    protected TestMemberRequestDto makeMemberReqDto(String email, String name, String phone, String ci) {
-        return new TestMemberRequestDto(email, password, name, phone, memberGender, notForeigner, memberBirthStringFormat, fcmToken, ci);
+
+    protected List<PolicyAgreeReqDto> makePolicyReqDtoList(boolean[] hasAgreeds, PolicyType[] types) {
+        List<PolicyAgreeReqDto> policyDtos = new ArrayList<>();
+
+        for (int i = 0; i < types.length; i++) {
+            policyDtos.add(new PolicyAgreeReqDto(hasAgreeds[i], types[i]));
+        }
+
+        return policyDtos;
+    }
+
+
+    protected TestMemberRequestDto makeMemberReqDto(String email, String name, String phone, String ci, List<PolicyAgreeReqDto> policyDtos) {
+        return new TestMemberRequestDto(email, password, name, phone, memberGender, notForeigner, memberBirthStringFormat, fcmToken, ci, policyDtos);
     }
 
     protected MoimCreateReqDto makeMoimReqDtoNoJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {

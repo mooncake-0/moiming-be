@@ -1,10 +1,16 @@
 package com.peoplein.moiming.support;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
+
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
 
 /*
  Date 혹은 다양한 Format 관련하여
@@ -30,24 +36,8 @@ public class TestDto {
         private String fcmToken;
 
         private String ci;
-
-        /*public TestMemberRequestDto() {
-
-        }
-
-        public TestMemberRequestDto(String memberEmail, String password, String memberName, String memberPhone, MemberGender memberGender
-                , boolean isForeigner, String memberBirth, String fcmToken) {
-
-            this.memberEmail = memberEmail;
-            this.password = password;
-            this.memberName = memberName;
-            this.memberPhone = memberPhone;
-            this.memberGender = memberGender;
-            this.isForeigner = isForeigner;
-            this.memberBirth = memberBirth;
-            this.fcmToken = fcmToken;
-
-        }*/
+        @JsonProperty("policies")
+        private List<PolicyAgreeReqDto> policyDtos;
 
     }
 

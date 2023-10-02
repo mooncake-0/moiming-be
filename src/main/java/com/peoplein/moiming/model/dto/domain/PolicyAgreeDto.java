@@ -19,7 +19,7 @@ public class PolicyAgreeDto {
 
     public PolicyAgreeDto(PolicyAgree policyAgree) {
         this.policyType = policyAgree.getPolicyType();
-        this.isAgreed = policyAgree.isAgreed();
+        this.isAgreed = policyAgree.isHasAgreed();
         this.createdAt = policyAgree.getCreatedAt();
         this.updatedAt = policyAgree.getUpdatedAt();
     }

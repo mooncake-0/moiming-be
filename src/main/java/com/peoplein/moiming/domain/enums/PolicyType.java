@@ -7,6 +7,6 @@ public enum PolicyType {
     AGE, // 만 14세 이상 정보
     MARKETING_SMS, // 마케팅 수신 여부 _ 문자
     MARKETING_EMAIL, // 마케팅 수신 여부 _ 이메일
-    MARKETING_KAKAO // 마케팅 수신 여부 _ 카카오
+//    MARKETING_KAKAO // 마케팅 수신 여부 _ 카카오
 
 }

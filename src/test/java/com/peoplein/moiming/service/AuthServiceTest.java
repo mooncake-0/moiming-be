@@ -61,6 +61,9 @@ public class AuthServiceTest extends TestMockCreator {
     @Mock
     private MoimingTokenProvider tokenProvider;
 
+    @Mock
+    private PolicyAgreeService policyAgreeService;
+
 
     @Test
     void checkEmailAvailable_shouldThrowError_whenUsedEmail() {
@@ -99,6 +102,7 @@ public class AuthServiceTest extends TestMockCreator {
         doNothing().when(memberRepository).save(any()); // save() 함수가 반환하는게 없으므로
         doReturn(accessToken).when(authService).issueJwtTokens(any()); // 정상 객체 authService 안에서 일부를 mocking 한다 - Spy
         doReturn(nickname).when(authService).tryCreateNicknameForUser();
+        doNothing().when(policyAgreeService).createPolicyAgree(any(), any());
 
         // when
         Map<String, Object> transmit = authService.signIn(requestDto);

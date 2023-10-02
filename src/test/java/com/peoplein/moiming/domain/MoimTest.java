@@ -217,10 +217,6 @@ public class MoimTest extends TestMockCreator {
                 assertThat(mcLinker.getCategory().getCategoryName()).isEqualTo(CategoryName.fromValue(depth2SampleCategory2));
             }
         }
-
     }
-
-
-
 
 }
