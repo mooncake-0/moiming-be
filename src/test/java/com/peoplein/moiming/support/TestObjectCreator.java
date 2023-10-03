@@ -62,18 +62,18 @@ public class TestObjectCreator {
      DTO Creator
      */
 
-    protected List<PolicyAgreeReqDto> makePolicyReqDtoList(boolean[] hasAgreeds, PolicyType[] types) {
-        List<PolicyAgreeReqDto> policyDtos = new ArrayList<>();
+    protected List<PolicyAgreeDto> makePolicyReqDtoList(boolean[] hasAgreeds, PolicyType[] types) {
+        List<PolicyAgreeDto> policyDtos = new ArrayList<>();
 
         for (int i = 0; i < types.length; i++) {
-            policyDtos.add(new PolicyAgreeReqDto(hasAgreeds[i], types[i]));
+            policyDtos.add(new PolicyAgreeDto(hasAgreeds[i], types[i]));
         }
 
         return policyDtos;
     }
 
 
-    protected TestMemberRequestDto makeMemberReqDto(String email, String name, String phone, String ci, List<PolicyAgreeReqDto> policyDtos) {
+    protected TestMemberRequestDto makeMemberReqDto(String email, String name, String phone, String ci, List<PolicyAgreeDto> policyDtos) {
         return new TestMemberRequestDto(email, password, name, phone, memberGender, notForeigner, memberBirthStringFormat, fcmToken, ci, policyDtos);
     }
 

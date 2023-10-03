@@ -64,7 +64,7 @@ public class AuthService {
 
 
         Member signInMember = Member.createMember(requestDto.getMemberEmail(), encodedPassword, requestDto.getMemberName()
-                , requestDto.getMemberPhone(), requestDto.getMemberGender(), requestDto.isForeigner()
+                , requestDto.getMemberPhone(), requestDto.getMemberGender(), requestDto.getIsForeigner()
                 , requestDto.getMemberBirth(), requestDto.getFcmToken(), requestDto.getCi(), roleUser);
 
 

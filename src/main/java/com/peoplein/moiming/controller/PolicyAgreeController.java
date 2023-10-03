@@ -2,18 +2,25 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.model.dto.request_b.PolicyAgreeRequestDto;
-import com.peoplein.moiming.model.dto.response_b.PolicyAgreeResponseDto;
+import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.PolicyAgreeService;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
+import javax.validation.Valid;
 import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
+import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 
+@Api(tags = "약관 조회 & 변경 관련")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(API_SERVER + API_POLICY_VER + API_POLICY)
@@ -24,20 +31,19 @@ public class PolicyAgreeController {
     // 동의는 회원가입과 동시에 진행된다. Policy Service 에 한함
     // 삭제 또한 회원탈퇴에서 진행되려나? > 여기에서 받을 필요는 없을 듯
 
-    // TODO: 플로우 확인 필요
-    // 약관 내용이 수정되는 건은 마케팅 정보 정도일 것
-    // 삭제되는 내용은 아마 회원 탈퇴 이외에는 없을 것. 마케팅을 동의했다가 거절하는 것은 삭제가 아니라 변경할 것이기 때문
-    // 삭제는 요청이 Controller 를 통해 오지는 않을 것 - 삭제 Flow 에 추가되는 정도일 것
 
-    // 일단 @RequestBody  는 List 로 Data 받는 형태 채택
-    // 추후 중간 객체 두는게 더 나을 것 같으면 (유지 보수 측면 데이터 추가 유리) 그 때 수정하되, 크게 추가될 데이터가 있을 것 같지는 않아서 이 방식 유지
+    // 약관 내용이 수정되는 건은 마케팅 정보 정도일 것
+    @ApiOperation("선택 약관 수정")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "약관 수정 성공"),
+            @ApiResponse(code = 400, message = "약관 수정 실패, ERR MSG 확인")
+    })
     @PatchMapping("/update")
-    public ResponseEntity<PolicyAgreeResponseDto> updatePolicyAgree(@RequestBody List<PolicyAgreeRequestDto> policyAgreeList) {
-        // 수정 요청을 보낸 사람의 약관 내용 중 요청한 내용들을 수정해준다
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        PolicyAgreeResponseDto responseModel = policyAgreeService.updatePolicyAgree(curMember, policyAgreeList);
-        // TODO :: ResponseEntity 로 변환 예정
-        return null;
-//        return ResponseModel.createResponse(responseModel);
+    public ResponseEntity<?> updatePolicyAgree(@RequestBody @Valid PolicyAgreeUpdateReqDto requestDto
+            , BindingResult br
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        policyAgreeService.updatePolicyAgree(principal.getMember(), requestDto.getPolicyDtos());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "요청한 약관들의 동의 여부를 수정하였습니다", null));
     }
 }

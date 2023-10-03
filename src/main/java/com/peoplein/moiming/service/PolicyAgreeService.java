@@ -5,24 +5,17 @@ import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.domain.PolicyAgreeDto;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
-import com.peoplein.moiming.model.dto.request_b.PolicyAgreeRequestDto;
-import com.peoplein.moiming.model.dto.response_b.PolicyAgreeResponseDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 
 @Slf4j
 @Service
@@ -33,18 +26,18 @@ public class PolicyAgreeService {
     private final PolicyAgreeRepository policyAgreeRepository;
 
     // 회원 가입시에만 사용됨
-    public void createPolicyAgree(Member member, List<PolicyAgreeReqDto> policyDtos) {
+    public void createPolicyAgree(Member member, List<PolicyAgreeDto> policyDtos) {
 
         if (member == null || policyDtos == null) {
-            throw new MoimingApiException("요청자와 약관 항목 인자는 Null일 수 없습니다");
+            throw new MoimingApiException("요청자와 약관 항목 인자는 Null 일 수 없습니다");
         }
 
         if (policyDtos.size() != PolicyAgree.CUR_MOIMING_REQ_POLICY_CNT) {
             throw new MoimingApiException("필요 약관 항목의 개수와 요청받은 약관 항목의 개수가 다릅니다");
         }
 
-        for (PolicyAgreeReqDto reqDto : policyDtos) {
-            PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, reqDto.getPolicyType(), reqDto.isHasAgreed());
+        for (PolicyAgreeDto reqDto : policyDtos) {
+            PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, reqDto.getPolicyType(), reqDto.getHasAgreed());
             policyAgreeRepository.save(policyAgree);
         }
     }
@@ -52,82 +45,32 @@ public class PolicyAgreeService {
 
     /*
      전달된 내역들을 통해 요청한 유저의 (선택) 약관 내역들을 변경한다
-     TODO:: 너무 길다 ㅋㅋㅋ.. Refactoring 필요
      */
-    public PolicyAgreeResponseDto updatePolicyAgree(Member curMember, List<PolicyAgreeRequestDto> policyAgreeList) { // 수정로직
+    public void updatePolicyAgree(Member member, List<PolicyAgreeUpdateReqDto.PolicyAgreeDto> policyDtos) {
 
-        if (policyAgreeList.isEmpty()) {
-            throw new RuntimeException("잘못된 형식입니다 - 약관 타입 없음");
+        if (member == null || policyDtos == null || policyDtos.isEmpty()) {
+            throw new MoimingApiException("요청자와 약관 항목 인자는 Null 이거나 비어있을 수 없습니다");
         }
 
-        // 변경하려고 하는 내역중 필수 동의항목 내역이 있을경우 금한다
-        boolean isAnyForbidden = policyAgreeList.stream().anyMatch(
-                updatingRequest ->
-                        updatingRequest.getPolicyType().equals(PolicyType.SERVICE) ||
-                                updatingRequest.getPolicyType().equals(PolicyType.PRIVACY) ||
-                                updatingRequest.getPolicyType().equals(PolicyType.AGE)
-        );
+        List<PolicyType> policyTypes = policyDtos.stream().map(PolicyAgreeUpdateReqDto.PolicyAgreeDto::getPolicyType).collect(Collectors.toList());
+        List<PolicyAgree> policyAgrees = policyAgreeRepository.findByMemberIdAndPolicyTypes(member.getId(), policyTypes);
 
-        if (isAnyForbidden) {
-            log.error("필수 약관 변경 요청 - 경로 확인 필요 : {}", curMember.getId());
-            throw new RuntimeException("잘못된 경로 및 요청 - 경로 확인 필요 : 필수 약관 동의 여부는 변경할 수 없습니다");
+        if (policyTypes.size() != policyAgrees.size() || policyAgrees.isEmpty()) {
+            throw new MoimingApiException("약관을 불러오는 중 오류가 발생");
         }
 
-
-        // 해당 멤버의 Policy Agree 정보를 찾는다
-        // 비어있을 리는 없을 듯
-        List<PolicyAgree> curMemberPolicyAgreedList = policyAgreeRepository.findByMemberId(curMember.getId());
-
-        // TODO :: 이걸 레포지토리단에서 하는 건 괜찮을까?
-        if (curMemberPolicyAgreedList.isEmpty()) {
-            log.error("Member 약관 없음 - 확인 필요 : {}", curMember.getId());
-            throw new RuntimeException("잘못된 상황입니다 - Member 약관 확인 필요");
-        }
-
-        // MOIMING_CUR_POLICY_REQUEST_COUNT = N
-        for (PolicyAgreeRequestDto updatingPolicy : policyAgreeList) {
-
-            PolicyType updatingType = updatingPolicy.getPolicyType();
-
-            Optional<PolicyAgree> findPolicy = curMemberPolicyAgreedList.stream().filter(curPolicy -> curPolicy.getPolicyType().equals(updatingType))
-                    .findFirst();
-
-            if (findPolicy.isPresent()) { // 여기에서 수정해는 내역이 기존 list 에 있다 - False  True 여부 확인하고 반대로 체킹
-
-                PolicyAgree thisAgree = findPolicy.get();
-
-                // 지금 요청하는 내역과 반대의 경우를 가지고 있다면, 바꿔준다.
-                if (thisAgree.isHasAgreed() != updatingPolicy.isAgreed()) { // 수정한다
-                    thisAgree.setHasAgreed(updatingPolicy.isAgreed());
-                    thisAgree.setUpdaterId(curMember.getId());
+        for (PolicyAgree policyAgree : policyAgrees) {
+            for (PolicyAgreeUpdateReqDto.PolicyAgreeDto reqDto : policyDtos) {
+                if (policyAgree.getPolicyType().equals(reqDto.getPolicyType())) {
+                    policyAgree.changeHasAgreed(reqDto.getHasAgreed(), member.getId());
                 }
-
-            } else { // 없다 - 객체 생성 필요 (추가된 약관 항목으로 보임)
-
-                log.info("없던 약관 생성 진행 - 추가된 약관 항목 추정");
-                // 현재는 추가될 필요가 없음
-                throw new RuntimeException("없던 약관이 추가될 수는 없습니다");
-
-                // 필요시 주석 해제 후 사용
-                //PolicyAgree addedPolicyAgreement = PolicyAgree.createPolicyAgree(curMember, updatingPolicy.getPolicyType(), updatingPolicy.isAgreed());
-                //policyAgreeRepository.save(addedPolicyAgreement);
             }
         }
-
-        return buildResponse(curMember, curMemberPolicyAgreedList);
     }
+
 
     public String deletePolicyAgree() { // 탈퇴로직?
         return "";
     }
 
-    // 그냥 현재 유저의 Policy 정보를 모두 보내준다
-    public PolicyAgreeResponseDto buildResponse(Member curMember, List<PolicyAgree> curPolicyAgrees) {
-        List<PolicyAgreeDto> policyAgrees = new ArrayList<>();
-        for (PolicyAgree curPolicyAgree : curPolicyAgrees) {
-            policyAgrees.add(new PolicyAgreeDto(curPolicyAgree));
-        }
-
-        return new PolicyAgreeResponseDto(curMember.getId(), policyAgrees);
-    }
 }

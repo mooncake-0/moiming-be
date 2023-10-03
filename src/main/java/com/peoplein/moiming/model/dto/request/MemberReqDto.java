@@ -63,7 +63,7 @@ public class MemberReqDto {
         private MemberGender memberGender;
 
         @NotNull
-        private boolean isForeigner;
+        private Boolean isForeigner;
 
 
         @NotNull
@@ -82,16 +82,16 @@ public class MemberReqDto {
         @NotEmpty // 안에 값이 들어있고, Null 이 아닌지도 체크
         @Size(min = 5, max = 5, message = "필요 항목은 5개입니다")
         @JsonProperty("policies")
-        private List<PolicyAgreeReqDto> policyDtos;
+        private List<PolicyAgreeDto> policyDtos;
 
 
         @Getter
         @Setter
         @NoArgsConstructor
         @AllArgsConstructor
-        public static class PolicyAgreeReqDto{
+        public static class PolicyAgreeDto{
             @NotNull
-            private boolean hasAgreed;
+            private Boolean hasAgreed;
 
             @NotNull
             private PolicyType policyType;

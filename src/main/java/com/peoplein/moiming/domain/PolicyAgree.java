@@ -2,6 +2,7 @@ package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
+import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 
 @Entity
 @Getter
@@ -54,6 +56,21 @@ public class PolicyAgree extends BaseEntity {
 
     }
 
+    public void changeHasAgreed(boolean hasAgreed, Long memberId) {
+
+        // 필수를 변경하려는건 아닌지 확인
+        if (!(this.policyType.equals(MARKETING_EMAIL) || this.policyType.equals(MARKETING_SMS))) {
+            throw new MoimingApiException("필수 약관 항목은 변경할 수 없습니다");
+        }
+
+        if (this.hasAgreed != hasAgreed) {
+            this.hasAgreed = hasAgreed;
+            this.updaterId = memberId;
+        }else{
+            throw new MoimingApiException("같은 상태로의 변경 요청입니다");
+        }
+    }
+
     // 적합하지 않은 동의 여부를 검증한다 - 필수인데 False 인 항목
     private void checkInvalidPolicyAgreement(PolicyType policyType, boolean hasAgreed) {
         if (policyType.equals(SERVICE) && !hasAgreed) {
@@ -73,7 +90,4 @@ public class PolicyAgree extends BaseEntity {
         this.hasAgreed = hasAgreed;
     }
 
-    public void setUpdaterId(Long updaterId) {
-        this.updaterId = updaterId;
-    }
 }

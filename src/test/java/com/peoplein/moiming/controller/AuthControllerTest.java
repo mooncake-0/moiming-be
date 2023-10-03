@@ -84,7 +84,7 @@ public class AuthControllerTest extends TestObjectCreator {
     }
 
 
-    private List<PolicyAgreeReqDto> provideNormalPolicyDtos() {
+    private List<PolicyAgreeDto> provideNormalPolicyDtos() {
         boolean[] hasAgreeds = {true, true, true, true, false};
         PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
         return makePolicyReqDtoList(hasAgreeds, policyTypes);

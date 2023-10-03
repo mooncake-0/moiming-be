@@ -82,7 +82,7 @@ dependencies {
     // Test Static Mocker
     testImplementation 'org.mockito:mockito-inline:3.11.2'
     // for mockito-inline
-//    implementation 'com.google.code.findbugs:findbugs-annotations:3.0.1'
+//    implementation 'com.google.code.findbugs:findbugs-annotation:3.0.1'
 //    implementation 'net.java.dev.jna:jna:5.8.0'
 //    implementation 'net.java.dev.jna:jna-platform:5.8.0'
 

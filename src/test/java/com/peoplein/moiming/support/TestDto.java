@@ -37,7 +37,7 @@ public class TestDto {
 
         private String ci;
         @JsonProperty("policies")
-        private List<PolicyAgreeReqDto> policyDtos;
+        private List<PolicyAgreeDto> policyDtos;
 
     }
 
