@@ -31,7 +31,7 @@ public class TestDto {
         private String memberName;
         private String memberPhone;
         private MemberGender memberGender;
-        private boolean isForeigner;
+        private Boolean foreigner;
         private String memberBirth; // 사실 얘 때문 ..
         private String fcmToken;
 

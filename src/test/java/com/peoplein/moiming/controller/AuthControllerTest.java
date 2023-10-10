@@ -161,6 +161,8 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isCreated());
         resultActions.andExpect(jsonPath("$.data.nickname").exists());
         resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.foreigner").value(notForeigner));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender));
         assertTrue(jwtValue.startsWith(JwtParams.PREFIX));
         assertTrue(StringUtils.hasText(jwtAccessToken));
     }

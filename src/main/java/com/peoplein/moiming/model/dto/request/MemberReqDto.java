@@ -63,7 +63,7 @@ public class MemberReqDto {
         private MemberGender memberGender;
 
         @NotNull
-        private Boolean isForeigner;
+        private Boolean foreigner;
 
 
         @NotNull

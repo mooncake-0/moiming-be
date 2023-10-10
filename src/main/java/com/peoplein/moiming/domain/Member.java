@@ -87,14 +87,14 @@ public class Member extends BaseEntity {
                                       String memberName,
                                       String memberPhone,
                                       MemberGender memberGender,
-                                      boolean isForeigner,
+                                      boolean foreigner,
                                       LocalDate memberBirth,
                                       String fcmToken,
                                       String ci,
                                       Role role
     ) {
 
-        MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, isForeigner, memberBirth);
+        MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, foreigner, memberBirth);
         Member createdMember = new Member(memberEmail, encryptedPassword, fcmToken, ci, memberInfo);
         MemberRoleLinker.grantRoleToMember(createdMember, role);
 
