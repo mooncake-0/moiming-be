@@ -4,8 +4,13 @@ package com.peoplein.moiming.service.integrated;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
+import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.exception.MoimingInvalidTokenException;
 import com.peoplein.moiming.model.dto.request.MemberReqDto;
+import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.model.dto.response.MemberRespDto;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import com.peoplein.moiming.service.AuthService;
@@ -108,6 +113,63 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
     @Test
     void reissueToken_shouldChangeMemberRefreshToken_whenRightInfoPassed() {
 
+        // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
+        Role testRole = makeTestRole(RoleType.USER);
+        Member testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);// 저장할 Member 를 만든다.
+        String preRefreshToken = createTestJwtToken(testMember, 2000);// 해당 멤버에 Refresh Token 을 저장해준다
+        testMember.changeRefreshToken(preRefreshToken);
+        em.persist(testRole);
+        em.persist(testMember);
+        em.flush();
+        em.clear();
+
+        // given
+        TokenReqDto requestDto = new TokenReqDto();
+        requestDto.setGrantType("REFRESH_TOKEN");
+        requestDto.setToken(preRefreshToken);
+
+        // when
+        Map<String, Object> responseData = authService.reissueToken(requestDto);
+        String reIssuedAt = (String) responseData.get(authService.KEY_ACCESS_TOKEN);
+        TokenRespDto responseDto = (TokenRespDto) responseData.get(authService.KEY_RESPONSE_DATA);
+
+        // then
+        assertTrue(StringUtils.hasText(reIssuedAt));
+
+        // then - db verify
+        Member member = em.find(Member.class, testMember.getId());
+        assertThat(member.getRefreshToken()).isEqualTo(responseDto.getRefreshToken());
+
     }
+
+
+    @Test
+    void reissueToken_shouldEmptyRefreshTokenData_whenReissueFail_byMoimingInvalidTokenException () {
+
+        // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
+        Role testRole = makeTestRole(RoleType.USER);
+        Member testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);// 저장할 Member 를 만든다.
+        String preRefreshToken = createTestJwtToken(testMember, 2000);// 해당 멤버에 Refresh Token 을 저장해준다
+        testMember.changeRefreshToken("WRONG_REFRESH_TOKEN");
+        em.persist(testRole);
+        em.persist(testMember);
+        em.flush();
+        em.clear();
+
+        // given
+        TokenReqDto requestDto = new TokenReqDto();
+        requestDto.setGrantType("REFRESH_TOKEN");
+        requestDto.setToken(preRefreshToken); // 다른 값으로 들어감
+
+        // when
+        // then
+        assertThatThrownBy(() -> authService.reissueToken(requestDto)).isInstanceOf(MoimingInvalidTokenException.class);
+
+        // then - db verify
+        Member member = em.find(Member.class, testMember.getId());
+        assertThat(member.getRefreshToken()).isEqualTo(""); // 비워냈다
+
+    }
+
 }
 

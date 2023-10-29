@@ -46,11 +46,10 @@ public class AuthService {
     private final PolicyAgreeService policyAgreeService;
 
 
-    public void checkEmailAvailable(String email) {
+    public boolean checkEmailAvailable(String email) {
         Optional<Member> memberOp = memberRepository.findByEmail(email);
-        if (memberOp.isPresent()) {
-            throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
-        }
+        //            throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
+        return memberOp.isEmpty();
     }
 
 

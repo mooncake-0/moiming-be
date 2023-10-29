@@ -14,6 +14,7 @@ import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import com.peoplein.moiming.model.dto.request.MoimReqDto;
+import com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,6 +28,7 @@ import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
+import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 import static com.peoplein.moiming.support.TestDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 
@@ -71,6 +73,18 @@ public class TestObjectCreator {
 
         return policyDtos;
     }
+
+
+    protected List<PolicyAgreeUpdateReqDto.PolicyAgreeDto> makePolicyUpdateReqDtoList(Boolean[] hasAgreeds, PolicyType[] types) {
+        List<PolicyAgreeUpdateReqDto.PolicyAgreeDto> policyDtos = new ArrayList<>();
+
+        for (int i = 0; i < types.length; i++) {
+            policyDtos.add(new PolicyAgreeUpdateReqDto.PolicyAgreeDto(hasAgreeds[i], types[i]));
+        }
+
+        return policyDtos;
+    }
+
 
 
     protected TestMemberRequestDto makeMemberReqDto(String email, String name, String phone, String ci, List<PolicyAgreeDto> policyDtos) {

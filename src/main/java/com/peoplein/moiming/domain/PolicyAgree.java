@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
@@ -59,8 +60,13 @@ public class PolicyAgree extends BaseEntity {
     public void changeHasAgreed(boolean hasAgreed, Long memberId) {
 
         // 필수를 변경하려는건 아닌지 확인
-        if (!(this.policyType.equals(MARKETING_EMAIL) || this.policyType.equals(MARKETING_SMS))) {
+        if (!(this.getPolicyType().equals(MARKETING_EMAIL) || this.getPolicyType().equals(MARKETING_SMS))) {
             throw new MoimingApiException("필수 약관 항목은 변경할 수 없습니다");
+        }
+
+        //
+        if (!Objects.equals(this.member.getId(), memberId)) {
+            throw new MoimingApiException("자신의 권한만 수정할 수 있습니다");
         }
 
         if (this.hasAgreed != hasAgreed) {
@@ -84,10 +90,6 @@ public class PolicyAgree extends BaseEntity {
         if (policyType.equals(AGE) && !hasAgreed) {
             throw new MoimingApiException("나이 약관은 필수적인 동의 항목입니다");
         }
-    }
-
-    public void setHasAgreed(boolean hasAgreed) {
-        this.hasAgreed = hasAgreed;
     }
 
 }

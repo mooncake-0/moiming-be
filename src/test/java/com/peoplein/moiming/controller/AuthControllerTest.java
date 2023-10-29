@@ -120,7 +120,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.code").value(-1));
 
     }
@@ -162,7 +162,8 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.nickname").exists());
         resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail));
         resultActions.andExpect(jsonPath("$.data.memberInfo.foreigner").value(notForeigner));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender));
+//        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender.toString()));
         assertTrue(jwtValue.startsWith(JwtParams.PREFIX));
         assertTrue(StringUtils.hasText(jwtAccessToken));
     }

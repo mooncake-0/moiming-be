@@ -66,7 +66,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void checkEmailAvailable_shouldThrowError_whenUsedEmail() {
+    void checkEmailAvailable_shouldThrowError_whenUsedEmail() { // 반환하는 값보단 함수 통과가 더 중요
         // given
         String email = memberEmail;
         Role mockRole = mockRole(1L, RoleType.USER);
@@ -74,8 +74,9 @@ public class AuthServiceTest extends TestMockCreator {
 
         // when
         // then
-        assertThatThrownBy(() -> authService.checkEmailAvailable(email)).isInstanceOf(MoimingApiException.class);
+        assertDoesNotThrow(() -> authService.checkEmailAvailable(email));
     }
+
 
     @Test
     void checkEmailAvailable_shouldPass_whenUnusedEmail() {

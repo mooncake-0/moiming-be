@@ -38,7 +38,7 @@ public class PolicyAgreeController {
             @ApiResponse(code = 200, message = "약관 수정 성공"),
             @ApiResponse(code = 400, message = "약관 수정 실패, ERR MSG 확인")
     })
-    @PatchMapping("/update")
+    @PatchMapping("")
     public ResponseEntity<?> updatePolicyAgree(@RequestBody @Valid PolicyAgreeUpdateReqDto requestDto
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {

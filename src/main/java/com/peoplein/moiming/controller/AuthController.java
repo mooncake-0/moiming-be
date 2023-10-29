@@ -33,9 +33,11 @@ public class AuthController {
 
     @ApiOperation("이메일 중복 확인")
     @GetMapping("/available/{email}")
-    public ResponseEntity<?> checkUidAvailable(@PathVariable String email) {
-        authService.checkEmailAvailable(email);
-        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "사용가능", null));
+    public ResponseEntity<?> checkEmailAvailable(@PathVariable String email) {
+        if (authService.checkEmailAvailable(email)) {
+            return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "사용가능", null));
+        }
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(-1, "사용 불가", null));
     }
 
 
