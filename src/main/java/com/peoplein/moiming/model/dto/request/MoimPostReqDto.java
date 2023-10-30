@@ -1,0 +1,43 @@
+package com.peoplein.moiming.model.dto.request;
+
+import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+public class MoimPostReqDto {
+
+    @ApiModel(value = "Moim Post API - 요청 - 게시물 생성")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MoimPostCreateReqDto {
+
+        @NotNull
+        private Long moimId;
+
+        @NotNull
+        @Size(min = 5)
+        private String postTitle;
+
+        @NotNull
+        @Size(min = 10)
+        private String postContent;
+
+        @NotNull
+        private MoimPostCategory moimPostCategory;
+
+        @NotNull
+        private Boolean hasFiles;
+
+        @NotNull
+        private Boolean hasPrivateVisibility;
+
+    }
+}

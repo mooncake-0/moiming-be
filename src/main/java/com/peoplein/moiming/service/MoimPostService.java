@@ -1,199 +1,95 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.*;
+import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.MoimMemberState;
+import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
-import com.peoplein.moiming.model.dto.domain.MoimPostDto;
-import com.peoplein.moiming.model.dto.domain.PostCommentDto;
-import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
-import com.peoplein.moiming.model.query.QueryMoimPostDetails;
-import com.peoplein.moiming.model.query.QueryPostCommentDetails;
-import com.peoplein.moiming.repository.*;
-import com.peoplein.moiming.repository.jpa.query.MoimPostJpaQueryRepository;
-import com.peoplein.moiming.repository.jpa.query.PostCommentJpaQueryRepository;
-import com.peoplein.moiming.service.core.MoimPostServiceCore;
-import com.peoplein.moiming.service.input.MoimPostServiceInput;
-import com.peoplein.moiming.service.output.MoimPostServiceOutput;
-import com.peoplein.moiming.service.shell.MoimPostServiceShell;
+import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.request.MoimPostReqDto;
+import com.peoplein.moiming.repository.MoimMemberRepository;
+import com.peoplein.moiming.repository.MoimPostRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
+import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
+
+/*
+
+해당 게시글을 작성한 사람은 수정/삭제가 가능하다.
+
+운영자가 작성할 수 있는 카테고리는 공지, 가입인사, 모임후기, 자유글
+
+참여자가 작성할 수 있는 카테고리는 가입인사, 모임후기, 자유글
+
+모이밍 서비스를 탈퇴한 멤버가 작성한 글은 user명이 --> 탈퇴한 사용자으로 남겨진다.
+ */
 @Service
-@Slf4j
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MoimPostService {
 
-    private final MoimPostRepository moimPostRepository;
-    private final MoimRepository moimRepository;
-    private final MoimMemberRepository moimMemberRepository;
-    private final MoimPostJpaQueryRepository moimPostJpaQueryRepository;
-    private final PostCommentJpaQueryRepository postCommentJpaQueryRepository;
+    private MoimMemberRepository moimMemberRepository;
+    private MoimPostRepository moimPostRepository;
 
-    private final PostCommentRepository postCommentRepository;
+    // Post 생성
+    public void createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
 
-    private final MoimPostServiceShell moimPostServiceShell;
-    private final MoimPostServiceCore moimPostServiceCore;
-    private final PostFileRepository postFileRepository;
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), requestDto.getMoimId())
+                .orElseThrow(() -> new MoimingApiException("모임원이 아닙니다: 잘못된 요청입니다"));
 
-    /*
-     게시물 생성 요청을 처리한다
-     게시물 생성 및 이미지를 저장하여 파일 객체도 생성 진행
-     */
-    public MoimPostDto createPost(MoimPostRequestDto moimPostRequestDto, Member curMember) {
-        /*
-         TODO : 전송받는 이미지들은 List<MultipartFile> 에 담겨져 올 것이다.
-                해당 파일들을 S3 에 저장하는 작업을 진행 후 URL 을 받아오고, 그 과정 이후
-                MultipartFile 을 다시 사용 + 받아온 url 을 통해서 PostFile Entity 를 만든다
-                그리고 게시물과의 연관관계를 매핑해준다
-                >> Cascade 걸어서 자동 저장 되게 지원
-         */
-        MoimPostServiceInput moimPostServiceInput = moimPostServiceShell.readyForCreatingNewMoimPost(moimPostRequestDto, curMember);
-        MoimPostServiceOutput moimPostServiceOutput = moimPostServiceCore.createMoimPost(moimPostServiceInput);
-        return moimPostServiceShell.doAfterCreatingMoimPost(moimPostServiceOutput);
+        if (!moimMember.getMemberState().equals(MoimMemberState.ACTIVE)) {
+            throw new MoimingApiException("게시물을 생성할 권한이 없습니다");
+        }
+
+        MoimPost.createMoimPost(requestDto.getPostTitle(), requestDto.getPostContent(), requestDto.getMoimPostCategory()
+                , requestDto.getHasPrivateVisibility(), requestDto.getHasFiles()
+                , moimMember.getMoim(), moimMember.getMember());
 
     }
 
-    /*
-     전달받은 모임의 모든 게시물이 조회될 수 있도록
-     데이터를 전달한다 (아마 Paging 예상)
-     */
-    public List<MoimPostDto> viewAllMoimPost(Long moimId, Member curMember) {
 
-        List<QueryMoimPostDetails> queryDetails = moimPostJpaQueryRepository.findMoimPostDetailsAndFetchCollections(moimId);
-        List<MoimPostDto> moimPostDtos = new ArrayList<>();
+    // 모임의 모든 Post 전달 (필요 정보는 사실상 File 빼고 전부 다)
+    public List<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
 
-        for (QueryMoimPostDetails queryMoimPost : queryDetails) {
-
-            boolean isPostCreatorCurrentMember = queryMoimPost.getPostCreatorInfoDto().getMemberId().equals(curMember.getId());
-
-            MoimMemberInfoDto postCreatorInfoDto = null;
-
-            if (!isPostCreatorCurrentMember) {
-                postCreatorInfoDto = queryMoimPost.getPostCreatorInfoDto();
-            }
-
-            MoimPostDto moimPostDto = new MoimPostDto(
-                    queryMoimPost.getMoimPostId()
-                    , queryMoimPost.getPostTitle(), queryMoimPost.getPostContent(), queryMoimPost.getMoimPostCategory(), queryMoimPost.isNotice()
-                    , queryMoimPost.getCreatedAt(), queryMoimPost.getUpdatedAt(), queryMoimPost.getUpdatedMemberId(), queryMoimPost.isHasFiles()
-                    , isPostCreatorCurrentMember, postCreatorInfoDto
-            );
-
-            moimPostDtos.add(moimPostDto);
+        if (member == null) {
+            throw new MoimingApiException("Member can't be null");
         }
 
-        return moimPostDtos;
+        MoimPost lastPost = null;
+        if (lastPostId != null) {
+            lastPost = moimPostRepository.findById(lastPostId);
+        }
+
+        // 멤버가 구성원인지 확인 필요
+        boolean moimMemberRequest = true;
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimId).orElse(null);
+        if (moimMember == null || !moimMember.getMemberState().equals(MoimMemberState.ACTIVE)) {
+            moimMemberRequest = false;
+        }
+
+        return moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
+
     }
 
-    /*
-     전달받은 게시물의 모든 정보를 전달한다
-     (일반 조회 정보 + Files 및 댓글들 전달)
-     */
-    public MoimPostDto getMoimPostData(Long moimPostId, Member curMember) {
 
-        List<QueryPostCommentDetails> queryPostCommentDetails = postCommentJpaQueryRepository.findCommentDetailsAndFetchCollections(moimPostId);
-        List<PostCommentDto> postCommentsDto = new ArrayList<>();
+    // 특정 Post 의 모든 Data 전달
+    public void getMoimPost() {
 
-        for (QueryPostCommentDetails queryDetail : queryPostCommentDetails) {
-
-            boolean isCommentCreatorCurMember = queryDetail.getCommentCreatorInfoDto().getMemberId().equals(curMember.getId());
-
-            MoimMemberInfoDto commentCreatorInfo = null;
-            if (!isCommentCreatorCurMember) {
-                commentCreatorInfo = queryDetail.getCommentCreatorInfoDto();
-            }
-
-            PostCommentDto postCommentDto = new PostCommentDto(
-                    queryDetail.getCommentId(), queryDetail.getCommentContent(), queryDetail.getCreatedAt(), queryDetail.getUpdatedAt()
-                    , isCommentCreatorCurMember, commentCreatorInfo
-            );
-
-            postCommentsDto.add(postCommentDto);
-        }
-
-        // MEMO:: DTO Projection 을 사용해도 어짜피 MemberInfoLinker 를 결합시키기 위해 쿼리 한개가 늘어나고
-        //          N+1 문제를 발생시키지 않기 때문에, 현재 쿼리를 유지한다
-
-        MoimPost moimPost = moimPostRepository.findWithMoimAndMemberInfoById(moimPostId); // MemberInfo 사용을 위해 변경
-
-        MoimMember moimMember = moimMemberRepository.findWithMemberInfoAndMoimByMemberAndMoimId(curMember.getId()
-                , moimPost.getMoim().getId());
-
-        boolean isPostCreatorCurMember = moimPost.getMember().getId().equals(curMember.getId());
-
-        MoimMemberInfoDto moimMemberInfoDto = null;
-
-        if (!isPostCreatorCurMember) {
-            moimMemberInfoDto = new MoimMemberInfoDto(
-                    moimPost.getMember().getId()
-                    , moimPost.getMember().getMemberInfo().getMemberName()
-                    , moimPost.getMember().getMemberEmail()
-                    , moimPost.getMember().getMemberInfo().getMemberGender()
-                    , moimMember.getMemberRoleType(), moimMember.getMemberState()
-                    , moimMember.getCreatedAt(), moimMember.getUpdatedAt()
-            );
-        }
-
-        MoimPostDto moimPostDto = new MoimPostDto(
-                moimPost.getId(), moimPost.getPostTitle(), moimPost.getPostContent(), moimPost.getMoimPostCategory()
-                , moimPost.isNotice(), moimPost.getCreatedAt(), moimPost.getUpdatedAt(), moimPost.getUpdatedMemberId(), moimPost.isHasFiles()
-                , isPostCreatorCurMember, moimMemberInfoDto
-        );
-
-        moimPostDto.setPostCommentsDto(postCommentsDto);
-
-        return moimPostDto;
     }
 
-    public MoimPostDto updatePost(MoimPostRequestDto moimPostRequestDto, Member curMember) {
 
-        MoimPost moimPost = moimPostRepository.findWithMemberId(moimPostRequestDto.getMoimPostId(),
-                curMember.getId());
+    // Post 수정
+    public void updateMoimPost() {
 
-        // TODO :: 수정할 권한 - 작성자인지 확인
-        if (Objects.isNull(moimPost)) {
-            throw new IllegalArgumentException("요청할 게시물이 없거나, 작성자가 아닙니다.");
-        }
-
-        boolean updated = moimPost.update(
-                moimPostRequestDto.getPostTitle(),
-                moimPostRequestDto.getPostContent(),
-                moimPostRequestDto.isNotice(),
-                moimPostRequestDto.getMoimPostCategory(),
-                curMember.getId());
-
-        if (updated) {
-            return MoimPostDto.createMoimPostDto(moimPost, true);
-        } else {
-            // TODO : 수정 사항이 없는 것은 에러일까? 이 부분 논의 필요.
-            // TODO : 로그가 필요한 지도 확인 필요.
-            // 수정요청이 들어왔으나 수정된 사항이 없음
-            log.error("수정된 사항이 없는 경우");
-            throw new RuntimeException("수정된 사항이 없는 경우");
-        }
     }
 
-    public void deletePost(Long moimPostId, Member curMember) {
+    // Post 삭제 (댓글 / 답글에 대한 로직 처리 후 최종 진행)
+    public void deleteMoimPost() {
 
-        MoimPost moimPost = moimPostRepository.findById(moimPostId);
-
-        if (Objects.isNull(moimPost)) {
-            log.error("해당 PK 의 게시물을 찾을 수 없습니다");
-            throw new RuntimeException("해당 PK 의 게시물을 찾을 수 없습니다");
-        }
-
-        // 여기서 Member, Moim, MemberMoimLinker에 대한 3개 쿼리가 나감. --> MemberMoimLinker의 Member, Moim이 Eager이기 때문에 N+1 문제 발생
-        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), moimPost.getMoim().getId()).orElseThrow();
-        moimPost.delete(moimMember);
-
-
-        moimPostRepository.removeMoimPostExecute(moimPost);
     }
+
 }

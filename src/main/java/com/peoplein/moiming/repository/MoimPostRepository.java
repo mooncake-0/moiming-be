@@ -2,6 +2,7 @@ package com.peoplein.moiming.repository;
 
 
 import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.MoimPostCategory;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public interface MoimPostRepository {
 
     void removeMoimPostExecute(MoimPost moimPost);
 
-    List<MoimPost> findNoticesLatest3ByMoimIds(List<Long> moimIds);
+    // IN _ USE
+    List<MoimPost> findByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost moimPost, MoimPostCategory category, int limit, boolean hasPrivateVisibility);
 
 }

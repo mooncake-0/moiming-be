@@ -1,317 +1,47 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.repository.*;
+import com.peoplein.moiming.repository.MoimPostRepository;
+import com.peoplein.moiming.support.RepositoryTestConfiguration;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.persistence.EntityManager;
-import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-
-/*
- TODO TC::
- Test 해제
- Docker 미사용으로 기본적인 Test 환경 구축 우선
- - MSL Refactor 이후 재진행 예정
- - 그리고 테스트 개판으로 함 - 내가 짰던 부분
- */
-@SpringBootTest
-@Transactional
+@Import({RepositoryTestConfiguration.class, MoimPostJpaRepository.class})
+@ActiveProfiles("test")
+@DataJpaTest
 public class MoimPostJpaRepositoryTest {
 
     @Autowired
-    EntityManager em;
-    @Autowired
-    MoimPostRepository moimPostRepository;
+    private MoimPostRepository moimPostRepository;
 
     @Autowired
-    MemberRoleLinkerRepository memberRoleLinkerRepository;
-    @Autowired
-    MemberRepository memberRepository;
+    private EntityManager em;
 
-    @Autowired
-    RoleRepository roleRepository;
-    @Autowired
-    MoimRepository moimRepository;
-
-    Moim moim;
-
-    Member member;
-    MoimPost moimPost;
 
     @BeforeEach
-    void initInstance() {
-        moim = TestUtils.initMoimAndRuleJoin();
+    void be() {
 
-        member = TestUtils.initMemberAndMemberInfo();
-        memberRepository.save(member);
+        // MoimPost 를 약 30개 저장해보면 좋겠나..?
 
-        List<MemberRoleLinker> roles = member.getRoles();
-        roles.forEach(memberRoleLinker -> {
-            roleRepository.save(memberRoleLinker.getRole());
-            memberRoleLinkerRepository.save(memberRoleLinker);
-        });
 
-        moimPost = TestUtils.initMoimPost(moim, member);
-        moimRepository.save(moim);
     }
 
-//    @Test
-    void saveTest() {
+    @Test
+    void findByCategoryAndLastPostOrderByDateDesc_should_when() {
 
-        moimRepository.save(moim);
-        em.flush();
-        em.clear();
+        // given
 
-        Long saveMoim = moimPostRepository.save(moimPost);
+        // when
 
-        assertThat(saveMoim).isNotNull();
-    }
+        // then
 
-//    @Test
-    void findByIdTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost findPost = moimPostRepository.findById(postId);
-
-        assertThat(findPost.getId()).isEqualTo(moimPost.getId());
-    }
-
-//    @Test
-    void findWithMemberByIdTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost findPost = moimPostRepository.findWithMemberById(postId);
-
-        assertThat(findPost.getId()).isEqualTo(moimPost.getId());
-        assertThat(findPost.getMember().getId()).isEqualTo(member.getId());
-    }
-
-//    @Test
-    void findWithMoimAndMemberInfoByIdTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost findPost = moimPostRepository.findWithMoimAndMemberInfoById(postId);
-
-        assertThat(findPost.getId()).isEqualTo(moimPost.getId());
-        assertThat(findPost.getMember().getId()).isEqualTo(member.getId());
-        assertThat(findPost.getMember().getMemberInfo().getId()).isEqualTo(member.getMemberInfo().getId());
     }
 
 
-//    @Test
-    void findWithMoimAndMemberByIdTest() {
 
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost findPost = moimPostRepository.findWithMoimAndMemberById(postId);
-
-        assertThat(findPost.getId()).isEqualTo(moimPost.getId());
-        assertThat(findPost.getMoim().getId()).isEqualTo(moim.getId());
-    }
-
-
-//    @Test
-    void findWithMemberInfoByMoimIdTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        List<MoimPost> findMoimPostList = moimPostRepository.findWithMemberInfoByMoimId(moim.getId());
-
-        assertThat(findMoimPostList.size()).isEqualTo(1);
-        assertThat(findMoimPostList.get(0).getMoim().getId()).isEqualTo(moim.getId());
-        assertThat(findMoimPostList.get(0).getId()).isEqualTo(postId);
-    }
-
-
-//    @Test
-    void removeTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-        MoimPost findMoimPost = moimPostRepository.findById(postId);
-
-        moimPostRepository.remove(findMoimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost removedMoim = moimPostRepository.findById(moimPost.getId());
-        assertThat(removedMoim).isNull();
-    }
-
-
-//    @Test
-    void findNoticesLatest3ByMoimIdSuccess1Test() {
-        // Given :
-        Moim moim1 = TestUtils.createMoimOnly("other1");
-        Moim moim2 = TestUtils.createMoimOnly("other2");
-        Moim moim3 = TestUtils.createMoimOnly("other3");
-
-        MoimMember linker1 = TestUtils.createLeaderMemberMoimLinker(member, moim1);
-        MoimMember linker2 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-        MoimMember linker3 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-
-        saveEntities(member, moim1, moim2, moim3, linker1, linker2, linker3);
-
-        MoimPost moimPost1 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost2 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost3 = TestUtils.initNoticeMoimPost(moim1, member);
-
-        saveEntities(moimPost1, moimPost2, moimPost3);
-
-        MoimPost moimPost4 = TestUtils.initNoticeMoimPost(moim2, member);
-
-        saveEntities(moimPost4);
-
-        MoimPost moimPost7 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost8 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost9 = TestUtils.initNoticeMoimPost(moim3, member);
-
-        saveEntities(moimPost7, moimPost8, moimPost9);
-
-
-        List<Long> moimIds = List.of(moim1.getId(), moim2.getId(), moim3.getId());
-
-        System.out.println("HERE======================================");
-        // When :
-        List<MoimPost> result = moimPostRepository.findNoticesLatest3ByMoimIds(moimIds);
-
-        // Then :
-        assertThat(result.size()).isEqualTo(3);
-        assertThat(result)
-                .extracting(MoimPost::getId)
-                .contains(moimPost7.getId(), moimPost8.getId(), moimPost9.getId());
-    }
-
-
-    @DisplayName("findNoticesLatest3ByMoimId : moimIds에 포함되지 않은 값이 나오지는 않는지 확인")
-//    @Test
-    void findNoticesLatest3ByMoimIdSuccess2Test() {
-        // Given :
-        TestUtils.initMemberAndMemberInfo("other-member", "other-member@moimimgn.net");
-
-        Moim moim1 = TestUtils.createMoimOnly("other1");
-        Moim moim2 = TestUtils.createMoimOnly("other2");
-        Moim moim3 = TestUtils.createMoimOnly("other3");
-
-        MoimMember linker1 = TestUtils.createLeaderMemberMoimLinker(member, moim1);
-        MoimMember linker2 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-        MoimMember linker3 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-
-        saveEntities(member, moim1, moim2, moim3, linker1, linker2, linker3);
-
-        MoimPost moimPost1 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost2 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost3 = TestUtils.initNoticeMoimPost(moim1, member);
-
-        saveEntities(moimPost1, moimPost2, moimPost3);
-
-        MoimPost moimPost4 = TestUtils.initNoticeMoimPost(moim2, member);
-
-        saveEntities(moimPost4);
-
-        MoimPost moimPost7 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost8 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost9 = TestUtils.initNoticeMoimPost(moim3, member);
-
-        saveEntities(moimPost7, moimPost8, moimPost9);
-
-
-        List<Long> moimIds = List.of(moim1.getId());
-
-        // When :
-        List<MoimPost> result = moimPostRepository.findNoticesLatest3ByMoimIds(moimIds);
-
-        // Then :
-        assertThat(result.size()).isEqualTo(3);
-        assertThat(result)
-                .extracting(MoimPost::getId)
-                .contains(moimPost1.getId(), moimPost2.getId(), moimPost3.getId());
-    }
-
-    @DisplayName("findNoticesLatest3ByMoimId : 순서대로 나오는지 확인")
-//    @Test
-    void findNoticesLatest3ByMoimIdSuccess3Test() {
-        // Given :
-        TestUtils.initMemberAndMemberInfo("other-member", "other-member@moimimgn.net");
-
-        Moim moim1 = TestUtils.createMoimOnly("other1");
-        Moim moim2 = TestUtils.createMoimOnly("other2");
-        Moim moim3 = TestUtils.createMoimOnly("other3");
-
-        MoimMember linker1 = TestUtils.createLeaderMemberMoimLinker(member, moim1);
-        MoimMember linker2 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-        MoimMember linker3 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-
-        saveEntities(member, moim1, moim2, moim3, linker1, linker2, linker3);
-
-        MoimPost moimPost1 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost2 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost3 = TestUtils.initNoticeMoimPost(moim1, member);
-
-        saveEntities(moimPost1, moimPost2, moimPost3);
-
-        MoimPost moimPost4 = TestUtils.initNoticeMoimPost(moim2, member);
-
-        saveEntities(moimPost4);
-
-        MoimPost moimPost7 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost8 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost9 = TestUtils.initNoticeMoimPost(moim3, member);
-
-        saveEntities(moimPost7, moimPost8, moimPost9);
-
-
-        List<Long> moimIds = List.of(moim1.getId(), moim2.getId());
-
-        // When :
-        List<MoimPost> result = moimPostRepository.findNoticesLatest3ByMoimIds(moimIds);
-
-        // Then :
-        assertThat(result.size()).isEqualTo(3);
-        assertThat(result)
-                .extracting(MoimPost::getId)
-                .contains(moimPost4.getId(), moimPost3.getId(), moimPost2.getId());
-        assertThat(result)
-                .extracting(MoimPost::getId)
-                .doesNotContain(moimPost1.getId());
-    }
-
-    private void saveEntities(Object... objects) {
-        for (Object object : objects) {
-            em.persist(object);
-        }
-        em.flush();
-        em.clear();
-    }
 }

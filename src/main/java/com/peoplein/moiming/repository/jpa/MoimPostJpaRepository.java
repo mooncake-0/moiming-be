@@ -1,8 +1,10 @@
 package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.PostFileRepository;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -119,14 +121,6 @@ public class MoimPostJpaRepository implements MoimPostRepository {
                 .fetch();
     }
 
-    @Override
-    public List<MoimPost> findNoticesLatest3ByMoimIds(List<Long> moimIds) {
-        return queryFactory.selectFrom(moimPost)
-                .where(moimPost.moim.id.in(moimIds).and(moimPost.isNotice.eq(true)))
-                .orderBy(moimPost.updatedAt.desc())
-                .limit(3)
-                .fetch();
-    }
 
     @Override
     public void removeAll(List<Long> moimPostIds) {
@@ -144,6 +138,48 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     public void removeMoimPostExecute(MoimPost moimPost) {
         postFileRepository.removeWithMoimPostId(moimPost.getId());
         remove(moimPost);
+    }
+
+
+    // IN_USE----------
+    /*
+     Query :
+      select * from MoimPost mp
+      where mp.moimId = :moimId
+      and mp.category = :category
+      and mp.hasPrivateVisibility = :hasPrivateVisibility
+
+      // 동적 쿼리
+      created_at < last_created_at OR created_at = last_created_at AND id < last_id
+      ORDER BY created at DESC, id DESC LIMIT 10;
+
+     */
+
+    @Override
+    public List<MoimPost> findByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost lastPost,
+                                                                   MoimPostCategory category, int limit,
+                                                                   boolean moimMemberRequest) {
+
+        BooleanBuilder dynamicBuilder = new BooleanBuilder();
+
+        if (category != null) {
+            dynamicBuilder.and(moimPost.moimPostCategory.eq(category));
+        }
+
+        if (!moimMemberRequest) { // 구성원에게만 공개인 것들은 제외한다
+            dynamicBuilder.and(moimPost.hasPrivateVisibility.eq(false));
+        }
+
+        if (lastPost != null) {
+            dynamicBuilder.and(moimPost.createdAt.before(lastPost.getCreatedAt())
+                    .or(moimPost.createdAt.eq(lastPost.getCreatedAt()).and(moimPost.id.lt(lastPost.getId()))));
+        }
+
+        return queryFactory.selectFrom(moimPost)
+                .where(moimPost.id.eq(moimId), dynamicBuilder)
+                .orderBy(moimPost.createdAt.desc())
+                .limit(limit)
+                .fetch();
     }
 
 }

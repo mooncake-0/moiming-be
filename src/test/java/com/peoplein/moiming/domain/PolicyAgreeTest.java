@@ -178,9 +178,12 @@ public class PolicyAgreeTest {
         Member member = mock(Member.class);
         PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, SERVICE, true);
 
+        // given - stub // ASSERTIONS VERICATION 구문에는 ARGUMENT MATCHER 사용할 수 없다고 한다
+        when(member.getId()).thenReturn(1L);
+
         // when
         // then
-        assertThatThrownBy(() -> policyAgree.changeHasAgreed(eq(false), any())).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> policyAgree.changeHasAgreed(false, 1L)).isInstanceOf(MoimingApiException.class);
 
     }
 
@@ -193,9 +196,12 @@ public class PolicyAgreeTest {
         Member member = mock(Member.class);
         PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, PRIVACY, true);
 
+        // given - stub
+        when(member.getId()).thenReturn(1L);
+
         // when
         // then
-        assertThatThrownBy(() -> policyAgree.changeHasAgreed(eq(false), any())).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> policyAgree.changeHasAgreed(false, 1L)).isInstanceOf(MoimingApiException.class);
 
     }
 
@@ -208,9 +214,12 @@ public class PolicyAgreeTest {
         Member member = mock(Member.class);
         PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, AGE, true);
 
+        // given - stub
+        when(member.getId()).thenReturn(1L);
+
         // when
         // then
-        assertThatThrownBy(() -> policyAgree.changeHasAgreed(eq(false), any())).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> policyAgree.changeHasAgreed(false, 1L)).isInstanceOf(MoimingApiException.class);
 
     }
 
