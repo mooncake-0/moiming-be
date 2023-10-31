@@ -5,11 +5,11 @@ import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MoimPostRepository {
 
     Long save(MoimPost moimPost);
-    MoimPost findById(Long moimPostId);
 
     MoimPost findWithMemberById(Long moimPostId);
 
@@ -26,9 +26,10 @@ public interface MoimPostRepository {
 
     void remove(MoimPost moimPost);
 
-    void removeMoimPostExecute(MoimPost moimPost);
-
     // IN _ USE
+
+    Optional<MoimPost> findById(Long moimPostId);
+
     List<MoimPost> findByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost moimPost, MoimPostCategory category, int limit, boolean hasPrivateVisibility);
 
 }

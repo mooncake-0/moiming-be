@@ -109,7 +109,7 @@ public class MoimPost extends BaseEntity {
 
     private void checkIllegalStringArguments(String... strs) {
         for (int i = 0; i < strs.length; i++) {
-            if (StringUtils.hasText(strs[i])) {
+            if (!StringUtils.hasText(strs[i])) {
                 throw new IllegalArgumentException(i + 1 + "번째 값이 잘못되었습니다");
             }
         }

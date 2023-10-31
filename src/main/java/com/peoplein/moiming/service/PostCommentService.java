@@ -42,7 +42,8 @@ public class PostCommentService {
 
     public PostCommentDto createPostComment(PostCommentRequestDto postCommentRequestDto, Member curMember) {
 
-        MoimPost moimPost = moimPostRepository.findById(postCommentRequestDto.getMoimPostId());
+        MoimPost moimPost = moimPostRepository.findById(postCommentRequestDto.getMoimPostId())
+                .orElseThrow(() -> new RuntimeException("임시 조치"));
 
         PostComment postComment = PostComment.createPostComment(postCommentRequestDto.getCommentContent(), curMember, moimPost);
 

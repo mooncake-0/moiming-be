@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QMoimPost.*;
 import static com.peoplein.moiming.domain.QMember.*;
@@ -26,7 +27,6 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     private final EntityManager em;
 
     private final JPAQueryFactory queryFactory;
-    private final PostFileRepository postFileRepository;
 
     @Override
     public Long save(MoimPost moimPost) {
@@ -34,16 +34,7 @@ public class MoimPostJpaRepository implements MoimPostRepository {
         return moimPost.getId();
     }
 
-    @Override
-    public MoimPost findById(Long moimPostId) {
-        /*
-         Query : select * from moim_post mp where mp.moim_post_id = {moimPostId}
-        */
 
-        return queryFactory.selectFrom(moimPost)
-                .where(moimPost.id.eq(moimPostId))
-                .fetchOne();
-    }
 
     @Override
     public MoimPost findWithMemberById(Long moimPostId) {
@@ -134,14 +125,23 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     }
 
 
-    @Override
-    public void removeMoimPostExecute(MoimPost moimPost) {
-        postFileRepository.removeWithMoimPostId(moimPost.getId());
-        remove(moimPost);
-    }
-
 
     // IN_USE----------
+
+    @Override
+    public Optional<MoimPost> findById(Long moimPostId) {
+        /*
+         Query : select * from moim_post mp where mp.moim_post_id = {moimPostId}
+        */
+        if (moimPostId == null) {
+            return null;
+        }
+
+        return Optional.ofNullable(queryFactory.selectFrom(moimPost)
+                .where(moimPost.id.eq(moimPostId))
+                .fetchOne());
+    }
+
     /*
      Query :
       select * from MoimPost mp
@@ -166,18 +166,22 @@ public class MoimPostJpaRepository implements MoimPostRepository {
             dynamicBuilder.and(moimPost.moimPostCategory.eq(category));
         }
 
-        if (!moimMemberRequest) { // 구성원에게만 공개인 것들은 제외한다
+        if (!moimMemberRequest) { // 구성원에게만 공개인 것들은 제외한다 // 구성원의 요청일 경우는 다 보여줘도 됨
             dynamicBuilder.and(moimPost.hasPrivateVisibility.eq(false));
         }
 
+        // lastPost 가 지정이 되어 있을 떄
+        // where mp.created_at < cur_created_at // 현재 CREATED_AT 기준으로 정렬되어 있는데, 이 때, 그 이전에 생성된 애들을 요청하는 것이기 때문에 최신 CREATED_AT 을 기준 그 이후로 자를 것이다.
+        //       단, 진짜 0.0001 초도 동일할 경우, created_at 이 같을 수 있다. 이 때는 순서대로 생성되었을 것이기 때문에 ID 를 기준으로 한 번 더 진행한다
+        //       OR mp.created_at = cur_created_at AND id < last_id // 더 작은게 이전에 생성되었을 것이기 때문
         if (lastPost != null) {
             dynamicBuilder.and(moimPost.createdAt.before(lastPost.getCreatedAt())
                     .or(moimPost.createdAt.eq(lastPost.getCreatedAt()).and(moimPost.id.lt(lastPost.getId()))));
         }
 
         return queryFactory.selectFrom(moimPost)
-                .where(moimPost.id.eq(moimId), dynamicBuilder)
-                .orderBy(moimPost.createdAt.desc())
+                .where(moimPost.moim.id.eq(moimId), dynamicBuilder)
+                .orderBy(moimPost.createdAt.desc(), moimPost.id.desc()) // 기본적으로 1차 소팅은 날짜 순, 같을 경우 2차 소팅은 ID로
                 .limit(limit)
                 .fetch();
     }
