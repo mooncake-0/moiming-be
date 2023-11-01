@@ -136,9 +136,6 @@ public class MoimPostServiceTest {
         Member member = mock(Member.class);
         MoimPost moimPost = mock(MoimPost.class);
 
-        // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost)); // 예외가 발생하는 경우만 제어한다
-
         // when
         moimPostService.getMoimPosts(null, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
@@ -156,10 +153,8 @@ public class MoimPostServiceTest {
         // given
         Member member = mock(Member.class);
         MoimMember moimMember = mock(MoimMember.class);
-        MoimPost moimPost = mock(MoimPost.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost)); // 예외가 발생하는 경우만 제어한다
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.getMemberState()).thenReturn(MoimMemberState.IBF);
 
@@ -186,7 +181,7 @@ public class MoimPostServiceTest {
     }
 
 
-    // 마지막 검색 post 를 찾을 수 없음, Exception 발생
+    // 마지막 검색 post 를 찾을 수 없음, Exception 발생 // Null 이 아닌 상태로 들어온 상황이여야 한다 -> 상관없는 value 가 아님
     @Test
     void getMoimPosts_shouldThrowException_whenLastPostNotFound_byMoimingApiException() {
 
@@ -198,7 +193,7 @@ public class MoimPostServiceTest {
 
         // when
         // then
-        assertThatThrownBy(() -> moimPostService.getMoimPosts(null, null, null, 0, member)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimPostService.getMoimPosts(null, 1234L, null, 0, member)).isInstanceOf(MoimingApiException.class);
 
     }
 

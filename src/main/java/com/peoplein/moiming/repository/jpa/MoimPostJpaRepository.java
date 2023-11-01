@@ -28,12 +28,6 @@ public class MoimPostJpaRepository implements MoimPostRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    @Override
-    public Long save(MoimPost moimPost) {
-        em.persist(moimPost);
-        return moimPost.getId();
-    }
-
 
 
     @Override
@@ -128,14 +122,19 @@ public class MoimPostJpaRepository implements MoimPostRepository {
 
     // IN_USE----------
 
+
+    @Override
+    public void save(MoimPost moimPost) {
+        em.persist(moimPost);
+    }
+
+
+
     @Override
     public Optional<MoimPost> findById(Long moimPostId) {
         /*
          Query : select * from moim_post mp where mp.moim_post_id = {moimPostId}
         */
-        if (moimPostId == null) {
-            return null;
-        }
 
         return Optional.ofNullable(queryFactory.selectFrom(moimPost)
                 .where(moimPost.id.eq(moimPostId))

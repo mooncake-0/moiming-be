@@ -9,8 +9,6 @@ import java.util.Optional;
 
 public interface MoimPostRepository {
 
-    Long save(MoimPost moimPost);
-
     MoimPost findWithMemberById(Long moimPostId);
 
     MoimPost findWithMemberId(Long moimPostId, Long memberId);
@@ -27,6 +25,7 @@ public interface MoimPostRepository {
     void remove(MoimPost moimPost);
 
     // IN _ USE
+    void save(MoimPost moimPost);
 
     Optional<MoimPost> findById(Long moimPostId);
 

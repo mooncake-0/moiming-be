@@ -32,8 +32,8 @@ import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 @RequiredArgsConstructor
 public class MoimPostService {
 
-    private MoimMemberRepository moimMemberRepository;
-    private MoimPostRepository moimPostRepository;
+    private final MoimMemberRepository moimMemberRepository;
+    private final MoimPostRepository moimPostRepository;
 
     @Transactional
     public void createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
@@ -64,9 +64,13 @@ public class MoimPostService {
             throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
         }
 
-        MoimPost lastPost = moimPostRepository.findById(lastPostId).orElseThrow(() ->
-                new MoimingApiException("마지막으로 검색한 Post 를 찾을 수 없습니다")
-        );
+        MoimPost lastPost = null;
+        if (lastPostId != null) {
+            lastPost = moimPostRepository.findById(lastPostId).orElseThrow(() ->
+                    new MoimingApiException("마지막으로 검색한 Post 를 찾을 수 없습니다")
+            );
+        }
+
 
         // 멤버가 구성원인지 확인 필요 - 자체 필드에 대한 제어 로직 - 도메인단에 둘 수가 없음
         boolean moimMemberRequest = true;

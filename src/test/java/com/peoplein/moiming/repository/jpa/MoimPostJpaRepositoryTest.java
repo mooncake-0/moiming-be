@@ -187,7 +187,7 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
                 assertThat(firstReq.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
             } else {
                 int tmp = i - firstReq.size();
-                assertThat(firstReq.get(tmp).getMoimPostCategory()).isEqualTo(MoimPostCategory.GREETING);
+                assertThat(nextReq.get(tmp).getMoimPostCategory()).isEqualTo(MoimPostCategory.GREETING);
                 assertThat(nextReq.get(tmp).getId()).isEqualTo(rawMoimPosts.get(i).getId());
             }
         }
@@ -225,7 +225,7 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
                 assertThat(firstReq.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
             } else {
                 int tmp = i - firstReq.size();
-                assertThat(firstReq.get(tmp).isHasPrivateVisibility()).isEqualTo(false);
+                assertThat(nextReq.get(tmp).isHasPrivateVisibility()).isEqualTo(false);
                 assertThat(nextReq.get(tmp).getId()).isEqualTo(rawMoimPosts.get(i).getId());
             }
         }
@@ -267,8 +267,8 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
                 assertThat(firstReq.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
             } else {
                 int tmp = i - firstReq.size();
-                assertThat(firstReq.get(tmp).isHasPrivateVisibility()).isEqualTo(false);
-                assertThat(firstReq.get(tmp).getMoimPostCategory()).isEqualTo(MoimPostCategory.GREETING);
+                assertThat(nextReq.get(tmp).isHasPrivateVisibility()).isEqualTo(false);
+                assertThat(nextReq.get(tmp).getMoimPostCategory()).isEqualTo(MoimPostCategory.GREETING);
                 assertThat(nextReq.get(tmp).getId()).isEqualTo(rawMoimPosts.get(i).getId());
             }
         }

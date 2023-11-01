@@ -1,8 +1,10 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.config.AppUrlPath;
+import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.response.MoimPostRespDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.MoimPostService;
 import com.peoplein.moiming.service.PostCommentService;
@@ -10,14 +12,17 @@ import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
-import javax.annotation.Nullable;
+import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
+import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
 
 @Api(tags = "모임 게시물 관련")
 @RestController
@@ -26,7 +31,6 @@ import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 public class MoimPostController {
 
     private final MoimPostService moimPostService;
-    private final PostCommentService postCommentService;
 
 
     @ApiOperation("모임 게시물 생성")
@@ -38,7 +42,8 @@ public class MoimPostController {
             @ApiResponse(code = 400, message = "유저 게시물 생성 실패, ERR MSG 확인")
     })
     @PostMapping("/create")
-    public ResponseEntity<?> createPost(@RequestBody MoimPostCreateReqDto requestDto
+    public ResponseEntity<?> createPost(@RequestBody @Valid MoimPostCreateReqDto requestDto
+            , BindingResult br
             , List<MultipartFile> file
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
@@ -64,12 +69,16 @@ public class MoimPostController {
     })
     @GetMapping("/{moimId}")
     public ResponseEntity<?> getMoimPosts(@PathVariable(name = "moimId") Long moimId
-            , @RequestParam(value = "lastPostId") @Nullable Long lastPostId
-            , @RequestParam(value = "category") @Nullable MoimPostCategory category
+            , @RequestParam(value = "lastPostId") Long lastPostId
+            , @RequestParam(value = "category") MoimPostCategory category
             , @RequestParam(defaultValue = "10") int limit
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-        return null;
-//        return moimPostService.getMoimPosts(moimId, lastPostId, moimPostCategory, limit, principal.getMember());
+
+
+        List<MoimPost> moimPosts = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
+        List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(MoimPostViewRespDto::new).collect(Collectors.toList());
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모든 게시물 일반 조회 성공", responseBody));
     }
 
 
