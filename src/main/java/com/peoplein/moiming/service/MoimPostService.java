@@ -60,7 +60,7 @@ public class MoimPostService {
     // 모임의 모든 Post 전달 (필요 정보는 사실상 File 빼고 전부 다)
     public List<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
 
-        if (member == null) {
+        if (moimId == null || member == null) {
             throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
         }
 

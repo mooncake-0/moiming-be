@@ -21,13 +21,14 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
 
 @Api(tags = "모임 게시물 관련")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_MOIM_VER + AppUrlPath.API_MOIM + AppUrlPath.API_MOIM_POST)
+@RequestMapping(API_SERVER + API_MOIM_VER + API_MOIM)
 public class MoimPostController {
 
     private final MoimPostService moimPostService;
@@ -41,7 +42,7 @@ public class MoimPostController {
             @ApiResponse(code = 200, message = "유저 게시물 생성 성공"),
             @ApiResponse(code = 400, message = "유저 게시물 생성 실패, ERR MSG 확인")
     })
-    @PostMapping("/create")
+    @PostMapping(API_MOIM_POST + "/create")
     public ResponseEntity<?> createPost(@RequestBody @Valid MoimPostCreateReqDto requestDto
             , BindingResult br
             , List<MultipartFile> file
@@ -67,11 +68,11 @@ public class MoimPostController {
             @ApiResponse(code = 200, message = "게시물 일반 조회 성공"),
             @ApiResponse(code = 400, message = "게시물 일반 조회 실패")
     })
-    @GetMapping("/{moimId}")
+    @GetMapping("/{moimId}" + API_MOIM_POST)
     public ResponseEntity<?> getMoimPosts(@PathVariable(name = "moimId") Long moimId
-            , @RequestParam(value = "lastPostId") Long lastPostId
-            , @RequestParam(value = "category") MoimPostCategory category
-            , @RequestParam(defaultValue = "10") int limit
+            , @RequestParam(required = false, value = "lastPostId") Long lastPostId
+            , @RequestParam(required = false, value = "category") MoimPostCategory category
+            , @RequestParam(required = false, defaultValue = "10") int limit
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
 

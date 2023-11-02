@@ -137,7 +137,7 @@ public class MoimPostServiceTest {
         MoimPost moimPost = mock(MoimPost.class);
 
         // when
-        moimPostService.getMoimPosts(null, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
+        moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
         // then
         verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
@@ -159,10 +159,24 @@ public class MoimPostServiceTest {
         when(moimMember.getMemberState()).thenReturn(MoimMemberState.IBF);
 
         // when
-        moimPostService.getMoimPosts(null, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
+        moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
         // then
         verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+
+    }
+
+    // moimId == null 일 경우 예외 발생
+    @Test
+    void getMoimPosts_shouldThrowException_whenMoimIdNull_byMoimingApiException() {
+
+        // given
+        Long moimId = null;
+        Member member = mock(Member.class);
+
+        // when
+        // then // 원함수 실행시에는 Arguments Matcher 사용하는거 아니다
+        assertThatThrownBy(() -> moimPostService.getMoimPosts(moimId, null, null, 0, member)).isInstanceOf(MoimingApiException.class);
 
     }
 
@@ -176,7 +190,7 @@ public class MoimPostServiceTest {
 
         // when
         // then // 원함수 실행시에는 Arguments Matcher 사용하는거 아니다
-        assertThatThrownBy(() -> moimPostService.getMoimPosts(null, null, null, 0, member)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimPostService.getMoimPosts(1L, null, null, 0, member)).isInstanceOf(MoimingApiException.class);
 
     }
 
@@ -193,7 +207,7 @@ public class MoimPostServiceTest {
 
         // when
         // then
-        assertThatThrownBy(() -> moimPostService.getMoimPosts(null, 1234L, null, 0, member)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimPostService.getMoimPosts(1L, 1234L, null, 0, member)).isInstanceOf(MoimingApiException.class);
 
     }
 

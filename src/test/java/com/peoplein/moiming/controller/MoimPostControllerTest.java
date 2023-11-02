@@ -28,7 +28,7 @@ import java.util.List;
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
-import static org.hamcrest.Matchers.aMapWithSize;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class MoimPostControllerTest extends TestObjectCreator {
 
-    public final String MOIM_POST_BASE_URL = API_SERVER + API_MOIM_VER + API_MOIM + API_MOIM_POST;
+    public final String MOIM_POST_BASE_URL = API_SERVER + API_MOIM_VER + API_MOIM;
     private final String normalPostTitle = "제목입니다";
     private final String normalPostcontent = "내용은내용과내용입니다";
     private final ObjectMapper om = new ObjectMapper();
@@ -99,7 +99,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
         String response = resultActions.andReturn().getResponse().getContentAsString();
@@ -124,7 +124,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
 
@@ -147,7 +147,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
 
@@ -171,7 +171,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
 
@@ -195,7 +195,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
 
@@ -219,7 +219,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -259,7 +259,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId)
+        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
                 .param("lastPostId", lastPostId + "")
                 .param("category", category + "")
                 .param("limit", limit + "")
@@ -275,7 +275,73 @@ public class MoimPostControllerTest extends TestObjectCreator {
     }
 
     // moimId Null 이면 Exception (뒤에서 발생함)
+    @Test
+    void getMoimPosts_shouldReturn400_whenMoimIdNullURL_byMoimingApiException() throws Exception {
+
+        // given - 다른 상황 때문이 아님을 검증하기 위해 동일하게 SU
+        String testToken = createTestJwtToken(moimMember, 3000);
+        MoimPostCategory category = MoimPostCategory.GREETING;
+        MoimPost samplePost = MoimPost.createMoimPost(normalPostTitle, normalPostcontent, category, false, false, testMoim, moimCreator);
+        int limit = 10;
+        em.persist(samplePost);
+        em.flush();
+        em.clear();
+
+        // when
+        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/ "+API_MOIM_POST) // " " 으로 moimId 제공
+                .param("lastPostId", samplePost.getId() + "") // 해당값 이후로 출력한다
+                .param("category", category + "")
+                .param("limit", limit + "")
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("responseBody = " + responseBody);
+
+        //then
+        resultActions.andExpect(status().isInternalServerError());
+    }
+
+
+    // 이하 모든 Test 들은 다음을 검증함 : Controller 단에서 문제가 되지 않는다 & Return Value 가 확인된다
     // lastPostId Null 이면 반환함 (첫 요청임)
+    @Test
+    void getMoimPosts_shouldReturn200AndRespDtos_whenFirstRequestAndLastPostIdNull() throws Exception {
+
+        // given
+        String testToken = createTestJwtToken(moimMember, 3000);
+        Long moimId = testMoim.getId();
+        MoimPostCategory category = MoimPostCategory.GREETING;
+        int limit = 10;
+        makeMoimPosts(20, testMoim, moimCreator, em);
+
+
+        // when
+        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+                .param("category", category + "")
+                .param("limit", limit + "")
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
+
+
+        // then - query data prepare
+        List<MoimPost> neededResults = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :moim_id and mp.moimPostCategory = :category " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("moim_id", moimId)
+                .setParameter("category", category)
+                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
+                .getResultList();
+
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.code").value(1));
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        if (!neededResults.isEmpty()) { // 미리 준비해둔 반환결과에 따라 검증을 나눈다
+            resultActions.andExpect(jsonPath("$.data[*].moimPostCategory.value", everyItem(is(category))));
+        }
+
+    }
+
+
     // category Null 이면 반환함
     // limit 은 null 일 수 없고, 안들어오면 default 10 으로 동작함
     // 비회원이 요청하면 받아온 애들의 privateVisibility 는 모두 false 이다

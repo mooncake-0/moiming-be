@@ -27,7 +27,7 @@ import static com.peoplein.moiming.model.dto.response.MoimMemberRespDto.*;
 @Api(tags = "모임 내 멤버 관리 관련")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(API_SERVER + API_MOIM_VER + API_MOIM_MEMBER)
+@RequestMapping(API_SERVER + API_MOIM_VER + API_MOIM)
 public class MoimMemberController {
 
     private final MoimMemberService moimMemberService;
@@ -41,7 +41,7 @@ public class MoimMemberController {
             @ApiResponse(code = 200, message = "모든 모임원 일반 조회 성공"),
             @ApiResponse(code = 400, message = "모든 모임원 일반 조회 실패, ERR MSG 확인")
     })
-    @GetMapping("/{moimId}")
+    @GetMapping("/{moimId}" + API_MOIM_MEMBER)
     public ResponseEntity<?> getActiveMoimMembers(@PathVariable(value = "moimId", required = true) Long moimId,
                                             @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
@@ -61,7 +61,7 @@ public class MoimMemberController {
             @ApiResponse(code = 200, message = "모임 가입 성공"),
             @ApiResponse(code = 400, message = "모임 가입 실패, ERR MSG 확인")
     })
-    @PostMapping("/join")
+    @PostMapping(API_MOIM_MEMBER + "/join")
     public ResponseEntity<?> joinMoim(@RequestBody @Valid MoimMemberJoinReqDto requestDto,
                                       BindingResult br,
                                       @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
@@ -82,7 +82,7 @@ public class MoimMemberController {
             @ApiResponse(code = 200, message = "모임 나가기 성공"),
             @ApiResponse(code = 400, message = "모임 나가기 실패, ERR MSG 확인")
     })
-    @PostMapping("/leave")
+    @PostMapping(API_MOIM_MEMBER + "/leave")
     public ResponseEntity<?> leaveMoim(@RequestBody @Valid MoimMemberLeaveReqDto requestDto,
                                        BindingResult br,
                                        @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
@@ -101,7 +101,7 @@ public class MoimMemberController {
             @ApiResponse(code = 200, message = "유저 강퇴 성공"),
             @ApiResponse(code = 400, message = "유저 강퇴 실패, ERR MSG 확인")
     })
-    @PostMapping("/expel")
+    @PostMapping(API_MOIM_MEMBER + "/expel")
     public ResponseEntity<?> expelMember(@RequestBody @Valid MoimMemberExpelReqDto requestDto,
                                          BindingResult br,
                                          @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
