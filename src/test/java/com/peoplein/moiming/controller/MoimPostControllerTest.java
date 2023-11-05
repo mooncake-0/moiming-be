@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 
+import com.jayway.jsonpath.JsonPath;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.*;
@@ -10,6 +11,7 @@ import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +26,12 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import javax.persistence.EntityManager;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -288,7 +292,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         em.clear();
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/ "+API_MOIM_POST) // " " 으로 moimId 제공
+        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/ " + API_MOIM_POST) // " " 으로 moimId 제공
                 .param("lastPostId", samplePost.getId() + "") // 해당값 이후로 출력한다
                 .param("category", category + "")
                 .param("limit", limit + "")
@@ -342,9 +346,50 @@ public class MoimPostControllerTest extends TestObjectCreator {
     }
 
 
-    // category Null 이면 반환함
-    // limit 은 null 일 수 없고, 안들어오면 default 10 으로 동작함
-    // 비회원이 요청하면 받아온 애들의 privateVisibility 는 모두 false 이다
+    // category Null 이면 반환함 - category ID = NULL 가능성 Test 도 있으니 Null 로 진행
+    @Test
+    void getMoimPosts_shouldReturn200AndRespDtos_whenCategoryNull() throws Exception {
 
+        // given
+        String testToken = createTestJwtToken(moimMember, 3000);
+        Long moimId = testMoim.getId();
+        int limit = 10;
+        makeMoimPosts(20, testMoim, moimCreator, em);
+
+
+        // when
+        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+                .param("limit", limit + "")
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
+
+
+        // then - query data prepare
+        List<MoimPost> neededResults = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :moim_id " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("moim_id", moimId)
+                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
+                .getResultList();
+
+        // then prepare- json looping 확인하는 방법 result String 필요 - 원하는 값이 다 들어있음을 증명
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        List<Integer> ids = JsonPath.read(responseBody, "$.data[*].moimPostId"); // Json 에 L 없이 들어가므로 L 이 빠져서 Integer 로 저장된다
+        List<Long> longIds = ids.stream().map(id -> (long) id).collect(Collectors.toList()); // 비교를 위해 Long List 로 변환하여 준비
+
+        // then - 일반 응답 비교
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.code").value(1));
+        resultActions.andExpect(jsonPath("$.data").isArray());
+
+        // then - 두 비교 리스트의 반환 결과는 동일
+        assertThat(longIds.size()).isEqualTo(neededResults.size());
+        for (MoimPost neededResult : neededResults) {
+            assertThat(longIds).contains(neededResult.getId());
+        }
+    }
 
 }
+
+
+// limit 은 null 일 수 없고, 안들어오면 default 10 으로 동작함
+// 비회원이 요청하면 받아온 애들의 privateVisibility 는 모두 false 이다
