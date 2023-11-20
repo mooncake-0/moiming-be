@@ -388,8 +388,90 @@ public class MoimPostControllerTest extends TestObjectCreator {
         }
     }
 
+
+    // limit 은 null 일 수 없고, 안들어오면 default 10 으로 동작함
+    @Test
+    void getMoimPosts_shouldReturn200AndRespDtos_whenLimitNotPassed() throws Exception {
+
+        // given
+        String testToken = createTestJwtToken(moimMember, 3000);
+        Long moimId = testMoim.getId();
+        makeMoimPosts(20, testMoim, moimCreator, em);
+
+
+        // when
+        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
+
+
+        // then - query data prepare
+        List<MoimPost> neededResults = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :moim_id " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("moim_id", moimId)
+                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
+                .getResultList();
+
+        // then prepare- json looping 확인하는 방법 result String 필요 - 원하는 값이 다 들어있음을 증명
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        List<Integer> ids = JsonPath.read(responseBody, "$.data[*].moimPostId"); // Json 에 L 없이 들어가므로 L 이 빠져서 Integer 로 저장된다
+        List<Long> longIds = ids.stream().map(id -> (long) id).collect(Collectors.toList()); // 비교를 위해 Long List 로 변환하여 준비
+
+        // then - 일반 응답 비교
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.code").value(1));
+        resultActions.andExpect(jsonPath("$.data").isArray());
+
+        // then - 두 비교 리스트의 반환 결과는 동일
+        assertThat(longIds.size()).isEqualTo(neededResults.size());
+        for (MoimPost neededResult : neededResults) {
+            assertThat(longIds).contains(neededResult.getId());
+        }
+    }
+
+
+    // 비회원이 요청하면 받아온 애들의 privateVisibility 는 모두 false 이다
+    @Test
+    void getMoimPosts_shouldReturn200AndRespDtosWithFalsePrivateVisibility_whenNotMoimMemberNormalRequest() throws Exception {
+
+        // given
+        String testToken = createTestJwtToken(notMoimMember, 3000);
+        Long moimId = testMoim.getId();
+        int limit = 10;
+        makeMoimPosts(20, testMoim, moimCreator, em);
+
+
+        // when
+        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+                .param("limit", limit + "")
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
+
+
+        // then - query data prepare
+        List<MoimPost> neededResults = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :moim_id " +
+                        "and mp.hasPrivateVisibility = :visibility " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("moim_id", moimId)
+                .setParameter("visibility", false) // 전체공개 게시물들만 반환해본다
+                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
+                .getResultList();
+
+        // then prepare- json looping 확인하는 방법 result String 필요 - 원하는 값이 다 들어있음을 증명
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        List<Integer> ids = JsonPath.read(responseBody, "$.data[*].moimPostId"); // Json 에 L 없이 들어가므로 L 이 빠져서 Integer 로 저장된다
+        List<Long> longIds = ids.stream().map(id -> (long) id).collect(Collectors.toList()); // 비교를 위해 Long List 로 변환하여 준비
+
+        // then - 일반 응답 비교
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.code").value(1));
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data[*].hasPrivateVisibility", everyItem(equalTo(false))));
+
+        // then - 두 비교 리스트의 반환 결과는 동일
+        assertThat(longIds.size()).isEqualTo(neededResults.size());
+        for (MoimPost neededResult : neededResults) {
+            assertThat(longIds).contains(neededResult.getId());
+        }
+    }
 }
-
-
-// limit 은 null 일 수 없고, 안들어오면 default 10 으로 동작함
-// 비회원이 요청하면 받아온 애들의 privateVisibility 는 모두 false 이다
