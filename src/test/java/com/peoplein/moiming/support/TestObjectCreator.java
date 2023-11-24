@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PolicyAgree;
+import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
@@ -128,9 +129,15 @@ public class TestObjectCreator {
                 .sign(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET));
     }
 
-    /*
-     원하는 만큼의
-     */
+
+    protected MoimPost makeMoimPost(Moim moim, Member member, MoimPostCategory category, boolean hasPrivateVisibility) {
+        return MoimPost.createMoimPost("TITLE", "CONTENT", category, hasPrivateVisibility, false, moim, member);
+    }
+
+    protected PostComment makePostComment(Member member, MoimPost moimPost, int depth, PostComment parent) {
+        String content = moimPost.getPostTitle() + ", " + member.getNickname() + "의 댓글";
+        return PostComment.createPostComment(content, member, moimPost, depth, parent);
+    }
 
 
     // 일일이 다 반환해서 또 em 돌리기 귀찮으니, 그냥 받아서 사용한다

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 
@@ -17,7 +18,6 @@ import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
  */
 @Api(tags = "로그인")
 @RestController
-@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_AUTH_VER + AppUrlPath.API_AUTH)
 public class LoginDocController {
 
 
@@ -27,7 +27,7 @@ public class LoginDocController {
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "로그인 실패, Err Msg 확인")
     })
-    @PostMapping("/login")
+    @PostMapping(PATH_AUTH_LOGIN)
     public void processLogin(@RequestBody MemberLoginReqDto request) {
 
     }

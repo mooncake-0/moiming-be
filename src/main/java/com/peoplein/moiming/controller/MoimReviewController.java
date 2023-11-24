@@ -13,7 +13,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @ApiIgnore
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_MOIM_VER + AppUrlPath.API_MOIM + AppUrlPath.API_MOIM_REVIEW)
+@RequestMapping("moimReivew")
 public class MoimReviewController {
 
     private final MoimReviewService moimReviewService;

@@ -112,7 +112,7 @@ public class SecurityJwtConfig {
                 .antMatchers("/swagger-ui.html", "/v2/**", "/configuration/ui",
                         "/swagger-resources/**", "/configuration/security",
                         "/swagger-ui/**", "/webjars/**", "/swagger/**").permitAll()
-                .antMatchers(AppUrlPath.API_SERVER + AppUrlPath.API_AUTH_VER + AppUrlPath.API_AUTH + "/**").permitAll()
+                .antMatchers(AppUrlPath.API_SERVER + AppUrlPath.API_AUTH_VER + AppUrlPath.API_DOMAIN_AUTH + "/**").permitAll()
                 .anyRequest().authenticated();
 
 

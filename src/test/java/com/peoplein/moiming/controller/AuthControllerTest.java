@@ -48,7 +48,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class AuthControllerTest extends TestObjectCreator {
 
-    private final String AUTH_URL = API_SERVER + API_AUTH_VER + API_AUTH;
     private final ObjectMapper om = new ObjectMapper();
 
     @Autowired
@@ -92,13 +91,15 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void checkUidAvailable_shouldReturn200_whenEmailAvailable() throws Exception {
+    void checkEmailAvailable_shouldReturn200_whenEmailAvailable() throws Exception {
 
         // given
         String availableEmail = memberEmail;
+        String [] params = {"email"};
+        String[] vals = {availableEmail};
 
         // when
-        ResultActions resultActions = mvc.perform(get(AUTH_URL + "/available/" + availableEmail));
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
 
         // then
         resultActions.andExpect(status().isOk());
@@ -108,13 +109,15 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void checkUidAvailable_shouldReturn400_whenEmailUnavailable_byMoimingApiException() throws Exception {
+    void checkEmailAvailable_shouldReturn400_whenEmailUnavailable_byMoimingApiException() throws Exception {
 
         // given
         String unavailableEmail = "registered@mail.com";
+        String [] params = {"email"};
+        String[] vals = {unavailableEmail};
 
         // when
-        ResultActions resultActions = mvc.perform(get(AUTH_URL + "/available/" + unavailableEmail));
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
 
@@ -127,13 +130,15 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void checkUidAvailable_shouldReturn404_whenNoEmailPassed() throws Exception {
+    void checkEmailAvailable_shouldReturn404_whenNoEmailPassed() throws Exception {
 
         // given
         String noEmail = "";
+        String [] params = {"email"};
+        String[] vals = {noEmail};
 
         // when
-        ResultActions resultActions = mvc.perform(get(AUTH_URL + "/available/" + noEmail));
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
 
@@ -151,7 +156,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         String jwtValue = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
         String jwtAccessToken = jwtValue.replace(JwtParams.PREFIX, "");
@@ -180,7 +185,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isBadRequest());
@@ -205,7 +210,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isBadRequest());
@@ -223,7 +228,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isBadRequest());
@@ -241,7 +246,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
 
@@ -262,7 +267,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
 
@@ -285,7 +290,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
 
@@ -305,7 +310,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin")
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
                 .content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
@@ -326,7 +331,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin")
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
                 .content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
@@ -348,7 +353,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin")
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
                 .content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
@@ -371,7 +376,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin")
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
                 .content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
@@ -397,7 +402,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/token").content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN).content(requestBody).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         String headerJwt = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
         String reissuedToken = headerJwt.replace(JwtParams.PREFIX, "");
@@ -427,7 +432,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/token").content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN).content(requestBody).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isOk());
@@ -453,7 +458,8 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/token").content(requestData).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN)
+                .content(requestData).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isUnauthorized());

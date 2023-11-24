@@ -27,7 +27,6 @@ import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
 @Api(tags = "모임 관련")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(API_SERVER + API_MOIM_VER + API_MOIM)
 public class MoimController {
 
     private final MoimService moimService;
@@ -40,7 +39,7 @@ public class MoimController {
             @ApiResponse(code = 200, message = "모임 생성 성공", response = MoimCreateRespDto.class),
             @ApiResponse(code = 400, message = "모임 생성 실패, ERR MSG 확인")
     })
-    @PostMapping("/create")
+    @PostMapping(PATH_MOIM_CREATE)
     public ResponseEntity<?> createMoim(@RequestBody @Valid MoimCreateReqDto requestDto
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
@@ -61,7 +60,7 @@ public class MoimController {
             @ApiResponse(code = 200, message = "유저 모든 모임 조회 성공", response = MoimViewRespDto.class),
             @ApiResponse(code = 400, message = "유저 모든 모임 조회 실패, ERR MSG 확인")
     })
-    @GetMapping("")
+    @GetMapping(PATH_MOIM_GET_VIEW)
     public ResponseEntity<?> getMemberMoims(@AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
         List<MoimViewRespDto> responseData = moimService.getMemberMoims(principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "조회 성공", responseData));
@@ -74,7 +73,7 @@ public class MoimController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
-    @GetMapping("/{moimId}")
+    @GetMapping(PATH_MOIM_GET_DETAIL)
     public String getMoim() {
         return "";
     }
@@ -90,7 +89,7 @@ public class MoimController {
             @ApiResponse(code = 200, message = "모임 정보 수정 성공", response = MoimViewRespDto.class),
             @ApiResponse(code = 400, message = "모임 정보 수정 실패, ERR MSG 확인")
     })
-    @PatchMapping("")
+    @PatchMapping(PATH_MOIM_UPDATE)
     public ResponseEntity<?> updateMoim(@RequestBody @Valid MoimUpdateReqDto requestDto
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
@@ -104,7 +103,7 @@ public class MoimController {
 
 
     @ApiOperation("모임 삭제")
-    @DeleteMapping("/{moimId}")
+    @DeleteMapping(PATH_MOIM_DELETE)
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })

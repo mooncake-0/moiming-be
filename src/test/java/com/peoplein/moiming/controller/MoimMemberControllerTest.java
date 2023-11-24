@@ -44,7 +44,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class MoimMemberControllerTest extends TestObjectCreator {
 
-    public final String MOIM_MEMBER_BASE_URL = API_SERVER + API_MOIM_VER + API_MOIM;
 
     public final ObjectMapper om = new ObjectMapper();
 
@@ -111,8 +110,11 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         Long moimId = testMoim1.getId();
         String testAccessToken = createTestJwtToken(testMember2, 2000);
 
+        String[] params = {"moimId"};
+        String[] vals = {moimId + ""};
+
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_MEMBER_BASE_URL + "/" + moimId + API_MOIM_MEMBER)
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_MEMBER_GET_VIEW, params, vals))
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -139,8 +141,11 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         Long requestMemberId = testMember3.getId();
         String testAccessToken = createTestJwtToken(testMember3, 2000);
 
+        String[] params = {"moimId"};
+        String[] vals = {moimId + ""};
+
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_MEMBER_BASE_URL + "/" + moimId + API_MOIM_MEMBER)
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_MEMBER_GET_VIEW, params, vals))
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -165,9 +170,11 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // given
         String testAccessToken = createTestJwtToken(testMember2, 2000);
+        String[] params = {"moimId"};
+        String[] vals = {" "};
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_MEMBER_BASE_URL + "/ " + API_MOIM_MEMBER) // NULL 로 전달시 에러
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_MEMBER_GET_VIEW, params, vals)) // NULL 로 전달시 에러
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -184,8 +191,11 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         Long moimId = 1000L;
         String testAccessToken = createTestJwtToken(testMember2, 2000);
 
+        String[] params = {"moimId"};
+        String[] vals = {moimId + ""};
+
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_MEMBER_BASE_URL + "/" + moimId + API_MOIM_MEMBER)
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_MEMBER_GET_VIEW, params, vals))
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -207,7 +217,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember3, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/join").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
@@ -233,7 +243,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/join").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
@@ -266,7 +276,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/join").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
@@ -292,7 +302,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember3, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/join")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -312,7 +322,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember3, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/join")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
@@ -340,7 +350,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/join").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
@@ -376,7 +386,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/join")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -397,7 +407,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember2, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/join")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
@@ -420,7 +430,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember2, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/leave")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -450,7 +460,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember2, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/leave")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -471,7 +481,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember1, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/leave")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -490,7 +500,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember2, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/leave")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
@@ -509,7 +519,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember2, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/leave")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -532,7 +542,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember1, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/expel")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -563,7 +573,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember1, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/expel")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -589,7 +599,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember3, 2000); // 일반 유저가 시도한다
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/expel")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -610,7 +620,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember1, 2000); // 일반 유저가 시도한다
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/expel")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -631,7 +641,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember3, 2000); // 가입되지 않은 유저의 시도
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/expel")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
@@ -650,7 +660,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember1, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/expel")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
@@ -669,7 +679,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember1, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/expel")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
@@ -692,7 +702,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String testAccessToken = createTestJwtToken(testMember1, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_MEMBER_BASE_URL + API_MOIM_MEMBER + "/expel")
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 

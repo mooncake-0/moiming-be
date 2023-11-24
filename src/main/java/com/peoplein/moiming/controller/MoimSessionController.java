@@ -18,7 +18,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @ApiIgnore
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_MOIM_VER + AppUrlPath.API_MOIM + AppUrlPath.API_MOIM_SESSION)
+@RequestMapping("/moimSession")
 public class MoimSessionController {
 
     private final MoimSessionService moimSessionService;

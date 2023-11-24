@@ -18,7 +18,7 @@ import java.util.List;
 @ApiIgnore
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_MOIM_VER + AppUrlPath.API_MOIM + AppUrlPath.API_MOIM_SCHEDULE)
+@RequestMapping("/schedule")
 public class ScheduleController {
 
     private final ScheduleService scheduleService;

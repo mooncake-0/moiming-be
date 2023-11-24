@@ -28,7 +28,6 @@ import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
 @Api(tags = "모임 게시물 관련")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(API_SERVER + API_MOIM_VER + API_MOIM)
 public class MoimPostController {
 
     private final MoimPostService moimPostService;
@@ -42,7 +41,7 @@ public class MoimPostController {
             @ApiResponse(code = 200, message = "유저 게시물 생성 성공"),
             @ApiResponse(code = 400, message = "유저 게시물 생성 실패, ERR MSG 확인")
     })
-    @PostMapping(API_MOIM_POST + "/create")
+    @PostMapping(PATH_MOIM_POST_CREATE)
     public ResponseEntity<?> createPost(@RequestBody @Valid MoimPostCreateReqDto requestDto
             , BindingResult br
             , List<MultipartFile> file
@@ -68,7 +67,7 @@ public class MoimPostController {
             @ApiResponse(code = 200, message = "게시물 일반 조회 성공"),
             @ApiResponse(code = 400, message = "게시물 일반 조회 실패")
     })
-    @GetMapping("/{moimId}" + API_MOIM_POST)
+    @GetMapping(PATH_MOIM_POST_GET_VIEW)
     public ResponseEntity<?> getMoimPosts(@PathVariable(name = "moimId") Long moimId
             , @RequestParam(required = false, value = "lastPostId") Long lastPostId
             , @RequestParam(required = false, value = "category") MoimPostCategory category

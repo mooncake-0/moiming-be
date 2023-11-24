@@ -45,7 +45,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class MoimPostControllerTest extends TestObjectCreator {
 
-    public final String MOIM_POST_BASE_URL = API_SERVER + API_MOIM_VER + API_MOIM;
     private final String normalPostTitle = "제목입니다";
     private final String normalPostcontent = "내용은내용과내용입니다";
     private final ObjectMapper om = new ObjectMapper();
@@ -103,7 +102,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
         String response = resultActions.andReturn().getResponse().getContentAsString();
@@ -128,7 +127,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
 
@@ -151,7 +150,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
 
@@ -175,7 +174,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
 
@@ -199,7 +198,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
 
@@ -223,7 +222,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_POST_BASE_URL + API_MOIM_POST + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
         );
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -261,9 +260,11 @@ public class MoimPostControllerTest extends TestObjectCreator {
                 .getResultList();
         Long lastPostId = tmps.get(tmps.size() - 1).getId();
 
+        String[] params = {"moimId"};
+        String[] vals = {moimId + ""};
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
                 .param("lastPostId", lastPostId + "")
                 .param("category", category + "")
                 .param("limit", limit + "")
@@ -291,8 +292,11 @@ public class MoimPostControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
+        String[] params = {"moimId"};
+        String[] vals = {" "};
+
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/ " + API_MOIM_POST) // " " 으로 moimId 제공
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals)) // " " 으로 moimId 제공
                 .param("lastPostId", samplePost.getId() + "") // 해당값 이후로 출력한다
                 .param("category", category + "")
                 .param("limit", limit + "")
@@ -317,9 +321,12 @@ public class MoimPostControllerTest extends TestObjectCreator {
         int limit = 10;
         makeMoimPosts(20, testMoim, moimCreator, em);
 
+        String[] params = {"moimId"};
+        String[] vals = {moimId + ""};
+
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
                 .param("category", category + "")
                 .param("limit", limit + "")
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
@@ -356,9 +363,11 @@ public class MoimPostControllerTest extends TestObjectCreator {
         int limit = 10;
         makeMoimPosts(20, testMoim, moimCreator, em);
 
+        String[] params = {"moimId"};
+        String[] vals = {moimId + ""};
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
                 .param("limit", limit + "")
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
 
@@ -398,9 +407,11 @@ public class MoimPostControllerTest extends TestObjectCreator {
         Long moimId = testMoim.getId();
         makeMoimPosts(20, testMoim, moimCreator, em);
 
+        String[] params = {"moimId"};
+        String[] vals = {moimId + ""};
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
 
 
@@ -440,9 +451,11 @@ public class MoimPostControllerTest extends TestObjectCreator {
         int limit = 10;
         makeMoimPosts(20, testMoim, moimCreator, em);
 
+        String[] params = {"moimId"};
+        String[] vals = {moimId + ""};
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_POST_BASE_URL + "/" + moimId + API_MOIM_POST)
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
                 .param("limit", limit + "")
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
 

@@ -23,7 +23,6 @@ import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 @Api(tags = "약관 조회 & 변경 관련")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(API_SERVER + API_MEMBER_VER + API_MEMBER + API_MEMBER_POLICY)
 public class PolicyAgreeController {
 
     private final PolicyAgreeService policyAgreeService;
@@ -38,7 +37,7 @@ public class PolicyAgreeController {
             @ApiResponse(code = 200, message = "약관 수정 성공"),
             @ApiResponse(code = 400, message = "약관 수정 실패, ERR MSG 확인")
     })
-    @PatchMapping("/update")
+    @PatchMapping(PATH_MEMBER_POLICY_UPDATE)
     public ResponseEntity<?> updatePolicyAgree(@RequestBody @Valid PolicyAgreeUpdateReqDto requestDto
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {

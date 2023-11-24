@@ -38,7 +38,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class PolicyAgreeControllerTest extends TestObjectCreator {
 
-    private final String REQUEST_URL = API_SERVER + API_MEMBER_VER + API_MEMBER + API_MEMBER_POLICY;
     private final ObjectMapper om = new ObjectMapper();
 
     @Autowired
@@ -96,7 +95,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(REQUEST_URL + "/update").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MEMBER_POLICY_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + accessToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
@@ -127,7 +126,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(REQUEST_URL + "/update").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MEMBER_POLICY_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + accessToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
@@ -162,7 +161,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(REQUEST_URL + "/update").content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(patch(PATH_MEMBER_POLICY_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
 
@@ -193,7 +192,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(REQUEST_URL + "/update").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MEMBER_POLICY_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + accessToken));
         String responseString = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseString = " + responseString);
@@ -216,7 +215,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         System.out.println("requestBody = " + requestBody);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(REQUEST_URL + "/update").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MEMBER_POLICY_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + accessToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
@@ -239,7 +238,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(REQUEST_URL + "/update").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MEMBER_POLICY_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + accessToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -262,7 +261,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(REQUEST_URL + "/update").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MEMBER_POLICY_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + accessToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -285,7 +284,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(testMember, 2000);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(REQUEST_URL + "/update").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MEMBER_POLICY_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + accessToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
