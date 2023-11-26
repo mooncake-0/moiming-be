@@ -35,9 +35,9 @@ public class AuthController {
     @GetMapping(PATH_AUTH_EMAIL_AVAILABLE)
     public ResponseEntity<?> checkEmailAvailable(@PathVariable String email) {
         if (authService.checkEmailAvailable(email)) {
-            return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "사용가능", null));
+            return ResponseEntity.ok().body(ResponseBodyDto.createResponse("1", "사용가능", null));
         }
-        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(-1, "사용 불가", null));
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse("-1", "사용 불가", null));
     }
 
 
@@ -58,7 +58,7 @@ public class AuthController {
         response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "회원 생성 성공", transmit.get(authService.KEY_RESPONSE_DATA)), HttpStatus.CREATED);
+        return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "회원 생성 성공", transmit.get(authService.KEY_RESPONSE_DATA)), HttpStatus.CREATED);
 
     }
 
@@ -82,7 +82,7 @@ public class AuthController {
         response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "재발급 성공", transmit.get(authService.KEY_RESPONSE_DATA)));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "재발급 성공", transmit.get(authService.KEY_RESPONSE_DATA)));
 
     }
 }

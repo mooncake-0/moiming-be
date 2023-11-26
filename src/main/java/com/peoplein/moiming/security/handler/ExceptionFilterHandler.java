@@ -21,7 +21,7 @@ public class ExceptionFilterHandler {
         try {
 
             ObjectMapper om = new ObjectMapper();
-            ResponseBodyDto<?> responseBody = ResponseBodyDto.createResponse(-1, errMsg, null);
+            ResponseBodyDto<?> responseBody = ResponseBodyDto.createResponse("-1", errMsg, null);
             String responseBodyStr = om.writeValueAsString(responseBody);
 
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);

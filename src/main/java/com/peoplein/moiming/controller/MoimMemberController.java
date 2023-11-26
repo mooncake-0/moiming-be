@@ -48,7 +48,7 @@ public class MoimMemberController {
         List<ActiveMoimMemberRespDto> responseData = moimMembers.stream().map(ActiveMoimMemberRespDto::new).collect(Collectors.toList());
 
         // 뭘 보내줘야 할까?
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모든 모임원 일반 조회 성공", responseData));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모든 모임원 일반 조회 성공", responseData));
     }
 
 
@@ -69,7 +69,7 @@ public class MoimMemberController {
         moimMemberService.joinMoim(requestDto, principal.getMember());
 
         // 가입 성공 응답만 보내준다
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "가입 성공", null));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "가입 성공", null));
     }
 
 
@@ -89,7 +89,7 @@ public class MoimMemberController {
                                        @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         moimMemberService.leaveMoim(requestDto, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모임 나가기 성공", null));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 나가기 성공", null));
     }
 
 
@@ -108,7 +108,7 @@ public class MoimMemberController {
                                          @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         moimMemberService.expelMember(requestDto, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "유저 강퇴 성공", null));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "유저 강퇴 성공", null));
     }
 
 }

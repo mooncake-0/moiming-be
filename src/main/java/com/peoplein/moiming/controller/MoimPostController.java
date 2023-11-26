@@ -54,7 +54,7 @@ public class MoimPostController {
                 그리고 게시물과의 연관관계를 매핑해준다
          */
         moimPostService.createMoimPost(requestDto, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모임 게시물 생성 성공", null));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 게시물 생성 성공", null));
 
     }
 
@@ -78,7 +78,7 @@ public class MoimPostController {
         List<MoimPost> moimPosts = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
         List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(MoimPostViewRespDto::new).collect(Collectors.toList());
 
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모든 게시물 일반 조회 성공", responseBody));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모든 게시물 일반 조회 성공", responseBody));
     }
 
 

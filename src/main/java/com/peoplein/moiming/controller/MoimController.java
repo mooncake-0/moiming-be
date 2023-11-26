@@ -46,7 +46,7 @@ public class MoimController {
 
         Moim moimOut = moimService.createMoim(requestDto, principal.getMember());
         MoimCreateRespDto respDto = new MoimCreateRespDto(moimOut);
-        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "모임 생성 성공", respDto), HttpStatus.CREATED);
+        return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "모임 생성 성공", respDto), HttpStatus.CREATED);
     }
 
 
@@ -63,7 +63,7 @@ public class MoimController {
     @GetMapping(PATH_MOIM_GET_VIEW)
     public ResponseEntity<?> getMemberMoims(@AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
         List<MoimViewRespDto> responseData = moimService.getMemberMoims(principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "조회 성공", responseData));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "조회 성공", responseData));
     }
 
 
@@ -96,7 +96,7 @@ public class MoimController {
 
         Moim moimOut = moimService.updateMoim(requestDto, principal.getMember());
         MoimUpdateRespDto respDto = new MoimUpdateRespDto(moimOut);
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "모임 정보 수정 성공", respDto));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 정보 수정 성공", respDto));
 
     }
 

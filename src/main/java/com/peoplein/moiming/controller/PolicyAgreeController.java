@@ -43,6 +43,6 @@ public class PolicyAgreeController {
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         policyAgreeService.updatePolicyAgree(principal.getMember(), requestDto.getPolicyDtos());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "요청한 약관들의 동의 여부를 수정하였습니다", null));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "요청한 약관들의 동의 여부를 수정하였습니다", null));
     }
 }
