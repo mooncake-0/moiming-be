@@ -101,10 +101,18 @@ public class MoimMember extends BaseEntity {
 
 
 
+    /*
+     해당 도메인이 원하는 로직의 여부를 수행한 후 반환
+     > 예외처리를 진행할지 말지는 Service 의 역할로 둔다
+    */
+
     public boolean hasPermissionOfManager() {
         return getMemberRoleType().equals(MoimMemberRoleType.MANAGER);
     }
 
+    public boolean hasActivePermission() {
+        return getMemberState().equals(ACTIVE);
+    }
 
     public void changeMemberState(MoimMemberState memberState) {
 

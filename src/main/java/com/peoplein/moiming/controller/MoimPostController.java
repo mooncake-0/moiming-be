@@ -1,38 +1,51 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.config.AppUrlPath;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.domain.MoimPostDto;
-import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
+import com.peoplein.moiming.model.dto.response.MoimPostRespDto;
+import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.MoimPostService;
 import com.peoplein.moiming.service.PostCommentService;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import springfox.documentation.annotations.ApiIgnore;
 
+import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static com.peoplein.moiming.config.AppUrlPath.*;
+import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
+import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
+
+@Api(tags = "모임 게시물 관련")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_MOIM_VER + AppUrlPath.API_MOIM + AppUrlPath.API_MOIM_POST)
 public class MoimPostController {
 
     private final MoimPostService moimPostService;
-    private final PostCommentService postCommentService;
 
 
-    /*
-     게시물 생성 요청
-     */
-    @PostMapping("/create")
-    public ResponseEntity<?> createPost(@RequestBody MoimPostRequestDto moimPostRequestDto
-            , List<MultipartFile> file) {
-
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    @ApiOperation("모임 게시물 생성")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "유저 게시물 생성 성공"),
+            @ApiResponse(code = 400, message = "유저 게시물 생성 실패, ERR MSG 확인")
+    })
+    @PostMapping(PATH_MOIM_POST_CREATE)
+    public ResponseEntity<?> createPost(@RequestBody @Valid MoimPostCreateReqDto requestDto
+            , BindingResult br
+            , List<MultipartFile> file
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         /*
          TODO : 전송받는 이미지들은 List<MultipartFile> 에 담겨져 올 것이다.
@@ -40,47 +53,33 @@ public class MoimPostController {
                 MultipartFile 을 다시 사용 + 받아온 url 을 통해서 PostFile Entity 를 만든다
                 그리고 게시물과의 연관관계를 매핑해준다
          */
-        MoimPostDto responseData = moimPostService.createPost(moimPostRequestDto, curMember);
-        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "게시물 생성 완료", responseData), HttpStatus.CREATED);
+        moimPostService.createMoimPost(requestDto, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 게시물 생성 성공", null));
+
     }
 
 
-    // 해당 모임의 모든 게사물들에 대한 일반 조회 정보를 전달한다 (사진정보, 댓글정보 X)
-    @GetMapping("")
-    public ResponseEntity<?> viewAllMoimPost(@RequestParam(name = "moimId") Long moimId) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<MoimPostDto> responseData = moimPostService.viewAllMoimPost(moimId, curMember);
-        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "모든 게시물 조회 완료", responseData));
+    @ApiOperation("게시물 일반 조회 - 모임의 게시물 일반 조회 (기본 정보 응답), (최신 작성일 기준 내림차순, lastId 필요, 10개씩 전달됨)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "게시물 일반 조회 성공"),
+            @ApiResponse(code = 400, message = "게시물 일반 조회 실패")
+    })
+    @GetMapping(PATH_MOIM_POST_GET_VIEW)
+    public ResponseEntity<?> getMoimPosts(@PathVariable(name = "moimId") Long moimId
+            , @RequestParam(required = false, value = "lastPostId") Long lastPostId
+            , @RequestParam(required = false, value = "category") MoimPostCategory category
+            , @RequestParam(required = false, defaultValue = "10") int limit
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+
+        List<MoimPost> moimPosts = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
+        List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(MoimPostViewRespDto::new).collect(Collectors.toList());
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모든 게시물 일반 조회 성공", responseBody));
     }
 
-
-    // 특정 게시물 일반조회 : 모든 정보를 조회한다 (사진정보, 댓글정보 포함)
-    @GetMapping("/{moimPostId}")
-    public ResponseEntity<?> getMoimPostData(@PathVariable(name = "moimPostId") Long moimPostId) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimPostDto responseData = moimPostService.getMoimPostData(moimPostId, curMember);
-        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "게시물 일반 조회 완료 ", responseData));
-    }
-
-    /*
-     특정 게시물 수정
-     */
-    @PatchMapping("/update")
-    public ResponseEntity<?> updatePost(@RequestBody MoimPostRequestDto moimPostRequestDto, List<MultipartFile> file) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MoimPostDto responseData = moimPostService.updatePost(moimPostRequestDto, curMember);
-        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "게시물 정보 수정 완료", responseData));
-    }
-
-
-    /*
-     특정 게시물 삭제
-     */
-    @DeleteMapping("/{moimPostId}")
-    public ResponseEntity<?> deletePost(@PathVariable(name = "moimPostId") Long moimPostId) {
-        Member curMember = (Member) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        moimPostService.deletePost(moimPostId, curMember);
-        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "게시물 삭제 완료", null));
-    }
 
 }

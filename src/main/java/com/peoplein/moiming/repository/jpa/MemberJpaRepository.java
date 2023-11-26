@@ -83,11 +83,13 @@ public class MemberJpaRepository implements MemberRepository {
 
 
     @Override
-    public List<Member> findMembersByEmailOrPhone(String memberEmail, String memberPhone) {
+    public List<Member> findMembersByEmailOrPhoneOrCi(String memberEmail, String memberPhone, String ci) {
         return queryFactory.selectFrom(member)
                 .join(member.memberInfo, memberInfo).fetchJoin()
-                .where(member.memberEmail.eq(memberEmail).or(member.memberInfo.memberPhone.eq(memberPhone)))
-                .fetch();
+                .where(member.memberEmail.eq(memberEmail)
+                        .or(member.ci.eq(ci))
+                        .or(member.memberInfo.memberPhone.eq(memberPhone)))
+                        .fetch();
     }
 
     @Override

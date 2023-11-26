@@ -16,6 +16,7 @@ import com.peoplein.moiming.security.token.JwtParams;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +33,8 @@ public class TestMockCreator {
 
 
     protected MemberSignInReqDto mockSigninReqDto() { // 모델들 추가되면 그 때 분할
-        return new MemberSignInReqDto(memberEmail, password, memberName, memberPhone, memberGender, notForeigner, memberBirth, fcmToken);
+        return new MemberSignInReqDto(memberEmail, password, memberName, memberPhone, memberGender, notForeigner, memberBirth,  fcmToken, ci,
+                new ArrayList<>());
     }
 
     protected TokenReqDto mockTokenReqDto(String refreshToken) {
@@ -63,11 +65,11 @@ public class TestMockCreator {
 
 
 
-    protected Member mockMember(Long id, String email, String name, String phone, Role role) {
+    protected Member mockMember(Long id, String email, String name, String phone, String ci, Role role) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode(password);
         Member mockMember = Member.createMember(
-                email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, role
+                email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, ci, role
         );
         mockMember.changeRefreshToken(refreshToken); // 회원가입하면 일단 저장 필요
         mockMember.changeMockObjectIdForTest(id, getClassUrl());

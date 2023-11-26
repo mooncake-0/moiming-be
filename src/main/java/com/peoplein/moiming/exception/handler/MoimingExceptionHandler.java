@@ -20,13 +20,13 @@ public class MoimingExceptionHandler {
     @ExceptionHandler(MoimingApiException.class)
     public ResponseEntity<?> moimingApiException(MoimingApiException exception) {
         log.error("API EXCEPTION : {}", exception.getMessage());
-        return ResponseEntity.badRequest().body(ResponseBodyDto.createResponse(-1, exception.getMessage(), null));
+        return ResponseEntity.badRequest().body(ResponseBodyDto.createResponse(exception.getErrCode(), exception.getMessage(), null));
     }
 
     @ExceptionHandler(MoimingValidationException.class)
     public ResponseEntity<?> moimingValidationException(MoimingValidationException exception) {
         log.error("VALIDATION EXCEPTION : {}", exception.getMessage());
-        return ResponseEntity.badRequest().body(ResponseBodyDto.createResponse(-1, exception.getMessage(), exception.getErrMap()));
+        return ResponseEntity.badRequest().body(ResponseBodyDto.createResponse("-1", exception.getMessage(), exception.getErrMap()));
     }
 
 
@@ -34,7 +34,7 @@ public class MoimingExceptionHandler {
     public ResponseEntity<?> refreshJwtVerificationException(JWTVerificationException exception) {
 
         int statusCode;
-        int errCode = -1;
+        String errCode = "-1";
         String data = "";
 
         if (exception instanceof SignatureVerificationException) {
@@ -42,7 +42,7 @@ public class MoimingExceptionHandler {
             statusCode = HttpStatus.FORBIDDEN.value();
             data = "SIGNATURE Error. Reported";
         } else if (exception instanceof TokenExpiredException) {
-            errCode = -100;
+            errCode = "-100";
             statusCode = HttpStatus.UNAUTHORIZED.value();
             data = "ACCESS_TOKEN_EXPIRED";
 
@@ -60,6 +60,6 @@ public class MoimingExceptionHandler {
     // Repository Exception
     @ExceptionHandler(InvalidQueryParameterException.class)
     public ResponseEntity<?> invalidQueryParameterException(InvalidQueryParameterException exception) {
-        return ResponseEntity.internalServerError().body(ResponseBodyDto.createResponse(-1, "정보를 불러오는 중 오류가 발생하였습니다", null));
+        return ResponseEntity.internalServerError().body(ResponseBodyDto.createResponse("-1", "정보를 불러오는 중 오류가 발생하였습니다", null));
     }
 }

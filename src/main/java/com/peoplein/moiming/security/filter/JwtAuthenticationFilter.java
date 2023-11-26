@@ -95,7 +95,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
     private void processVerificationExceptionResponse(JWTVerificationException exception, HttpServletResponse response) throws IOException {
 
         int statusCode;
-        int errCode = -1;
+        String errCode = "-1";
         String data = "";
 
         if (exception instanceof SignatureVerificationException) {
@@ -106,7 +106,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         } else if (exception instanceof TokenExpiredException) {
 
             log.info("Access Token 이 만료되었습니다");
-            errCode = -100;
+            errCode = "-100";
             data = "ACCESS_TOKEN_EXPIRED";
             statusCode = HttpStatus.UNAUTHORIZED.value();
 

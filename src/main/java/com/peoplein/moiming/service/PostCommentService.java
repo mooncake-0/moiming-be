@@ -5,7 +5,10 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
+import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
+import com.peoplein.moiming.model.dto.request.PostCommentReqDto;
 import com.peoplein.moiming.model.dto.request_b.PostCommentRequestDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
@@ -18,6 +21,10 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
+
 @Service
 @Slf4j
 @Transactional
@@ -28,72 +35,32 @@ public class PostCommentService {
     private final PostCommentRepository postCommentRepository;
     private final MoimMemberRepository moimMemberRepository;
 
-    public PostComment fetchAndCheckPostComment(Long postCommentId) {
+    public void createComment(PostCommentCreateReqDto requestDto, Member member) {
 
-        PostComment postComment = postCommentRepository.findWithMoimPostById(postCommentId);
-
-        if (Objects.isNull(postComment)) {
-            log.error("해당 PK 의 댓글을 찾을 수 없습니다");
-            throw new RuntimeException("해당 PK 의 댓글을 찾을 수 없습니다");
+        if (requestDto == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
         }
 
-        return postComment;
+        MoimPost moimPost = moimPostRepository.findById(requestDto.getPostId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_POST_NOT_FOUND)
+        );
+
+        // 댓글을 달 수 있는 권한이 존재하는지 확인 (moimId 를 통해서) // 없으면 NULL
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), requestDto.getMoimId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
+        );
+
+        if (!moimMember.hasActivePermission()) {
+            throw new MoimingApiException(MOIM_MEMBER_NOT_ACTIVE);
+        }
+
+        PostComment comment = PostComment.createPostComment(requestDto.getContent(), member, moimPost,
+                requestDto.getDepth(), getParentCommentByReqDto(requestDto));
+
+        postCommentRepository.save(comment);
+
     }
 
-    public PostCommentDto createPostComment(PostCommentRequestDto postCommentRequestDto, Member curMember) {
-
-        MoimPost moimPost = moimPostRepository.findById(postCommentRequestDto.getMoimPostId());
-
-        PostComment postComment = PostComment.createPostComment(postCommentRequestDto.getCommentContent(), curMember, moimPost);
-
-        postCommentRepository.save(postComment);
-
-        /*
-         작성자 정보이기 때문에 따로 member 정보를 담지 않는다
-         */
-        PostCommentDto postCommentDto = new PostCommentDto(postComment.getId(), postComment.getCommentContent(), postComment.getCreatedAt(), postComment.getUpdatedAt(), true, null);
-        return postCommentDto;
-    }
-
-
-    public PostCommentDto updatePostComment(PostCommentRequestDto postCommentRequestDto, Member curMember) {
-
-        PostComment postComment = fetchAndCheckPostComment(postCommentRequestDto.getCommentId());
-
-        if (!postComment.getMember().getId().equals(curMember.getId())) {
-            log.error("작성자가 아닌데 수정하려 함");
-            throw new RuntimeException("작성자가 아닌데 수정하려 함");
-        }
-
-        String changedContent = postCommentRequestDto.getCommentContent();
-
-        boolean isAnyUpdated = false;
-
-        if (!postComment.getCommentContent().equals(changedContent)) {
-
-            isAnyUpdated = true;
-            postComment.setCommentContent(changedContent);
-
-        }
-
-        if (isAnyUpdated) {
-
-            postComment.setUpdatedAt(LocalDateTime.now());
-
-            /*
-             작성자 정보이기 때문에 따로 member 정보를 담지 않는다
-            */
-            return new PostCommentDto(
-                    postComment.getId(), postComment.getCommentContent(), postComment.getCreatedAt()
-                    , postComment.getUpdatedAt(), true, null);
-
-        } else {
-
-            // 수정요청이 들어왔으나 수정된 사항이 없음
-            log.error("수정된 사항이 없는 경우");
-            throw new RuntimeException("수정된 사항이 없는 경우");
-        }
-    }
 
     public void deletePostComment(Long commentId, Member curMember) {
 
@@ -119,6 +86,23 @@ public class PostCommentService {
             postComment.getMoimPost().removePostComment(postComment);
             postCommentRepository.remove(postComment);
         }
+    }
+
+    private PostComment getParentCommentByReqDto(PostCommentCreateReqDto requestDto) {
+
+        PostComment parentComment = null;
+
+        if (requestDto.getDepth() != 0 && requestDto.getParentId() != null) { // 답글임
+
+            parentComment = postCommentRepository.findById(requestDto.getParentId())
+                    .orElseThrow(() -> new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)); //답글로 전달되었으나 부모 댓글을 찾을 수 없음 (리소스를 찾을 수 없다)
+
+        } else if (requestDto.getDepth() != 0 || requestDto.getParentId() != null) {
+
+            throw new MoimingApiException(COMMON_INVALID_PARAM); // 부모 & 자식 관계 매핑 오류, 잘못된 요청
+        }
+
+        return parentComment; // 나머진 Null 로 배치된다
     }
 
 }

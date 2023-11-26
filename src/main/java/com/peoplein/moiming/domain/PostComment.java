@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "post_comment")
-public class PostComment {
+public class PostComment extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -20,48 +20,46 @@ public class PostComment {
 
     private String commentContent;
 
-    private LocalDateTime createdAt;
+    private String content;
 
-    private LocalDateTime updatedAt;
+    private int depth;
 
     /*
      연관관계
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
+    */
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "member_id")
     private Member member;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "moim_post_id")
     private MoimPost moimPost;
 
-    public static PostComment createPostComment(String commentContent, Member member, MoimPost moimPost) {
-        return new PostComment(commentContent, member, moimPost);
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "parent_id")
+    private PostComment parent;
+
+
+    public static PostComment createPostComment(String content, Member member, MoimPost moimPost, int depth, PostComment parent) {
+        return new PostComment(content, member, moimPost, depth, parent);
     }
 
-    private PostComment(String commentContent, Member member, MoimPost moimPost) {
 
-        this.commentContent = commentContent;
+    private PostComment(String content, Member member, MoimPost moimPost, int depth, PostComment parent) {
 
-        /*
-         초기화
-         */
-        this.createdAt = LocalDateTime.now();
+        this.content = content;
 
-        /*
-         연관관계 매핑 및 편의 함수
-         */
+    /*
+     연관관계 매핑 및 편의 함수
+     */
         this.member = member;
         this.moimPost = moimPost;
+        this.depth = depth; // 바뀔 수도 있으니까..
+        this.parent = parent;
+
         this.moimPost.addPostComment(this);
     }
 
-    public void setCommentContent(String commentContent) {
-        this.commentContent = commentContent;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }

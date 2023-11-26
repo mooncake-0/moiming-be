@@ -19,23 +19,25 @@ import javax.validation.Valid;
 
 import java.util.Map;
 
+import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 
 @Api(tags = "회원 & 회원 인증 관련 (토큰 불필요)")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_AUTH_VER + AppUrlPath.API_AUTH)
 public class AuthController {
 
     private final AuthService authService;
 
 
     @ApiOperation("이메일 중복 확인")
-    @GetMapping("/available/{email}")
-    public ResponseEntity<?> checkUidAvailable(@PathVariable String email) {
-        authService.checkEmailAvailable(email);
-        return ResponseEntity.ok().body(ResponseBodyDto.createResponse(1, "사용가능", null));
+    @GetMapping(PATH_AUTH_EMAIL_AVAILABLE)
+    public ResponseEntity<?> checkEmailAvailable(@PathVariable String email) {
+        if (authService.checkEmailAvailable(email)) {
+            return ResponseEntity.ok().body(ResponseBodyDto.createResponse("1", "사용가능", null));
+        }
+        return ResponseEntity.ok().body(ResponseBodyDto.createResponse("-1", "사용 불가", null));
     }
 
 
@@ -45,7 +47,7 @@ public class AuthController {
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })
-    @PostMapping("/signin")
+    @PostMapping(PATH_AUTH_SIGN_IN)
     public ResponseEntity<?> signInMember(@RequestBody @Valid MemberSignInReqDto requestDto, BindingResult br
             , HttpServletResponse response) {
 
@@ -56,7 +58,7 @@ public class AuthController {
         response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        return new ResponseEntity<>(ResponseBodyDto.createResponse(1, "회원 생성 성공", transmit.get(authService.KEY_RESPONSE_DATA)), HttpStatus.CREATED);
+        return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "회원 생성 성공", transmit.get(authService.KEY_RESPONSE_DATA)), HttpStatus.CREATED);
 
     }
 
@@ -70,7 +72,7 @@ public class AuthController {
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })
-    @PostMapping("/token")
+    @PostMapping(PATH_AUTH_REISSUE_TOKEN)
     public ResponseEntity<?> reissueToken(@RequestBody @Valid TokenReqDto requestDto, BindingResult br, HttpServletResponse response) {
 
         Map<String, Object> transmit = authService.reissueToken(requestDto);
@@ -80,7 +82,7 @@ public class AuthController {
         response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(1, "재발급 성공", transmit.get(authService.KEY_RESPONSE_DATA)));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "재발급 성공", transmit.get(authService.KEY_RESPONSE_DATA)));
 
     }
 }

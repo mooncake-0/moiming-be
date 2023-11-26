@@ -40,7 +40,7 @@ public class SecurityConfigTest {
     void security_shouldPassAuthenticationFilterAndReturn404_whenAuthUrlPath() throws Exception{
         //given
         //when
-        ResultActions resultActions = mvc.perform(get(API_SERVER + API_AUTH_VER + API_AUTH + "/notexistpath"));
+        ResultActions resultActions = mvc.perform(get(API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/notexistpath"));
 
         //then
         resultActions.andExpect(status().isNotFound());

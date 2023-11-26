@@ -57,7 +57,7 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
     void be_input_user_db() {
 
         Role role = makeTestRole(RoleType.USER);
-        member = makeTestMember(memberEmail, memberPhone, memberName, nickname,  role);
+        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
 
         roleRepository.save(role);
         memberRepository.save(member);
@@ -101,7 +101,7 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
     }
 
     @Test
-    void filter_shouldPassButReturn401_whenTokenEmpty_byEntrypoint() throws Exception{
+    void filter_shouldPassButReturn401_whenTokenEmpty_byEntrypoint() throws Exception {
 
         //given
         String wrongToken = "";
@@ -115,7 +115,7 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
     }
 
     @Test
-    void filter_shouldReturn400_whenTokenInvalid_byJWTVerificationException() throws Exception{
+    void filter_shouldReturn400_whenTokenInvalid_byJWTVerificationException() throws Exception {
 
         //given
         String wrongToken = "WRONG_TOKEN";

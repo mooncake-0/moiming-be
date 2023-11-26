@@ -41,7 +41,7 @@ public class MoimingLoginFailureHandler implements AuthenticationFailureHandler 
             statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
         }
 
-        ResponseBodyDto<?> responseBody = ResponseBodyDto.createResponse(-1, exception.getMessage(), null);
+        ResponseBodyDto<?> responseBody = ResponseBodyDto.createResponse("-1", exception.getMessage(), null);
         response.setStatus(statusCode);
         response.getWriter().write(om.writeValueAsString(responseBody));
     }

@@ -43,19 +43,19 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
     private final MoimingTokenProvider moimingTokenProvider;
+    private final PolicyAgreeService policyAgreeService;
 
 
-    public void checkEmailAvailable(String email) {
+    public boolean checkEmailAvailable(String email) {
         Optional<Member> memberOp = memberRepository.findByEmail(email);
-        if (memberOp.isPresent()) {
-            throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
-        }
+        //            throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
+        return memberOp.isEmpty();
     }
 
 
     public Map<String, Object> signIn(MemberSignInReqDto requestDto) {
 
-        checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone());
+        checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone(), requestDto.getCi());
 
         // TODO :: 인코딩 AOP 로 빼주면 좋을 듯
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
@@ -63,16 +63,19 @@ public class AuthService {
 
 
         Member signInMember = Member.createMember(requestDto.getMemberEmail(), encodedPassword, requestDto.getMemberName()
-                , requestDto.getMemberPhone(), requestDto.getMemberGender(), requestDto.isForeigner()
-                , requestDto.getMemberBirth(), requestDto.getFcmToken(), roleUser);
+                , requestDto.getMemberPhone(), requestDto.getMemberGender(), requestDto.getForeigner()
+                , requestDto.getMemberBirth(), requestDto.getFcmToken(), requestDto.getCi(), roleUser);
 
 
         String createdNickname = tryCreateNicknameForUser(); // 실패시 일괄 rollback
         signInMember.changeNickname(createdNickname);
 
-
         // member 저장
         memberRepository.save(signInMember);
+
+        // Policy 저장 분리
+        policyAgreeService.createPolicyAgree(signInMember, requestDto.getPolicyDtos());
+
 
         // Refresh 토큰 발급 & Response Data 생성
         String jwtAccessToken = issueJwtTokens(signInMember);
@@ -126,15 +129,14 @@ public class AuthService {
     }
 
 
-
     /*
      회원가입 전에 중복 조건들에 대해서 확인
      에러 발생시 회원 가입 중단
      */
     // Test 에서 보이게 하기 위한 package-private 으로 변경
-    void checkUniqueColumnDuplication(String memberEmail, String memberPhone) {
+    void checkUniqueColumnDuplication(String memberEmail, String memberPhone, String ci) {
 
-        List<Member> duplicateMembers = memberRepository.findMembersByEmailOrPhone(memberEmail, memberPhone);
+        List<Member> duplicateMembers = memberRepository.findMembersByEmailOrPhoneOrCi(memberEmail, memberPhone, ci);
 
         if (!duplicateMembers.isEmpty()) {
             for (Member member : duplicateMembers) {
@@ -145,6 +147,10 @@ public class AuthService {
 
                 if (member.getMemberInfo().getMemberPhone().equals(memberPhone)) {
                     throw new MoimingApiException("[" + memberPhone + "] 는  이미 존재하는 회원의 전화번호 입니다");
+                }
+
+                if (member.getCi().equals(ci)) {
+                    throw new MoimingApiException("이미 존재하는 회원의 CI 입니다");
                 }
 
                 //...
@@ -164,7 +170,6 @@ public class AuthService {
 
         return jwtAccessToken;
     }
-
 
 
     String tryCreateNicknameForUser() {

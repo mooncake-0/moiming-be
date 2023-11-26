@@ -29,7 +29,8 @@ import java.util.Objects;
 @Entity
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"member_email"}, name = "unique_member_email"),
-        @UniqueConstraint(columnNames = {"nickname"}, name = "unique_nickname")
+        @UniqueConstraint(columnNames = {"nickname"}, name = "unique_nickname"),
+        @UniqueConstraint(columnNames = {"ci"}, name = "unique_ci")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -51,6 +52,8 @@ public class Member extends BaseEntity {
 
     private String nickname;
 
+    private String ci;
+
     private String refreshToken;
 
     private String fcmToken;
@@ -68,10 +71,11 @@ public class Member extends BaseEntity {
     /*
      생성자는 Private 으로, 생성 방식을 create 함수로만 제어한다
      */
-    private Member(String memberEmail, String password, String fcmToken, MemberInfo memberInfo) {
+    private Member(String memberEmail, String password, String fcmToken, String ci, MemberInfo memberInfo) {
         this.memberEmail = memberEmail;
         this.password = password;
         this.fcmToken = fcmToken;
+        this.ci = ci;
         this.memberInfo = memberInfo;
 
     }
@@ -83,14 +87,15 @@ public class Member extends BaseEntity {
                                       String memberName,
                                       String memberPhone,
                                       MemberGender memberGender,
-                                      boolean isForeigner,
+                                      boolean foreigner,
                                       LocalDate memberBirth,
                                       String fcmToken,
+                                      String ci,
                                       Role role
     ) {
 
-        MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, isForeigner, memberBirth);
-        Member createdMember = new Member(memberEmail, encryptedPassword, fcmToken, memberInfo);
+        MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, foreigner, memberBirth);
+        Member createdMember = new Member(memberEmail, encryptedPassword, fcmToken, ci, memberInfo);
         MemberRoleLinker.grantRoleToMember(createdMember, role);
 
         return createdMember;

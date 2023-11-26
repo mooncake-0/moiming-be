@@ -40,7 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class MoimingLoginFilterTest extends TestObjectCreator {
 
     private final ObjectMapper om = new ObjectMapper();
-    private final String LOGIN_URL = API_SERVER + API_AUTH_VER + API_AUTH + "/login";
     @Autowired
     private MockMvc mvc;
 
@@ -59,7 +58,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void be_input_user_db() {
 
         Role role = makeTestRole(RoleType.USER);
-        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, role);
+        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
 
         roleRepository.save(role);
         memberRepository.save(member);
@@ -70,14 +69,14 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_shouldLogin_whenRightInfoPassed() throws Exception{
+    void filter_shouldLogin_whenRightInfoPassed() throws Exception {
 
         //given
         MemberLoginReqDto loginReqDto = new MemberLoginReqDto(memberEmail, password);
         String requestDto = om.writeValueAsString(loginReqDto);
 
         //when
-        ResultActions resultActions = mvc.perform(post(LOGIN_URL).content(requestDto).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         String jwtAccessToken = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
 
@@ -100,7 +99,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(LOGIN_URL).content(requestDto).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isInternalServerError());
@@ -115,7 +114,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(LOGIN_URL).content(requestDto).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isBadRequest());
@@ -129,7 +128,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(LOGIN_URL).content(requestDto).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isUnauthorized());
@@ -143,7 +142,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(LOGIN_URL).content(requestDto).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isUnauthorized());
@@ -154,7 +153,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void filter_shouldReturn500_whenNothingGiven_byExtraException() throws Exception {
         // given
         // when
-        ResultActions resultActions = mvc.perform(post(LOGIN_URL));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN));
 
         // then
         resultActions.andExpect(status().isInternalServerError());

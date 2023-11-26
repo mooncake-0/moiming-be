@@ -57,7 +57,8 @@ public class MemberService {
     private List<MoimPost> getMoimNoticesLatestTop3(Member curMember) {
         List<MoimMember> findMoimMembers = moimMemberRepository.findByMemberId(curMember.getId());
         List<Long> uniqueMoimIds = getUniqueMoimIds(findMoimMembers);
-        return moimPostRepository.findNoticesLatest3ByMoimIds(uniqueMoimIds);
+        return null;
+//        return moimPostRepository.findNoticesLatest3ByMoimIds(uniqueMoimIds);
     }
 
     private List<Long> getUniqueMoimIds(List<MoimMember> findMoimMembers) {

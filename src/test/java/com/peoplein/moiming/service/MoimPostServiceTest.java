@@ -1,155 +1,215 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.*;
+
+import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.model.dto.domain.MoimPostDto;
-import com.peoplein.moiming.model.dto.request_b.MoimPostRequestDto;
+import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
-import com.peoplein.moiming.repository.PostCommentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.persistence.EntityManager;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 
+import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 
-/*
- 해당 도메인 서비스단 재설계 예정
- - Service 는 단위테스트만 진행 예정 (DB 개입 필요 없음)
- - Repo 단위테스트, Controlller 통합 테스트로 진행
- */
-@SpringBootTest
-@Transactional
+@ExtendWith(MockitoExtension.class)
 public class MoimPostServiceTest {
 
-    @Autowired
-    MoimPostService moimPostService;
+    @InjectMocks
+    private MoimPostService moimPostService;
 
-    @Autowired
-    PostCommentRepository commentRepository;
-    @Autowired
-    EntityManager em;
-    @Autowired
-    MoimPostRepository moimPostRepository;
+    @Mock
+    private MoimMemberRepository moimMemberRepository;
 
-
-//    @Test
-    void updateIntegrationSuccessTest() {
-        // given
-        Member member = TestUtils.initMemberAndMemberInfo();
-        Moim moim = TestUtils.createMoimOnly();
-        MoimPost moimPost = TestUtils.initMoimPost(moim, member);
-        String changedPostTitle = "fixed " + TestUtils.postTitle;
-
-        persist(member,
-                moim,
-                moimPost,
-                member.getRoles().get(0).getRole(),
-                member.getRoles().get(0));
-        flushAndClear();
-
-        MoimPostRequestDto moimPostRequestDto = new MoimPostRequestDto(
-                moim.getId(),
-                moimPost.getId(),
-                changedPostTitle,
-                TestUtils.postContent,
-                TestUtils.isNotice,
-                TestUtils.moimPostCategory);
-
-        // when
-        MoimPostDto moimPostDto = moimPostService.updatePost(moimPostRequestDto, member);
-
-        // then
-        assertThat(moimPostDto.getPostTitle()).isEqualTo(changedPostTitle);
-        assertThat(moimPostDto.getUpdatedMemberId()).isEqualTo(member.getId());
-    }
-//    @Test
-    void updateIntegrationFailTest() {
-        // 작성자만 수정 가능함.
-
-        // given
-        Member member = TestUtils.initMemberAndMemberInfo();
-        Member updateMember = TestUtils.initOtherMemberAndMemberInfo();
-        Moim moim = TestUtils.createMoimOnly();
-        MoimPost moimPost = TestUtils.initMoimPost(moim, member);
-        String changedPostTitle = "fixed " + TestUtils.postTitle;
-
-        persist(member,
-                moim,
-                moimPost,
-                updateMember,
-                member.getRoles().get(0).getRole(),
-                member.getRoles().get(0),
-                updateMember.getRoles().get(0).getRole(),
-                updateMember.getRoles().get(0));
-        flushAndClear();
-
-        MoimPostRequestDto moimPostRequestDto = new MoimPostRequestDto(
-                moim.getId(),
-                moimPost.getId(),
-                changedPostTitle,
-                TestUtils.postContent,
-                TestUtils.isNotice,
-                TestUtils.moimPostCategory);
-
-        // when + then
-        assertThatThrownBy(() -> moimPostService.updatePost(moimPostRequestDto, updateMember))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
+    @Mock
+    private MoimPostRepository moimPostRepository;
 
 
-//    @Test
-    void deleteIntegrationSuccessTest() {
-        // given
-        Member member = TestUtils.initMemberAndMemberInfo();
-        Moim moim = TestUtils.createMoimOnly();
-        MoimMember moimLinker = TestUtils.createLeaderMemberMoimLinker(member, moim);
-        MoimPost moimPost = TestUtils.initMoimPost(moim, member);
-        PostComment comment = PostComment.createPostComment("hello", member, moimPost);
-        PostComment comment1 = PostComment.createPostComment("hello", member, moimPost);
-        PostComment comment2 = PostComment.createPostComment("hello", member, moimPost);
-        PostComment comment3 = PostComment.createPostComment("hello", member, moimPost);
+    @Test
+    void createMoimPost_shouldPass_whenRightInfoPassed() {
 
-        persist(member,
-                moim,
-                moimLinker,
-                moimPost,
-                comment,
-                comment1,
-                comment2,
-                comment3,
-                member.getRoles().get(0).getRole(),
-                member.getRoles().get(0));
-        flushAndClear();
+        try (MockedStatic<MoimPost> mocker = mockStatic(MoimPost.class)) {
+            // given
+            Member member = mock(Member.class);
+            MoimMember moimMember = mock(MoimMember.class);
+            MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
 
-        // when
-        moimPostService.deletePost(moimPost.getId(), member);
+            // given - stub
+            when(moimMember.getMemberState()).thenReturn(MoimMemberState.ACTIVE);
+            when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+            mocker.when(() -> MoimPost.createMoimPost(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
+                    .thenReturn(null); // 해당 결과는 상관 없다는 것을 지칭
 
-        // then
-        flushAndClear();
-        MoimPost findMoimPost = moimPostRepository.findById(moimPost.getId());
-        List<PostComment> findPostComments = commentRepository.findWithMoimPostId(moimPost.getId());
+            // when
+            moimPostService.createMoimPost(requestDto, member);
 
-        assertThat(findMoimPost).isNull();
-        assertThat(findPostComments.size()).isEqualTo(0);
-    }
-
-
-    void flushAndClear() {
-        em.flush();
-        em.clear();
-    }
-
-    void persist(Object ... objects) {
-        for (Object object : objects) {
+            // then
+            verify(moimPostRepository, times(1)).save(any());
 
         }
-        Arrays.stream(objects).forEach(o -> em.persist(o));
     }
+
+
+    @Test
+    void createMoimPost_shouldThrowException_whenRequestDtoNull_byMoimingApiException() {
+
+        // given
+        Member member = mock(Member.class);
+        MoimPostCreateReqDto requestDto = null;
+
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    @Test
+    void createMoimPost_shouldThrowException_whenMemberNull_byMoimingApiException() {
+
+        // given
+        Member member = null;
+        MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
+
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
+    }
+
+
+    // 모임원 아닌 상황
+    @Test
+    void createMoimPost_shouldThrowException_whenNotMoimMember_byMoimingApiException() {
+
+        // given
+        Member member = mock(Member.class);
+        MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 게시물을 생성할 권한이 없는 상황
+    @Test
+    void createMoimPost_shouldThrowException_whenMoimMemberNotActive() {
+
+        // given
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.getMemberState()).thenReturn(MoimMemberState.IBF);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+    // --- getMoimPosts TEST
+    // getMoimPosts > MoimPost 정상, moimmember 통과 정상일 경우
+    @Test
+    void getMoimPosts_shouldPass_whenRightInfoPassed() {
+
+        // given
+        Member member = mock(Member.class);
+        MoimPost moimPost = mock(MoimPost.class);
+
+        // when
+        moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
+
+        // then
+        verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+
+    }
+
+    // 로직이 달라지는 사례 검증
+    // moimMemberState 가 INACTIVE 여도 통과한다
+    // 사실 이 함수에서는 모임 멤버가 무슨 값이든 상관 없다가 기준이므로 안해도 되는 테스트
+    @Test
+    void getMoimPosts_shouldPass_whenMoimMemberIsNotActive() {
+
+        // given
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.getMemberState()).thenReturn(MoimMemberState.IBF);
+
+        // when
+        moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
+
+        // then
+        verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+
+    }
+
+    // moimId == null 일 경우 예외 발생
+    @Test
+    void getMoimPosts_shouldThrowException_whenMoimIdNull_byMoimingApiException() {
+
+        // given
+        Long moimId = null;
+        Member member = mock(Member.class);
+
+        // when
+        // then // 원함수 실행시에는 Arguments Matcher 사용하는거 아니다
+        assertThatThrownBy(() -> moimPostService.getMoimPosts(moimId, null, null, 0, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // member == null 일 경우 예외 발생
+    @Test
+    void getMoimPosts_shouldThrowException_whenMemberNull_byMoimingApiException() {
+
+        // given
+        Member member = null;
+
+        // when
+        // then // 원함수 실행시에는 Arguments Matcher 사용하는거 아니다
+        assertThatThrownBy(() -> moimPostService.getMoimPosts(1L, null, null, 0, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 마지막 검색 post 를 찾을 수 없음, Exception 발생 // Null 이 아닌 상태로 들어온 상황이여야 한다 -> 상관없는 value 가 아님
+    @Test
+    void getMoimPosts_shouldThrowException_whenLastPostNotFound_byMoimingApiException() {
+
+        // given
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(moimPostRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.getMoimPosts(1L, 1234L, null, 0, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
 }

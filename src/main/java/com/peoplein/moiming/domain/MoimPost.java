@@ -30,7 +30,7 @@ public class MoimPost extends BaseEntity {
     private String postTitle;
     private String postContent;
     private MoimPostCategory moimPostCategory;
-    private boolean isNotice;
+    private boolean hasPrivateVisibility;
     private boolean hasFiles;
 
     private Long updatedMemberId;
@@ -52,16 +52,19 @@ public class MoimPost extends BaseEntity {
     @OneToMany(mappedBy = "moimPost", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private final List<PostFile> postFiles = new ArrayList<>();
 
-    public static MoimPost createMoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean isNotice, boolean hasFiles, Moim moim, Member member) {
-        return new MoimPost(postTitle, postContent, moimPostCategory, isNotice, hasFiles, moim, member);
+    public static MoimPost createMoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean hasPrivateVisibility, boolean hasFiles, Moim moim, Member member) {
+        return new MoimPost(postTitle, postContent, moimPostCategory, hasPrivateVisibility, hasFiles, moim, member);
     }
 
-    private MoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean isNotice, boolean hasFiles, Moim moim, Member member) {
+    private MoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean hasPrivateVisibility, boolean hasFiles, Moim moim, Member member) {
+
+        checkIllegalObjectArguments(moimPostCategory, moim, member);
+        checkIllegalStringArguments(postTitle, postContent);
 
         this.postTitle = postTitle;
         this.postContent = postContent;
         this.moimPostCategory = moimPostCategory;
-        this.isNotice = isNotice;
+        this.hasPrivateVisibility = hasPrivateVisibility;
         this.hasFiles = hasFiles;
 
         // 연관관계
@@ -88,80 +91,28 @@ public class MoimPost extends BaseEntity {
         this.postContent = postContent;
     }
 
-
     public void changePostCategory(MoimPostCategory moimPostCategory) {
         this.moimPostCategory = moimPostCategory;
     }
 
 
-    public void setNotice(boolean notice) {
-        this.isNotice = notice;
-    }
-
-
-    // 업데이트 했을 때, UID 바뀌는지
-    // 업데이트 안했을 때, UID 안 바뀌는지
-    public boolean update(String postTitle,
-                          String postContent,
-                          boolean isNotice,
-                          MoimPostCategory moimPostCategory,
-                          Long updatedMemberId) {
-
-        checkWrongArgument(postTitle, postContent, isNotice, moimPostCategory, updatedMemberId);
-
-        if (!isChangedAny(postTitle, postContent, isNotice, moimPostCategory)) {
-            return false;
-        }
-
-        this.postTitle = postTitle;
-        this.postContent = postContent;
-        this.isNotice = isNotice;
-        this.moimPostCategory = moimPostCategory;
-        this.updatedMemberId = updatedMemberId;
-
-        return true;
-    }
-
-    public void checkWrongArgument(String postTitle,
-                                   String postContent,
-                                   boolean isNotice,
-                                   MoimPostCategory moimPostCategory,
-                                   Long updatedMemberId) {
-
-        if (!StringUtils.hasText(postTitle) ||
-                !StringUtils.hasText(postContent) ||
-                Objects.isNull(moimPostCategory) ||
-                Objects.isNull(updatedMemberId)) {
-            throw new IllegalArgumentException();
+    // Attribute - Class 내 포함 변수
+    // Parameter - String name 같은 전달할 녀석들을 의미
+    // Arguments - 실제 Code 에서 전달되는 값을 말한다. name = "Test" 면 "Test" 를 말함
+    private void checkIllegalObjectArguments(Object... objs) {
+        for (int i = 0; i < objs.length; i++) {
+            if (objs[i] == null) {
+                throw new IllegalArgumentException(i + 1 + "번째 값이 잘못되었습니다");
+            }
         }
     }
 
-    private boolean isChangedAny(String postTitle,
-                                 String postContent,
-                                 boolean isNotice,
-                                 MoimPostCategory moimPostCategory) {
-
-        return !this.postTitle.equals(postTitle) ||
-                !this.postContent.equals(postContent) ||
-                this.isNotice != isNotice ||
-                !this.moimPostCategory.equals(moimPostCategory);
-    }
-
-    public void delete(MoimMember moimMember) {
-
-        System.out.println("HERE1");
-        if (!canDelete(moimMember)) {
-            log.error("삭제할 권한이 없는 유저의 요청입니다");
-            throw new RuntimeException("삭제할 권한이 없는 유저의 요청입니다");
+    private void checkIllegalStringArguments(String... strs) {
+        for (int i = 0; i < strs.length; i++) {
+            if (!StringUtils.hasText(strs[i])) {
+                throw new IllegalArgumentException(i + 1 + "번째 값이 잘못되었습니다");
+            }
         }
-
-        this.moim = null;
-        this.member = null;
-    }
-
-    private boolean canDelete(MoimMember moimMember) {
-        MoimMemberRoleType moimMemberRoleType = moimMember.getMemberRoleType();
-        return moimMemberRoleType.equals(MoimMemberRoleType.MANAGER);
     }
 
 }

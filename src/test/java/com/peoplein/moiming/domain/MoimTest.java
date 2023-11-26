@@ -31,7 +31,7 @@ public class MoimTest extends TestMockCreator {
 
     @BeforeEach
     void be_moim_info_su() {
-        mockMember = mockMember(1L, memberEmail, memberName, memberPhone, new Role(1L, "", RoleType.USER));
+        mockMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, new Role(1L, "", RoleType.USER));
         Category parent = mockCategory(1L, CategoryName.DANCE, 1, null);
         mockCategories.add(parent);
         mockCategories.add(mockCategory(2L, CategoryName.SWING_DANCE, 2, parent));
@@ -217,10 +217,6 @@ public class MoimTest extends TestMockCreator {
                 assertThat(mcLinker.getCategory().getCategoryName()).isEqualTo(CategoryName.fromValue(depth2SampleCategory2));
             }
         }
-
     }
-
-
-
 
 }

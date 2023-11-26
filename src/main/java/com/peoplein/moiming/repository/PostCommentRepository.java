@@ -3,12 +3,10 @@ package com.peoplein.moiming.repository;
 import com.peoplein.moiming.domain.PostComment;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostCommentRepository {
 
-    Long save(PostComment postComment);
-
-    PostComment findById(Long postCommentId);
 
     PostComment findWithMoimPostById(Long postCommentId);
 
@@ -21,4 +19,13 @@ public interface PostCommentRepository {
     Long removeAllByMoimPostId(Long moimPostId);
 
     void removeAllByMoimPostIds(List<Long> moimPostIds);
+
+
+    // -- IN USE
+    void save(PostComment postComment);
+
+    Optional<PostComment> findById(Long commentId);
+
+    List<PostComment> findByMoimPostInHierarchyQuery(Long moimPostId);
+
 }

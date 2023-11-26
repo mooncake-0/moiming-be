@@ -33,11 +33,7 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
     */
     public MoimingLoginFilter() {
 
-        super(new AntPathRequestMatcher(AppUrlPath.API_SERVER
-                + AppUrlPath.API_AUTH_VER
-                + AppUrlPath.API_AUTH
-                + "/login"
-        ));
+        super(new AntPathRequestMatcher(AppUrlPath.PATH_AUTH_LOGIN));
 
     }
 

@@ -1,317 +1,313 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.*;
-import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.CategoryName;
+import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.fixed.Category;
+import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.repository.*;
+import com.peoplein.moiming.repository.MoimPostRepository;
+import com.peoplein.moiming.support.RepositoryTestConfiguration;
+import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.peoplein.moiming.support.TestModelParams.*;
+import static org.assertj.core.api.Assertions.*;
 
-
-/*
- TODO TC::
- Test 해제
- Docker 미사용으로 기본적인 Test 환경 구축 우선
- - MSL Refactor 이후 재진행 예정
- - 그리고 테스트 개판으로 함 - 내가 짰던 부분
- */
-@SpringBootTest
-@Transactional
-public class MoimPostJpaRepositoryTest {
+@Import({RepositoryTestConfiguration.class, MoimPostJpaRepository.class})
+@ActiveProfiles("test")
+@DataJpaTest
+public class MoimPostJpaRepositoryTest extends TestObjectCreator {
 
     @Autowired
-    EntityManager em;
-    @Autowired
-    MoimPostRepository moimPostRepository;
+    private MoimPostRepository moimPostRepository;
 
     @Autowired
-    MemberRoleLinkerRepository memberRoleLinkerRepository;
-    @Autowired
-    MemberRepository memberRepository;
+    private EntityManager em;
 
-    @Autowired
-    RoleRepository roleRepository;
-    @Autowired
-    MoimRepository moimRepository;
-
-    Moim moim;
-
-    Member member;
-    MoimPost moimPost;
+    private Member moimCreator;
+    private Moim testMoim;
 
     @BeforeEach
-    void initInstance() {
-        moim = TestUtils.initMoimAndRuleJoin();
+    void ba() throws InterruptedException {
 
-        member = TestUtils.initMemberAndMemberInfo();
-        memberRepository.save(member);
+        Role testRole = makeTestRole(RoleType.USER);
+        moimCreator = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        em.persist(testRole);
+        em.persist(moimCreator);
 
-        List<MemberRoleLinker> roles = member.getRoles();
-        roles.forEach(memberRoleLinker -> {
-            roleRepository.save(memberRoleLinker.getRole());
-            memberRoleLinkerRepository.save(memberRoleLinker);
-        });
+        // Moim Cateogry 저장
+        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
+        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 2, testCategory1);
+        em.persist(testCategory1);
+        em.persist(testCategory1_1);
 
-        moimPost = TestUtils.initMoimPost(moim, member);
-        moimRepository.save(moim);
-    }
+        // Moim 준비
+        testMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), moimCreator);
+        em.persist(testMoim);
 
-//    @Test
-    void saveTest() {
+        makeMoimPosts();
 
-        moimRepository.save(moim);
         em.flush();
         em.clear();
 
-        Long saveMoim = moimPostRepository.save(moimPost);
-
-        assertThat(saveMoim).isNotNull();
-    }
-
-//    @Test
-    void findByIdTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost findPost = moimPostRepository.findById(postId);
-
-        assertThat(findPost.getId()).isEqualTo(moimPost.getId());
-    }
-
-//    @Test
-    void findWithMemberByIdTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost findPost = moimPostRepository.findWithMemberById(postId);
-
-        assertThat(findPost.getId()).isEqualTo(moimPost.getId());
-        assertThat(findPost.getMember().getId()).isEqualTo(member.getId());
-    }
-
-//    @Test
-    void findWithMoimAndMemberInfoByIdTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost findPost = moimPostRepository.findWithMoimAndMemberInfoById(postId);
-
-        assertThat(findPost.getId()).isEqualTo(moimPost.getId());
-        assertThat(findPost.getMember().getId()).isEqualTo(member.getId());
-        assertThat(findPost.getMember().getMemberInfo().getId()).isEqualTo(member.getMemberInfo().getId());
     }
 
 
-//    @Test
-    void findWithMoimAndMemberByIdTest() {
+    // 1. 모임원 유저의 요청
+    // Category Filter Off 첫 요청
+    @Test
+    void findByCategoryAndLastPostOrderByDateDesc_shouldReturnPosts_whenMoimMemberFirstRequestWithoutCategory() {
 
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
+        // given
+        boolean moimMemberRequest = true;
+        MoimPostCategory category = null;
+        MoimPost lastPost = null;
 
-        MoimPost findPost = moimPostRepository.findWithMoimAndMemberById(postId);
+        // when
+        List<MoimPost> moimPosts = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
 
-        assertThat(findPost.getId()).isEqualTo(moimPost.getId());
-        assertThat(findPost.getMoim().getId()).isEqualTo(moim.getId());
-    }
+        // then - limit 를 제외한 동일 쿼리로 모두 가져온다
+        List<MoimPost> rawMoimPosts = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :id " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("id", testMoim.getId())
+                .getResultList();
 
-
-//    @Test
-    void findWithMemberInfoByMoimIdTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-
-        List<MoimPost> findMoimPostList = moimPostRepository.findWithMemberInfoByMoimId(moim.getId());
-
-        assertThat(findMoimPostList.size()).isEqualTo(1);
-        assertThat(findMoimPostList.get(0).getMoim().getId()).isEqualTo(moim.getId());
-        assertThat(findMoimPostList.get(0).getId()).isEqualTo(postId);
-    }
-
-
-//    @Test
-    void removeTest() {
-
-        moimRepository.save(moim);
-        Long postId = moimPostRepository.save(moimPost);
-        em.flush();
-        em.clear();
-        MoimPost findMoimPost = moimPostRepository.findById(postId);
-
-        moimPostRepository.remove(findMoimPost);
-        em.flush();
-        em.clear();
-
-        MoimPost removedMoim = moimPostRepository.findById(moimPost.getId());
-        assertThat(removedMoim).isNull();
-    }
-
-
-//    @Test
-    void findNoticesLatest3ByMoimIdSuccess1Test() {
-        // Given :
-        Moim moim1 = TestUtils.createMoimOnly("other1");
-        Moim moim2 = TestUtils.createMoimOnly("other2");
-        Moim moim3 = TestUtils.createMoimOnly("other3");
-
-        MoimMember linker1 = TestUtils.createLeaderMemberMoimLinker(member, moim1);
-        MoimMember linker2 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-        MoimMember linker3 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-
-        saveEntities(member, moim1, moim2, moim3, linker1, linker2, linker3);
-
-        MoimPost moimPost1 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost2 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost3 = TestUtils.initNoticeMoimPost(moim1, member);
-
-        saveEntities(moimPost1, moimPost2, moimPost3);
-
-        MoimPost moimPost4 = TestUtils.initNoticeMoimPost(moim2, member);
-
-        saveEntities(moimPost4);
-
-        MoimPost moimPost7 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost8 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost9 = TestUtils.initNoticeMoimPost(moim3, member);
-
-        saveEntities(moimPost7, moimPost8, moimPost9);
-
-
-        List<Long> moimIds = List.of(moim1.getId(), moim2.getId(), moim3.getId());
-
-        System.out.println("HERE======================================");
-        // When :
-        List<MoimPost> result = moimPostRepository.findNoticesLatest3ByMoimIds(moimIds);
-
-        // Then :
-        assertThat(result.size()).isEqualTo(3);
-        assertThat(result)
-                .extracting(MoimPost::getId)
-                .contains(moimPost7.getId(), moimPost8.getId(), moimPost9.getId());
-    }
-
-
-    @DisplayName("findNoticesLatest3ByMoimId : moimIds에 포함되지 않은 값이 나오지는 않는지 확인")
-//    @Test
-    void findNoticesLatest3ByMoimIdSuccess2Test() {
-        // Given :
-        TestUtils.initMemberAndMemberInfo("other-member", "other-member@moimimgn.net");
-
-        Moim moim1 = TestUtils.createMoimOnly("other1");
-        Moim moim2 = TestUtils.createMoimOnly("other2");
-        Moim moim3 = TestUtils.createMoimOnly("other3");
-
-        MoimMember linker1 = TestUtils.createLeaderMemberMoimLinker(member, moim1);
-        MoimMember linker2 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-        MoimMember linker3 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-
-        saveEntities(member, moim1, moim2, moim3, linker1, linker2, linker3);
-
-        MoimPost moimPost1 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost2 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost3 = TestUtils.initNoticeMoimPost(moim1, member);
-
-        saveEntities(moimPost1, moimPost2, moimPost3);
-
-        MoimPost moimPost4 = TestUtils.initNoticeMoimPost(moim2, member);
-
-        saveEntities(moimPost4);
-
-        MoimPost moimPost7 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost8 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost9 = TestUtils.initNoticeMoimPost(moim3, member);
-
-        saveEntities(moimPost7, moimPost8, moimPost9);
-
-
-        List<Long> moimIds = List.of(moim1.getId());
-
-        // When :
-        List<MoimPost> result = moimPostRepository.findNoticesLatest3ByMoimIds(moimIds);
-
-        // Then :
-        assertThat(result.size()).isEqualTo(3);
-        assertThat(result)
-                .extracting(MoimPost::getId)
-                .contains(moimPost1.getId(), moimPost2.getId(), moimPost3.getId());
-    }
-
-    @DisplayName("findNoticesLatest3ByMoimId : 순서대로 나오는지 확인")
-//    @Test
-    void findNoticesLatest3ByMoimIdSuccess3Test() {
-        // Given :
-        TestUtils.initMemberAndMemberInfo("other-member", "other-member@moimimgn.net");
-
-        Moim moim1 = TestUtils.createMoimOnly("other1");
-        Moim moim2 = TestUtils.createMoimOnly("other2");
-        Moim moim3 = TestUtils.createMoimOnly("other3");
-
-        MoimMember linker1 = TestUtils.createLeaderMemberMoimLinker(member, moim1);
-        MoimMember linker2 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-        MoimMember linker3 = TestUtils.createLeaderMemberMoimLinker(member, moim2);
-
-        saveEntities(member, moim1, moim2, moim3, linker1, linker2, linker3);
-
-        MoimPost moimPost1 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost2 = TestUtils.initNoticeMoimPost(moim1, member);
-        MoimPost moimPost3 = TestUtils.initNoticeMoimPost(moim1, member);
-
-        saveEntities(moimPost1, moimPost2, moimPost3);
-
-        MoimPost moimPost4 = TestUtils.initNoticeMoimPost(moim2, member);
-
-        saveEntities(moimPost4);
-
-        MoimPost moimPost7 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost8 = TestUtils.initNoticeMoimPost(moim3, member);
-        MoimPost moimPost9 = TestUtils.initNoticeMoimPost(moim3, member);
-
-        saveEntities(moimPost7, moimPost8, moimPost9);
-
-
-        List<Long> moimIds = List.of(moim1.getId(), moim2.getId());
-
-        // When :
-        List<MoimPost> result = moimPostRepository.findNoticesLatest3ByMoimIds(moimIds);
-
-        // Then :
-        assertThat(result.size()).isEqualTo(3);
-        assertThat(result)
-                .extracting(MoimPost::getId)
-                .contains(moimPost4.getId(), moimPost3.getId(), moimPost2.getId());
-        assertThat(result)
-                .extracting(MoimPost::getId)
-                .doesNotContain(moimPost1.getId());
-    }
-
-    private void saveEntities(Object... objects) {
-        for (Object object : objects) {
-            em.persist(object);
+        // then - 원했던 List 가 모두 정확하게 반환되었다
+        for (int i = 0; i < moimPosts.size(); i++) {
+            assertThat(moimPosts.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
         }
-        em.flush();
-        em.clear();
     }
+
+
+    // 1. 모임원 유저의 요청
+    // Category Filter Off 후속 요청
+    @Test
+    void findByCategoryAndLastPostOrderByDateDesc_shouldReturnPosts_whenMoimMemberNextRequestWithoutCategory() {
+
+        // given
+        boolean moimMemberRequest = true;
+        MoimPostCategory category = null;
+        MoimPost lastPost = null;
+
+        // when
+        List<MoimPost> firstReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        lastPost = firstReq.get(lastPostIndex);
+        List<MoimPost> nextReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+
+        // then - limit 를 제외한 동일 쿼리로 모두 가져온다
+        List<MoimPost> rawMoimPosts = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :id " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("id", testMoim.getId())
+                .getResultList();
+
+        // then - 원했던 List 가 모두 정확하게 반환되었다
+        for (int i = 0; i < firstReq.size() + nextReq.size(); i++) {
+            if (i < firstReq.size()) {
+                assertThat(firstReq.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+            } else {
+                int tmp = i - firstReq.size();
+                assertThat(nextReq.get(tmp).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+            }
+        }
+    }
+
+
+    // 1. 모임원 유저의 요청
+    // Category Filter On 첫 요청
+    @Test
+    void findByCategoryAndLastPostOrderByDateDesc_shouldReturnPosts_whenMoimMemberFirstRequestWithCategory() {
+
+        // given
+        boolean moimMemberRequest = true;
+        MoimPostCategory category = MoimPostCategory.GREETING;
+        MoimPost lastPost = null;
+
+        // when
+        List<MoimPost> moimPosts = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+
+        // then - limit 를 제외한 동일 쿼리로 모두 가져온다
+        List<MoimPost> rawMoimPosts = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :id " +
+                        "and mp.moimPostCategory = :category " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("id", testMoim.getId())
+                .setParameter("category", category)
+                .getResultList();
+
+        // then - 원했던 List 가 모두 정확하게 반환되었다
+        for (int i = 0; i < moimPosts.size(); i++) {
+            assertThat(moimPosts.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+        }
+    }
+
+
+    // 1. 모임원 유저의 요청
+    // Category Filter On 후속 요청
+    @Test
+    void findByCategoryAndLastPostOrderByDateDesc_shouldReturnPosts_whenMoimMemberNextRequestWithCategory() {
+
+        // given
+        boolean moimMemberRequest = true;
+        MoimPostCategory category = MoimPostCategory.GREETING;
+        MoimPost lastPost = null;
+
+        // when
+        List<MoimPost> firstReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        lastPost = firstReq.get(lastPostIndex);
+        List<MoimPost> nextReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+
+        // then - limit 를 제외한 동일 쿼리로 모두 가져온다
+        List<MoimPost> rawMoimPosts = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :id " +
+                        "and mp.moimPostCategory = :category " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("id", testMoim.getId())
+                .setParameter("category", category)
+                .getResultList();
+
+        // then - 원했던 List 가 모두 정확하게 반환되었다
+        for (int i = 0; i < firstReq.size() + nextReq.size(); i++) {
+            if (i < firstReq.size()) {
+                assertThat(firstReq.get(i).getMoimPostCategory()).isEqualTo(MoimPostCategory.GREETING);
+                assertThat(firstReq.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+            } else {
+                int tmp = i - firstReq.size();
+                assertThat(nextReq.get(tmp).getMoimPostCategory()).isEqualTo(MoimPostCategory.GREETING);
+                assertThat(nextReq.get(tmp).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+            }
+        }
+    }
+
+
+    // 2. 비모임원 유저의 요청 - 동일
+    // Category Filter Off 후속 요청
+    @Test
+    void findByCategoryAndLastPostOrderByDateDesc_shouldReturnPosts_whenNotMemberNextRequestWithoutCategory() {
+
+        // given
+        boolean moimMemberRequest = false;
+        MoimPostCategory category = null;
+        MoimPost lastPost = null;
+
+        // when
+        List<MoimPost> firstReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        lastPost = firstReq.get(lastPostIndex);
+        List<MoimPost> nextReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+
+        // then - limit 를 제외한 동일 쿼리로 모두 가져온다
+        List<MoimPost> rawMoimPosts = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :id " +
+                        "and mp.hasPrivateVisibility = :visibility " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("id", testMoim.getId())
+                .setParameter("visibility", moimMemberRequest)
+                .getResultList();
+
+        // then - 원했던 List 가 모두 정확하게 반환되었다
+        for (int i = 0; i < firstReq.size() + nextReq.size(); i++) {
+            if (i < firstReq.size()) {
+                assertThat(firstReq.get(i).isHasPrivateVisibility()).isEqualTo(false);
+                assertThat(firstReq.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+            } else {
+                int tmp = i - firstReq.size();
+                assertThat(nextReq.get(tmp).isHasPrivateVisibility()).isEqualTo(false);
+                assertThat(nextReq.get(tmp).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+            }
+        }
+    }
+
+
+    // 2. 비모임원 유저의 요청 - 동일
+    // Category Filter On 후속 요청
+    @Test
+    void findByCategoryAndLastPostOrderByDateDesc_shouldReturnPosts_whenNotMemberNextRequestWithCategory() {
+
+        // given
+        boolean moimMemberRequest = false;
+        MoimPostCategory category = MoimPostCategory.GREETING;
+        MoimPost lastPost = null;
+
+        // when
+        List<MoimPost> firstReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        lastPost = firstReq.get(lastPostIndex);
+        List<MoimPost> nextReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
+
+        // then - limit 를 제외한 동일 쿼리로 모두 가져온다
+        List<MoimPost> rawMoimPosts = em.createQuery("select mp from MoimPost mp " +
+                        "where mp.moim.id = :id " +
+                        "and mp.hasPrivateVisibility = :visibility " + // private visibility 가 없는 것들만 가져와야 한다
+                        "and mp.moimPostCategory = :category " +
+                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
+                .setParameter("id", testMoim.getId())
+                .setParameter("visibility", moimMemberRequest)
+                .setParameter("category", category)
+                .getResultList();
+
+
+        // then - 원했던 List 가 모두 정확하게 반환되었다
+        for (int i = 0; i < firstReq.size() + nextReq.size(); i++) {
+            if (i < firstReq.size()) {
+                assertThat(firstReq.get(i).isHasPrivateVisibility()).isEqualTo(false);
+                assertThat(firstReq.get(i).getMoimPostCategory()).isEqualTo(MoimPostCategory.GREETING);
+                assertThat(firstReq.get(i).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+            } else {
+                int tmp = i - firstReq.size();
+                assertThat(nextReq.get(tmp).isHasPrivateVisibility()).isEqualTo(false);
+                assertThat(nextReq.get(tmp).getMoimPostCategory()).isEqualTo(MoimPostCategory.GREETING);
+                assertThat(nextReq.get(tmp).getId()).isEqualTo(rawMoimPosts.get(i).getId());
+            }
+        }
+    }
+
+
+    // Created At RANDOM 하게 바꿨을 때도 통과하는거 확인 완
+    // RANDOM 한 Info 들로 저장한다
+    private void makeMoimPosts() throws InterruptedException {
+
+        MoimPostCategory category = null;
+        boolean hasPrivateVisibility = false;
+
+        Random random = new Random();
+
+        for (int i = 0; i < 40; i++) {
+
+            int categoryRandom = random.nextInt(4);
+            int visibilityRandom = random.nextInt(2);
+
+            if (categoryRandom % 4 == 0) category = MoimPostCategory.NOTICE;
+            if (categoryRandom % 4 == 1) category = MoimPostCategory.GREETING;
+            if (categoryRandom % 4 == 2) category = MoimPostCategory.REVIEW;
+            if (categoryRandom % 4 == 3) category = MoimPostCategory.EXTRA;
+            if (visibilityRandom % 2 == 0) hasPrivateVisibility = true;
+            if (visibilityRandom % 2 == 1) hasPrivateVisibility = false;
+
+            String title = "제목" + visibilityRandom + i + categoryRandom;
+            MoimPost post = MoimPost.createMoimPost(title, "내용", category, hasPrivateVisibility, false, testMoim, moimCreator);
+            if (i % 3 == 1) {
+                Thread.sleep(100);
+            }
+            em.persist(post);
+        }
+
+    }
+
 }

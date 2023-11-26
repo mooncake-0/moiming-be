@@ -46,7 +46,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class MoimControllerTest extends TestObjectCreator {
 
-    public final String MOIM_BASE_URL = API_SERVER + API_MOIM_VER + API_MOIM;
     public final ObjectMapper om = new ObjectMapper();
 
     @Autowired
@@ -82,7 +81,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
         // 1번 Member 형성
         testRole = makeTestRole(RoleType.USER);
-        curMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, testRole);
+        curMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci,testRole);
 
         roleRepository.save(testRole);
         memberRepository.save(curMember);
@@ -120,7 +119,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println(responseBody);
@@ -145,7 +144,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
 
         // then
@@ -167,7 +166,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -187,7 +186,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -206,7 +205,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -226,7 +225,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(MOIM_BASE_URL + "/create").content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -256,7 +255,7 @@ public class MoimControllerTest extends TestObjectCreator {
         suAnotherMoim();
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_BASE_URL).header(HEADER, PREFIX + testAccessToken));
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW).header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
@@ -274,7 +273,7 @@ public class MoimControllerTest extends TestObjectCreator {
     void getMemberMoims_shouldReturn200_whenRightInfoPassedAndNoMoimJoined() throws Exception {
 
         // given
-        Member curMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, testRole);
+        Member curMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2,testRole);
         memberRepository.save(curMember2);
         em.flush();
         em.clear();
@@ -282,7 +281,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String testAccessToken2 = createTestJwtToken(curMember2, 1000); // 아무 모임도 가입하지 않은 회원이 요청한다
 
         // when
-        ResultActions resultActions = mvc.perform(get(MOIM_BASE_URL).header(HEADER, PREFIX + testAccessToken2));
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW).header(HEADER, PREFIX + testAccessToken2));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
 
@@ -302,7 +301,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -326,7 +325,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -346,7 +345,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -366,7 +365,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -386,7 +385,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -411,7 +410,7 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
@@ -438,7 +437,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
 
         // when
-        ResultActions resultActions = mvc.perform(patch(MOIM_BASE_URL).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 

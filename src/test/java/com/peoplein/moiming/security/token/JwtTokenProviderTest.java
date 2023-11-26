@@ -30,7 +30,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
     void generateToken_shouldReturnJwtToken_whenRightInfoPassed() {
 
         //given
-        Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
+        Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole(1L, RoleType.USER));
 
         //when
         String at = tokenProvider.generateToken(MoimingTokenType.JWT_AT, mockMember);
@@ -47,8 +47,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
         //given
         //when
         //then
-        assertThatThrownBy(() -> tokenProvider.generateToken(MoimingTokenType.JWT_AT, null))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> tokenProvider.generateToken(MoimingTokenType.JWT_AT, null)).isInstanceOf(NullPointerException.class);
 
     }
 
@@ -57,7 +56,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
     void verifyMemberEmail_shouldReturnEmail_whenRightTokenPassed() {
 
         // given
-        Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
+        Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole(1L, RoleType.USER));
         String testJwtToken = createTestJwtToken(mockMember, 1000);
 
         // when
@@ -72,7 +71,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
     void verifyMemberEmail_shouldThrowExpiredException_whenTokenExpires() throws Exception {
 
         // given
-        Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, mockRole(1L, RoleType.USER));
+        Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole(1L, RoleType.USER));
         String testJwtToken = createTestJwtToken(mockMember, 1000);
 
         // when
@@ -91,8 +90,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
 
         // when
         // then
-        assertThatThrownBy(() -> tokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, testToken))
-                .isInstanceOf(JWTDecodeException.class);
+        assertThatThrownBy(() -> tokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, testToken)).isInstanceOf(JWTDecodeException.class);
 
     }
 
@@ -104,8 +102,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
 
         // when
         // then
-        assertThatThrownBy(() -> tokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, testToken))
-                .isInstanceOf(JWTDecodeException.class);
+        assertThatThrownBy(() -> tokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, testToken)).isInstanceOf(JWTDecodeException.class);
 
     }
 
@@ -117,8 +114,7 @@ public class JwtTokenProviderTest extends TestMockCreator {
 
         // when
         // then
-        assertThatThrownBy(() -> tokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, testToken))
-                .isInstanceOf(JWTDecodeException.class);
+        assertThatThrownBy(() -> tokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, testToken)).isInstanceOf(JWTDecodeException.class);
 
     }
 

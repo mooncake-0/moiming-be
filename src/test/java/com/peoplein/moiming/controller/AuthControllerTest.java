@@ -2,8 +2,10 @@ package com.peoplein.moiming.controller;
 
 
 import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
@@ -23,7 +25,13 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.EntityManager;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import static com.peoplein.moiming.config.AppUrlPath.*;
+import static com.peoplein.moiming.domain.enums.PolicyType.*;
+import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
 import static com.peoplein.moiming.support.TestDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,7 +48,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class AuthControllerTest extends TestObjectCreator {
 
-    private final String AUTH_URL = API_SERVER + API_AUTH_VER + API_AUTH;
     private final ObjectMapper om = new ObjectMapper();
 
     @Autowired
@@ -62,9 +69,8 @@ public class AuthControllerTest extends TestObjectCreator {
     @BeforeEach
     void dataSu() {
 
-
         Role testRole = makeTestRole(RoleType.USER);
-        registeredMember = makeTestMember("registered@mail.com", "01000000000", "등록된", "등록된닉네임", testRole);
+        registeredMember = makeTestMember("registered@mail.com", "01000000000", "등록된", "등록된닉네임", "registered-ci", testRole);
         savedToken = createTestJwtToken(registeredMember, 2000);
         registeredMember.changeRefreshToken(savedToken); // reissue 단 test 를 위해 Test token 을 주입해둔다
 
@@ -77,14 +83,23 @@ public class AuthControllerTest extends TestObjectCreator {
     }
 
 
+    private List<PolicyAgreeDto> provideNormalPolicyDtos() {
+        boolean[] hasAgreeds = {true, true, true, true, false};
+        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
+        return makePolicyReqDtoList(hasAgreeds, policyTypes);
+    }
+
+
     @Test
-    void checkUidAvailable_shouldReturn200_whenEmailAvailable() throws Exception {
+    void checkEmailAvailable_shouldReturn200_whenEmailAvailable() throws Exception {
 
         // given
         String availableEmail = memberEmail;
+        String [] params = {"email"};
+        String[] vals = {availableEmail};
 
         // when
-        ResultActions resultActions = mvc.perform(get(AUTH_URL + "/available/" + availableEmail));
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
 
         // then
         resultActions.andExpect(status().isOk());
@@ -94,32 +109,36 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void checkUidAvailable_shouldReturn400_whenEmailUnavailable_byMoimingApiException() throws Exception {
+    void checkEmailAvailable_shouldReturn400_whenEmailUnavailable_byMoimingApiException() throws Exception {
 
         // given
         String unavailableEmail = "registered@mail.com";
+        String [] params = {"email"};
+        String[] vals = {unavailableEmail};
 
         // when
-        ResultActions resultActions = mvc.perform(get(AUTH_URL + "/available/" + unavailableEmail));
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
 
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.code").value(-1));
 
     }
 
 
     @Test
-    void checkUidAvailable_shouldReturn404_whenNoEmailPassed() throws Exception {
+    void checkEmailAvailable_shouldReturn404_whenNoEmailPassed() throws Exception {
 
         // given
         String noEmail = "";
+        String [] params = {"email"};
+        String[] vals = {noEmail};
 
         // when
-        ResultActions resultActions = mvc.perform(get(AUTH_URL + "/available/" + noEmail));
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("responseBody = " + responseBody);
 
@@ -133,11 +152,11 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturnMemberDtoAnd200_whenSuccessful() throws Exception {
 
         // given
-        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         String jwtValue = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
         String jwtAccessToken = jwtValue.replace(JwtParams.PREFIX, "");
@@ -147,6 +166,9 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isCreated());
         resultActions.andExpect(jsonPath("$.data.nickname").exists());
         resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.foreigner").value(notForeigner));
+//        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender.toString()));
         assertTrue(jwtValue.startsWith(JwtParams.PREFIX));
         assertTrue(StringUtils.hasText(jwtAccessToken));
     }
@@ -156,17 +178,25 @@ public class AuthControllerTest extends TestObjectCreator {
     @Test
     void signIn_shouldReturn400_whenEmailDuplicates_byMoimingApiException() throws Exception {
 
+//        System.out.println("========== STARTING TEST ========= ");
         // given
         String unavailableEmail = "registered@mail.com";
-        TestMemberRequestDto reqDto = makeMemberReqDto(unavailableEmail, memberName, memberPhone);
+        TestMemberRequestDto reqDto = makeMemberReqDto(unavailableEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(-1));
+
+        //
+//        Optional<Member> email = memberRepository.findByEmail(unavailableEmail);
+//        System.out.println("end of TEST ===================================");
+//        System.out.println(email.get());
+
+
     }
 
 
@@ -176,11 +206,29 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // given
         String unavailablePhone = "01000000000";
-        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, unavailablePhone);
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, unavailablePhone, ci, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+    }
+
+
+    // 중복 CI 값 유저 - 불가능
+    @Test
+    void signIn_shouldReturn400_whenCiDuplicates_byMoimingApiException() throws Exception {
+
+        // given
+        String unavailableCi = "registered-ci";
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone, unavailableCi, provideNormalPolicyDtos());
+        String requestString = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isBadRequest());
@@ -190,15 +238,15 @@ public class AuthControllerTest extends TestObjectCreator {
 
     // VALIDATION 에서 걸릴 때 (없는 값 하나 대표적으로)
     @Test
-    void signIn_shouldReturn400_whenRequestDtoValidationFails_byMoimingValidationException() throws Exception{
+    void signIn_shouldReturn400_whenRequestDtoValidationFails_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
         requestDto.setFcmToken(""); // 빈값 치환
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
 
@@ -215,11 +263,11 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // given
         String wrongEmailFormat = "hellonaver.com";
-        TestMemberRequestDto requestDto = makeMemberReqDto(wrongEmailFormat, memberName, memberPhone);
+        TestMemberRequestDto requestDto = makeMemberReqDto(wrongEmailFormat, memberName, memberPhone, ci, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
 
@@ -227,7 +275,6 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(-1));
     }
-
 
 
     // TODO :: 이메일 길이로 인한 형식 오류 및 비밀번호 형식 DTO 에 제대로 명시 후 Test
@@ -238,12 +285,12 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn400_whenPasswordConditionFails_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone);
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
         requestDto.setPassword("123");
         String requestString = om.writeValueAsString(requestDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/signin").content(requestString).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
         String errResponse = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println("errResponse = " + errResponse);
 
@@ -252,6 +299,94 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(-1));
 
     }
+
+
+    // Policy 필드가 없음
+    @Test
+    void signIn_shouldReturn400_whenPolicyListNull_byMoimingValidationException() throws Exception {
+
+        // given
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, null);
+        String requestString = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
+                .content(requestString).contentType(MediaType.APPLICATION_JSON));
+        String errResponse = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("errResponse = " + errResponse);
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+
+    }
+
+
+    // Policy 정보가 없음
+    @Test
+    void signIn_shouldReturn400_whenPolicyListEmpty_byMoimingValidationException() throws Exception {
+
+        // given
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, new ArrayList<>());
+        String requestString = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
+                .content(requestString).contentType(MediaType.APPLICATION_JSON));
+        String errResponse = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("errResponse = " + errResponse);
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+
+    }
+
+    // 필수 Policy Agreement 가 false 로 들어옴
+    @Test
+    void signIn_shouldReturn400_whenPolicyListInvalid_byMoimingApiException() throws Exception {
+
+        // given
+        boolean[] isAgreeds = {true, true, false, true, false};
+        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, makePolicyReqDtoList(isAgreeds, policyTypes));
+        String requestString = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
+                .content(requestString).contentType(MediaType.APPLICATION_JSON));
+        String errResponse = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("errResponse = " + errResponse);
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+
+    }
+
+
+    // Policy 정보가 모자람
+    @Test
+    void signIn_shouldReturn400_whenPolicyListLack_byMoimingValidationException() throws Exception {
+
+        // given
+        boolean[] isAgreeds = {true, true, true, true};
+        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_EMAIL};
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, makePolicyReqDtoList(isAgreeds, policyTypes));
+        String requestString = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
+                .content(requestString).contentType(MediaType.APPLICATION_JSON));
+        String errResponse = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("errResponse = " + errResponse);
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(-1));
+
+    }
+
     //
 
 
@@ -267,7 +402,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/token").content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN).content(requestBody).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         String headerJwt = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
         String reissuedToken = headerJwt.replace(JwtParams.PREFIX, "");
@@ -297,7 +432,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/token").content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN).content(requestBody).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isOk());
@@ -323,7 +458,8 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
         // when
-        ResultActions resultActions = mvc.perform(post(AUTH_URL + "/token").content(requestData).contentType(MediaType.APPLICATION_JSON));
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN)
+                .content(requestData).contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isUnauthorized());
