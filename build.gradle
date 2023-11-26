@@ -64,10 +64,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-admin:9.1.1'
     implementation 'com.google.firebase:firebase-messaging:22.0.0'
 
-
     // Swagger 2.9.2 적용
     implementation 'io.springfox:springfox-swagger-ui:2.9.2'
     implementation 'io.springfox:springfox-swagger2:2.9.2'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.7.6'
+
 
     // Http 요청 Library (OkHttp)
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
@@ -85,11 +86,6 @@ dependencies {
 //    implementation 'com.google.code.findbugs:findbugs-annotation:3.0.1'
 //    implementation 'net.java.dev.jna:jna:5.8.0'
 //    implementation 'net.java.dev.jna:jna-platform:5.8.0'
-
-
-    // ?
-    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.7.6'
-    implementation 'io.micrometer:micrometer-registry-prometheus:1.11.2'
 
     // 개발 환경
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
@@ -117,15 +113,3 @@ configurations {
 compileQuerydsl {
     options.annotationProcessorPath = configurations.querydsl
 }
-
-jar {
-    archiveFileName = 'moiming.jar'
-}
-
-task moveJar(type: Copy) {
-    // JAR 파일을 옮길 위치 설정
-    from jar.archiveFile
-    into 'docker/'
-}
-
-build.dependsOn(moveJar)
