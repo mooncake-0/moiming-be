@@ -134,7 +134,8 @@ public class MoimPostServiceIntegratedTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReqResults = moimPostService.getMoimPosts(testMoim.getId(), null, null, 10, moimMember);
-        Long lastPostId = firstReqResults.get(firstReqResults.size() - 1).getId();
+        int lastPostIndex = firstReqResults.size() == 0 ? 0 : firstReqResults.size() - 1; // 마지막 녀석을 가져온다
+        Long lastPostId = firstReqResults.get(lastPostIndex).getId();
         List<MoimPost> secondReqResults = moimPostService.getMoimPosts(testMoim.getId(), lastPostId, null, 10, moimMember);
 
         // then
@@ -153,7 +154,8 @@ public class MoimPostServiceIntegratedTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReqResults = moimPostService.getMoimPosts(testMoim.getId(), null, null, 10, moimMember);
-        Long lastPostId = firstReqResults.get(firstReqResults.size() - 1).getId();
+        int lastPostIndex = firstReqResults.size() == 0 ? 0 : firstReqResults.size() - 1; // 마지막 녀석을 가져온다
+        Long lastPostId = firstReqResults.get(lastPostIndex).getId();
         List<MoimPost> secondReqResults = moimPostService.getMoimPosts(testMoim.getId(), lastPostId, null, 10, moimMember);
 
         // then - db verify
@@ -185,7 +187,8 @@ public class MoimPostServiceIntegratedTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReqResults = moimPostService.getMoimPosts(testMoim.getId(), null, category, 10, moimMember);
-        Long lastPostId = firstReqResults.get(firstReqResults.size() - 1).getId();
+        int lastPostIndex = firstReqResults.size() == 0 ? 0 : firstReqResults.size() - 1; // 마지막 녀석을 가져온다
+        Long lastPostId = firstReqResults.get(lastPostIndex).getId();
         List<MoimPost> secondReqResults = moimPostService.getMoimPosts(testMoim.getId(), lastPostId, category, 10, moimMember);
 
         // then - db verify
@@ -246,7 +249,8 @@ public class MoimPostServiceIntegratedTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReqResults = moimPostService.getMoimPosts(testMoim.getId(), null, null, 10, notMoimMember);
-        Long lastPostId = firstReqResults.get(firstReqResults.size() - 1).getId();
+        int lastPostIndex = firstReqResults.size() == 0 ? 0 : firstReqResults.size() - 1; // 마지막 녀석을 가져온다
+        Long lastPostId = firstReqResults.get(lastPostIndex).getId();
         List<MoimPost> secondReqResults = moimPostService.getMoimPosts(testMoim.getId(), lastPostId, null, 10, notMoimMember);
 
         // then - db verify
@@ -283,7 +287,8 @@ public class MoimPostServiceIntegratedTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReqResults = moimPostService.getMoimPosts(testMoim.getId(), null, category, 10, notMoimMember);
-        Long lastPostId = firstReqResults.get(firstReqResults.size() - 1).getId();
+        int lastPostIndex = firstReqResults.size() == 0 ? 0 : firstReqResults.size() - 1; // 마지막 녀석을 가져온다
+        Long lastPostId = firstReqResults.get(lastPostIndex).getId();
         List<MoimPost> secondReqResults = moimPostService.getMoimPosts(testMoim.getId(), lastPostId, category, 10, notMoimMember);
 
         // then - db verify

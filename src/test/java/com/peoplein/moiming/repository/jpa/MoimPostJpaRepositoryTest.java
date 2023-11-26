@@ -105,7 +105,8 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
-        lastPost = firstReq.get(firstReq.size() - 1); // 마지막 녀석을 가져온다
+        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        lastPost = firstReq.get(lastPostIndex);
         List<MoimPost> nextReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
 
         // then - limit 를 제외한 동일 쿼리로 모두 가져온다
@@ -168,7 +169,8 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
-        lastPost = firstReq.get(firstReq.size() - 1); // 마지막 녀석을 가져온다
+        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        lastPost = firstReq.get(lastPostIndex);
         List<MoimPost> nextReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
 
         // then - limit 를 제외한 동일 쿼리로 모두 가져온다
@@ -206,7 +208,8 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
-        lastPost = firstReq.get(firstReq.size() - 1); // 마지막 녀석을 가져온다
+        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        lastPost = firstReq.get(lastPostIndex);
         List<MoimPost> nextReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
 
         // then - limit 를 제외한 동일 쿼리로 모두 가져온다
@@ -244,7 +247,8 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
-        lastPost = firstReq.get(firstReq.size() - 1); // 마지막 녀석을 가져온다
+        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        lastPost = firstReq.get(lastPostIndex);
         List<MoimPost> nextReq = moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
 
         // then - limit 를 제외한 동일 쿼리로 모두 가져온다
