@@ -32,7 +32,7 @@ public class MoimPost extends BaseEntity {
     private MoimPostCategory moimPostCategory;
     private boolean hasPrivateVisibility;
     private boolean hasFiles;
-
+    private int commentCnt;
     private Long updatedMemberId;
 
     /*
@@ -72,6 +72,7 @@ public class MoimPost extends BaseEntity {
         this.member = member;
 
         // 초기화.
+        this.commentCnt = 0;
         this.updatedMemberId = member.getId();
     }
 
@@ -95,6 +96,13 @@ public class MoimPost extends BaseEntity {
         this.moimPostCategory = moimPostCategory;
     }
 
+    public void addCommentCnt() {
+        this.commentCnt += 1;
+    }
+
+    public void minusCommentCnt() {
+        this.commentCnt -= 1;
+    }
 
     // Attribute - Class 내 포함 변수
     // Parameter - String name 같은 전달할 녀석들을 의미

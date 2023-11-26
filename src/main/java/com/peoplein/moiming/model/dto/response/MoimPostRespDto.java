@@ -21,6 +21,7 @@ public class MoimPostRespDto {
         private String postTitle;
         private String postContent;
         private MoimPostCategory moimPostCategory;
+        private int commentCnt;
         private boolean hasPrivateVisibility;
         private boolean hasFiles;
         private String createdAt;
@@ -31,10 +32,12 @@ public class MoimPostRespDto {
             this.postTitle = moimPost.getPostTitle();
             this.postContent = moimPost.getPostContent();
             this.moimPostCategory = moimPost.getMoimPostCategory();
+            this.commentCnt = moimPost.getCommentCnt();
             this.hasPrivateVisibility = moimPost.isHasPrivateVisibility();
             this.hasFiles = moimPost.isHasFiles();
             this.createdAt = moimPost.getCreatedAt() + "";
             this.updatedAt = moimPost.getUpdatedAt() + "";
+
         }
 
     }

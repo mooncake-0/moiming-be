@@ -51,14 +51,15 @@ public class PostComment extends BaseEntity{
 
         this.content = content;
 
-    /*
-     연관관계 매핑 및 편의 함수
-     */
+        /*
+         연관관계 매핑 및 편의 함수
+         */
         this.member = member;
         this.moimPost = moimPost;
         this.depth = depth; // 바뀔 수도 있으니까..
         this.parent = parent;
 
+        this.moimPost.addCommentCnt();
         this.moimPost.addPostComment(this);
     }
 
