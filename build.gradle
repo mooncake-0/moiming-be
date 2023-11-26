@@ -91,6 +91,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator:2.7.6'
     implementation 'io.micrometer:micrometer-registry-prometheus:1.11.2'
 
+    // 개발 환경
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+
 }
 
 tasks.named('test') {
