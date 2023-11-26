@@ -2,6 +2,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.domain.PostCommentDto;
 import com.peoplein.moiming.model.dto.request.PostCommentReqDto;
 import com.peoplein.moiming.model.dto.request_b.PostCommentRequestDto;
@@ -45,12 +46,12 @@ public class PostCommentController {
             @ApiResponse(code = 400, message = "댓글 생성 실패, ERR MSG 확인")
     })
     @PostMapping(PATH_POST_COMMENT_CREATE)
-    public String createComment(@RequestBody @Valid PostCommentCreateReqDto requestDto
+    public ResponseEntity<?> createComment(@RequestBody @Valid PostCommentCreateReqDto requestDto
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         postCommentService.createComment(requestDto, principal.getMember());
-        return "";
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "댓글 생성 성공", null));
     }
 
 
