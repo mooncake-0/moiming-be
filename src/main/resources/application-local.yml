@@ -7,9 +7,9 @@ spring:
   #DB
   #Local DB Source
   datasource:
-    url: jdbc:mysql://${DEV_DB_HOST}:${DEV_DB_PORT}/${DEV_DB_SCHEMA_NAME}?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
-    username: ${DEV_DB_USERNAME}
-    password: ${DEV_DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/moiming_dev_db?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username: root
+    password: peoplein
 
   jpa:
     hibernate:
