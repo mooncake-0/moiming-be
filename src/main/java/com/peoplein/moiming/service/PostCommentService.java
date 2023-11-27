@@ -55,11 +55,25 @@ public class PostCommentService {
         }
 
         PostComment comment = PostComment.createPostComment(requestDto.getContent(), member, moimPost,
-                requestDto.getDepth(), getParentCommentByReqDto(requestDto));
+                requestDto.getDepth(), getParentCommentByReqDto(requestDto.getDepth(), requestDto.getParentId()));
 
         postCommentRepository.save(comment);
 
     }
+
+
+    public void updateComment(PostCommentUpdateReqDto requestDto, Member member) {
+
+        // 수정할 때는 외래키를 건들지 않고, commentId 만 바로 조회 후 수정한다
+        PostComment postComment = postCommentRepository.findById(requestDto.getPostCommentId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
+        );
+
+
+        postComment.updateComment(requestDto, member.getId());
+
+    }
+
 
 
     public void deletePostComment(Long commentId, Member curMember) {
@@ -88,16 +102,16 @@ public class PostCommentService {
         }
     }
 
-    private PostComment getParentCommentByReqDto(PostCommentCreateReqDto requestDto) {
+    private PostComment getParentCommentByReqDto(int depth, Long parentId) {
 
         PostComment parentComment = null;
 
-        if (requestDto.getDepth() != 0 && requestDto.getParentId() != null) { // 답글임
+        if (depth != 0 && parentId != null) { // 답글임
 
-            parentComment = postCommentRepository.findById(requestDto.getParentId())
+            parentComment = postCommentRepository.findById(parentId)
                     .orElseThrow(() -> new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)); //답글로 전달되었으나 부모 댓글을 찾을 수 없음 (리소스를 찾을 수 없다)
 
-        } else if (requestDto.getDepth() != 0 || requestDto.getParentId() != null) {
+        } else if (depth != 0 || parentId != null) {
 
             throw new MoimingApiException(COMMON_INVALID_PARAM); // 부모 & 자식 관계 매핑 오류, 잘못된 요청
         }

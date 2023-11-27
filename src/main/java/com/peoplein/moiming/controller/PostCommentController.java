@@ -58,6 +58,22 @@ public class PostCommentController {
     /*
      댓글 수정 :성공시 수정된 댓글에 대한 정보를 전달한다, 요청시 CommentId 와 수정 내용 전달
      */
+    @ApiOperation("게시물 댓글 수정")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "댓글 수정 성공"),
+            @ApiResponse(code = 400, message = "댓글 수정 실패, ERR MSG 확인")
+    })
+    @PatchMapping(PATH_POST_COMMENT_UPDATE)
+    public ResponseEntity<?> updateComment(@RequestBody @Valid PostCommentUpdateReqDto requestDto
+            , BindingResult br
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "댓글 수정 성공", null));
+    }
 
 
     /*

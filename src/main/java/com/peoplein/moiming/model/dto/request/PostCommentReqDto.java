@@ -34,4 +34,21 @@ public class PostCommentReqDto {
         private Integer depth;
 
     }
+
+
+    // TODO :: 주의 사항 - 부모를 변경
+    @ApiModel(value = "Post Comment API - 요청 - 댓글 수정")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PostCommentUpdateReqDto {
+
+        @NotNull
+        private Long postCommentId;
+
+        @Size(max = 100)
+        private String content;
+
+    }
 }

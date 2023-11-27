@@ -1,11 +1,17 @@
 package com.peoplein.moiming.domain;
 
+import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.request.PostCommentReqDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 
 @Entity
 @Getter
@@ -68,5 +74,22 @@ public class PostComment extends BaseEntity{
     public void changeHasDeleted() {
         this.hasDeleted = true;
         this.moimPost.minusCommentCnt();
+    }
+
+
+    public void updateComment(PostCommentUpdateReqDto requestDto, Long updaterId) {
+
+        if (!this.getMember().getId().equals(updaterId)) {
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED); // TODO :: 수정자가 아니면 수정할 수 없다 -> 권한 관련이 맞겠지?
+        }
+
+        if (requestDto.getContent() != null) {
+            this.setContent(requestDto.getContent());
+        }
+    }
+
+
+    private void setContent(String content) {
+        this.content = content;
     }
 }
