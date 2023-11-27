@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
@@ -199,7 +200,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -222,7 +223,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -245,7 +246,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -267,7 +268,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 

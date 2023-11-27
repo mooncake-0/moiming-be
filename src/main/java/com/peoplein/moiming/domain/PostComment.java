@@ -18,11 +18,11 @@ public class PostComment extends BaseEntity{
     @Column(name = "post_comment_id")
     private Long id;
 
-    private String commentContent;
-
     private String content;
 
     private int depth;
+
+    private boolean hasDeleted;
 
     /*
      연관관계
@@ -59,8 +59,14 @@ public class PostComment extends BaseEntity{
         this.depth = depth; // 바뀔 수도 있으니까..
         this.parent = parent;
 
+        this.hasDeleted = false;
         this.moimPost.addCommentCnt();
         this.moimPost.addPostComment(this);
     }
 
+
+    public void changeHasDeleted() {
+        this.hasDeleted = true;
+        this.moimPost.minusCommentCnt();
+    }
 }

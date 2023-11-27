@@ -9,6 +9,7 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.assertj.core.api.Assertions;
@@ -133,7 +134,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
     }
 
 
@@ -156,7 +157,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.postTitle").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
     }
@@ -180,7 +181,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.postContent").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
     }
@@ -204,7 +205,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.moimPostCategory").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
     }
@@ -231,7 +232,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
 

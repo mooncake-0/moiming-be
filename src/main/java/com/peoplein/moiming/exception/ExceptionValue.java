@@ -8,6 +8,7 @@ public enum ExceptionValue {
     // COMMON
     COMMON_INVALID_PARAM("C100", "잘못된 Paremeter 전달: 잘못된 상황 발생"),
     COMMON_INVALID_PARAM_NULL("C101", "잘못된 Parameter 전달: NULL 발생"),
+    COMMON_REQUEST_VALIDATION("C102", "Request DTO Validation 실패"),
 
 
     // MOIM DOMAIN

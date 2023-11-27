@@ -1,5 +1,6 @@
 package com.peoplein.moiming.handler.aop;
 
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingValidationException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -47,7 +48,7 @@ public class RequestValidationAdvisor {
                         errMap.put(fe.getField(), fe.getDefaultMessage());
                     }
 
-                    throw new MoimingValidationException("[유효성 검사 실패] 들어오는 PARAMS 들을 확인하세요", errMap);
+                    throw new MoimingValidationException(ExceptionValue.COMMON_REQUEST_VALIDATION, errMap);
                 }
             }
         }
