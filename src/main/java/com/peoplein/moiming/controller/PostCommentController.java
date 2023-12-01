@@ -79,4 +79,23 @@ public class PostCommentController {
     /*
      댓글 삭제 : 성공시 생성된 댓글을 삭제후 OK를 전달한다
      */
+    @ApiOperation("게시물 댓글 삭제")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "댓글 수정 성공"),
+            @ApiResponse(code = 400, message = "댓글 수정 실패, ERR MSG 확인")
+    })
+    @DeleteMapping(PATH_POST_COMMENT_DELETE)
+    public ResponseEntity<?> deleteComment(@PathVariable(name = "moimId") Long moimId
+            , @PathVariable(name = "moimPostId") Long moimPostId
+            , @PathVariable(name = "postCommentId") Long postCommentId
+            , BindingResult br
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        postCommentService.deleteComment(postCommentId, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "댓글 삭제 성공", null));
+    }
+
 }

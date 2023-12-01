@@ -1,6 +1,7 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
@@ -12,6 +13,7 @@ import com.peoplein.moiming.model.dto.request.PostCommentReqDto;
 import com.peoplein.moiming.model.dto.request_b.PostCommentRequestDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
+import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,7 @@ public class PostCommentService {
     private final MoimPostRepository moimPostRepository;
     private final PostCommentRepository postCommentRepository;
     private final MoimMemberRepository moimMemberRepository;
+    private final MoimRepository moimRepository;
 
     public void createComment(PostCommentCreateReqDto requestDto, Member member) {
 
@@ -64,6 +67,10 @@ public class PostCommentService {
 
     public void updateComment(PostCommentUpdateReqDto requestDto, Member member) {
 
+        if (requestDto == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+        }
+
         // 수정할 때는 외래키를 건들지 않고, commentId 만 바로 조회 후 수정한다
         PostComment postComment = postCommentRepository.findById(requestDto.getPostCommentId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
@@ -75,32 +82,33 @@ public class PostCommentService {
     }
 
 
+    public void deleteComment(Long postCommentId, Member member) {
 
-    public void deletePostComment(Long commentId, Member curMember) {
-
-        // 현재 멤버가 삭제할 권한이 있는지 확인 필요
-        // 모임장, 운영진, 작성자만 삭제 가능
-        PostComment postComment = postCommentRepository.findWithMoimPostAndMoimById(commentId);
-
-        if (Objects.isNull(postComment)) {
-            log.error("해당 PK 의 댓글을 찾을 수 없습니다");
-            throw new RuntimeException("해당 PK 의 댓글을 찾을 수 없습니다");
-        } else {
-
-            MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), postComment.getMoimPost().getMoim().getId()).orElseThrow();
-
-            if (!postComment.getMember().getId().equals(curMember.getId())) {
-                // 작성자가 아니라면, 관리자인가?
-                if (!moimMember.getMemberRoleType().equals(MoimMemberRoleType.MANAGER)) {
-                    log.error("삭제할 권한이 없는 유저의 요청입니다");
-                    throw new RuntimeException("삭제할 권한이 없는 유저의 요청입니다");
-                }
-            }
-
-            postComment.getMoimPost().removePostComment(postComment);
-            postCommentRepository.remove(postComment);
+        if (postCommentId == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
         }
+
+
+        /*
+         일단 다 PK 조회로 타게끔 각각 한다 >> 근데 이렇게 하니까 정합성 검증을 못함 (각각 가져오면 PostComment 의 모임이 맞는지 확인필요하기 때문)
+         >> 1. Moim 을 Fetch Join 하려면 이중 Fetch..? 필수?
+         >> 2. 단일 Fetch Join 으로 가능하다고 해도 뭐가 더 이득일까?
+         >> 차피 정합검증 하려면 FETCH JOIN 해야하니까 단일 FETCH 로 생각해봄
+
+         >> 여러가지 최적화를 고민해 봤으나, 어쨌든 두 번 JOIN 이 불가피하다면 데이터 더 불러오는거 가지고는 큰 성능차이는 보기 어려울 듯
+         >> 그냥 다 불러오고 두번 Join 하는걸로.. 정합성 검증 포기하면 데이터 많을 때 빠르긴 하겠지만.. 차라리 그러면 PostComment 에 확인용 moim_id 칼럼을
+         >> 두는 반정규화를 하는게 나을 듯
+         */
+
+        PostComment postComment = postCommentRepository.findWithMoimPostAndMoimById(postCommentId).orElseThrow(() ->
+                new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
+        );
+
+        postComment.deleteComment(member.getId());
+
+
     }
+
 
     private PostComment getParentCommentByReqDto(int depth, Long parentId) {
 

@@ -278,4 +278,109 @@ public class PostCommentServiceTest extends TestMockCreator {
 
     }
 
+
+    // updateComment Test
+    // 1. updateComment - success
+    @Test
+    void updateComment_shouldPass_whenRightInfoPassed() {
+
+        // given
+        PostCommentUpdateReqDto requestDto = mock(PostCommentUpdateReqDto.class);
+        Member member = mock(Member.class);
+        PostComment comment = mock(PostComment.class);
+
+        // given - mock
+        when(postCommentRepository.findById(any())).thenReturn(Optional.of(comment));
+
+        // when
+        postCommentService.updateComment(requestDto, member);
+
+        // then
+        verify(comment, times(1)).updateComment(any(), any());
+
+    }
+
+
+    // 2. null 상황 발생
+    @Test
+    void updateComment_shouldThrowException_whenParameterNull_byMoimingApiException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.updateComment(null, null)).isInstanceOf(MoimingApiException.class);
+    }
+
+
+
+    // 3. postComment 못찾음
+    @Test
+    void updateComment_shouldThrowException_whenPostCommentNotFound_byMoimingApiException() {
+
+        // given
+        PostCommentUpdateReqDto requestDto = mock(PostCommentUpdateReqDto.class);
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(postCommentRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.updateComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // deleteComment Test
+    // 1. deleteComment - success
+    @Test
+    void deleteComment_shouldPass_whenRightInfoPassed() {
+
+        // given
+        Long postCommentId = 1L;
+        Member member = mock(Member.class);
+        PostComment postComment = mock(PostComment.class);
+
+        // given - stub
+        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(postComment));
+
+        // when
+        postCommentService.deleteComment(postCommentId, member);
+
+        // then
+        verify(postComment, times(1)).deleteComment(any());
+
+    }
+
+
+    // 2. null 로 인한 Exception 발생
+    @Test
+    void deleteComment_shouldThrowException_whenParameterNull_byMoimingApiException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.deleteComment(null, null)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 3. moimNotFound 로 인한 Exception 발생
+    @Test
+    void deleteComment_shouldThrowException_whenPostCommentNotFound_byMoimingApiException() {
+
+        // given
+        Long postCommentId = 1L;
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.deleteComment(postCommentId, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
 }

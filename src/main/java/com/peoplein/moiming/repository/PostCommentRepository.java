@@ -10,8 +10,6 @@ public interface PostCommentRepository {
 
     PostComment findWithMoimPostById(Long postCommentId);
 
-    PostComment findWithMoimPostAndMoimById(Long postCommentId);
-
     List<PostComment> findWithMoimPostId(Long moimPostId);
 
     void remove(PostComment postComment);
@@ -25,6 +23,8 @@ public interface PostCommentRepository {
     void save(PostComment postComment);
 
     Optional<PostComment> findById(Long commentId);
+
+    Optional<PostComment> findWithMoimPostAndMoimById(Long commentId);
 
     List<PostComment> findByMoimPostInHierarchyQuery(Long moimPostId);
 
