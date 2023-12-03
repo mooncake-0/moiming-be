@@ -22,14 +22,14 @@ import java.util.Optional;
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 
 @Entity
-@Table(name = "member_moim_linker")
+@Table(name = "moim_member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MoimMember extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_moim_linker_id")
+    @Column(name = "moim_member_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

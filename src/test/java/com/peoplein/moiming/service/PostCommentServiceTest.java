@@ -3,6 +3,7 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
@@ -51,11 +52,14 @@ public class PostCommentServiceTest extends TestMockCreator {
             Member member = mock(Member.class);
             MoimPost moimPost = mock(MoimPost.class);
             MoimMember moimMember = mock(MoimMember.class);
+            Moim moim = mock(Moim.class);
 
             // given - stub
             when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
             when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
             when(moimMember.hasActivePermission()).thenReturn(true);
+            when(moimPost.getMoim()).thenReturn(moim);
+            when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
 
             // given - stub - 1차 댓글
             when(requestDto.getDepth()).thenReturn(0);
@@ -85,11 +89,14 @@ public class PostCommentServiceTest extends TestMockCreator {
             MoimPost moimPost = mock(MoimPost.class);
             MoimMember moimMember = mock(MoimMember.class);
             PostComment parentComment = mock(PostComment.class);
+            Moim moim = mock(Moim.class);
 
             // given - stub
             when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
             when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
             when(moimMember.hasActivePermission()).thenReturn(true);
+            when(moimPost.getMoim()).thenReturn(moim);
+            when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
 
             // given - stub - 댓글에 대한 답글
             when(requestDto.getDepth()).thenReturn(1);
@@ -288,6 +295,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         PostCommentUpdateReqDto requestDto = mock(PostCommentUpdateReqDto.class);
         Member member = mock(Member.class);
         PostComment comment = mock(PostComment.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        Moim moim = mock(Moim.class);
 
         // given - mock
         when(postCommentRepository.findById(any())).thenReturn(Optional.of(comment));

@@ -31,6 +31,8 @@ public class PostComment extends BaseEntity{
     private boolean hasDeleted; // 작성자가 직접 삭제한 댓글 여부
     private boolean reported; // 신고받은 댓글 여부
 
+    private Long updaterId;
+
     /*
      연관관계
     */
@@ -77,12 +79,14 @@ public class PostComment extends BaseEntity{
 
         // 댓글 삭제 권한 - 모임 생성자, 댓글 작성자가 아니면 삭제할 수 없다
         Long moimCreatorId = this.moimPost.getMoim().getCreatorId(); // FETCH JOIN 된 상태로 올 것임
+
         if (!requestMemberId.equals(this.member.getId()) && !requestMemberId.equals(moimCreatorId)) {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
         this.content = ""; // 데이터 삭제
         this.hasDeleted = true;
+        this.updaterId = requestMemberId;
         this.moimPost.minusCommentCnt();
     }
 
@@ -98,6 +102,7 @@ public class PostComment extends BaseEntity{
             this.setContent(requestDto.getContent());
         }
 
+        this.updaterId = updaterId;
     }
 
 

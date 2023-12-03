@@ -10,6 +10,7 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.support.TestObjectCreator;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,9 @@ import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static com.peoplein.moiming.support.TestModelParams.moimArea;
+import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.aMapWithSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,6 +50,8 @@ public class PostCommentControllerTest extends TestObjectCreator {
     private Member moimCreator, moimMember, notMoimMember, inactiveMember;
     private Moim testMoim;
     private MoimPost testMoimPost;
+    private PostComment prePostComment;
+    private String changedContent = "수정된 내용입니다";
 
 
     // Post Comment 생성 요청 - Normal Comment
@@ -67,8 +70,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isOk());
-
-        // 값은 Repo Integrated Test 로 확인완료
+        resultActions.andExpect(jsonPath("$.data.commentId").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.content").value(requestDto.getContent()));
+        resultActions.andExpect(jsonPath("$.data.depth").value(requestDto.getDepth()));
+        resultActions.andExpect(jsonPath("$.data.parentId").value(requestDto.getParentId()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
     }
 
 
@@ -93,8 +101,14 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.commentId").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.content").value(requestDto.getContent()));
+        resultActions.andExpect(jsonPath("$.data.depth").value(requestDto.getDepth()));
+        resultActions.andExpect(jsonPath("$.data.parentId").value(requestDto.getParentId()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
 
-        // 값은 Repo Integrated Test 로 확인완료
     }
 
 
@@ -211,7 +225,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void createComment_shouldReturn400_whenParentCommentMappingWrong_byMoimingApiException() throws Exception {
 
         // given
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null , 1);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null, 1);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
 
@@ -227,13 +241,245 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
+    // UPDATE REQUEST TEST
+    // 댓글 수정 성공 - content 정보만 수정한다 - 댓글 작성자
+    @Test
+    void updateComment_shouldReturn200_whenRequestByCommentCreator() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        System.out.println("response = " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.commentId").value(prePostComment.getId()));
+        resultActions.andExpect(jsonPath("$.data.content").value(requestDto.getContent()));
+        resultActions.andExpect(jsonPath("$.data.depth").value(prePostComment.getDepth()));
+        if (prePostComment.getParent() != null) {
+            resultActions.andExpect(jsonPath("$.data.parentId").value(prePostComment.getParent().getId()));
+        } else {
+            resultActions.andExpect(jsonPath("$.data.parentId").doesNotExist()); // NULL 확인
+        }
+        resultActions.andExpect(jsonPath("$.data.updaterId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+
+    }
+
+
+    // 댓글 수정 실패 - 모임 생성자
+    @Test
+    void updateComment_shouldReturn400_whenRequestByMoimCreator_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimCreator, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        System.out.println("response = " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
+    }
+
+
+    // 댓글 수정 실패 - 비모임원
+    @Test
+    void updateComment_shouldReturn400_whenRequestByNonMoimMember_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(notMoimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        System.out.println("response = " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
+
+    }
+
+
+    // commentId null validation
+    @Test
+    void updateComment_shouldReturn400_whenCommentIdNull_byMoimingValidationException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(null);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
+
+    }
+
+
+    // content null validation
+    @Test
+    void updateComment_shouldReturn400_whenContentNull_byMoimingValidationException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
+        requestDto.setContent(null);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
+    }
+
+
+    // content over 100 validation
+    @Test
+    void updateComment_shouldReturn400_whenContentOver100_byMoimingValidationException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
+        String contentOver100 = "a" + "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+        requestDto.setContent(contentOver100);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
+    }
+
+
+    // 존재하지 않는 Comment
+    @Test
+    void updateComment_shouldReturn400_whenPostCommentNotExist_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(1827L);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_POST_COMMENT_NOT_FOUND.getErrCode()));
+
+    }
+
+
+    // DELETE REQUEST TEST (MoimPost 의 댓글 갯수도 같이 검증)
+    // 댓글 삭제 성공 - content 와 hasDeleted 검증 - 댓글 작성자
+    @Test
+    void deleteComment_shouldReturn200_whenRequestByCommentCreator() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(moimMember, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, prePostComment.getId());
+        assertThat(postComment.getContent()).isEqualTo("");
+        assertThat(postComment.isHasDeleted()).isEqualTo(true);
+        assertThat(postComment.getUpdaterId()).isEqualTo(moimMember.getId());
+
+    }
+
+
+    // 댓글 삭제 성공 - content 와 hasDeleted 검증 - 모임 생성자
+    @Test
+    void deleteComment_shouldReturn200_whenRequestByMoimCreator() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(moimCreator, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, prePostComment.getId());
+        assertThat(postComment.getContent()).isEqualTo("");
+        assertThat(postComment.isHasDeleted()).isEqualTo(true);
+        assertThat(postComment.getUpdaterId()).isEqualTo(moimCreator.getId());
+
+    }
+
+
+    // 댓글 삭제 실패 - 비모임원
+    // URL 에 postCommentId 없음
+    // URL 에 moimPostId, moimId 없음
+    // 존재하지 않는 Comment
+
 
     @BeforeEach
     void su() {
 
         // Member moimMember, moimCreator
         Role testRole = makeTestRole(RoleType.USER);
-        moimCreator =makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        moimCreator = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
         moimMember = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
         notMoimMember = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
         inactiveMember = makeTestMember(memberEmail4, memberPhone4, memberName4, nickname4, ci4, testRole);
@@ -262,5 +508,14 @@ public class PostCommentControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
+    }
+
+
+    void createPostComment() {
+
+        prePostComment = makePostComment(moimMember, testMoimPost, 0, null);
+        em.persist(prePostComment);
+        em.flush();
+        em.clear();
     }
 }

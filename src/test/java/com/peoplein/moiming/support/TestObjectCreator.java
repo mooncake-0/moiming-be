@@ -120,7 +120,13 @@ public class TestObjectCreator {
     protected PostCommentCreateReqDto makeCommentCreateReqDto(Long moimId, Long postId, Long parentId, Integer depth) {
         String type = depth == 0 ? "댓글입니다" : "답글입니다";
         String content = moimId + ", " + postId + ", " + type;
-        return new PostCommentCreateReqDto(moimId, postId, parentId, content, depth);
+        return new PostCommentCreateReqDto(postId, parentId, content, depth);
+    }
+
+
+    protected PostCommentUpdateReqDto makeCommentUpdateReqDto(Long commentId) {
+        String changedContent = "수정된 댓글 내용입니다";
+        return new PostCommentUpdateReqDto(commentId, changedContent);
     }
 
 

@@ -127,6 +127,7 @@ public class MoimPostServiceTest {
 
     }
 
+
     // --- getMoimPosts TEST
     // getMoimPosts > MoimPost 정상, moimmember 통과 정상일 경우
     @Test
@@ -143,6 +144,7 @@ public class MoimPostServiceTest {
         verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
 
     }
+
 
     // 로직이 달라지는 사례 검증
     // moimMemberState 가 INACTIVE 여도 통과한다
@@ -165,6 +167,7 @@ public class MoimPostServiceTest {
         verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
 
     }
+
 
     // moimId == null 일 경우 예외 발생
     @Test

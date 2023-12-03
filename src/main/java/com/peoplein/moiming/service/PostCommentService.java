@@ -17,11 +17,14 @@ import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
@@ -36,48 +39,49 @@ public class PostCommentService {
     private final MoimPostRepository moimPostRepository;
     private final PostCommentRepository postCommentRepository;
     private final MoimMemberRepository moimMemberRepository;
-    private final MoimRepository moimRepository;
 
-    public void createComment(PostCommentCreateReqDto requestDto, Member member) {
+
+    public PostComment createComment(PostCommentCreateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
         }
 
+        // TODO :: MoimFetch Join VS Moim PK 조회
         MoimPost moimPost = moimPostRepository.findById(requestDto.getPostId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
-        // 댓글을 달 수 있는 권한이 존재하는지 확인 (moimId 를 통해서) // 없으면 NULL
-        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), requestDto.getMoimId()).orElseThrow(() ->
-                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
-        );
-
-        if (!moimMember.hasActivePermission()) {
-            throw new MoimingApiException(MOIM_MEMBER_NOT_ACTIVE);
-        }
+        // 정합성 검증 된 상태를 보장하기 위해 moimId 를 보내지 않고, 직접불러와서 확인한다
+        checkActivePermission(member.getId(), moimPost.getMoim().getId());
 
         PostComment comment = PostComment.createPostComment(requestDto.getContent(), member, moimPost,
                 requestDto.getDepth(), getParentCommentByReqDto(requestDto.getDepth(), requestDto.getParentId()));
 
         postCommentRepository.save(comment);
 
+        return comment;
     }
 
 
-    public void updateComment(PostCommentUpdateReqDto requestDto, Member member) {
+    public PostComment updateComment(PostCommentUpdateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
         }
 
         // 수정할 때는 외래키를 건들지 않고, commentId 만 바로 조회 후 수정한다
-        PostComment postComment = postCommentRepository.findById(requestDto.getPostCommentId()).orElseThrow(() ->
+        PostComment comment = postCommentRepository.findById(requestDto.getCommentId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
         );
 
+        // MEMO :: 어차피 MoimPost 를 새로 조회해서 가져오나, comment.getMoimPost 를 해서 가져오나 동일한 쿼리가 나감
+        //         comment.getMp 를 통해 가져오면 그 대신 정합성 검증은 자동으로 된 상태라고 판단한다, delete 동일
+        checkActivePermission(member.getId(), comment.getMoimPost().getMoim().getId());
 
-        postComment.updateComment(requestDto, member.getId());
+        comment.updateComment(requestDto, member.getId());
+
+        return comment;
 
     }
 
@@ -100,13 +104,13 @@ public class PostCommentService {
          >> 두는 반정규화를 하는게 나을 듯
          */
 
-        PostComment postComment = postCommentRepository.findWithMoimPostAndMoimById(postCommentId).orElseThrow(() ->
+        PostComment comment = postCommentRepository.findWithMoimPostAndMoimById(postCommentId).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
         );
 
-        postComment.deleteComment(member.getId());
+        checkActivePermission(member.getId(), comment.getMoimPost().getMoim().getId());
 
-
+        comment.deleteComment(member.getId());
     }
 
 
@@ -127,4 +131,138 @@ public class PostCommentService {
         return parentComment; // 나머진 Null 로 배치된다
     }
 
+
+    // 요청하는 모임원이 ACTIVE 한지 확인
+    private void checkActivePermission(Long memberId, Long moimId) {
+
+        // 댓글을 달 수 있는 권한이 존재하는지 확인 (moimId 를 통해서) // 없으면 NULL
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(memberId, moimId).orElseThrow(() ->
+                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
+        );
+
+        if (!moimMember.hasActivePermission()) {
+            throw new MoimingApiException(MOIM_MEMBER_NOT_ACTIVE);
+        }
+    }
+
+    @Autowired
+    private EntityManager em;
+
+
+    // PK 로 각각 조회하며 진행
+    // 장 : 제일 직관적, 변경 사항에 유동적, 역할이 분할되어 있는 느낌. PK 조회라서 빠름
+    // 단 : 전달해야할 데이터가 많아지고, 코드가 길어짐
+    public void deleteCommentV1(Long commentId, Long postId, Long moimId, Member reqMember) {
+        System.out.println("V1 START");
+        System.out.println("V1 START");
+        System.out.println("V1 START");
+        System.out.println("V1 START");
+
+        PostComment comment = em.find(PostComment.class, commentId);
+        MoimPost post = em.find(MoimPost.class, postId);
+        Moim moim = em.find(Moim.class, moimId);
+
+        System.out.println("=== 추가적 쿼리 발생하지 않음 확인 === ");
+
+        if (!Objects.equals(comment.getMoimPost().getId(), post.getId())
+                || !Objects.equals(post.getMoim().getId(), moim.getId())) {
+            throw new RuntimeException("정합성 오류");
+        }
+
+        // 이후 로직 진행
+        MoimMember groupMember = moimMemberRepository.findByMemberAndMoimId(reqMember.getId(), moimId).orElseThrow(() -> new RuntimeException(""));
+        if (!groupMember.hasActivePermission()) {
+            throw new RuntimeException("유저가 활동중이지 않습니다");
+        }
+
+        Long reqId = reqMember.getId();
+        if (!Objects.equals(comment.getMember().getId(), reqId)
+                || !Objects.equals(moim.getCreatorId(), reqId)) {
+            throw new RuntimeException("댓글을 삭제할 권한이 없습니다");
+        }
+
+        System.out.println("V1 FINISHED");
+
+    }
+
+
+    // 객체 Map 탐색
+    // 장 : PK 쿼리가 필요할 때 계속 나가므로 빠름.
+    // 단 : 연관관계 변경, 추가 등에 사항이 발생시 refactoring 필요
+    public void deleteCommentV2(Long commentId, Member reqMember) {
+
+        System.out.println("V2 START");
+        System.out.println("V2 START");
+        System.out.println("V2 START");
+        System.out.println("V2 START");
+
+
+        PostComment comment = em.find(PostComment.class, commentId);
+
+        System.out.println("=========== 쿼리 분기 점 ========== ");
+
+        // MoimPost -> getMoim 으로 인한 조회 발생
+        MoimMember groupMember = moimMemberRepository.findByMemberAndMoimId(reqMember.getId(), comment.getMoimPost().getMoim().getId()).orElseThrow(() -> new RuntimeException(""));
+        if (!groupMember.hasActivePermission()) {
+            throw new RuntimeException("유저가 활동중이지 않습니다");
+        }
+
+        System.out.println("=========== 쿼리 분기 점 ========== ");
+
+        // Moim -> getCreatorId 로 인한 조회 발생
+        Long reqId = reqMember.getId();
+        if (!Objects.equals(comment.getMember().getId(), reqId)
+                || !Objects.equals(comment.getMoimPost().getMoim().getCreatorId(), reqId)) {
+            throw new RuntimeException("댓글을 삭제할 권한이 없습니다");
+        }
+
+        System.out.println("V2 FINISHED");
+    }
+
+
+    // 장 : 한방쿼리로 해결 가능, DB 와의 통신이 한 번으로 종료된다
+    // 단 : JOIN 이 두번 필요하다
+
+    // Fetch Join
+    public void deleteCommentV3(Long commentId, Member reqMember) {
+
+
+        System.out.println("V3 START");
+        System.out.println("V3 START");
+        System.out.println("V3 START");
+        System.out.println("V3 START");
+
+
+        String jpql =
+                "select c from PostComment c " +
+                        "join fetch c.moimPost mp " +
+                        "join fetch mp.moim m " +
+                        "where c.id = :commentId";
+
+        PostComment comment = em.createQuery(jpql, PostComment.class)
+                .setParameter("commentId", commentId)
+                .getSingleResult();
+
+        System.out.println("=========== 쿼리 분기 점 : 더이상 쿼리가 발생하지 않음 ========== ");
+
+        MoimPost moimPost = comment.getMoimPost();
+        Moim moim = moimPost.getMoim();
+
+        // MoimPost -> getMoim 으로 인한 조회 발생
+        MoimMember groupMember = moimMemberRepository.findByMemberAndMoimId(reqMember.getId(), moim.getId()).orElseThrow(() -> new RuntimeException(""));
+        if (!groupMember.hasActivePermission()) {
+            throw new RuntimeException("유저가 활동중이지 않습니다");
+        }
+
+        System.out.println("=========== 쿼리 분기 점 ========== ");
+
+        // Moim -> getCreatorId 로 인한 조회 발생
+        Long reqId = reqMember.getId();
+        if (!Objects.equals(comment.getMember().getId(), reqId)
+                || !Objects.equals(moim.getCreatorId(), reqId)) {
+            throw new RuntimeException("댓글을 삭제할 권한이 없습니다");
+        }
+
+        System.out.println("V3 FINISHED");
+    }
 }
