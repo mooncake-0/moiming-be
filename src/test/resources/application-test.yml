@@ -1,25 +1,19 @@
 spring:
 
-  #DB
-  #Local DB Source
   datasource:
-    url: jdbc:mysql://localhost:3306/moiming_dev_db?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
-    username: root
-    password: peoplein
+    url: jdbc:h2:mem:test;MODE=MySQL # Test 는 인메모리 사용
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
 
   jpa:
     hibernate:
-      ddl-auto: none
-    database: mysql
+      ddl-auto: create
     properties:
-      dialect: org.hibernate.dialect.MySQL5InnoDBDialect
       hibernate:
         show_sql: true
         format_sql: true
         default_batch_fetch_size: 100
-    defer-datasource-initialization: true
-    generate-ddl: true
-    open-in-view: false
 
 # TEST 통과를 위해 기재
 app_files:

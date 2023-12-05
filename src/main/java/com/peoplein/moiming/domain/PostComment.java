@@ -75,18 +75,22 @@ public class PostComment extends BaseEntity{
     }
 
 
-    public void deleteComment(Long requestMemberId) {
+    /*
+     getMoim() 에서 객체 탐색 발생
+     - Fetch Join 상태임을 권장. 사실 아니여도.. 뭐 큰 상관은 없긴 함
+     */
+    public void deleteComment(Long deleterId) {
 
         // 댓글 삭제 권한 - 모임 생성자, 댓글 작성자가 아니면 삭제할 수 없다
-        Long moimCreatorId = this.moimPost.getMoim().getCreatorId(); // FETCH JOIN 된 상태로 올 것임
+        Long moimCreatorId = this.moimPost.getMoim().getCreatorId();
 
-        if (!requestMemberId.equals(this.member.getId()) && !requestMemberId.equals(moimCreatorId)) {
+        if (!deleterId.equals(this.member.getId()) && !deleterId.equals(moimCreatorId)) {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
         this.content = ""; // 데이터 삭제
         this.hasDeleted = true;
-        this.updaterId = requestMemberId;
+        this.updaterId = deleterId;
         this.moimPost.minusCommentCnt();
     }
 
