@@ -117,9 +117,9 @@ public class TestObjectCreator {
     }
 
 
-    protected PostCommentCreateReqDto makeCommentCreateReqDto(Long moimId, Long postId, Long parentId, Integer depth) {
+    protected PostCommentCreateReqDto makeCommentCreateReqDto(Long postId, Long parentId, Integer depth) {
         String type = depth == 0 ? "댓글입니다" : "답글입니다";
-        String content = moimId + ", " + postId + ", " + type;
+        String content = postId + ", " + type;
         return new PostCommentCreateReqDto(postId, parentId, content, depth);
     }
 

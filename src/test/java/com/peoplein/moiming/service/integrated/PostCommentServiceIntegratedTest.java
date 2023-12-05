@@ -52,7 +52,7 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
 
         // given
         su();
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null, 0);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
 
         // when
         postCommentService.createComment(requestDto, moimMember);
@@ -81,7 +81,7 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), parentComment.getId(), 1);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), parentComment.getId(), 1);
 
         // when
         postCommentService.createComment(requestDto, moimMember);
@@ -114,7 +114,7 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
 
         // given
         su();
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null, 0);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
 
         // when
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, notMoimMember)).isInstanceOf(MoimingApiException.class);

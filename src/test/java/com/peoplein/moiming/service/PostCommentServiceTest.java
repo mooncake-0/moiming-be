@@ -10,7 +10,6 @@ import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
 import com.peoplein.moiming.support.TestMockCreator;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,7 +53,7 @@ public class PostCommentServiceTest extends TestMockCreator {
             Moim moim = mock(Moim.class);
 
             // given - stub
-            when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+            when(moimPostRepository.findWithMoimById(any())).thenReturn(Optional.of(moimPost));
             when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
             when(moimMember.hasActivePermission()).thenReturn(true);
             when(moimPost.getMoim()).thenReturn(moim);
@@ -92,7 +90,7 @@ public class PostCommentServiceTest extends TestMockCreator {
             Moim moim = mock(Moim.class);
 
             // given - stub
-            when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+            when(moimPostRepository.findWithMoimById(any())).thenReturn(Optional.of(moimPost));
             when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
             when(moimMember.hasActivePermission()).thenReturn(true);
             when(moimPost.getMoim()).thenReturn(moim);
@@ -156,7 +154,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         Member member = mock(Member.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.empty());
+        when(moimPostRepository.findWithMoimById(any())).thenReturn(Optional.empty());
 
         // when
         // then
@@ -172,10 +170,16 @@ public class PostCommentServiceTest extends TestMockCreator {
         // given
         PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
         Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
         MoimPost moimPost = mock(MoimPost.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        when(moimPostRepository.findWithMoimById(any())).thenReturn(Optional.of(moimPost));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(1L); // 상관없음
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
 
         // when
@@ -192,11 +196,17 @@ public class PostCommentServiceTest extends TestMockCreator {
         // given
         PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
         Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
         MoimPost moimPost = mock(MoimPost.class);
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        when(moimPostRepository.findWithMoimById(any())).thenReturn(Optional.of(moimPost));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(1L); // 상관없음
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasActivePermission()).thenReturn(false);
 
@@ -215,10 +225,16 @@ public class PostCommentServiceTest extends TestMockCreator {
         PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
         Member member = mock(Member.class);
         MoimPost moimPost = mock(MoimPost.class);
+        Moim moim = mock(Moim.class);
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        when(moimPostRepository.findWithMoimById(any())).thenReturn(Optional.of(moimPost));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(1L); // 상관없음
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasActivePermission()).thenReturn(true);
 
@@ -242,10 +258,16 @@ public class PostCommentServiceTest extends TestMockCreator {
         PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
         Member member = mock(Member.class);
         MoimPost moimPost = mock(MoimPost.class);
+        Moim moim = mock(Moim.class);
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        when(moimPostRepository.findWithMoimById(any())).thenReturn(Optional.of(moimPost));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(1L); // 상관없음
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasActivePermission()).thenReturn(true);
 
@@ -267,11 +289,17 @@ public class PostCommentServiceTest extends TestMockCreator {
         // given
         PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
         Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
         MoimPost moimPost = mock(MoimPost.class);
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        when(moimPostRepository.findWithMoimById(any())).thenReturn(Optional.of(moimPost));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(1L); // 상관없음
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasActivePermission()).thenReturn(true);
 
@@ -297,9 +325,18 @@ public class PostCommentServiceTest extends TestMockCreator {
         PostComment comment = mock(PostComment.class);
         MoimPost moimPost = mock(MoimPost.class);
         Moim moim = mock(Moim.class);
+        MoimMember moimMember = mock(MoimMember.class);
 
-        // given - mock
-        when(postCommentRepository.findById(any())).thenReturn(Optional.of(comment));
+        // given - stub
+        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moim.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(comment.getMoimPost()).thenReturn(moimPost);
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
 
         // when
         postCommentService.updateComment(requestDto, member);
@@ -331,13 +368,75 @@ public class PostCommentServiceTest extends TestMockCreator {
         Member member = mock(Member.class);
 
         // given - stub
-        when(postCommentRepository.findById(any())).thenReturn(Optional.empty());
+        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.empty());
 
         // when
         // then
         assertThatThrownBy(() -> postCommentService.updateComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
 
     }
+
+
+    // 4. requestMember Not Found in moim
+    @Test
+    void updateComment_shouldThrowException_whenMemberNotFound_byMoimingApiException() {
+
+        // given
+        PostCommentUpdateReqDto requestDto = mock(PostCommentUpdateReqDto.class);
+        Member member = mock(Member.class);
+        PostComment comment = mock(PostComment.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moim.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(comment.getMoimPost()).thenReturn(moimPost);
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.updateComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 5. requestMember Not Active in moim
+    @Test
+    void updateComment_shouldThrowException_whenMemberNotActive_byMoimingApiException() {
+
+        // given
+        PostCommentUpdateReqDto requestDto = mock(PostCommentUpdateReqDto.class);
+        Member member = mock(Member.class);
+        PostComment comment = mock(PostComment.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        Moim moim = mock(Moim.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moim.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(comment.getMoimPost()).thenReturn(moimPost);
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(false);
+
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.updateComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // (생략) requestMember is MoimCreator - 이 서비스단의 검증 역할이 아니다
+    // (생략) requestMember is NotCommentCreator - 이 서비스단의 검증 역할이 아니다
 
 
     // deleteComment Test
@@ -348,10 +447,21 @@ public class PostCommentServiceTest extends TestMockCreator {
         // given
         Long postCommentId = 1L;
         Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
         PostComment postComment = mock(PostComment.class);
 
         // given - stub
         when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(postComment));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관 무
+        when(postComment.getMoimPost()).thenReturn(moimPost);
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(1L);
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
 
         // when
         postCommentService.deleteComment(postCommentId, member);
@@ -390,6 +500,68 @@ public class PostCommentServiceTest extends TestMockCreator {
         assertThatThrownBy(() -> postCommentService.deleteComment(postCommentId, member)).isInstanceOf(MoimingApiException.class);
 
     }
+
+
+    // 4. requestMember Not Found in moim
+    @Test
+    void deleteComment_shouldThrowException_whenMemberNotFound_byMoimingApiException() {
+
+        // given
+        Long postCommentId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        PostComment comment = mock(PostComment.class);
+
+        // given - stub
+        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moim.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(comment.getMoimPost()).thenReturn(moimPost);
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.deleteComment(postCommentId, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 5. requestMember Not Active in moim
+    @Test
+    void deleteComment_shouldThrowException_whenMemberNotActive_byMoimingApiException() {
+
+        // given
+        Long postCommentId = 1L;
+        Member member = mock(Member.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        Moim moim = mock(Moim.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        PostComment comment = mock(PostComment.class);
+
+        // given - stub
+        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+
+        // given - stub for private method
+        when(member.getId()).thenReturn(1L); // 상관없음
+        when(moim.getId()).thenReturn(1L); // 상관없음
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(comment.getMoimPost()).thenReturn(moimPost);
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(false);
+
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.deleteComment(postCommentId, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // (생략) requestMember is MoimCreator - 이 서비스단의 검증 역할이 아니다
+    // (생략) requestMember is NotCommentCreator - 이 서비스단의 검증 역할이 아니다
 
 
 }

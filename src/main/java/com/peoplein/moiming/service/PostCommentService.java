@@ -47,8 +47,7 @@ public class PostCommentService {
             throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
         }
 
-        // TODO :: MoimFetch Join VS Moim PK 조회
-        MoimPost moimPost = moimPostRepository.findById(requestDto.getPostId()).orElseThrow(() ->
+        MoimPost moimPost = moimPostRepository.findWithMoimById(requestDto.getPostId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
@@ -69,7 +68,6 @@ public class PostCommentService {
             throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
         }
 
-        // PK 조회 후 조인될 애들 FK 인덱스 조회
         PostComment comment = postCommentRepository.findWithMoimPostAndMoimById(requestDto.getCommentId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
         );

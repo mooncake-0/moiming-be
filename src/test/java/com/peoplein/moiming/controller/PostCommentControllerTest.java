@@ -47,7 +47,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     private MockMvc mvc;
     @Autowired
     private EntityManager em;
-    private Member moimCreator, moimMember, notMoimMember, inactiveMember;
+    private Member moimCreator, moimMember, moimMember2, notMoimMember, inactiveMember;
     private Moim testMoim;
     private MoimPost testMoimPost;
     private PostComment prePostComment;
@@ -59,7 +59,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void createComment_shouldReturn200_whenNormalCommentByMoimMember() throws Exception {
 
         // given
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null, 0);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
 
@@ -90,7 +90,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), parentComment.getId(), 1);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), parentComment.getId(), 1);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
 
@@ -112,12 +112,12 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
-    // Validation 요청 오류 점검 1) moimId null 2) postId null 3) depth null
+    // Validation 요청 오류 점검 1) postId null 2) depth null
     @Test
     void createComment_shouldReturn400_whenRequestValidationFails_byMoimingValidationException() throws Exception {
 
         // given
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(null, null, null, 0);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(null, null, 0);
         requestDto.setDepth(null);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
@@ -130,7 +130,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(3)));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2)));
 
     }
 
@@ -140,7 +140,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void createComment_shouldReturn400_whenRequestValidationFailsByContentLength_byMoimingValidationException() throws Exception {
 
         // given
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null, 0);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
         String contentOver100 = "a" + "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
         requestDto.setContent(contentOver100);
 
@@ -165,7 +165,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void createComment_shouldReturn400_whenNotMoimMemberRequest_byMoimingApiException() throws Exception {
 
         // given
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null, 0);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(notMoimMember, 2000);
 
@@ -185,7 +185,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void createComment_shouldReturn400_whenMoimMemberNotActiveRequest_byMoimingApiException() throws Exception {
 
         // given
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null, 0);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(inactiveMember, 2000);
 
@@ -205,7 +205,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void createComment_shouldReturn400_whenParentCommentNotFound_byMoimingApiException() throws Exception {
 
         // given
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), 1234L, 1);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), 1234L, 1);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
 
@@ -225,7 +225,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void createComment_shouldReturn400_whenParentCommentMappingWrong_byMoimingApiException() throws Exception {
 
         // given
-        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoim.getId(), testMoimPost.getId(), null, 1);
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 1);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
 
@@ -299,6 +299,28 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
+    // 댓글 수정 실패 - 모임 생성자
+    @Test
+    void updateComment_shouldReturn400_whenRequestByOtherMoimMember_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember2, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
+    }
+
+
     // 댓글 수정 실패 - 비모임원
     @Test
     void updateComment_shouldReturn400_whenRequestByNonMoimMember_byMoimingApiException() throws Exception {
@@ -317,7 +339,30 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
+
+    }
+
+
+    // 댓글 수정 실패 - Inactive 모임원
+    @Test
+    void updateComment_shouldReturn400_whenRequestByInactiveMember_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(inactiveMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_ACTIVE.getErrCode()));
 
     }
 
@@ -468,10 +513,170 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
+    // 댓글 삭제 실패 - 다른 일반 모임원의 삭제 요청
+    @Test
+    void deleteComment_shouldReturn400_whenRequestByOtherMoimMember_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(moimMember2, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, prePostComment.getId());
+        assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
+        assertThat(postComment.isHasDeleted()).isEqualTo(false);
+        assertThat(postComment.getUpdaterId()).isNull();
+
+    }
+
+
     // 댓글 삭제 실패 - 비모임원
+    @Test
+    void deleteComment_shouldReturn400_whenRequestByNonMoimMember_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(notMoimMember, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, prePostComment.getId());
+        assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
+        assertThat(postComment.isHasDeleted()).isEqualTo(false);
+        assertThat(postComment.getUpdaterId()).isNull();
+
+    }
+
+
+    // 댓글 삭제 실패 - inActive 모임원
+    @Test
+    void deleteComment_shouldReturn400_whenRequestByInactiveMember_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(inactiveMember, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_ACTIVE.getErrCode()));
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, prePostComment.getId());
+        assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
+        assertThat(postComment.isHasDeleted()).isEqualTo(false);
+        assertThat(postComment.getUpdaterId()).isNull();
+
+    }
+
+
     // URL 에 postCommentId 없음
+    @Test
+    void deleteComment_shouldReturn404_whenNoPostCommentId_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(inactiveMember, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+
+        // then
+        resultActions.andExpect(status().isNotFound()); // 없는 경로는 없다
+
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, prePostComment.getId());
+        assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
+        assertThat(postComment.isHasDeleted()).isEqualTo(false);
+        assertThat(postComment.getUpdaterId()).isNull();
+
+    }
+
+
     // URL 에 moimPostId, moimId 없음
+    @Test
+    void deleteComment_shouldReturn404_whenMoimPostIdAndMoimIdEmpty_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(inactiveMember, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {"", "", prePostComment.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isNotFound()); // 없는 경로는 없다
+
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, prePostComment.getId());
+        assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
+        assertThat(postComment.isHasDeleted()).isEqualTo(false);
+        assertThat(postComment.getUpdaterId()).isNull();
+
+    }
+
+
     // 존재하지 않는 Comment
+    @Test
+    void deleteComment_shouldReturn400_whenCommentNotFound_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(moimMember, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", 18384 + ""};
+
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_POST_COMMENT_NOT_FOUND.getErrCode()));
+
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, prePostComment.getId());
+        assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
+        assertThat(postComment.isHasDeleted()).isEqualTo(false);
+        assertThat(postComment.getUpdaterId()).isNull();
+
+    }
 
 
     @BeforeEach
@@ -481,11 +686,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
         Role testRole = makeTestRole(RoleType.USER);
         moimCreator = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
         moimMember = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        moimMember2 = makeTestMember(memberEmail5, memberPhone5, memberName5, nickname5, ci5, testRole);
         notMoimMember = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
         inactiveMember = makeTestMember(memberEmail4, memberPhone4, memberName4, nickname4, ci4, testRole);
         em.persist(testRole);
         em.persist(moimCreator);
         em.persist(moimMember);
+        em.persist(moimMember2);
         em.persist(notMoimMember);
         em.persist(inactiveMember);
 
@@ -498,6 +705,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         testMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), moimCreator);
         MoimMember.memberJoinMoim(moimMember, testMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
+        MoimMember.memberJoinMoim(moimMember2, testMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         MoimMember.memberJoinMoim(inactiveMember, testMoim, MoimMemberRoleType.NORMAL, MoimMemberState.IBF);
         em.persist(testMoim);
 
