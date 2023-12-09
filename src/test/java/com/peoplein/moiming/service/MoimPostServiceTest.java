@@ -206,7 +206,7 @@ public class MoimPostServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.empty());
+        when(moimPostRepository.findWithMoimAndMemberById(any())).thenReturn(Optional.empty());
 
         // when
         // then

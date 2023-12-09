@@ -19,6 +19,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
@@ -38,7 +39,7 @@ public class MoimPostController {
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "유저 게시물 생성 성공"),
+            @ApiResponse(code = 200, message = "유저 게시물 생성 성공", response = MoimPostCreateRespDto.class),
             @ApiResponse(code = 400, message = "유저 게시물 생성 실패, ERR MSG 확인")
     })
     @PostMapping(PATH_MOIM_POST_CREATE)
@@ -53,8 +54,9 @@ public class MoimPostController {
                 MultipartFile 을 다시 사용 + 받아온 url 을 통해서 PostFile Entity 를 만든다
                 그리고 게시물과의 연관관계를 매핑해준다
          */
-        moimPostService.createMoimPost(requestDto, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 게시물 생성 성공", null));
+        MoimPost moimPost = moimPostService.createMoimPost(requestDto, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 게시물 생성 성공"
+                , new MoimPostCreateRespDto(moimPost, true)));
 
     }
 
@@ -64,7 +66,7 @@ public class MoimPostController {
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "게시물 일반 조회 성공"),
+            @ApiResponse(code = 200, message = "게시물 일반 조회 성공", response = MoimPostViewRespDto.class),
             @ApiResponse(code = 400, message = "게시물 일반 조회 실패")
     })
     @GetMapping(PATH_MOIM_POST_GET_VIEW)
@@ -76,10 +78,9 @@ public class MoimPostController {
 
 
         List<MoimPost> moimPosts = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
-        List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(MoimPostViewRespDto::new).collect(Collectors.toList());
-
+        List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(moimPost -> new MoimPostViewRespDto(moimPost
+                , Objects.equals(moimPost.getMember().getId(), moimPost.getMoim().getCreatorId()) // Moim 과 Member 모두 Fetch Join 되어 영속화된 상태
+        )).collect(Collectors.toList());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모든 게시물 일반 조회 성공", responseBody));
     }
-
-
 }

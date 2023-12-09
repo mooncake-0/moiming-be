@@ -36,7 +36,7 @@ public class MoimPostService {
     private final MoimPostRepository moimPostRepository;
 
     @Transactional
-    public void createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
+    public MoimPost createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
@@ -54,6 +54,8 @@ public class MoimPostService {
                 , moimMember.getMoim(), moimMember.getMember());
 
         moimPostRepository.save(post);
+
+        return post;
     }
 
 
@@ -64,13 +66,16 @@ public class MoimPostService {
             throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
         }
 
+        /*
+         TODO : 1_오직 모임 생성자_id 만을 위해 Moim Fetch Join 을 해줘야한다 --> JPA 에서 객체 조회 말고 큰 다른 방법은 없을까?
+                2_각 게시물 생성자 정보를 같이 전달하기 위핸 Post Creator Member Fetch Join
+         */
         MoimPost lastPost = null;
         if (lastPostId != null) {
-            lastPost = moimPostRepository.findById(lastPostId).orElseThrow(() ->
+            lastPost = moimPostRepository.findWithMoimAndMemberById(lastPostId).orElseThrow(() ->
                     new MoimingApiException("마지막으로 검색한 Post 를 찾을 수 없습니다")
             );
         }
-
 
         // 멤버가 구성원인지 확인 필요 - 자체 필드에 대한 제어 로직 - 도메인단에 둘 수가 없음
         boolean moimMemberRequest = true;

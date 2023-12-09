@@ -75,6 +75,19 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     }
 
 
+    @Override
+    public Optional<MoimPost> findWithMoimAndMemberById(Long moimPostId) {
+
+        return Optional.ofNullable(
+                queryFactory.selectFrom(moimPost)
+                        .join(moimPost.moim, moim).fetchJoin()
+                        .join(moimPost.member, member).fetchJoin()
+                        .where(moimPost.id.eq(moimPostId))
+                        .fetchOne());
+
+    }
+
+
     /*
      Query :
       select * from MoimPost mp
