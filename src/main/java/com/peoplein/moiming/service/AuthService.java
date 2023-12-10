@@ -1,9 +1,9 @@
 package com.peoplein.moiming.service;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingInvalidTokenException;
 import com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto;

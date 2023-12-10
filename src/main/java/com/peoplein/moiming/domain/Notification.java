@@ -3,6 +3,7 @@ package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.NotificationDomain;
 import com.peoplein.moiming.domain.enums.NotificationDomainCategory;
+import com.peoplein.moiming.domain.member.Member;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,7 +1,6 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.config.AppUrlPath;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.dto.request_b.MoimReviewRequestDto;
 import com.peoplein.moiming.service.MoimReviewService;
 import lombok.RequiredArgsConstructor;

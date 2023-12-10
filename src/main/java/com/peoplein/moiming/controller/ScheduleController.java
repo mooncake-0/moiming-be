@@ -1,8 +1,7 @@
 package com.peoplein.moiming.controller;
 
 
-import com.peoplein.moiming.config.AppUrlPath;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.dto.domain.ScheduleMemberDto;
 import com.peoplein.moiming.model.dto.request_b.ScheduleRequestDto;
 import com.peoplein.moiming.model.dto.response_b.ScheduleResponseDto;

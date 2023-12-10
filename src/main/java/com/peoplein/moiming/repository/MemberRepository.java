@@ -1,7 +1,7 @@
 package com.peoplein.moiming.repository;
 
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 
 import java.util.List;
 import java.util.Optional;

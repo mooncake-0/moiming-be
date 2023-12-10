@@ -1,7 +1,7 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.Schedule;
 import org.springframework.beans.factory.annotation.Autowired;

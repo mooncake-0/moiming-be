@@ -1,6 +1,6 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.MemberSessionState;
 import com.peoplein.moiming.domain.enums.DomainRequestType;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;

@@ -2,9 +2,8 @@ package com.peoplein.moiming.support;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
-import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.MemberGender;
@@ -15,22 +14,15 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
-import com.peoplein.moiming.model.dto.request.MoimReqDto;
-import com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto;
-import com.peoplein.moiming.model.dto.request.PostCommentReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
-import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.persistence.EntityManager;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;

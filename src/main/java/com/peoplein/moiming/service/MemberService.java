@@ -1,6 +1,7 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.*;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.repository.*;

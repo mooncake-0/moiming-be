@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.peoplein.moiming.config.AppUrlPath;
-import com.peoplein.moiming.security.exception.BadLoginInputException;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
+import com.peoplein.moiming.security.exception.LoginAttemptException;
 import com.peoplein.moiming.security.exception.ExtraAuthenticationException;
 import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 @Slf4j
 public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
@@ -52,19 +54,20 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
             memberLoginDto = om.readValue(request.getReader(), MemberLoginReqDto.class);
 
             if (!StringUtils.hasText(memberLoginDto.getMemberEmail()) || !StringUtils.hasText(memberLoginDto.getPassword())) {
-                String msg = "EMAIL 혹은 PW 값을 전달받지 못했습니다";
-                log.error(msg);
-                throw new BadLoginInputException(msg);
+
+                throw new LoginAttemptException(AUTH_BAD_LOGIN_INPUT);
             }
 
-        } catch (BadLoginInputException exception){
+        } catch (LoginAttemptException exception){ // 얘가 발생하면 그대로 날린다
+
             throw exception;
+
         } catch(Exception exception) { // 로그인 시도 중 그 외의 어떤 예외가 발생할 경우
 
-            // Failure 핸들러에서 잡아서 전달할 수 있도록 런타임으로 변환후 전달한다
-            throw new ExtraAuthenticationException(exception.getMessage(), exception);
+            throw new ExtraAuthenticationException(AUTH_EXTRA, exception);
         }
 
+        // 담긴 정보는 Authenticate 을 위해 Token 에 넣어서 Manager 에게 보내준다
         JwtAuthenticationToken preAuthentication = new JwtAuthenticationToken(memberLoginDto.getMemberEmail(), memberLoginDto.getPassword());
         AuthenticationManager authenticationManager = getAuthenticationManager();
 

@@ -1,7 +1,7 @@
 package com.peoplein.moiming.service.integrated;
 
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
@@ -25,7 +25,6 @@ import java.util.List;
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 // Service 예외 상황은 단위 테스트에서 다 진행
 // 성공시 DB Tx Test

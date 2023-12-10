@@ -1,32 +1,19 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
-import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.domain.PostCommentDto;
-import com.peoplein.moiming.model.dto.request.PostCommentReqDto;
-import com.peoplein.moiming.model.dto.request_b.PostCommentRequestDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
-import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Optional;
 
-import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 

@@ -1,6 +1,6 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.model.dto.auth.*;
@@ -13,10 +13,6 @@ import okhttp3.Request;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 @Service
 @Transactional

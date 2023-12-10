@@ -1,16 +1,12 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MoimCategoryLinker;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.response.MoimRespDto;
-import com.peoplein.moiming.repository.CategoryRepository;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;

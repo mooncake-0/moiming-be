@@ -1,6 +1,6 @@
 package com.peoplein.moiming.security.token;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 
 public interface MoimingTokenProvider {
 

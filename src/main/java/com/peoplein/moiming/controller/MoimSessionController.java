@@ -1,8 +1,7 @@
 package com.peoplein.moiming.controller;
 
 
-import com.peoplein.moiming.config.AppUrlPath;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.dto.domain.MemberSessionLinkerDto;
 import com.peoplein.moiming.model.dto.request_b.MemberSessionStateRequestDto;
 import com.peoplein.moiming.model.dto.request_b.MoimSessionRequestDto;

@@ -1,9 +1,11 @@
 package com.peoplein.moiming.security.service;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.security.domain.SecurityMember;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
+import com.peoplein.moiming.security.exception.LoginAttemptException;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 @Slf4j
 @Transactional
@@ -31,12 +35,11 @@ public class SecurityMemberService implements UserDetailsService {
      */
     @Transactional(readOnly = true)
     @Override
-    public UserDetails loadUserByUsername(String memberEmail) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String memberEmail) throws LoginAttemptException {
 
         Member memberPs = memberRepository.findByEmail(memberEmail).orElseThrow(() -> {
-                    String msg = "[" + memberEmail + "]의 유저를 찾을 수 없습니다";
-                    log.error(msg);
-                    throw new UsernameNotFoundException(msg);
+                    log.error("[" + memberEmail + "]의 유저를 찾을 수 없습니다");
+                    throw new LoginAttemptException(AUTH_EMAIL_NOT_FOUND);
                 }
         );
 
