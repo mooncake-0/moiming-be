@@ -22,5 +22,6 @@ public interface MemberRepository {
 
     List<Member> findMembersByEmailOrPhoneOrCi(String memberEmail, String memberPhone, String ci);
 
-    void updateRefreshTokenByEmail(Long id, String refreshToken);
+    void updateRefreshTokenById(Long id, String refreshToken);
+
 }

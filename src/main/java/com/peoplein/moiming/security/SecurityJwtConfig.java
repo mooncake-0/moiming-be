@@ -11,6 +11,8 @@ import com.peoplein.moiming.security.auth.JwtAuthenticationProvider;
 import com.peoplein.moiming.security.token.JwtTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.service.SecurityMemberService;
+import com.peoplein.moiming.service.util.LogoutTokenDb;
+import com.peoplein.moiming.service.util.LogoutTokenManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -22,14 +24,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-
-import javax.servlet.Filter;
-import java.util.List;
 
 
 @Configuration
@@ -68,6 +66,10 @@ public class SecurityJwtConfig {
         return new JwtTokenProvider();
     }
 
+    @Bean
+    public LogoutTokenManager logoutTokenManager() {
+        return new LogoutTokenDb();
+    }
 
     public class MoimingSecurityFilterManager extends AbstractHttpConfigurer<MoimingSecurityFilterManager, HttpSecurity> {
         @Override
@@ -92,7 +94,7 @@ public class SecurityJwtConfig {
 
     public JwtAuthenticationFilter jwtAuthenticationFilter(AuthenticationManager authenticationManager) {
 
-        return new JwtAuthenticationFilter(authenticationManager, userDetailsService(), moimingTokenProvider());
+        return new JwtAuthenticationFilter(authenticationManager, userDetailsService(), moimingTokenProvider(), logoutTokenManager());
     }
 
     /*

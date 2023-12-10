@@ -31,7 +31,6 @@ public class JwtTokenProvider implements MoimingTokenProvider {
         }
 
         // Token 을 통해 인증시 DB 에 조회할 것이기 때문에, role 도 담을 필요가 없음
-
         String jwtToken = JWT.create()
                 .withSubject(JwtParams.TEST_JWT_SUBJECT)
                 .withExpiresAt(new Date(expiresAt))
@@ -50,6 +49,17 @@ public class JwtTokenProvider implements MoimingTokenProvider {
                 .build()
                 .verify(token);
 
+
         return decoded.getClaim(JwtParams.CLAIM_KEY_MEMBER_EMAIL).asString();
+    }
+
+    @Override
+    public Date verifyExpireAt(MoimingTokenType tokenType, String token) {
+
+        DecodedJWT decoded = JWT.require(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET))
+                .build()
+                .verify(token);
+
+        return decoded.getExpiresAt();
     }
 }

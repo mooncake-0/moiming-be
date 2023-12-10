@@ -16,7 +16,7 @@ import com.peoplein.moiming.model.dto.domain.*;
 import com.peoplein.moiming.model.dto.request_b.MoimSessionRequestDto;
 import com.peoplein.moiming.model.dto.response_b.MoimSessionResponseDto;
 import com.peoplein.moiming.repository.*;
-import com.peoplein.moiming.service.input.MoimSessionServiceInput;
+import com.peoplein.moiming.temp.MoimSessionServiceInput;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

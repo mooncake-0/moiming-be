@@ -1,6 +1,5 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;

@@ -16,8 +16,8 @@ import java.util.Optional;
 
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.moim.QMoimMember.*;
-import static com.peoplein.moiming.domain.QMember.*;
-import static com.peoplein.moiming.domain.QMemberInfo.*;
+import static com.peoplein.moiming.domain.member.QMember.*;
+import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
 import static com.peoplein.moiming.domain.fixed.QCategory.*;
 

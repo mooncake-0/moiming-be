@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QMoimPost.*;
-import static com.peoplein.moiming.domain.QMember.*;
-import static com.peoplein.moiming.domain.QMemberInfo.*;
+import static com.peoplein.moiming.domain.member.QMember.*;
+import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 
 @Repository

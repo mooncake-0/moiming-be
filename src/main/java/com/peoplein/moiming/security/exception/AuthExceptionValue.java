@@ -10,6 +10,10 @@ public enum AuthExceptionValue {
     AUTH_BAD_LOGIN_INPUT(HttpStatus.BAD_REQUEST, "A100","EMAIL 혹은 PW 값을 전달받지 못했습니다"),
     AUTH_EMAIL_NOT_FOUND(HttpStatus.OK, "A101", "EMAIL 을 찾을 수 없습니다"),
     AUTH_PW_INVALID(HttpStatus.OK, "A102", "PW 가 잘못되었습니다"), // 통신 성공, 정상 응답 송신
+
+    AUTH_ACCESS_TRIAL_BY_LOGOUT_TOKEN(HttpStatus.UNAUTHORIZED, "AS100", "로그아웃된 토큰으로 접근이 시도되었습니다. log 확인 필요"),
+
+
     AUTH_EXTRA(HttpStatus.INTERNAL_SERVER_ERROR, "A999", "알 수 없는 오류가 발생하였습니다. 재시도 해주세요");
 
     private HttpStatus status;

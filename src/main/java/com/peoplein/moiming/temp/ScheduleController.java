@@ -1,11 +1,10 @@
-package com.peoplein.moiming.controller;
+package com.peoplein.moiming.temp;
 
 
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.dto.domain.ScheduleMemberDto;
 import com.peoplein.moiming.model.dto.request_b.ScheduleRequestDto;
 import com.peoplein.moiming.model.dto.response_b.ScheduleResponseDto;
-import com.peoplein.moiming.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;

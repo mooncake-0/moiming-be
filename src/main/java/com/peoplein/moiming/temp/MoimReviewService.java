@@ -1,4 +1,4 @@
-package com.peoplein.moiming.service;
+package com.peoplein.moiming.temp;
 
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;

@@ -110,8 +110,6 @@ public class Member extends BaseEntity {
 
 
     // MEMO : 수정 메소드 영속화 확인 필수
-    // Member 생성 이후 수정 메소드
-    // Refresh Token 삭제 시도일 수도 있으니 빈칸 허용
     public void changeRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }

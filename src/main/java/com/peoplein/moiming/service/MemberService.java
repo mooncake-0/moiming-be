@@ -1,129 +1,76 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.member.Member;
-import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.repository.*;
-import lombok.Getter;
+import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.repository.MemberRepository;
+import com.peoplein.moiming.security.token.MoimingTokenProvider;
+import com.peoplein.moiming.security.token.MoimingTokenType;
+import com.peoplein.moiming.service.util.LogoutTokenManager;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 
-@Transactional
+import java.util.Date;
+
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+
 @Service
+@Slf4j
+@Transactional
+@RequiredArgsConstructor
 public class MemberService {
 
-    private final MoimMemberRepository moimMemberRepository;
-    private final MoimPostRepository moimPostRepository;
-    private final MemberScheduleLinkerRepository memberScheduleLinkerRepository;
-    private final MoimRepository moimRepository;
-    private final ScheduleRepository scheduleRepository;
+    private final MemberRepository memberRepository;
+    private final MoimingTokenProvider moimingTokenProvider;
+    private final LogoutTokenManager logoutTokenManager;
 
-    public MemberService(MoimMemberRepository moimMemberRepository,
-                         MoimPostRepository moimPostRepository,
-                         MemberScheduleLinkerRepository memberScheduleLinkerRepository,
-                         MoimRepository moimRepository,
-                         ScheduleRepository scheduleRepository) {
-        this.moimMemberRepository = moimMemberRepository;
-        this.moimPostRepository = moimPostRepository;
-        this.memberScheduleLinkerRepository = memberScheduleLinkerRepository;
-        this.moimRepository = moimRepository;
-        this.scheduleRepository = scheduleRepository;
+    public void logout(String accessToken, Member member) {
+        if (accessToken == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+        }
+
+        // refreshToken 을 영속화하기 위해
+        final Long memberId = member.getId();
+        member = memberRepository.findById(memberId).orElseThrow(
+                () -> {
+                    log.error("[" + memberId + "] 의 멤버를 영속화할 수 없습니다");
+                    return new MoimingApiException(COMMON_INVALID_SITUATION);
+                }
+        );
+
+        member.changeRefreshToken(null);
+
+        Date expireAt = moimingTokenProvider.verifyExpireAt(MoimingTokenType.JWT_AT, accessToken);
+        logoutTokenManager.saveLogoutToken(accessToken, expireAt);
+
     }
 
 
-    // TODO : MemberSchdule은 Attended 일 때만 가져오는지?
-    // TODO : 회비 납부 일정 업데이트 필요.
+    public void dormant() {
 
-    /**
-     * 모임 리스트 : 갱신 시마다 랜덤으로 노출 → 여러 개 전달해야 함.
-     * 모임 카드 : 회원수, 가장 빠른 정모일정 및 정모명 노출.
-     * 전달받은 객체를 Controller에서 Front가 원하는 형태로 변경 필요함.
-     */
-    public MemberHomeDto serviceHome(Member curMember) {
+        // 스케줄링 되는게 아니라, 별도의 input 에 따른 ADMIN 단의 요청 따위일 것(ADMIN 권한으로 처리된다)
+        // TODO :: dormant 같은 경우 역시 ADMIN 단 ROLE 이 확인되는게 좋을듯? 추후 협의
 
-        List<MoimPost> findNotices = getMoimNoticesLatestTop3(curMember);
-        List<MemberScheduleLinker> findSchedules = memberScheduleLinkerRepository.findMemberScheduleLatest5ByMemberId(curMember.getId());
+        // 휴면으로 전환시 member field dormant = true 로 변경
+        // 모든 모임 > Inactive By Dormant 로 탈퇴 처리 (ACTIVE 감소)
+        //     게시물, 댓글 > 생존, member_fk 는 유지된다 > 해당 Member 의 현 상태를 정확히 진단하기 위함
 
-        List<Moim> allMoim = moimRepository.findAllMoim();
-        List<Schedule> allSchedule = scheduleRepository.findAllSchedule();
-        MoimScheduleDto moimScheduleDto = new MoimScheduleDto(allMoim, allSchedule);
-
-        return new MemberHomeDto(findSchedules, findNotices, moimScheduleDto);
     }
 
-    private List<MoimPost> getMoimNoticesLatestTop3(Member curMember) {
-        List<MoimMember> findMoimMembers = moimMemberRepository.findByMemberId(curMember.getId());
-        List<Long> uniqueMoimIds = getUniqueMoimIds(findMoimMembers);
-        return null;
-//        return moimPostRepository.findNoticesLatest3ByMoimIds(uniqueMoimIds);
+
+    public void delete() {
+
+        // 탈퇴 처리된다면 7일까지 재가입 방지를 위해 보관한다 (번복은 불가)
+        // refreshToken, fcmToken 제외 모두 유지
+        // MemberInfo 테이블은 모두 삭제 (현재 이건 Pending.. ) > 법적으로는 즉시 삭제 필요
+
+        // 7 일 뒤 모두 삭제
+        // PK 값은 유지, hasDeleted = true 로만 유지 한다. nickname, ci, memberEmail 모두 삭제처리
+        // 필수값들은 삭제처리가 아닌 dummy 값으로 보관된다
+
     }
 
-    private List<Long> getUniqueMoimIds(List<MoimMember> findMoimMembers) {
-        return findMoimMembers.stream()
-                .map(memberMoimLinker -> memberMoimLinker.getMoim().getId())
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
-    // 추후 필요한 정보로 수정 필요함.
-    // 정산 필드 추가 필요함. 필요한 경우 아래 필드도 수정해야함. (엔티티 그대로 노출하기 때문)
-    @Getter
-    public static final class MemberHomeDto {
-        private final List<MemberScheduleLinker> memberSchedule;
-        private final List<MoimPost> moimNotices;
-        private final MoimScheduleDto moimScheduleDto;
-
-        public MemberHomeDto(List<MemberScheduleLinker> memberSchedule,
-                             List<MoimPost> moimNotices,
-                             MoimScheduleDto moimScheduleDto) {
-            this.memberSchedule = memberSchedule;
-            this.moimNotices = moimNotices;
-            this.moimScheduleDto = moimScheduleDto;
-        }
-    }
-
-    @Getter
-    public static final class MoimScheduleDto {
-
-        private final Map<Moim, Schedule> moimScheduleMap = new HashMap<>();
-
-        public MoimScheduleDto(List<Moim> moims, List<Schedule> schedules) {
-            initKeyByExistedMoim(moims);
-            updateScheduleByCreatedTime(schedules);
-        }
-
-        private void initKeyByExistedMoim(List<Moim> moims) {
-            moims.forEach(moim -> moimScheduleMap.put(moim, null));
-        }
-
-        private void updateScheduleByCreatedTime(List<Schedule> schedules) {
-            schedules.stream()
-                    .filter(value -> !isNotExistMoim(value.getMoim()))
-                    .forEach(value -> moimScheduleMap.put(value.getMoim(), decideValue(value)));
-        }
-
-        private boolean isNotExistMoim(Moim key) {
-            return !moimScheduleMap.containsKey(key);
-        }
-
-        private boolean isFirstData(Moim key) {
-            return moimScheduleMap.get(key) == null;
-        }
-
-        private Schedule decideValue(Schedule value) {
-            Moim key = value.getMoim();
-            return isFirstData(key) ? value : getLatestSchedule(value);
-        }
-
-        private Schedule getLatestSchedule(Schedule value) {
-            Moim key = value.getMoim();
-            Schedule oldValue = moimScheduleMap.get(key);
-            return oldValue.getScheduleDate().isAfter(value.getScheduleDate()) ?
-                    oldValue : value;
-        }
-    }
 }

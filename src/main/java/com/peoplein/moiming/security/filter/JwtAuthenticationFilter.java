@@ -5,13 +5,15 @@ import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.token.JwtParams;
-import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
-import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
+import com.peoplein.moiming.security.token.MoimingTokenType;
+import com.peoplein.moiming.service.util.LogoutTokenManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,7 +26,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.AUTH_ACCESS_TRIAL_BY_LOGOUT_TOKEN;
+
 @Slf4j
+
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
 
@@ -32,12 +37,17 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
     private final MoimingTokenProvider moimingTokenProvider;
 
+    private final LogoutTokenManager logoutTokenManager;
+
     private ObjectMapper om = new ObjectMapper();
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, MoimingTokenProvider moimingTokenProvider) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, MoimingTokenProvider moimingTokenProvider
+            , LogoutTokenManager logoutTokenManager) {
+
         super(authenticationManager);
         this.userDetailsService = userDetailsService;
         this.moimingTokenProvider = moimingTokenProvider;
+        this.logoutTokenManager = logoutTokenManager;
     }
 
     @Override
@@ -47,26 +57,29 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
         if (StringUtils.hasText(jwtToken)) { // ACCESS TOKEN 이 있다 // Verfiy 해서 Member 를 꺼내준다
 
-            try {
+            if (logoutTokenManager.isUnusableToken(jwtToken)) { // LOGOUT 이면 더 어떤 수행 없이 로그아웃 상태전달
+                processAccessDeniedByLogout(response);
+            } else {
+                try {
 
-                String tokenEmailValue = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, jwtToken);
-                SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(tokenEmailValue);
-                JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
+                    String tokenEmailValue = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, jwtToken);
+                    SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(tokenEmailValue);
+                    JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
 
-                // Access Token Verify 성공시 AuthenticationToken 이 저장된다
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    // Access Token Verify 성공시 AuthenticationToken 이 저장된다
+                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-                doFilter(request, response, chain);
+                    doFilter(request, response, chain);
 
-            /*
-             Verification 시 발생한 예외에 대해
-             필터가 직접 Response 를 처리한다
-            */
-            } catch (JWTVerificationException exception) { // Verify 시 최상위 Exception
+                /*
+                 Verification 시 발생한 예외에 대해
+                 필터가 직접 Response 를 처리한다
+                */
+                } catch (JWTVerificationException exception) { // Verify 시 최상위 Exception
 
-                processVerificationExceptionResponse(exception, response);
+                    processVerificationExceptionResponse(exception, response);
+                }
             }
-
         } else {
             // 실패시 아무것도 저장되지 않은채로 넘긴다
             doFilter(request, response, chain);
@@ -88,6 +101,17 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         return null;
     }
 
+    private void processAccessDeniedByLogout(HttpServletResponse response) throws IOException {
+
+        ResponseBodyDto<?> responseBody = ResponseBodyDto.createResponse(AUTH_ACCESS_TRIAL_BY_LOGOUT_TOKEN.getErrCode(), AUTH_ACCESS_TRIAL_BY_LOGOUT_TOKEN.getErrMsg(), null);
+
+        response.setStatus(AUTH_ACCESS_TRIAL_BY_LOGOUT_TOKEN.getStatus().value());
+        String responseBodyStr = om.writeValueAsString(responseBody);
+        response.getWriter().write(responseBodyStr);
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+    }
 
     /*
      JWT 인증 중 발생한 에러는 직접 처리한다
@@ -118,6 +142,8 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         }
 
         ResponseBodyDto<?> responseBody = ResponseBodyDto.createResponse(errCode, exception.getMessage(), data);
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(statusCode);
         response.getWriter().write(om.writeValueAsString(responseBody));
 

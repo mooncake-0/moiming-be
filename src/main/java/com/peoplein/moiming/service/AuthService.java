@@ -132,6 +132,8 @@ public class AuthService {
     /*
      회원가입 전에 중복 조건들에 대해서 확인
      에러 발생시 회원 가입 중단
+     // TODO :: 이거 DB 에서 컷되는데 굳이 해줘야함? 세 개 가지고 조회하는거라 Fullscan 꽤 오버헤드 존재해보임
+     //         당연히 당장은 큰 문제 X
      */
     // Test 에서 보이게 하기 위한 package-private 으로 변경
     void checkUniqueColumnDuplication(String memberEmail, String memberPhone, String ci) {

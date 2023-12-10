@@ -1,4 +1,4 @@
-package com.peoplein.moiming.service.input;
+package com.peoplein.moiming.temp;
 
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
