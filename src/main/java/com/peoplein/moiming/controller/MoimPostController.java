@@ -2,8 +2,12 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.member.DeletedMember;
+import com.peoplein.moiming.domain.member.DormantMember;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.model.dto.response.MoimPostRespDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.MoimPostService;
@@ -19,6 +23,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -76,11 +81,24 @@ public class MoimPostController {
             , @RequestParam(required = false, defaultValue = "10") int limit
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
+        StateMapperDto<MoimPost> stateMapper = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
+        List<MoimPost> moimPosts = stateMapper.getEntities();
+        Map<Long, MoimMemberState> stateMap = stateMapper.getStateMapper();
+        for (MoimPost moimPost : moimPosts) {
+            Long postCreatorId = moimPost.getMember().getId();
+            MoimMemberState memberState = stateMap.get(postCreatorId);
+            if (memberState.equals(MoimMemberState.NOTFOUND)) {
+                moimPost.changeMember(new DeletedMember(postCreatorId));
+            }
+            if (memberState.equals(MoimMemberState.IBD)) {
+                moimPost.changeMember(new DormantMember(postCreatorId));
+            }
+        }
 
-        List<MoimPost> moimPosts = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
         List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(moimPost -> new MoimPostViewRespDto(moimPost
                 , Objects.equals(moimPost.getMember().getId(), moimPost.getMoim().getCreatorId()) // Moim 과 Member 모두 Fetch Join 되어 영속화된 상태
         )).collect(Collectors.toList());
+
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모든 게시물 일반 조회 성공", responseBody));
     }
 }

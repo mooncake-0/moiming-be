@@ -114,6 +114,9 @@ public class Member extends BaseEntity {
         this.refreshToken = refreshToken;
     }
 
+    public void changeFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 
     public void changePassword(String password) {
         if (!StringUtils.hasText(password)) {
@@ -137,6 +140,13 @@ public class Member extends BaseEntity {
         int birthYear = this.memberInfo.getMemberBirth().getYear();
         int todayYear = LocalDate.now().getYear();
         return todayYear - birthYear + 1;
+    }
+
+
+    public void makeDormant() {
+        this.memberInfo.changeDormant(true);
+        this.changeRefreshToken(null);
+        this.changeFcmToken(null);
     }
 
 

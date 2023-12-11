@@ -2,7 +2,6 @@ package com.peoplein.moiming.domain.member;
 
 import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.member.Member;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -53,6 +52,11 @@ public class MemberInfo extends BaseEntity {
 
         // 초기화
         this.dormant = false;
+    }
+
+
+    void changeDormant(boolean dormant) {
+        this.dormant = dormant;
     }
 
 

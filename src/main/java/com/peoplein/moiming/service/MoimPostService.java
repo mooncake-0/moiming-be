@@ -6,13 +6,17 @@ import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 
@@ -59,7 +63,7 @@ public class MoimPostService {
 
 
     // 모임의 모든 Post 전달 (필요 정보는 사실상 File 빼고 전부 다)
-    public List<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
+    public StateMapperDto<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
 
         if (moimId == null || member == null) {
             throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
@@ -83,8 +87,18 @@ public class MoimPostService {
             moimMemberRequest = false;
         }
 
-        return moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
+        // Sort 됨, 중요!
+        List<MoimPost> moimPosts = moimPostRepository.findWithMemberByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
 
+        List<Long> postWriterIds = moimPosts.stream().map(moimPost -> moimPost.getMember().getId()).collect(Collectors.toList());
+
+        List<MoimMember> writerMoimMembers = moimMemberRepository.findByMoimIdAndMemberIds(moimId, postWriterIds);
+        Map<Long, MoimMemberState> stateMapper = new HashMap<>();
+        for (MoimMember writerMoimMember : writerMoimMembers) {
+            stateMapper.put(writerMoimMember.getMember().getId(), writerMoimMember.getMemberState());
+        }
+
+        return new StateMapperDto<>(moimPosts, stateMapper);
     }
 
 

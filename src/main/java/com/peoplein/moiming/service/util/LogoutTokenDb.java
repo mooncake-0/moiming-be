@@ -8,13 +8,14 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 
 @Getter
 public class LogoutTokenDb implements LogoutTokenManager {
 
-    private static final Map<String, Date> logoutTokenDb = new HashMap<>();
+    private static final Map<String, Date> logoutTokenDb = new ConcurrentHashMap<>();
 
     @Override
     public void saveLogoutToken(String accessToken, Date expireAt) {
