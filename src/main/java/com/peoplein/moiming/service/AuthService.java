@@ -10,7 +10,6 @@ import com.peoplein.moiming.exception.MoimingInvalidTokenException;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
-import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
@@ -30,6 +29,7 @@ import java.util.Optional;
 import org.springframework.util.StringUtils;
 
 import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
+import static com.peoplein.moiming.security.token.MoimingTokenType.*;
 
 @Slf4j
 @Service
@@ -77,9 +77,8 @@ public class AuthService {
         // Policy 저장 분리
         policyAgreeService.createPolicyAgree(signInMember, requestDto.getPolicyDtos());
 
-
         // Refresh 토큰 발급 & Response Data 생성
-        TokenDto tokenDto = issueJwtToken(true, signInMember);
+        TokenDto tokenDto = issueTokensAndUpdateColumns(true, signInMember);
         MemberSignInRespDto responseData = new MemberSignInRespDto(signInMember);
 
         // 두 객체 응답을 위한 HashMap
@@ -100,7 +99,7 @@ public class AuthService {
         String rtEmail = "";
 
         try {
-            rtEmail = verifyAndClaimEmail(MoimingTokenType.JWT_RT, curRefreshToken);
+            rtEmail = verifyAndClaimEmail(JWT_RT, curRefreshToken);
         } catch (JWTVerificationException exception) { // Verify 시 최상위 Exception
             log.info("Verify 도중 알 수 없는 예외가 발생 : {}", exception.getMessage());
             throw exception;
@@ -119,7 +118,7 @@ public class AuthService {
             throw new MoimingInvalidTokenException(errMsg);
         }
 
-        return issueJwtToken(true, memberPs);
+        return issueTokensAndUpdateColumns(true, memberPs);
     }
 
 
@@ -174,15 +173,15 @@ public class AuthService {
 
 
     // 3 가지 - 로그인 / 액토만료로 인한 재발급 / 회원가입
-    public TokenDto issueJwtToken(boolean persisted, Member member) {
+    public TokenDto issueTokensAndUpdateColumns(boolean persisted, Member member) {
         if (!persisted) {
             member = memberRepository.findById(member.getId()).orElseThrow(
                     () -> new MoimingApiException(ExceptionValue.MEMBER_NOT_FOUND)
             );
         }
 
-        String jwtAccessToken = tokenProvider.generateToken(MoimingTokenType.JWT_AT, member);
-        String jwtRefreshToken = tokenProvider.generateToken(MoimingTokenType.JWT_RT, member);
+        String jwtAccessToken = tokenProvider.generateToken(JWT_AT, member);
+        String jwtRefreshToken = tokenProvider.generateToken(JWT_RT, member);
 
         member.changeRefreshToken(jwtRefreshToken);
         member.changeLastLoginAt();
@@ -191,7 +190,7 @@ public class AuthService {
     }
 
 
-    // 토큰을 인증해준다
+    // 토큰을 인증해준다 Provider 전담
     public String verifyAndClaimEmail(MoimingTokenType type, String token) {
 
         return tokenProvider.verifyMemberEmail(type, token);

@@ -35,16 +35,11 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
-        /*
-         Tx 가 끝났어도 Member Info 까지 다 프록시에 로딩된 Member 객체
-         */
         SecurityMember securityMember = (SecurityMember) authentication.getPrincipal();
-
-        TokenDto tokenDto = authService.issueJwtToken(false, securityMember.getMember());
-        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + tokenDto.getAccessToken());
-
+        TokenDto tokenDto = authService.issueTokensAndUpdateColumns(false, securityMember.getMember());
         ResponseBodyDto<MemberLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공", new MemberLoginRespDto(securityMember.getMember()));
 
+        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + tokenDto.getAccessToken());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(om.writeValueAsString(responseBody));

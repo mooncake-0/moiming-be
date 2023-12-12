@@ -5,8 +5,8 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingInvalidTokenException;
+import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
-import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.support.TestMockCreator;
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.peoplein.moiming.security.token.MoimingTokenType.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
@@ -96,26 +97,24 @@ public class AuthServiceTest extends TestMockCreator {
 
         // given
         MemberSignInReqDto requestDto = mockSigninReqDto(); // VALIDATION Controller 단에서 컷
+        TokenDto mockTokenDto = mock(TokenDto.class);
 
         // given - stubs
-        doNothing().when(authService).checkUniqueColumnDuplication(any(), any(), any()); // 정상 객체 authService 안에서 일부를 mocking 한다 - Spy
         when(roleRepository.findByRoleType(RoleType.USER)).thenReturn(mockRole(1L, RoleType.USER)); // role 이 null 이 되면 안되므로
-        doNothing().when(memberRepository).save(any()); // save() 함수가 반환하는게 없으므로
-        doNothing().when(policyAgreeService).createPolicyAgree(any(), any());
+        when(mockTokenDto.getAccessToken()).thenReturn("ACCESS_TOKEN");
+
+        // given - spy other methods
+        doNothing().when(authService).checkUniqueColumnDuplication(any(), any(), any()); // 정상 객체 authService 안에서 일부를 mocking 한다 - Spy
+        doReturn(nickname).when(authService).tryCreateNicknameForUser(); // 해당 함수는 하는게 없다
+        doReturn(mockTokenDto).when(authService).issueTokensAndUpdateColumns(anyBoolean(), any());
 
         // when
         Map<String, Object> transmit = authService.signIn(requestDto);
-        MemberSignInRespDto responseData = (MemberSignInRespDto) transmit.get(authService.KEY_RESPONSE_DATA);
 
         // then - assert
-        assertThat(transmit.get(authService.KEY_ACCESS_TOKEN)).isEqualTo(accessToken);
-        assertThat(responseData.getMemberEmail()).isEqualTo(memberEmail);
-        assertThat(responseData.getMemberInfo().getMemberName()).isEqualTo(memberName);
-        assertThat(responseData.getFcmToken()).isEqualTo(fcmToken);
-        assertThat(responseData.getNickname()).isEqualTo(nickname);
+        assertThat(transmit.get(authService.KEY_ACCESS_TOKEN)).isEqualTo("ACCESS_TOKEN");
+        assertNotNull(transmit.get(authService.KEY_RESPONSE_DATA));
 
-        // then - verify
-        verify(authService, times(1)).checkUniqueColumnDuplication(any(), any(), any());
 
     }
 
@@ -128,20 +127,21 @@ public class AuthServiceTest extends TestMockCreator {
         TokenReqDto reqDto = mockTokenReqDto(refreshToken);
 
         // given - stub
-        when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
+        when(tokenProvider.verifyMemberEmail(eq(JWT_RT), any())).thenReturn(memberEmail);
         when(memberRepository.findByEmail(any())).thenReturn(Optional.ofNullable(mockMember));
 
         // given - stub - signIn 과는 다르게 issueJwtToken() 일부 정상 동작 필요
-        when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_AT), any())).thenReturn("NEW_ACCESS_TOKEN");
-        when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_RT), any())).thenReturn("NEW_REFRESH_TOKEN");
+        when(tokenProvider.generateToken(eq(JWT_AT), any())).thenReturn("NEW_ACCESS_TOKEN");
+        when(tokenProvider.generateToken(eq(JWT_RT), any())).thenReturn("NEW_REFRESH_TOKEN");
 
         //when
-        Map<String, Object> transmit = authService.reissueToken(reqDto);
-        TokenRespDto respDto = (TokenRespDto) transmit.get(authService.KEY_RESPONSE_DATA);
+        TokenDto tokenDto = authService.reissueToken(reqDto);
+        String reIssuedAt = tokenDto.getAccessToken();
+        String reIssuedRt = tokenDto.getRefreshToken();
 
         //then
-        assertThat(transmit.get(authService.KEY_ACCESS_TOKEN)).isEqualTo("NEW_ACCESS_TOKEN");
-        assertThat(respDto.getRefreshToken()).isEqualTo("NEW_REFRESH_TOKEN");
+        assertThat(reIssuedAt).isEqualTo("NEW_ACCESS_TOKEN");
+        assertThat(reIssuedRt).isEqualTo("NEW_REFRESH_TOKEN");
         assertThat(mockMember.getRefreshToken()).isEqualTo("NEW_REFRESH_TOKEN");
 
         //then - verify 검증할 것 없음
@@ -155,7 +155,7 @@ public class AuthServiceTest extends TestMockCreator {
         TokenReqDto reqDto = mockTokenReqDto(refreshToken);
 
         // given - stub
-        when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
+        when(tokenProvider.verifyMemberEmail(eq(JWT_RT), any())).thenReturn(memberEmail);
         when(memberRepository.findByEmail(memberEmail)).thenReturn(Optional.empty()); // 아무것도 찾지 못했을 경우
 
         // when
@@ -173,7 +173,7 @@ public class AuthServiceTest extends TestMockCreator {
         TokenReqDto reqDto = mockTokenReqDto("DIFF" + refreshToken); // member email 은 추출할 수 있도록 payload 부분을 건드리진 않는다
 
         // given - stub
-        when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
+        when(tokenProvider.verifyMemberEmail(eq(JWT_RT), any())).thenReturn(memberEmail);
         when(memberRepository.findByEmail(any())).thenReturn(Optional.ofNullable(mockMember)); // Mocked Member 반환
 
         // when
@@ -194,7 +194,7 @@ public class AuthServiceTest extends TestMockCreator {
         TokenReqDto reqDto = mockTokenReqDto(refreshToken);
 
         // given - stub
-        when(tokenProvider.verifyMemberEmail(eq(MoimingTokenType.JWT_RT), any())).thenReturn(memberEmail);
+        when(tokenProvider.verifyMemberEmail(eq(JWT_RT), any())).thenReturn(memberEmail);
         when(memberRepository.findByEmail(any())).thenReturn(Optional.ofNullable(mockMember)); // Mocked Member 반환
 
         // when

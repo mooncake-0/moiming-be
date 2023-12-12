@@ -3,7 +3,6 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
-import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.AuthService;
 import io.swagger.annotations.*;
@@ -68,7 +67,7 @@ public class AuthController {
      */
     @ApiOperation("갱신 토큰 - 토큰 재발급 요청")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "접근 / 갱신 토큰 재발급 성공", response = TokenRespDto.class,
+            @ApiResponse(code = 200, message = "접근 / 갱신 토큰 재발급 성공", response = TokenDto.class,
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })

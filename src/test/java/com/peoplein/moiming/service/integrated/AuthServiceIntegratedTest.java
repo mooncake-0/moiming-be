@@ -7,8 +7,8 @@ import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingInvalidTokenException;
+import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
-import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import com.peoplein.moiming.service.AuthService;
 import com.peoplein.moiming.support.TestObjectCreator;
@@ -125,16 +125,16 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         requestDto.setToken(preRefreshToken);
 
         // when
-        Map<String, Object> responseData = authService.reissueToken(requestDto);
-        String reIssuedAt = (String) responseData.get(authService.KEY_ACCESS_TOKEN);
-        TokenRespDto responseDto = (TokenRespDto) responseData.get(authService.KEY_RESPONSE_DATA);
+        TokenDto tokenDto = authService.reissueToken(requestDto);
+        String reIssuedAt = tokenDto.getAccessToken();
+        String reIssuedRt = tokenDto.getRefreshToken();
 
         // then
         assertTrue(StringUtils.hasText(reIssuedAt));
 
         // then - db verify
         Member member = em.find(Member.class, testMember.getId());
-        assertThat(member.getRefreshToken()).isEqualTo(responseDto.getRefreshToken());
+        assertThat(member.getRefreshToken()).isEqualTo(reIssuedRt);
 
     }
 

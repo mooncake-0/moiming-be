@@ -399,20 +399,15 @@ public class AuthControllerTest extends TestObjectCreator {
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
         String requestBody = om.writeValueAsString(reqDto);
 
-
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN).content(requestBody).contentType(MediaType.APPLICATION_JSON));
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        String headerJwt = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
-        String reissuedToken = headerJwt.replace(JwtParams.PREFIX, "");
-        System.out.println("responseBody = " + responseBody);
-        System.out.println("headerJwt = " + headerJwt);
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
 
         // then
         resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.accessToken").exists());
         resultActions.andExpect(jsonPath("$.data.refreshToken").exists()); // Refresh Token 재발급
-        assertTrue(headerJwt.startsWith(JwtParams.PREFIX));
-        assertTrue(StringUtils.hasText(reissuedToken)); // Access Token 재발급
 
     }
 
