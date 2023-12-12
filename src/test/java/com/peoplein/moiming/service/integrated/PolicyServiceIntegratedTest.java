@@ -1,17 +1,13 @@
 package com.peoplein.moiming.service.integrated;
 
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
-import com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
-import com.peoplein.moiming.service.AuthService;
 import com.peoplein.moiming.service.PolicyAgreeService;
-import com.peoplein.moiming.service.PolicyAgreeServiceTest;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

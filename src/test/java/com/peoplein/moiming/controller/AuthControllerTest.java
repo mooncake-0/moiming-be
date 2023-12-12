@@ -1,12 +1,11 @@
 package com.peoplein.moiming.controller;
 
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.ExceptionValue;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
@@ -28,7 +27,6 @@ import javax.persistence.EntityManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
@@ -401,20 +399,15 @@ public class AuthControllerTest extends TestObjectCreator {
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
         String requestBody = om.writeValueAsString(reqDto);
 
-
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN).content(requestBody).contentType(MediaType.APPLICATION_JSON));
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        String headerJwt = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
-        String reissuedToken = headerJwt.replace(JwtParams.PREFIX, "");
-        System.out.println("responseBody = " + responseBody);
-        System.out.println("headerJwt = " + headerJwt);
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
 
         // then
         resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.accessToken").exists());
         resultActions.andExpect(jsonPath("$.data.refreshToken").exists()); // Refresh Token 재발급
-        assertTrue(headerJwt.startsWith(JwtParams.PREFIX));
-        assertTrue(StringUtils.hasText(reissuedToken)); // Access Token 재발급
 
     }
 

@@ -1,12 +1,9 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
-import com.peoplein.moiming.domain.enums.MoimMemberState;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.request.MoimMemberReqDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;

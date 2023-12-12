@@ -1,20 +1,12 @@
 package com.peoplein.moiming.security.token;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.support.TestMockCreator;
-import com.peoplein.moiming.support.TestModelParams;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Spy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-
-import java.util.Date;
 
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;

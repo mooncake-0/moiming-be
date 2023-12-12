@@ -1,16 +1,12 @@
-package com.peoplein.moiming.domain;
+package com.peoplein.moiming.domain.member;
 
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.fixed.Role;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
@@ -21,9 +17,7 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 
 @Entity
@@ -58,6 +52,10 @@ public class Member extends BaseEntity {
 
     private String fcmToken;
 
+    private boolean hasDeleted;
+
+    private LocalDateTime lastLoginAt;
+
     /*
      Mapped Columns
      */
@@ -66,7 +64,7 @@ public class Member extends BaseEntity {
     private MemberInfo memberInfo;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<MemberRoleLinker> roles = new ArrayList<>();
+    private List<MemberRole> roles = new ArrayList<>();
 
     /*
      생성자는 Private 으로, 생성 방식을 create 함수로만 제어한다
@@ -78,6 +76,8 @@ public class Member extends BaseEntity {
         this.ci = ci;
         this.memberInfo = memberInfo;
 
+        this.hasDeleted = false;
+        this.lastLoginAt = LocalDateTime.now();
     }
 
 
@@ -96,7 +96,7 @@ public class Member extends BaseEntity {
 
         MemberInfo memberInfo = new MemberInfo(memberName, memberPhone, memberGender, foreigner, memberBirth);
         Member createdMember = new Member(memberEmail, encryptedPassword, fcmToken, ci, memberInfo);
-        MemberRoleLinker.grantRoleToMember(createdMember, role);
+        MemberRole.grantRoleToMember(createdMember, role);
 
         return createdMember;
     }
@@ -104,18 +104,23 @@ public class Member extends BaseEntity {
     /*
      연관관계 편의 메소드
      */
-    public void addRole(MemberRoleLinker roleLinker) {
+    public void addRole(MemberRole roleLinker) {
         this.roles.add(roleLinker);
     }
 
 
     // MEMO : 수정 메소드 영속화 확인 필수
-    // Member 생성 이후 수정 메소드
-    // Refresh Token 삭제 시도일 수도 있으니 빈칸 허용
     public void changeRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
     }
 
+    public void changeFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+
+    public void changeLastLoginAt() {
+        this.lastLoginAt = LocalDateTime.now();
+    }
 
     public void changePassword(String password) {
         if (!StringUtils.hasText(password)) {
@@ -139,6 +144,13 @@ public class Member extends BaseEntity {
         int birthYear = this.memberInfo.getMemberBirth().getYear();
         int todayYear = LocalDate.now().getYear();
         return todayYear - birthYear + 1;
+    }
+
+
+    public void makeDormant() {
+        this.memberInfo.changeDormant(true);
+        this.changeRefreshToken(null);
+        this.changeFcmToken(null);
     }
 
 

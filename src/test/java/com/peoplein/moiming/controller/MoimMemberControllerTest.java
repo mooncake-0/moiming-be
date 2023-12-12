@@ -2,7 +2,7 @@ package com.peoplein.moiming.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;

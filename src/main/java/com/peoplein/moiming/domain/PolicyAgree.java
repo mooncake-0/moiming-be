@@ -1,19 +1,16 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.PolicyType;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
-import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 
 @Entity
 @Getter

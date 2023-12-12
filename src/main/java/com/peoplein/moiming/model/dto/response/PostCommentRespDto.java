@@ -1,14 +1,12 @@
 package com.peoplein.moiming.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.PostComment;
 import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 public class PostCommentRespDto {
 

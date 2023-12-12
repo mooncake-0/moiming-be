@@ -1,6 +1,6 @@
 package com.peoplein.moiming.domain;
 
-import com.peoplein.moiming.domain.enums.PolicyType;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.exception.MoimingApiException;
 import org.junit.jupiter.api.Test;
 

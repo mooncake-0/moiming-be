@@ -1,6 +1,6 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.MemberRoleLinker;
+import com.peoplein.moiming.domain.member.MemberRole;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.enums.RoleType;
 import lombok.*;
@@ -15,7 +15,7 @@ public class MemberRoleDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public MemberRoleDto(MemberRoleLinker roleLinker) {
+    public MemberRoleDto(MemberRole roleLinker) {
 
         Role role = roleLinker.getRole();
         this.roleType = role.getRoleType();

@@ -22,6 +22,6 @@ public interface MoimPostRepository {
 
     Optional<MoimPost> findWithMoimAndMemberById(Long moimPostId); // 게시물 생성자와 모임정보를 같이 불러온다
 
-    List<MoimPost> findByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost moimPost, MoimPostCategory category, int limit, boolean hasPrivateVisibility);
+    List<MoimPost> findWithMemberByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost moimPost, MoimPostCategory category, int limit, boolean hasPrivateVisibility);
 
 }

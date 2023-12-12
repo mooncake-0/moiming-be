@@ -1,10 +1,9 @@
 package com.peoplein.moiming.domain.moim;
 
 import com.peoplein.moiming.domain.BaseEntity;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
-import com.peoplein.moiming.domain.enums.MoimMemberStateAction;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,7 +16,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.InvalidParameterException;
 import java.util.Objects;
-import java.util.Optional;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 

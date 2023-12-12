@@ -1,7 +1,7 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.MemberRoleLinker;
+import com.peoplein.moiming.domain.member.MemberRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MemberRoleLinkerRepository extends JpaRepository<MemberRoleLinker, Long> {
+public interface MemberRoleLinkerRepository extends JpaRepository<MemberRole, Long> {
 }

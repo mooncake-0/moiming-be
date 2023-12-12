@@ -1,6 +1,6 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.enums.NotificationDomain;

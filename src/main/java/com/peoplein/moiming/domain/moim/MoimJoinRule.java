@@ -1,7 +1,7 @@
 package com.peoplein.moiming.domain.moim;
 
 import com.peoplein.moiming.domain.BaseEntity;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;

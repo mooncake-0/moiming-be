@@ -1,6 +1,6 @@
-package com.peoplein.moiming.service;
+package com.peoplein.moiming.temp;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.MemberSessionState;
 import com.peoplein.moiming.domain.enums.DomainRequestType;
 import com.peoplein.moiming.domain.enums.SessionCategoryType;
@@ -15,7 +15,6 @@ import com.peoplein.moiming.model.dto.domain.SessionCategoryItemDto;
 import com.peoplein.moiming.model.dto.request_b.MemberSessionStateRequestDto;
 import com.peoplein.moiming.model.dto.request_b.MoimSessionRequestDto;
 import com.peoplein.moiming.model.dto.response_b.MoimSessionResponseDto;
-import com.peoplein.moiming.service.input.MoimSessionServiceInput;
 import com.peoplein.moiming.service.shell.MoimSessionServiceShell;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

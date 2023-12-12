@@ -9,7 +9,7 @@ public interface MoimMemberRepository {
 
     void save(MoimMember mmLinker);
 
-    List<MoimMember> findByMemberId(Long memberId);
+
 
     List<MoimMember> findWithMoimAndCategoryByMemberId(Long memberId); // Moim 을 가져올 때 Category 까지 쭉 Fetch Join
 
@@ -21,9 +21,16 @@ public interface MoimMemberRepository {
 
     List<MoimMember> findWithMemberInfoAndMoimByMoimId(Long moimId);
 
-    List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds);
+
 
     Optional<MoimMember> findOptionalWithMoimByMemberAndMoimId(Long memberId, Long moimId);
 
     void remove(MoimMember moimMember);
+
+    // IN - USE
+
+    List<MoimMember> findWithMoimByMemberId(Long memberId);
+
+    List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds);
+
 }

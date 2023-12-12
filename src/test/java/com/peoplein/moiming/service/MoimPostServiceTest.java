@@ -1,7 +1,7 @@
 package com.peoplein.moiming.service;
 
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.moim.MoimMember;
@@ -141,7 +141,7 @@ public class MoimPostServiceTest {
         moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
         // then
-        verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+        verify(moimPostRepository, times(1)).findWithMemberByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
 
     }
 
@@ -164,7 +164,7 @@ public class MoimPostServiceTest {
         moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
         // then
-        verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+        verify(moimPostRepository, times(1)).findWithMemberByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
 
     }
 

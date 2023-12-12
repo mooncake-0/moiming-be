@@ -2,11 +2,10 @@ package com.peoplein.moiming.domain.moim;
 
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.request.MoimReqDto;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +17,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.ACTIVE;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;

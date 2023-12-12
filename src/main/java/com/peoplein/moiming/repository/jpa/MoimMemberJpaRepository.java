@@ -1,5 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
@@ -16,8 +17,8 @@ import java.util.Optional;
 
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.moim.QMoimMember.*;
-import static com.peoplein.moiming.domain.QMember.*;
-import static com.peoplein.moiming.domain.QMemberInfo.*;
+import static com.peoplein.moiming.domain.member.QMember.*;
+import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
 import static com.peoplein.moiming.domain.fixed.QCategory.*;
 
@@ -43,13 +44,6 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
         em.persist(moimMember);
     }
 
-    @Override
-    public List<MoimMember> findByMemberId(Long memberId) {
-        checkIllegalQueryParams(memberId);
-        return queryFactory.selectFrom(moimMember)
-                .where(moimMember.member.id.eq(memberId))
-                .fetch();
-    }
 
 
     @Override
@@ -126,18 +120,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                 ;
     }
 
-    @Override
-    public List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds) {
 
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.member, member).fetchJoin()
-                .join(member.memberInfo, memberInfo).fetchJoin()
-                .where(
-                        moimMember.moim.id.eq(moimId),
-                        moimMember.member.id.in(memberIds)
-                )
-                .fetch();
-    }
 
     @Override
     public Optional<MoimMember> findOptionalWithMoimByMemberAndMoimId(Long memberId, Long moimId) {
@@ -153,4 +136,29 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
         em.remove(moimMember);
     }
 
+    // 각 모임 정보를 모두 같이 불러온다
+    // In USE
+    @Override
+    public List<MoimMember> findWithMoimByMemberId(Long memberId) {
+        checkIllegalQueryParams(memberId);
+        return queryFactory.selectFrom(moimMember)
+                .join(moimMember.moim, moim).fetchJoin()
+                .where(moimMember.member.id.eq(memberId))
+                .fetch();
+
+    }
+
+
+    @Override
+    public List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds) {
+
+        return queryFactory.selectFrom(moimMember)
+                .join(moimMember.member, member).fetchJoin()
+                .join(member.memberInfo, memberInfo).fetchJoin()
+                .where(
+                        moimMember.moim.id.eq(moimId),
+                        moimMember.member.id.in(memberIds)
+                )
+                .fetch();
+    }
 }

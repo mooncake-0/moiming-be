@@ -1,7 +1,7 @@
 package com.peoplein.moiming.security.domain;
 
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberRoleLinker;
+import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberRole;
 import com.peoplein.moiming.domain.enums.RoleType;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -34,7 +34,7 @@ public class SecurityMember implements UserDetails {
 
         Set<GrantedAuthority> authorities = new HashSet<>();
 
-        for (MemberRoleLinker roleLinker : this.member.getRoles()) {
+        for (MemberRole roleLinker : this.member.getRoles()) {
             RoleType roleType = roleLinker.getRole().getRoleType();
             authorities.add(new SimpleGrantedAuthority("ROLE_" + roleType));
         }

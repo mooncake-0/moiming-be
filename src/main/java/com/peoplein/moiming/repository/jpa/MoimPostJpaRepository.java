@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QMoimPost.*;
-import static com.peoplein.moiming.domain.QMember.*;
-import static com.peoplein.moiming.domain.QMemberInfo.*;
+import static com.peoplein.moiming.domain.member.QMember.*;
+import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 
 @Repository
@@ -102,7 +102,7 @@ public class MoimPostJpaRepository implements MoimPostRepository {
      */
 
     @Override
-    public List<MoimPost> findByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost lastPost,
+    public List<MoimPost> findWithMemberByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost lastPost,
                                                                    MoimPostCategory category, int limit,
                                                                    boolean moimMemberRequest) {
 
@@ -126,6 +126,7 @@ public class MoimPostJpaRepository implements MoimPostRepository {
         }
 
         return queryFactory.selectFrom(moimPost)
+                .join(moimPost.member, member).fetchJoin()
                 .where(moimPost.moim.id.eq(moimId), dynamicBuilder)
                 .orderBy(moimPost.createdAt.desc(), moimPost.id.desc()) // 기본적으로 1차 소팅은 날짜 순, 같을 경우 2차 소팅은 ID로
                 .limit(limit)

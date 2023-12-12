@@ -39,12 +39,12 @@
 #
 #   Important for patching:
 #
-#   (2) This script targets any POSIX shell, so it avoids extensions provided
+#   (2) This script targets any POSIX shell, temp it avoids extensions provided
 #       by Bash, Ksh, etc; in particular arrays are avoided.
 #
 #       The "traditional" practice of packing multiple parameters into a
 #       space-separated string is a well documented source of bugs and security
-#       problems, so this is (mostly) avoided, by progressively accumulating
+#       problems, temp this is (mostly) avoided, by progressively accumulating
 #       options in "$@", and eventually passing that to Java.
 #
 #       Where the inherited environment variables (DEFAULT_JVM_OPTS, JAVA_OPTS,
@@ -182,10 +182,10 @@ if "$cygwin" || "$msys" ; then
             arg=$( cygpath --path --ignore --mixed "$arg" )
         fi
         # Roll the args list around exactly as many times as the number of
-        # args, so each arg winds up back in the position where it started, but
+        # args, temp each arg winds up back in the position where it started, but
         # possibly modified.
         #
-        # NB: a `for` loop captures its iteration list before it begins, so
+        # NB: a `for` loop captures its iteration list before it begins, temp
         # changing the positional parameters here affects neither the number of
         # iterations, nor the values presented in `arg`.
         shift                   # remove old arg
@@ -195,9 +195,9 @@ fi
 
 # Collect all arguments for the java command;
 #   * $DEFAULT_JVM_OPTS, $JAVA_OPTS, and $GRADLE_OPTS can contain fragments of
-#     shell script including quotes and variable substitutions, so put them in
+#     shell script including quotes and variable substitutions, temp put them in
 #     double quotes to make sure that they get re-expanded; and
-#   * put everything else in single quotes, so that it's not re-expanded.
+#   * put everything else in single quotes, temp that it's not re-expanded.
 
 set -- \
         "-Dorg.gradle.appname=$APP_BASE_NAME" \
@@ -220,7 +220,7 @@ fi
 #   readarray ARGS < <( xargs -n1 <<<"$var" ) &&
 #   set -- "${ARGS[@]}" "$@"
 #
-# but POSIX shell has neither arrays nor command substitution, so instead we
+# but POSIX shell has neither arrays nor command substitution, temp instead we
 # post-process each arg (as a line of input to sed) to backslash-escape any
 # character that might be a shell metacharacter, then use eval to reverse
 # that process (while maintaining the separation between arguments), and wrap

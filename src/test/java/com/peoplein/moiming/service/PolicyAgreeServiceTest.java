@@ -1,10 +1,8 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.PolicyAgree;
-import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

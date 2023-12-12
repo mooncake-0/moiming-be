@@ -1,9 +1,10 @@
 package com.peoplein.moiming.domain;
 
-import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
-import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.util.StringUtils;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Getter
@@ -96,6 +96,12 @@ public class MoimPost extends BaseEntity {
         this.moimPostCategory = moimPostCategory;
     }
 
+    public void changeMember(Member member) {
+        if (member == null) {
+            throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM_NULL);
+        }
+        this.member = member;
+    }
     public void addCommentCnt() {
         this.commentCnt += 1;
     }

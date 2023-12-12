@@ -2,7 +2,7 @@ package com.peoplein.moiming.controller;
 
 
 import com.jayway.jsonpath.JsonPath;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
@@ -12,7 +12,6 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
