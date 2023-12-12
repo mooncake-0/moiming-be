@@ -118,6 +118,10 @@ public class Member extends BaseEntity {
         this.fcmToken = fcmToken;
     }
 
+    public void changeLastLoginAt() {
+        this.lastLoginAt = LocalDateTime.now();
+    }
+
     public void changePassword(String password) {
         if (!StringUtils.hasText(password)) {
             throw new IllegalArgumentException("잘못된 입력");

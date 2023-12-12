@@ -101,8 +101,6 @@ public class AuthServiceTest extends TestMockCreator {
         doNothing().when(authService).checkUniqueColumnDuplication(any(), any(), any()); // 정상 객체 authService 안에서 일부를 mocking 한다 - Spy
         when(roleRepository.findByRoleType(RoleType.USER)).thenReturn(mockRole(1L, RoleType.USER)); // role 이 null 이 되면 안되므로
         doNothing().when(memberRepository).save(any()); // save() 함수가 반환하는게 없으므로
-        doReturn(accessToken).when(authService).issueJwtTokens(any()); // 정상 객체 authService 안에서 일부를 mocking 한다 - Spy
-        doReturn(nickname).when(authService).tryCreateNicknameForUser();
         doNothing().when(policyAgreeService).createPolicyAgree(any(), any());
 
         // when
@@ -118,7 +116,6 @@ public class AuthServiceTest extends TestMockCreator {
 
         // then - verify
         verify(authService, times(1)).checkUniqueColumnDuplication(any(), any(), any());
-        verify(authService, times(1)).issueJwtTokens(any());
 
     }
 
@@ -280,23 +277,6 @@ public class AuthServiceTest extends TestMockCreator {
         //when
         //then
         assertDoesNotThrow(() -> authService.checkUniqueColumnDuplication(memberEmail, memberPhone, ci)); // void returns
-    }
-
-
-    @Test
-    void issueJwtTokens_shouldReturnAccessTokenAndSetRefreshToken_whenRightInfoPassed() {
-        //given
-        Role mockRole = mockRole(1L, RoleType.USER);
-        Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, ci, mockRole);
-        when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_AT), any())).thenReturn(accessToken); // stubbing 시 하나만 Matcher 넣는 것은 불가능 // All Params Matcher or 실제 Data
-        when(tokenProvider.generateToken(eq(MoimingTokenType.JWT_RT), any())).thenReturn(refreshToken);
-
-        //when
-        String returnData = authService.issueJwtTokens(mockMember);
-
-        //then
-        assertThat(returnData).isEqualTo(accessToken);
-        assertThat(mockMember.getRefreshToken()).isEqualTo(refreshToken);
     }
 
 

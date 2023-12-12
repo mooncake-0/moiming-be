@@ -2,6 +2,7 @@ package com.peoplein.moiming.security;
 
 
 import com.peoplein.moiming.config.AppUrlPath;
+import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.security.filter.JwtAuthenticationFilter;
 import com.peoplein.moiming.security.filter.MoimingLoginFilter;
 import com.peoplein.moiming.security.handler.ExceptionFilterHandler;
@@ -11,8 +12,10 @@ import com.peoplein.moiming.security.auth.JwtAuthenticationProvider;
 import com.peoplein.moiming.security.token.JwtTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.service.SecurityMemberService;
+import com.peoplein.moiming.service.AuthService;
 import com.peoplein.moiming.service.util.LogoutTokenDb;
 import com.peoplein.moiming.service.util.LogoutTokenManager;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -31,29 +34,31 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityJwtConfig {
+
+    private final AuthService authService;
+    private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final LogoutTokenManager logoutTokenManager;
+
 
     /*
      Security 설정을 위한 Bean 설정
      */
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
     public UserDetailsService userDetailsService() {
-        return new SecurityMemberService();
+        return new SecurityMemberService(memberRepository);
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        return new JwtAuthenticationProvider(userDetailsService(), passwordEncoder());
+        return new JwtAuthenticationProvider(userDetailsService(), passwordEncoder);
     }
 
     @Bean
     public AuthenticationSuccessHandler loginSuccessHandler() {
-        return new MoimingLoginSuccessHandler(moimingTokenProvider(), (SecurityMemberService) userDetailsService());
+        return new MoimingLoginSuccessHandler(authService);
     }
 
     @Bean
@@ -61,15 +66,6 @@ public class SecurityJwtConfig {
         return new MoimingLoginFailureHandler();
     }
 
-    @Bean
-    public MoimingTokenProvider moimingTokenProvider() {
-        return new JwtTokenProvider();
-    }
-
-    @Bean
-    public LogoutTokenManager logoutTokenManager() {
-        return new LogoutTokenDb();
-    }
 
     public class MoimingSecurityFilterManager extends AbstractHttpConfigurer<MoimingSecurityFilterManager, HttpSecurity> {
         @Override
@@ -94,7 +90,7 @@ public class SecurityJwtConfig {
 
     public JwtAuthenticationFilter jwtAuthenticationFilter(AuthenticationManager authenticationManager) {
 
-        return new JwtAuthenticationFilter(authenticationManager, userDetailsService(), moimingTokenProvider(), logoutTokenManager());
+        return new JwtAuthenticationFilter(authenticationManager, userDetailsService(), logoutTokenManager, authService);
     }
 
     /*
@@ -124,7 +120,7 @@ public class SecurityJwtConfig {
         http.apply(new MoimingSecurityFilterManager());
 
         // 인증 예외 - AuthenticationEntryPoint 가 크게 하는 일이 없어서 lamda 로 일단 정의 - 추후 exception 별 로깅 이런 처리가 필요시 Custom 활 필요
-        http.exceptionHandling().authenticationEntryPoint((req, resp, exception)->{
+        http.exceptionHandling().authenticationEntryPoint((req, resp, exception) -> {
             ExceptionFilterHandler.sendExceptionResponse(resp, exception.getMessage(), HttpStatus.UNAUTHORIZED);
         });
 

@@ -10,12 +10,14 @@ import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
+import com.peoplein.moiming.service.AuthService;
 import com.peoplein.moiming.service.util.LogoutTokenManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.StringUtils;
@@ -35,19 +37,18 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
     private final UserDetailsService userDetailsService;
 
-    private final MoimingTokenProvider moimingTokenProvider;
-
     private final LogoutTokenManager logoutTokenManager;
+    private final AuthService authService;
 
     private ObjectMapper om = new ObjectMapper();
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, MoimingTokenProvider moimingTokenProvider
-            , LogoutTokenManager logoutTokenManager) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserDetailsService userDetailsService
+            , LogoutTokenManager logoutTokenManager, AuthService authService) {
 
         super(authenticationManager);
         this.userDetailsService = userDetailsService;
-        this.moimingTokenProvider = moimingTokenProvider;
         this.logoutTokenManager = logoutTokenManager;
+        this.authService = authService;
     }
 
     @Override
@@ -59,14 +60,14 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
             if (logoutTokenManager.isUnusableToken(jwtToken)) { // LOGOUT 이면 더 어떤 수행 없이 로그아웃 상태전달
                 processAccessDeniedByLogout(response);
+
             } else {
                 try {
 
-                    String tokenEmailValue = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_AT, jwtToken);
-                    SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(tokenEmailValue);
+                    String verifiedEmail = authService.verifyAndClaimEmail(MoimingTokenType.JWT_AT, jwtToken);
+                    UserDetails securityMember = userDetailsService.loadUserByUsername(verifiedEmail);
                     JwtAuthenticationToken authenticationToken = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
 
-                    // Access Token Verify 성공시 AuthenticationToken 이 저장된다
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
                     doFilter(request, response, chain);

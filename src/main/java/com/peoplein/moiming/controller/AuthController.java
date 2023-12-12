@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.token.JwtParams;
@@ -74,14 +75,8 @@ public class AuthController {
     @PostMapping(PATH_AUTH_REISSUE_TOKEN)
     public ResponseEntity<?> reissueToken(@RequestBody @Valid TokenReqDto requestDto, BindingResult br, HttpServletResponse response) {
 
-        Map<String, Object> transmit = authService.reissueToken(requestDto);
-
-        // 응답 준비
-        String jwtAccessToken = transmit.get(authService.KEY_ACCESS_TOKEN).toString();
-        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "재발급 성공", transmit.get(authService.KEY_RESPONSE_DATA)));
+        TokenDto tokenDto = authService.reissueToken(requestDto);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "재발급 성공", tokenDto));
 
     }
 }

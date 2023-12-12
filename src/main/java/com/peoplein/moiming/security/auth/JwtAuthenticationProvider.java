@@ -38,8 +38,6 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         }
 
         JwtAuthenticationToken authenticatedToken = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
-        ((SecurityMemberService) userDetailsService).issueRefreshTokenToLoggedInMember(securityMember.getMember()); // 흠..
-
 
         return authenticatedToken;
     }

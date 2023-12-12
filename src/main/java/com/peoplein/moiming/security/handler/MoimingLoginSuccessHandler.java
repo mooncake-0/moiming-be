@@ -2,11 +2,13 @@ package com.peoplein.moiming.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.security.service.SecurityMemberService;
+import com.peoplein.moiming.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,8 +25,7 @@ import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 @RequiredArgsConstructor
 public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final MoimingTokenProvider moimingTokenProvider;
-    private final SecurityMemberService securityMemberService;
+    private final AuthService authService;
     private ObjectMapper om = new ObjectMapper();
 
     /*
@@ -39,8 +40,8 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
          */
         SecurityMember securityMember = (SecurityMember) authentication.getPrincipal();
 
-        String accessJwtToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_AT, securityMember.getMember());
-        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + accessJwtToken);
+        TokenDto tokenDto = authService.issueJwtToken(false, securityMember.getMember());
+        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + tokenDto.getAccessToken());
 
         ResponseBodyDto<MemberLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공", new MemberLoginRespDto(securityMember.getMember()));
 
