@@ -1,19 +1,22 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.request.MoimPostReqDto;
+import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 
@@ -36,7 +39,7 @@ public class MoimPostService {
     private final MoimPostRepository moimPostRepository;
 
     @Transactional
-    public void createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
+    public MoimPost createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
@@ -54,23 +57,28 @@ public class MoimPostService {
                 , moimMember.getMoim(), moimMember.getMember());
 
         moimPostRepository.save(post);
+
+        return post;
     }
 
 
     // 모임의 모든 Post 전달 (필요 정보는 사실상 File 빼고 전부 다)
-    public List<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
+    public StateMapperDto<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
 
         if (moimId == null || member == null) {
             throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
         }
 
+        /*
+         TODO : 1_오직 모임 생성자_id 만을 위해 Moim Fetch Join 을 해줘야한다 --> JPA 에서 객체 조회 말고 큰 다른 방법은 없을까?
+                2_각 게시물 생성자 정보를 같이 전달하기 위핸 Post Creator Member Fetch Join
+         */
         MoimPost lastPost = null;
         if (lastPostId != null) {
-            lastPost = moimPostRepository.findById(lastPostId).orElseThrow(() ->
+            lastPost = moimPostRepository.findWithMoimAndMemberById(lastPostId).orElseThrow(() ->
                     new MoimingApiException("마지막으로 검색한 Post 를 찾을 수 없습니다")
             );
         }
-
 
         // 멤버가 구성원인지 확인 필요 - 자체 필드에 대한 제어 로직 - 도메인단에 둘 수가 없음
         boolean moimMemberRequest = true;
@@ -79,8 +87,18 @@ public class MoimPostService {
             moimMemberRequest = false;
         }
 
-        return moimPostRepository.findByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
+        // Sort 됨, 중요!
+        List<MoimPost> moimPosts = moimPostRepository.findWithMemberByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
 
+        List<Long> postWriterIds = moimPosts.stream().map(moimPost -> moimPost.getMember().getId()).collect(Collectors.toList());
+
+        List<MoimMember> writerMoimMembers = moimMemberRepository.findByMoimIdAndMemberIds(moimId, postWriterIds);
+        Map<Long, MoimMemberState> stateMapper = new HashMap<>();
+        for (MoimMember writerMoimMember : writerMoimMembers) {
+            stateMapper.put(writerMoimMember.getMember().getId(), writerMoimMember.getMemberState());
+        }
+
+        return new StateMapperDto<>(moimPosts, stateMapper);
     }
 
 

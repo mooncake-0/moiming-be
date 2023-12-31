@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +11,8 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
-import static com.peoplein.moiming.domain.QMember.*;
-import static com.peoplein.moiming.domain.QMemberInfo.*;
+import static com.peoplein.moiming.domain.member.QMember.*;
+import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 
 
 @Repository
@@ -93,7 +93,7 @@ public class MemberJpaRepository implements MemberRepository {
     }
 
     @Override
-    public void updateRefreshTokenByEmail(Long id, String refreshToken) {
+    public void updateRefreshTokenById(Long id, String refreshToken) {
         long num = queryFactory.update(member)
                 .set(member.refreshToken, refreshToken)
                 .where(member.id.eq(id))

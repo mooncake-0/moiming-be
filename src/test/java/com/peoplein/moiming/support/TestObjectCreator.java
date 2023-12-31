@@ -2,9 +2,8 @@ package com.peoplein.moiming.support;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
-import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.MemberGender;
@@ -15,25 +14,20 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
-import com.peoplein.moiming.model.dto.request.MoimReqDto;
-import com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
-import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.persistence.EntityManager;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
+import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 import static com.peoplein.moiming.support.TestDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 
@@ -115,6 +109,19 @@ public class TestObjectCreator {
     }
 
 
+    protected PostCommentCreateReqDto makeCommentCreateReqDto(Long postId, Long parentId, Integer depth) {
+        String type = depth == 0 ? "댓글입니다" : "답글입니다";
+        String content = postId + ", " + type;
+        return new PostCommentCreateReqDto(postId, parentId, content, depth);
+    }
+
+
+    protected PostCommentUpdateReqDto makeCommentUpdateReqDto(Long commentId) {
+        String changedContent = "수정된 댓글 내용입니다";
+        return new PostCommentUpdateReqDto(commentId, changedContent);
+    }
+
+
     /*
     MockCreator 와 동일하게 Custom Jwt 토큰을 생성해볼 수 있다
     */
@@ -134,8 +141,10 @@ public class TestObjectCreator {
         return MoimPost.createMoimPost("TITLE", "CONTENT", category, hasPrivateVisibility, false, moim, member);
     }
 
+
     protected PostComment makePostComment(Member member, MoimPost moimPost, int depth, PostComment parent) {
-        String content = moimPost.getPostTitle() + ", " + member.getNickname() + "의 댓글";
+        String type = depth == 0 ? "댓글입니다" : "답글입니다";
+        String content = moimPost.getPostTitle() + ", " + member.getNickname() + ", " + type;
         return PostComment.createPostComment(content, member, moimPost, depth, parent);
     }
 

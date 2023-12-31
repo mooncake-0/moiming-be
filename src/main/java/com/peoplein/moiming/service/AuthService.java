@@ -1,14 +1,15 @@
 package com.peoplein.moiming.service;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingInvalidTokenException;
+import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto;
 import com.peoplein.moiming.model.dto.request.TokenReqDto;
-import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import org.springframework.util.StringUtils;
 
 import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
+import static com.peoplein.moiming.security.token.MoimingTokenType.*;
 
 @Slf4j
 @Service
@@ -36,13 +38,12 @@ import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 public class AuthService {
 
     public final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
-    public final String KEY_REFRESH_TOKEN = "REFRESH_TOKEN";
     public final String KEY_RESPONSE_DATA = "RESPONSE_DATA";
 
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
-    private final MoimingTokenProvider moimingTokenProvider;
+    private final MoimingTokenProvider tokenProvider;
     private final PolicyAgreeService policyAgreeService;
 
 
@@ -76,14 +77,13 @@ public class AuthService {
         // Policy 저장 분리
         policyAgreeService.createPolicyAgree(signInMember, requestDto.getPolicyDtos());
 
-
         // Refresh 토큰 발급 & Response Data 생성
-        String jwtAccessToken = issueJwtTokens(signInMember);
+        TokenDto tokenDto = issueTokensAndUpdateColumns(true, signInMember);
         MemberSignInRespDto responseData = new MemberSignInRespDto(signInMember);
 
         // 두 객체 응답을 위한 HashMap
         Map<String, Object> transmit = new HashMap<>();
-        transmit.put(KEY_ACCESS_TOKEN, jwtAccessToken);
+        transmit.put(KEY_ACCESS_TOKEN, tokenDto.getAccessToken());
         transmit.put(KEY_RESPONSE_DATA, responseData);
 
         return transmit;
@@ -93,13 +93,13 @@ public class AuthService {
     /*
     재발급은 우성 REFRESH TOKEN 으로만 진행한다
     */
-    public Map<String, Object> reissueToken(TokenReqDto requestDto) {
+    public TokenDto reissueToken(TokenReqDto requestDto) {
 
         String curRefreshToken = requestDto.getToken();
         String rtEmail = "";
 
         try {
-            rtEmail = moimingTokenProvider.verifyMemberEmail(MoimingTokenType.JWT_RT, curRefreshToken);
+            rtEmail = verifyAndClaimEmail(JWT_RT, curRefreshToken);
         } catch (JWTVerificationException exception) { // Verify 시 최상위 Exception
             log.info("Verify 도중 알 수 없는 예외가 발생 : {}", exception.getMessage());
             throw exception;
@@ -118,20 +118,15 @@ public class AuthService {
             throw new MoimingInvalidTokenException(errMsg);
         }
 
-        String jwtAccessToken = issueJwtTokens(memberPs);
-        TokenRespDto responseData = new TokenRespDto(memberPs.getRefreshToken());
-
-        Map<String, Object> transmit = new HashMap<>();
-        transmit.put(KEY_ACCESS_TOKEN, jwtAccessToken);
-        transmit.put(KEY_RESPONSE_DATA, responseData);
-
-        return transmit;
+        return issueTokensAndUpdateColumns(true, memberPs);
     }
 
 
     /*
      회원가입 전에 중복 조건들에 대해서 확인
      에러 발생시 회원 가입 중단
+     // TODO :: 이거 DB 에서 컷되는데 굳이 해줘야함? 세 개 가지고 조회하는거라 Fullscan 꽤 오버헤드 존재해보임
+     //         당연히 당장은 큰 문제 X
      */
     // Test 에서 보이게 하기 위한 package-private 으로 변경
     void checkUniqueColumnDuplication(String memberEmail, String memberPhone, String ci) {
@@ -158,21 +153,7 @@ public class AuthService {
         }
     }
 
-
-    // Test 에서 보이게 하기 위한 package-private 으로 변경
-    // RT 는 저장하고, AT 는 반환해준다
-    String issueJwtTokens(Member signInMember) {
-
-        String jwtAccessToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_AT, signInMember);
-        String jwtRefreshToken = moimingTokenProvider.generateToken(MoimingTokenType.JWT_RT, signInMember);
-
-        signInMember.changeRefreshToken(jwtRefreshToken);
-
-        return jwtAccessToken;
-    }
-
-
-    String tryCreateNicknameForUser() {
+    public String tryCreateNicknameForUser() {
 
         MemberNicknameCreator nicknameCreator = new MemberNicknameCreator();
 
@@ -189,4 +170,30 @@ public class AuthService {
         throw new MoimingApiException("");
 
     }
+
+
+    // 3 가지 - 로그인 / 액토만료로 인한 재발급 / 회원가입
+    public TokenDto issueTokensAndUpdateColumns(boolean persisted, Member member) {
+        if (!persisted) {
+            member = memberRepository.findById(member.getId()).orElseThrow(
+                    () -> new MoimingApiException(ExceptionValue.MEMBER_NOT_FOUND)
+            );
+        }
+
+        String jwtAccessToken = tokenProvider.generateToken(JWT_AT, member);
+        String jwtRefreshToken = tokenProvider.generateToken(JWT_RT, member);
+
+        member.changeRefreshToken(jwtRefreshToken);
+        member.changeLastLoginAt();
+
+        return new TokenDto(jwtAccessToken, jwtRefreshToken);
+    }
+
+
+    // 토큰을 인증해준다 Provider 전담
+    public String verifyAndClaimEmail(MoimingTokenType type, String token) {
+
+        return tokenProvider.verifyMemberEmail(type, token);
+    }
+
 }

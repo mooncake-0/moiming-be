@@ -19,9 +19,6 @@ public class PostCommentReqDto {
     public static class PostCommentCreateReqDto {
 
         @NotNull
-        private Long moimId;
-
-        @NotNull
         private Long postId;
 
         private Long parentId;
@@ -32,6 +29,23 @@ public class PostCommentReqDto {
 
         @NotNull
         private Integer depth;
+
+    }
+
+
+    @ApiModel(value = "Post Comment API - 요청 - 댓글 수정")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PostCommentUpdateReqDto {
+
+        @NotNull
+        private Long commentId;
+
+        @NotNull
+        @Size(max = 100)
+        private String content;
 
     }
 }

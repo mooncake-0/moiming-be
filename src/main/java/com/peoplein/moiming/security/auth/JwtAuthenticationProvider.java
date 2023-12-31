@@ -1,6 +1,8 @@
 package com.peoplein.moiming.security.auth;
 
 import com.peoplein.moiming.security.domain.SecurityMember;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
+import com.peoplein.moiming.security.exception.LoginAttemptException;
 import com.peoplein.moiming.security.service.SecurityMemberService;
 import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,14 +34,10 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername((String) authentication.getPrincipal());
 
         if (!passwordEncoder.matches((String) authentication.getCredentials(), securityMember.getPassword())) {
-            String msg = "비밀번호가 일치하지 않습니다";
-            log.error(msg);
-            throw new BadCredentialsException(msg);
+            throw new LoginAttemptException(AUTH_PW_INVALID);
         }
 
         JwtAuthenticationToken authenticatedToken = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
-        ((SecurityMemberService) userDetailsService).issueRefreshTokenToLoggedInMember(securityMember.getMember()); // 흠..
-
 
         return authenticatedToken;
     }

@@ -44,16 +44,6 @@ public class PostCommentJpaRepository implements PostCommentRepository {
     }
 
     @Override
-    public PostComment findWithMoimPostAndMoimById(Long postCommentId) {
-
-        return queryFactory.selectFrom(postComment)
-                .join(postComment.moimPost, moimPost).fetchJoin()
-                .join(moimPost.moim, moim).fetchJoin()
-                .where(postComment.id.eq(postCommentId))
-                .fetchOne();
-    }
-
-    @Override
     public List<PostComment> findWithMoimPostId(Long moimPostId) {
         return queryFactory
                 .selectFrom(postComment)
@@ -91,6 +81,18 @@ public class PostCommentJpaRepository implements PostCommentRepository {
     public Optional<PostComment> findById(Long postCommentId) {
         checkIllegalQueryParams(postCommentId);
         return Optional.ofNullable(em.find(PostComment.class, postCommentId));
+    }
+
+    @Override
+    public Optional<PostComment> findWithMoimPostAndMoimById(Long commentId) {
+
+
+        return Optional.ofNullable(queryFactory.selectFrom(postComment)
+                .join(postComment.moimPost, moimPost).fetchJoin()
+                .join(moimPost.moim, moim).fetchJoin()
+                .where(postComment.id.eq(commentId))
+                .fetchOne());
+
     }
 
 

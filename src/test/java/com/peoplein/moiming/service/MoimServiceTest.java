@@ -1,13 +1,10 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.response.MoimRespDto;
-import com.peoplein.moiming.repository.CategoryRepository;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.support.TestMockCreator;

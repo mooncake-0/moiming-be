@@ -1,11 +1,7 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberRoleLinker;
+import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberRole;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -37,11 +33,11 @@ public class MemberDto {
     }
 
     /*
-     MemberRoleLinker 에는 이미 Role 이 다 조회되어진 상태
+     MemberRole 에는 이미 Role 이 다 조회되어진 상태
      Dto 생성을 위해 전달, 추가 쿼리 없음
      */
-    public void convertLinkerToDto(List<MemberRoleLinker> memberRoleLinkers) {
-        this.roles = memberRoleLinkers.stream()
+    public void convertLinkerToDto(List<MemberRole> memberRoles) {
+        this.roles = memberRoles.stream()
                 .map(MemberRoleDto::new)
                 .collect(Collectors.toList());
     }

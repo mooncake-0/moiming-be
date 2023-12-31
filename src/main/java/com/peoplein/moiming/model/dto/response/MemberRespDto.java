@@ -1,7 +1,7 @@
 package com.peoplein.moiming.model.dto.response;
 
-import com.peoplein.moiming.domain.Member;
-import com.peoplein.moiming.domain.MemberInfo;
+import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 import lombok.Setter;

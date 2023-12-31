@@ -1,22 +1,20 @@
-package com.peoplein.moiming.domain;
+package com.peoplein.moiming.domain.member;
 
+import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Getter
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"member_phone"}, name = "unique_member_phone")})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MemberInfo {
+public class MemberInfo extends BaseEntity {
 
     @Id
     @Column(name = "member_info_id")
@@ -35,18 +33,9 @@ public class MemberInfo {
 
     private LocalDate memberBirth;
 
-    private String memberBank;
-
-    private String memberBankNumber;
-
     private boolean dormant;
 
     private boolean foreigner;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 
     @OneToOne(mappedBy = "memberInfo", fetch = FetchType.LAZY)
     private Member member;
@@ -62,8 +51,12 @@ public class MemberInfo {
         this.foreigner = foreigner;
 
         // 초기화
-        this.createdAt = LocalDateTime.now();
         this.dormant = false;
+    }
+
+
+    void changeDormant(boolean dormant) {
+        this.dormant = dormant;
     }
 
 

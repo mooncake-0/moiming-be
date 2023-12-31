@@ -19,8 +19,8 @@ import static com.peoplein.moiming.domain.QMoimReview.*;
 import static com.peoplein.moiming.domain.QReviewAnswer.*;
 import static com.peoplein.moiming.domain.fixed.QReviewQuestion.*;
 import static com.peoplein.moiming.domain.fixed.QQuestionChoice.*;
-import static com.peoplein.moiming.domain.QMember.*;
-import static com.peoplein.moiming.domain.QMemberInfo.*;
+import static com.peoplein.moiming.domain.member.QMember.*;
+import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 
 
 @Repository

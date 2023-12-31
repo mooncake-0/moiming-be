@@ -1,7 +1,5 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.config.AppUrlPath;
-import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.security.domain.SecurityMember;
 import com.peoplein.moiming.service.PolicyAgreeService;
@@ -9,13 +7,11 @@ import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
-import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;

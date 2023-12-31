@@ -1,7 +1,7 @@
 package com.peoplein.moiming.model.dto.response_b;
 
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.dto.domain.MemberDto;
 import com.peoplein.moiming.model.dto.domain.MemberInfoDto;
 import lombok.AccessLevel;

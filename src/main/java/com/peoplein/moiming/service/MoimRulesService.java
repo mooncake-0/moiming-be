@@ -1,6 +1,6 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.dto.request_b.RuleRequestDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;

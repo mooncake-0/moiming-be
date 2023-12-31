@@ -1,6 +1,8 @@
 package com.peoplein.moiming.security.token;
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
+
+import java.util.Date;
 
 public interface MoimingTokenProvider {
 
@@ -19,4 +21,6 @@ public interface MoimingTokenProvider {
      */
     String verifyMemberEmail(MoimingTokenType tokenType, String token);
 
+
+    Date verifyExpireAt(MoimingTokenType tokenType, String token);
 }

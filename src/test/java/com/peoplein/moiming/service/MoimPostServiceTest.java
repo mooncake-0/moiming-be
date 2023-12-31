@@ -1,7 +1,7 @@
 package com.peoplein.moiming.service;
 
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.moim.MoimMember;
@@ -127,6 +127,7 @@ public class MoimPostServiceTest {
 
     }
 
+
     // --- getMoimPosts TEST
     // getMoimPosts > MoimPost 정상, moimmember 통과 정상일 경우
     @Test
@@ -140,9 +141,10 @@ public class MoimPostServiceTest {
         moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
         // then
-        verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+        verify(moimPostRepository, times(1)).findWithMemberByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
 
     }
+
 
     // 로직이 달라지는 사례 검증
     // moimMemberState 가 INACTIVE 여도 통과한다
@@ -162,9 +164,10 @@ public class MoimPostServiceTest {
         moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
         // then
-        verify(moimPostRepository, times(1)).findByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+        verify(moimPostRepository, times(1)).findWithMemberByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
 
     }
+
 
     // moimId == null 일 경우 예외 발생
     @Test
@@ -203,7 +206,7 @@ public class MoimPostServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
-        when(moimPostRepository.findById(any())).thenReturn(Optional.empty());
+        when(moimPostRepository.findWithMoimAndMemberById(any())).thenReturn(Optional.empty());
 
         // when
         // then

@@ -1,11 +1,12 @@
 package com.peoplein.moiming.security.filter;
 
 
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import java.util.Map;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -122,7 +124,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_shouldReturn401_whenEmailNotFound_byUsernameNotFoundException() throws Exception {
+    void filter_shouldReturn200_whenEmailNotFound() throws Exception {
         // given
         MemberLoginReqDto wrongDto = new MemberLoginReqDto("not@registered.com", "1234");
         String requestDto = om.writeValueAsString(wrongDto);
@@ -131,12 +133,13 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_EMAIL_NOT_FOUND.getErrCode()));
     }
 
 
     @Test
-    void filter_shouldReturn401_whenPasswordWrong_byBadCredentialException() throws Exception {
+    void filter_shouldReturn200_whenPasswordWrong() throws Exception {
         // given
         MemberLoginReqDto wrongDto = new MemberLoginReqDto(memberEmail, password + "a");
         String requestDto = om.writeValueAsString(wrongDto);
@@ -145,12 +148,15 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_PW_INVALID.getErrCode()));
+
     }
 
 
     @Test
     void filter_shouldReturn500_whenNothingGiven_byExtraException() throws Exception {
+
         // given
         // when
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN));

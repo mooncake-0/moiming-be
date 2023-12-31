@@ -9,17 +9,6 @@ import java.util.Optional;
 
 public interface MoimPostRepository {
 
-    MoimPost findWithMemberById(Long moimPostId);
-
-    MoimPost findWithMemberId(Long moimPostId, Long memberId);
-
-    MoimPost findWithMoimAndMemberById(Long moimPostId);
-    MoimPost findWithMoimAndMemberInfoById(Long moimPostId);
-
-    List<MoimPost> findByMoimId(Long moimId);
-
-    List<MoimPost> findWithMemberInfoByMoimId(Long moimId);
-
     void removeAll(List<Long> scheduleIds);
 
     void remove(MoimPost moimPost);
@@ -29,6 +18,10 @@ public interface MoimPostRepository {
 
     Optional<MoimPost> findById(Long moimPostId);
 
-    List<MoimPost> findByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost moimPost, MoimPostCategory category, int limit, boolean hasPrivateVisibility);
+    Optional<MoimPost> findWithMoimById(Long moimPostId);
+
+    Optional<MoimPost> findWithMoimAndMemberById(Long moimPostId); // 게시물 생성자와 모임정보를 같이 불러온다
+
+    List<MoimPost> findWithMemberByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost moimPost, MoimPostCategory category, int limit, boolean hasPrivateVisibility);
 
 }

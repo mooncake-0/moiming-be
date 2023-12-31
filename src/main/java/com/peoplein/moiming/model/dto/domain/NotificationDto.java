@@ -1,13 +1,10 @@
 package com.peoplein.moiming.model.dto.domain;
 
-import com.peoplein.moiming.domain.Member;
 import com.peoplein.moiming.domain.enums.NotificationDomain;
 import com.peoplein.moiming.domain.enums.NotificationDomainCategory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

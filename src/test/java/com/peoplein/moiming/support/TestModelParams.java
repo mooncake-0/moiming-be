@@ -49,7 +49,14 @@ public abstract class TestModelParams {
     public static String memberPhone4 = "01087654321";
     public static String ci4 = "0P6Q7R8S9T0U1V2W3X4Y5Z6a7b8c9d+0e1f2g3h4i5j6k7lM9n0o1p2A!2B=C3D+4E5F6G7H8I9J0K1L=M3N4";
 
-    //
+
+    // 5번 Member
+    public static String memberEmail5 = "q@moiming.io";
+    public static String memberName5 = "황찬규";
+    public static String nickname5 = "NICKNAME5";
+    public static String memberPhone5 = "01037838432";
+    public static String ci5 = "0P6Q7R8S9Q7R8S2W3X4Y5Z6a7b8c9d+0e1f2g3h4i5j6k7lM9n0o1p2A!2B=C3D+4E5F6G7H8I9J0K1L=M3N4";
+
 
     public static String fcmToken = "FCM_TOKEN";
     public static String accessToken = "ACCESS_TOKEN";

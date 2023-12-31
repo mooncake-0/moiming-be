@@ -1,6 +1,5 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.BaseTest;
 import com.peoplein.moiming.service.util.FilePersistor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

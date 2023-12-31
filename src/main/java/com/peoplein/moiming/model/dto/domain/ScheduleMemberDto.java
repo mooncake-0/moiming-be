@@ -2,11 +2,10 @@ package com.peoplein.moiming.model.dto.domain;
 
 import com.peoplein.moiming.domain.MemberScheduleLinker;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
-import com.peoplein.moiming.service.ScheduleService;
+import com.peoplein.moiming.temp.ScheduleService;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 

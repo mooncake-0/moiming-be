@@ -90,6 +90,11 @@ public abstract class AppUrlPath {
     public final static String PATH_MEMBER_POLICY_UPDATE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_POLICY;
 
 
+    // MEMBER 관련 API
+    // POST - /api/v0/member/logout
+    public final static String PATH_MEMBER_LOGOUT = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/logout";
+    public final static String PATH_MEMBER_DELETE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/delete";
+
 
     // 이하로는 점검되지 않은 URL
     public final static String API_MOIM_REVIEW = "/review";

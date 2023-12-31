@@ -1,9 +1,7 @@
-package com.peoplein.moiming.controller;
+package com.peoplein.moiming.temp;
 
-import com.peoplein.moiming.config.AppUrlPath;
-import com.peoplein.moiming.domain.Member;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.dto.request_b.MoimReviewRequestDto;
-import com.peoplein.moiming.service.MoimReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
