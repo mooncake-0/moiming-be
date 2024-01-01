@@ -7,6 +7,7 @@ spring:
   #DB
   #Local DB Source
   datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/moiming_dev_db?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
     username: root
     password: peoplein
