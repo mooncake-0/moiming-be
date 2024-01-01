@@ -1,0 +1,22 @@
+# 해당 파일은 AWS Code Deploy Agent 가 실행하는 Script 이다
+
+version: 0.0
+os: linux
+
+files:
+  - source:  /
+    destination: /home/ubuntu/dev-moiming-spring
+    overwrite: yes
+
+permissions:
+  - object: /
+    owner: ubuntu
+    group: ubuntu
+
+hooks:
+  AfterInstall:
+    - location: scripts/cd-start.sh
+      timeout: 60
+  ApplicationStart:
+    - location: scripts/cd-end.sh
+      timeout: 60
