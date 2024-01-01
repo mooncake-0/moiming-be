@@ -28,7 +28,7 @@ jobs:
 
       # Gradle Build with Tests
       - name: Gradle Ci
-        run: gradle clean build --profile dev
+        run: gradle clean build
 
       # Docker Image Build
       - name: Docker Image Build
@@ -55,6 +55,6 @@ jobs:
           key: ${{ secrets.DEV_SERVER_SSH_KEY }}
           script: |
             docker rm -f ${{ env.DEV_CONTAINER_NAME }}
-            ddocker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }}
-            0-docker run -p 8080:8080 --network=dev-moiming-network --name ${{ env.DEV_CONTAINER_NAME }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }}
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }}
+            docker run -d -p 8080:8080 --network=dev-moiming-network --name ${{ env.DEV_CONTAINER_NAME }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }}
 
