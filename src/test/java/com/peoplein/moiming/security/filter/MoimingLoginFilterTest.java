@@ -4,9 +4,9 @@ package com.peoplein.moiming.security.filter;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
@@ -74,7 +74,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void filter_shouldLogin_whenRightInfoPassed() throws Exception {
 
         //given
-        MemberLoginReqDto loginReqDto = new MemberLoginReqDto(memberEmail, password);
+        AuthLoginReqDto loginReqDto = new AuthLoginReqDto(memberEmail, password);
         String requestDto = om.writeValueAsString(loginReqDto);
 
         //when
@@ -112,7 +112,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void filter_shouldReturn400_whenEmptyParamPassed_byBadInputException() throws Exception {
 
         // given
-        MemberLoginReqDto wrongDto = new MemberLoginReqDto(memberEmail, "");
+        AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberEmail, "");
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
@@ -125,8 +125,9 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
     @Test
     void filter_shouldReturn200_whenEmailNotFound() throws Exception {
+
         // given
-        MemberLoginReqDto wrongDto = new MemberLoginReqDto("not@registered.com", "1234");
+        AuthLoginReqDto wrongDto = new AuthLoginReqDto("not@registered.com", "1234");
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
@@ -140,8 +141,9 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
     @Test
     void filter_shouldReturn200_whenPasswordWrong() throws Exception {
+
         // given
-        MemberLoginReqDto wrongDto = new MemberLoginReqDto(memberEmail, password + "a");
+        AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberEmail, password + "a");
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when

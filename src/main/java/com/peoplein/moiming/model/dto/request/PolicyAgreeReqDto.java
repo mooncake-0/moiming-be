@@ -18,6 +18,7 @@ import java.util.List;
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
 
 public class PolicyAgreeReqDto {
+
     @ApiModel(value = "Policy API - 요청 - 약관 동의 변경")
     @Getter
     @Setter

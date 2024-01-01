@@ -6,7 +6,6 @@ import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.ExceptionValue;
-import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.JwtParams;
@@ -30,7 +29,8 @@ import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
 import static com.peoplein.moiming.support.TestDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -394,7 +394,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void reissueToken_shouldReturnNewTokenAnd200_whenSuccessful() throws Exception {
 
         // given
-        TokenReqDto reqDto = new TokenReqDto();
+        AuthTokenReqDto reqDto = new AuthTokenReqDto();
         reqDto.setGrantType("REFRESH_TOKEN");
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
         String requestBody = om.writeValueAsString(reqDto);
@@ -419,7 +419,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void reissueToken_shouldSaveNewTokenToRequestingMember_whenSuccessful() throws Exception {
 
         // given
-        TokenReqDto reqDto = new TokenReqDto();
+        AuthTokenReqDto reqDto = new AuthTokenReqDto();
         reqDto.setGrantType("REFRESH_TOKEN");
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
         String requestBody = om.writeValueAsString(reqDto);
@@ -443,7 +443,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void reissueToken_shouldReturn401_whenRefreshTokenExpired_byTokenExpiredException() throws Exception {
 
         // given
-        TokenReqDto reqDto = new TokenReqDto();
+        AuthTokenReqDto reqDto = new AuthTokenReqDto();
         reqDto.setGrantType("REFRESH_TOKEN");
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
 

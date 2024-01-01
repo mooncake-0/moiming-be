@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.peoplein.moiming.config.AppUrlPath;
-import com.peoplein.moiming.security.exception.AuthExceptionValue;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.security.exception.LoginAttemptException;
 import com.peoplein.moiming.security.exception.ExtraAuthenticationException;
 import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
@@ -19,7 +19,7 @@ import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 @Slf4j
@@ -48,10 +48,10 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-        MemberLoginReqDto memberLoginDto = null;
+        AuthLoginReqDto memberLoginDto = null;
 
         try {
-            memberLoginDto = om.readValue(request.getReader(), MemberLoginReqDto.class);
+            memberLoginDto = om.readValue(request.getReader(), AuthLoginReqDto.class);
 
             if (!StringUtils.hasText(memberLoginDto.getMemberEmail()) || !StringUtils.hasText(memberLoginDto.getPassword())) {
 

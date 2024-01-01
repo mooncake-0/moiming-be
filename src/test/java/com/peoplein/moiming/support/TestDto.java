@@ -2,7 +2,6 @@ package com.peoplein.moiming.support;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,7 @@ import lombok.Setter;
 
 import java.util.List;
 
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
 
 /*
  Date 혹은 다양한 Format 관련하여

@@ -4,6 +4,7 @@ package com.peoplein.moiming.domain.member;
 import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.peoplein.moiming.exception.ExceptionValue.MEMBER_NOT_FOUND;
 
 
 @Entity
@@ -125,6 +128,10 @@ public class Member extends BaseEntity {
     public void changePassword(String password) {
         if (!StringUtils.hasText(password)) {
             throw new IllegalArgumentException("잘못된 입력");
+        }
+
+        if (this.password.equals(password)) { // 현재 비밀번호와 같으면 안됨
+            throw new MoimingApiException(MEMBER_NOT_FOUND); // TODO:: 예외 Refactor
         }
         this.password = password;
     }

@@ -1,104 +1,98 @@
 package com.peoplein.moiming.model.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.member.MemberInfo;
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 public class MemberRespDto {
 
-    /*
-     회원가입 응답 정보 전달
-     */
-    @ApiModel(value = "Auth API - 응답 - 회원가입")
+    @ApiModel(value = "Member API - 응답 - 기본 조회")
     @Getter
     @Setter
-    public static class MemberSignInRespDto {
+    @NoArgsConstructor
+    public static class MemberViewRespDto{
 
-        private Long id;
+        private Long memberId;
         private String memberEmail;
-        private String nickname; // TODO :: 생성해줄 예정
-        private String fcmToken;
-        private String refreshToken;
+        private String nickname;
         private String createdAt;
-        private MemberInfoDto memberInfo;
+        private String updatedAt;
+        private String lastLoginAt;
 
-        public MemberSignInRespDto(Member member) {
-            this.id = member.getId();
+        public MemberViewRespDto(Member member) {
+            this.memberId = member.getId();
             this.memberEmail = member.getMemberEmail();
             this.nickname = member.getNickname();
-            this.fcmToken = member.getFcmToken();
-            this.refreshToken = member.getRefreshToken();
             this.createdAt = member.getCreatedAt() + "";
-            this.memberInfo = new MemberInfoDto(member.getMemberInfo());
+            this.updatedAt = member.getUpdatedAt() + "";
+            this.lastLoginAt = member.getLastLoginAt() + "";
         }
 
-        /*
-         포함 정보도 같을지라도 항상 DTO 분할 - 요청별로 묶음을 따로한다
-         */
+    }
+
+
+    @ApiModel(value = "Member API - 응답 - 기본 조회")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class MemberDetailViewRespDto{
+
+        private Long memberId;
+        private String memberEmail;
+        private String nickname;
+        private String createdAt;
+        private String updatedAt;
+        private String lastLoginAt;
+        @JsonProperty("memberInfo")
+        private MemberInfoDto memberInfoDto;
+
+        public MemberDetailViewRespDto(Member member) {
+            this.memberId = member.getId();
+            this.memberEmail = member.getMemberEmail();
+            this.nickname = member.getNickname();
+            this.createdAt = member.getCreatedAt() + "";
+            this.updatedAt = member.getUpdatedAt() + "";
+            this.lastLoginAt = member.getLastLoginAt() + "";
+            this.memberInfoDto = new MemberInfoDto(member.getMemberInfo());
+        }
+
+
         @Getter
         @Setter
+        @NoArgsConstructor
         public static class MemberInfoDto {
 
             private String memberName;
             private String memberPhone;
-            private String memberGender;
+            private MemberGender memberGender;
             private String memberBirth;
-            private boolean isForeigner;
+            private boolean foreigner;
 
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
                 this.memberPhone = memberInfo.getMemberPhone();
-                this.memberGender = memberInfo.getMemberGender().toString();
+                this.memberGender = memberInfo.getMemberGender();
                 this.memberBirth = memberInfo.getMemberBirth() + "";
-                this.isForeigner = memberInfo.isForeigner();
+                this.foreigner = memberInfo.isForeigner();
             }
         }
     }
 
-    /*
-     요청별로 DTO 를 분할 - 훨씬 깔끔한듯
-     */
-    @ApiModel(value = "Login API - 응답 - 로그인")
+
+    @ApiModel(value = "Member API - 응답 - 닉네임 변경")
     @Getter
     @Setter
-    public static class MemberLoginRespDto {
-        private Long id;
-        private String memberEmail;
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MemberChangeNicknameRespDto{
+
         private String nickname;
-        private String fcmToken;
-        private String refreshToken;
-        private String createdAt;
-        private MemberInfoDto memberInfo;
 
-        public MemberLoginRespDto(Member member) {
-            this.id = member.getId();
-            this.memberEmail = member.getMemberEmail();
-            this.nickname = member.getNickname();
-            this.fcmToken = member.getFcmToken();
-            this.refreshToken = member.getRefreshToken();
-            this.memberInfo = new MemberInfoDto(member.getMemberInfo());
-
-        }
-
-        @Getter
-        @Setter
-        public static class MemberInfoDto {
-
-            private String memberName;
-            private String memberPhone;
-            private String memberGender;
-            private String memberBirth;
-            private boolean isForeigner;
-
-            public MemberInfoDto(MemberInfo memberInfo) {
-                this.memberName = memberInfo.getMemberName();
-                this.memberPhone = memberInfo.getMemberPhone();
-                this.memberGender = memberInfo.getMemberGender().toString();
-                this.memberBirth = memberInfo.getMemberBirth() + "";
-                this.isForeigner = memberInfo.isForeigner();
-            }
-        }
     }
 }

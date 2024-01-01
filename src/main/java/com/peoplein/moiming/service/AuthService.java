@@ -8,8 +8,6 @@ import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingInvalidTokenException;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
-import com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto;
-import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
@@ -28,7 +26,8 @@ import java.util.Optional;
 
 import org.springframework.util.StringUtils;
 
-import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
+import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 import static com.peoplein.moiming.security.token.MoimingTokenType.*;
 
 @Slf4j
@@ -54,7 +53,7 @@ public class AuthService {
     }
 
 
-    public Map<String, Object> signIn(MemberSignInReqDto requestDto) {
+    public Map<String, Object> signIn(AuthSignInReqDto requestDto) {
 
         checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone(), requestDto.getCi());
 
@@ -79,7 +78,7 @@ public class AuthService {
 
         // Refresh 토큰 발급 & Response Data 생성
         TokenDto tokenDto = issueTokensAndUpdateColumns(true, signInMember);
-        MemberSignInRespDto responseData = new MemberSignInRespDto(signInMember);
+        AuthSignInRespDto responseData = new AuthSignInRespDto(signInMember);
 
         // 두 객체 응답을 위한 HashMap
         Map<String, Object> transmit = new HashMap<>();
@@ -93,7 +92,7 @@ public class AuthService {
     /*
     재발급은 우성 REFRESH TOKEN 으로만 진행한다
     */
-    public TokenDto reissueToken(TokenReqDto requestDto) {
+    public TokenDto reissueToken(AuthTokenReqDto requestDto) {
 
         String curRefreshToken = requestDto.getToken();
         String rtEmail = "";

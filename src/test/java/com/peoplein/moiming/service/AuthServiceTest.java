@@ -6,9 +6,7 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingInvalidTokenException;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
-import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
-import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.support.TestMockCreator;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.repository.MemberRepository;
@@ -27,10 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.security.token.MoimingTokenType.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
-import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -96,7 +93,7 @@ public class AuthServiceTest extends TestMockCreator {
     void signIn_shouldCreateAccount_whenRightInfoPassed() {
 
         // given
-        MemberSignInReqDto requestDto = mockSigninReqDto(); // VALIDATION Controller 단에서 컷
+        AuthSignInReqDto requestDto = mockSigninReqDto(); // VALIDATION Controller 단에서 컷
         TokenDto mockTokenDto = mock(TokenDto.class);
 
         // given - stubs
@@ -124,7 +121,7 @@ public class AuthServiceTest extends TestMockCreator {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole(1L, RoleType.USER));
-        TokenReqDto reqDto = mockTokenReqDto(refreshToken);
+        AuthTokenReqDto reqDto = mockTokenReqDto(refreshToken);
 
         // given - stub
         when(tokenProvider.verifyMemberEmail(eq(JWT_RT), any())).thenReturn(memberEmail);
@@ -152,7 +149,7 @@ public class AuthServiceTest extends TestMockCreator {
     void reissueToken_shouldThrowException_whenUserNotFound() {
 
         // given
-        TokenReqDto reqDto = mockTokenReqDto(refreshToken);
+        AuthTokenReqDto reqDto = mockTokenReqDto(refreshToken);
 
         // given - stub
         when(tokenProvider.verifyMemberEmail(eq(JWT_RT), any())).thenReturn(memberEmail);
@@ -170,7 +167,7 @@ public class AuthServiceTest extends TestMockCreator {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, ci, mockRole(1L, RoleType.USER));
-        TokenReqDto reqDto = mockTokenReqDto("DIFF" + refreshToken); // member email 은 추출할 수 있도록 payload 부분을 건드리진 않는다
+        AuthTokenReqDto reqDto = mockTokenReqDto("DIFF" + refreshToken); // member email 은 추출할 수 있도록 payload 부분을 건드리진 않는다
 
         // given - stub
         when(tokenProvider.verifyMemberEmail(eq(JWT_RT), any())).thenReturn(memberEmail);
@@ -191,7 +188,7 @@ public class AuthServiceTest extends TestMockCreator {
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, ci, mockRole(1L, RoleType.USER));
         mockMember.changeRefreshToken(""); // Member에 저장된 RT가 없음
 
-        TokenReqDto reqDto = mockTokenReqDto(refreshToken);
+        AuthTokenReqDto reqDto = mockTokenReqDto(refreshToken);
 
         // given - stub
         when(tokenProvider.verifyMemberEmail(eq(JWT_RT), any())).thenReturn(memberEmail);

@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 
 @Slf4j

@@ -31,7 +31,7 @@ public class LogoutTokenDb implements LogoutTokenManager {
     }
 
 
-    @Scheduled(fixedRate = 60 * 1000 * 60) // 1시간에 한 번씩
+    @Scheduled(fixedRate = 60 * 1000 * 60 * 24) // 일단 하루에 한 번씩
     public void deleteExpiredTokens() {
         System.out.println("Remove Logout Token Scheduler Activated .. ");
         int cnt = 0;

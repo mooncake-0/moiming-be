@@ -1,15 +1,14 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.config.AppUrlPath;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import io.swagger.annotations.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
-import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
+import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 
 
 /*
@@ -23,12 +22,12 @@ public class LoginDocController {
 
     @ApiOperation("로그인")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "로그인 성공", response = MemberLoginRespDto.class,
+            @ApiResponse(code = 200, message = "로그인 성공", response = AuthLoginRespDto.class,
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "로그인 실패, Err Msg 확인")
     })
     @PostMapping(PATH_AUTH_LOGIN)
-    public void processLogin(@RequestBody MemberLoginReqDto request) {
+    public void processLogin(@RequestBody AuthLoginReqDto request) {
 
     }
 }
