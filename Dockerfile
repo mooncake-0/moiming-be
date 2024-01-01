@@ -8,7 +8,7 @@ ARG         JAR_FILE=build/libs/*.jar
 ENV         PROFILE=dev \
             DEV_DB_HOST=dev-moiming-db-container \
             DEV_DB_PORT=3306 \
-            DEV_SCHEMA_NAME=dev-moiming-db \
+            DEV_DB_SCHEMA_NAME=dev-moiming-db \
             DEV_DB_USERNAME=dev-app \
             DEV_DB_PASSWORD=dev-app
 
