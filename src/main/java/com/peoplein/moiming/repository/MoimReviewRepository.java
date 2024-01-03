@@ -1,7 +1,7 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.MoimReview;
-import com.peoplein.moiming.domain.ReviewAnswer;
+import com.peoplein.moiming.temp.MoimReview;
+import com.peoplein.moiming.temp.ReviewAnswer;
 import com.peoplein.moiming.domain.fixed.ReviewQuestion;
 
 import java.util.List;

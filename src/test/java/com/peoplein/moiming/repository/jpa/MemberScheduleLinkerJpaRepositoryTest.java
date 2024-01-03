@@ -1,11 +1,12 @@
 package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.TestUtils;
-import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
+import com.peoplein.moiming.temp.MemberScheduleLinker;
+import com.peoplein.moiming.temp.Schedule;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

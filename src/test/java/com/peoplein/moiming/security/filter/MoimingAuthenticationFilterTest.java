@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class JwtAuthenticationFilterTest extends TestObjectCreator {
+public class MoimingAuthenticationFilterTest extends TestObjectCreator {
 
     /*
      JWT 를 통한 인증 객체 생성 Filter Test
@@ -92,9 +93,9 @@ public class JwtAuthenticationFilterTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + sampleToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
-//        System.out.println("responseBody = " + responseBody);
+        // then
         resultActions.andExpect(status().isUnauthorized()); // TOKEN 만료시 TokenExpiredException 으로
-        resultActions.andExpect(jsonPath("$.code").value(-100)); // Token Expire 에 대한 code = -100
+        resultActions.andExpect(jsonPath("$.code").value(AuthExceptionValue.AUTH_TOKEN_EXPIRED.getErrCode())); // Token Expire 에 대한 code = -100
 
     }
 

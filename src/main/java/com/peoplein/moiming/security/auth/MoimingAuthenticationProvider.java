@@ -1,16 +1,12 @@
 package com.peoplein.moiming.security.auth;
 
-import com.peoplein.moiming.security.domain.SecurityMember;
-import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.exception.LoginAttemptException;
-import com.peoplein.moiming.security.service.SecurityMemberService;
-import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -18,7 +14,7 @@ import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 @Slf4j
 @RequiredArgsConstructor
-public class JwtAuthenticationProvider implements AuthenticationProvider {
+public class MoimingAuthenticationProvider implements AuthenticationProvider {
 
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
@@ -31,13 +27,13 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
-        SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername((String) authentication.getPrincipal());
+        UserDetails userDetails = userDetailsService.loadUserByUsername((String) authentication.getPrincipal());
 
-        if (!passwordEncoder.matches((String) authentication.getCredentials(), securityMember.getPassword())) {
-            throw new LoginAttemptException(AUTH_PW_INVALID);
+        if (!passwordEncoder.matches((String) authentication.getCredentials(), userDetails.getPassword())) {
+            throw new LoginAttemptException(AUTH_LOGIN_PASSWORD_INCORRECT);
         }
 
-        JwtAuthenticationToken authenticatedToken = new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities());
+        JwtAuthenticationToken authenticatedToken = new JwtAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         return authenticatedToken;
     }

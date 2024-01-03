@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.session.SessionCategoryItem;
+import com.peoplein.moiming.temp.session.SessionCategoryItem;
 
 public interface SessionCategoryItemRepository {
 

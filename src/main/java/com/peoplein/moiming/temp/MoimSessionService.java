@@ -4,10 +4,10 @@
 //import com.peoplein.moiming.domain.enums.MemberSessionState;
 //import com.peoplein.moiming.domain.enums.DomainRequestType;
 //import com.peoplein.moiming.domain.enums.SessionCategoryType;
-//import com.peoplein.moiming.domain.session.MemberSessionCategoryLinker;
-//import com.peoplein.moiming.domain.session.MemberSessionLinker;
-//import com.peoplein.moiming.domain.session.MoimSession;
-//import com.peoplein.moiming.domain.session.SessionCategoryItem;
+//import com.peoplein.moiming.temp.session.MemberSessionCategoryLinker;
+//import com.peoplein.moiming.temp.session.MemberSessionLinker;
+//import com.peoplein.moiming.temp.session.MoimSession;
+//import com.peoplein.moiming.temp.session.SessionCategoryItem;
 //import com.peoplein.moiming.model.dto.domain.MemberSessionLinkerDto;
 //import com.peoplein.moiming.model.dto.domain.MoimMemberInfoDto;
 //import com.peoplein.moiming.model.dto.domain.MoimSessionDto;

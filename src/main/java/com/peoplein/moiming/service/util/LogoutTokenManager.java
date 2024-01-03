@@ -10,6 +10,6 @@ public interface LogoutTokenManager {
     // 로그아웃 된 토큰임을 판별한다
     boolean isUnusableToken(String accessToken);
 
-    // TEST
-    void printCurrent();
+    // 저장된 객체를 모두 지운다
+    void clearManager();
 }

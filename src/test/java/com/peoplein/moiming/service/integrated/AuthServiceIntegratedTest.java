@@ -6,7 +6,7 @@ import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
-import com.peoplein.moiming.exception.MoimingInvalidTokenException;
+import com.peoplein.moiming.exception.MoimingAuthApiException;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import com.peoplein.moiming.service.AuthService;
@@ -139,7 +139,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
 
     @Test
-    void reissueToken_shouldEmptyRefreshTokenData_whenReissueFail_byMoimingInvalidTokenException () {
+    void reissueToken_shouldEmptyRefreshTokenData_whenReissueFail_byMoimingAuthApiException () {
 
         // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
         Role testRole = makeTestRole(RoleType.USER);
@@ -158,7 +158,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
         // when
         // then
-        assertThatThrownBy(() -> authService.reissueToken(requestDto)).isInstanceOf(MoimingInvalidTokenException.class);
+        assertThatThrownBy(() -> authService.reissueToken(requestDto)).isInstanceOf(MoimingAuthApiException.class);
 
         // then - db verify
         Member member = em.find(Member.class, testMember.getId());

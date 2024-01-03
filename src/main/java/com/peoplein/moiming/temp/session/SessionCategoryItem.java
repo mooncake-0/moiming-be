@@ -1,4 +1,4 @@
-package com.peoplein.moiming.domain.session;
+package com.peoplein.moiming.temp.session;
 
 
 import com.peoplein.moiming.domain.fixed.SessionCategory;
@@ -9,17 +9,17 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
+//@Entity
 @Getter
-@Table(name = "session_category_item")
+//@Table(name = "session_category_item")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SessionCategoryItem {
 
     public static final String DEFAULT_ITEM_NAME = "DEFAULT";
 
-    @Id
-    @Column(name = "session_category_item_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+//    @Id
+//    @Column(name = "session_category_item_id")
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     private String itemName;
@@ -31,12 +31,12 @@ public class SessionCategoryItem {
     private LocalDateTime updatedAt;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "moim_session_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "moim_session_id")
     private MoimSession moimSession;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_category_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "session_category_id")
     private SessionCategory sessionCategory;
 
     public static SessionCategoryItem createSessionCategoryItem(String itemName, int itemCost, MoimSession moimSession, SessionCategory sessionCategory) {

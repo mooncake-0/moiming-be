@@ -1,4 +1,4 @@
-package com.peoplein.moiming.domain.session;
+package com.peoplein.moiming.temp.session;
 
 
 import com.peoplein.moiming.domain.fixed.SessionCategory;
@@ -8,15 +8,15 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-@Entity
+//@Entity
 @Getter
-@Table(name = "member_session_category_linker")
+//@Table(name = "member_session_category_linker")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberSessionCategoryLinker {
 
-    @Id
-    @Column(name = "member_session_category_linker_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+//    @Id
+//    @Column(name = "member_session_category_linker_id")
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     /*
@@ -24,12 +24,12 @@ public class MemberSessionCategoryLinker {
      create, update 에 관한 필드도 불필요
      */
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_session_linker_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "member_session_linker_id")
     private MemberSessionLinker memberSessionLinker;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_category_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "session_category_id")
     private SessionCategory sessionCategory;
 
 

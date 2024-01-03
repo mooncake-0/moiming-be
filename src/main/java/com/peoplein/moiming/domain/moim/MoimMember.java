@@ -4,10 +4,12 @@ import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.io.File;
@@ -18,7 +20,10 @@ import java.security.InvalidParameterException;
 import java.util.Objects;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.AUTH_REFRESH_TOKEN_NOT_MATCH;
 
+@Slf4j
 @Entity
 @Table(name = "moim_member")
 @Getter
@@ -51,12 +56,10 @@ public class MoimMember extends BaseEntity {
     public static MoimMember memberJoinMoim(Member member, Moim moim, MoimMemberRoleType memberRoleType, MoimMemberState memberState) {
 
         if (Objects.isNull(member) || Objects.isNull(moim) || Objects.isNull(memberRoleType) || Objects.isNull(memberState)) {
-            throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
+            log.error("Class {} : {}", "MoimMember.java", COMMON_INVALID_PARAM.getErrMsg());
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        if (moim.getCurMemberCount() + 1 > moim.getMaxMember()) {
-            throw new MoimingApiException("모임 정원이 가득찼습니다");
-        }
         MoimMember moimMember = new MoimMember(member, moim, memberRoleType, memberState);
         return moimMember;
     }
@@ -82,11 +85,11 @@ public class MoimMember extends BaseEntity {
 
     public void changeMoimMemberRoleType(MoimMemberRoleType memberRoleType) {
         if (Objects.isNull(memberRoleType)) {
-            throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         if (getMemberState() != ACTIVE) {
-            throw new MoimingApiException("활동중이지 않은 유저에게 운영진을 임명할 수 없습니다");
+            throw new MoimingApiException(MOIM_MEMBER_ROLE_GRANT_FAIL);
         }
 
         this.memberRoleType = memberRoleType;
@@ -117,11 +120,11 @@ public class MoimMember extends BaseEntity {
         MoimMemberState curState = getMemberState();
 
         if (Objects.isNull(memberState)) {
-            throw new InvalidParameterException("Params 중 NULL 이 발생하였습니다");
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         if (curState == memberState) {
-            throw new MoimingApiException("같은 상태로의 전환 요청입니다");
+            throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }
 
         if (curState == ACTIVE) { // 어떤 상태로도 변환이 가능하다
@@ -133,7 +136,7 @@ public class MoimMember extends BaseEntity {
         } else if (curState == IBD) {
             changeStateFromIBD(memberState);
         } else {
-            throw new MoimingApiException("삭제된 계정의 연결 관계는 변경할 수 없습니다");
+            throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }
 
         this.memberState = memberState;
@@ -144,15 +147,15 @@ public class MoimMember extends BaseEntity {
         if(memberState == ACTIVE){
             this.moim.addCurMemberCount();
         } else if (memberState == IBF) { // 불가능 CASE
-            throw new MoimingApiException("불가능한 상태로 전환 요청입니다");
+            throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }
     }
 
     private void changeStateFromIBF(MoimMemberState memberState) {
         if (memberState == ACTIVE) {
-            throw new MoimingApiException("강퇴 유저는 재가입할 수 없습니다");
+            throw new MoimingApiException(MOIM_MEMBER_JOIN_FORBIDDEN);
         } else if (memberState == IBW || memberState == IBD) {
-            throw new MoimingApiException("불가능한 상태로 전환 요청입니다");
+            throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }
     }
 
@@ -160,7 +163,7 @@ public class MoimMember extends BaseEntity {
         if (memberState == ACTIVE) {
             this.moim.addCurMemberCount();
         } else if (memberState == IBW || memberState == IBF) {
-            throw new MoimingApiException("불가능한 상태로 전환 요청입니다");
+            throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }
     }
 

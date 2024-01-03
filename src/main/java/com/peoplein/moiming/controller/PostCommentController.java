@@ -2,7 +2,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.security.domain.SecurityMember;
+import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.PostCommentService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;

@@ -2,9 +2,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.request.MoimMemberReqDto;
-import com.peoplein.moiming.model.dto.response.MoimMemberRespDto;
-import com.peoplein.moiming.security.domain.SecurityMember;
+import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimMemberService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;

@@ -3,29 +3,23 @@ package com.peoplein.moiming.security;
 
 import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.repository.MemberRepository;
-import com.peoplein.moiming.security.filter.JwtAuthenticationFilter;
+import com.peoplein.moiming.security.auth.MoimingAuthenticationEntryPoint;
+import com.peoplein.moiming.security.filter.MoimingAuthenticationFilter;
 import com.peoplein.moiming.security.filter.MoimingLoginFilter;
-import com.peoplein.moiming.security.handler.ExceptionFilterHandler;
 import com.peoplein.moiming.security.handler.MoimingLoginFailureHandler;
 import com.peoplein.moiming.security.handler.MoimingLoginSuccessHandler;
-import com.peoplein.moiming.security.auth.JwtAuthenticationProvider;
-import com.peoplein.moiming.security.token.JwtTokenProvider;
-import com.peoplein.moiming.security.token.MoimingTokenProvider;
+import com.peoplein.moiming.security.auth.MoimingAuthenticationProvider;
 import com.peoplein.moiming.security.service.SecurityMemberService;
 import com.peoplein.moiming.service.AuthService;
-import com.peoplein.moiming.service.util.LogoutTokenDb;
-import com.peoplein.moiming.service.util.LogoutTokenManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -40,8 +34,6 @@ public class SecurityJwtConfig {
     private final AuthService authService;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final LogoutTokenManager logoutTokenManager;
-
 
     /*
      Security 설정을 위한 Bean 설정
@@ -53,7 +45,7 @@ public class SecurityJwtConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        return new JwtAuthenticationProvider(userDetailsService(), passwordEncoder);
+        return new MoimingAuthenticationProvider(userDetailsService(), passwordEncoder);
     }
 
     @Bean
@@ -77,6 +69,7 @@ public class SecurityJwtConfig {
         }
     }
 
+
     public MoimingLoginFilter moimingLoginFilter(AuthenticationManager authenticationManager) {
 
         MoimingLoginFilter moimingLoginFilter = new MoimingLoginFilter();
@@ -88,10 +81,12 @@ public class SecurityJwtConfig {
         return moimingLoginFilter;
     }
 
-    public JwtAuthenticationFilter jwtAuthenticationFilter(AuthenticationManager authenticationManager) {
 
-        return new JwtAuthenticationFilter(authenticationManager, userDetailsService(), logoutTokenManager, authService);
+    public MoimingAuthenticationFilter jwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+
+        return new MoimingAuthenticationFilter(authenticationManager, userDetailsService(), authService);
     }
+
 
     /*
      Http Security Configuration 인증 인가 설정
@@ -118,16 +113,10 @@ public class SecurityJwtConfig {
          인증가 인가를 수행할 필터 등록
          */
         http.apply(new MoimingSecurityFilterManager());
-
-        // 인증 예외 - AuthenticationEntryPoint 가 크게 하는 일이 없어서 lamda 로 일단 정의 - 추후 exception 별 로깅 이런 처리가 필요시 Custom 활 필요
-        http.exceptionHandling().authenticationEntryPoint((req, resp, exception) -> {
-            ExceptionFilterHandler.sendExceptionResponse(resp, exception.getMessage(), HttpStatus.UNAUTHORIZED);
-        });
-
-        // 인가 예외 - AccessDeniedHadnler 역시 마찬가지, 할 일이 403 뿐
-        http.exceptionHandling().accessDeniedHandler((req, resp, exception) -> {
-            ExceptionFilterHandler.sendExceptionResponse(resp, exception.getMessage(), HttpStatus.FORBIDDEN);
-        });
+        http.exceptionHandling(manager -> manager
+                        .authenticationEntryPoint(new MoimingAuthenticationEntryPoint())
+//                .accessDeniedHandler(new MoimingAccessDeniedHandler()) // TODO :: 권한 예외 대기
+        );
 
 
         /**

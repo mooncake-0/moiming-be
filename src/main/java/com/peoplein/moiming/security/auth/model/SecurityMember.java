@@ -1,4 +1,4 @@
-package com.peoplein.moiming.security.domain;
+package com.peoplein.moiming.security.auth.model;
 
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.member.MemberRole;

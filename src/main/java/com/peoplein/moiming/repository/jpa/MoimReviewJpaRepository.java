@@ -1,8 +1,8 @@
 package com.peoplein.moiming.repository.jpa;
 
 
-import com.peoplein.moiming.domain.MoimReview;
-import com.peoplein.moiming.domain.ReviewAnswer;
+import com.peoplein.moiming.temp.MoimReview;
+import com.peoplein.moiming.temp.ReviewAnswer;
 import com.peoplein.moiming.domain.fixed.ReviewQuestion;
 import com.peoplein.moiming.repository.MoimReviewRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 
 
-import static com.peoplein.moiming.domain.QMoimPost.moimPost;
 import static com.peoplein.moiming.domain.QMoimReview.*;
 import static com.peoplein.moiming.domain.QReviewAnswer.*;
 import static com.peoplein.moiming.domain.fixed.QReviewQuestion.*;

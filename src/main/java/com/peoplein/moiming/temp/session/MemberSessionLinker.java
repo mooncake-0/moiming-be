@@ -1,4 +1,4 @@
-package com.peoplein.moiming.domain.session;
+package com.peoplein.moiming.temp.session;
 
 
 import com.peoplein.moiming.domain.member.Member;
@@ -18,15 +18,15 @@ import java.util.stream.Collectors;
  COMPILE FIXED
  */
 
-@Entity
+//@Entity
 @Getter
-@Table(name = "member_session_linker")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+//@Table(name = "member_session_linker")
+//@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberSessionLinker {
 
-    @Id
-    @Column(name = "member_session_linker_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+//    @Id
+//    @Column(name = "member_session_linker_id")
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     private int singleCost;
@@ -38,19 +38,19 @@ public class MemberSessionLinker {
 
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "member_id")
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "moim_session_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "moim_session_id")
     private MoimSession moimSession;
 
     /*
      멤버가 해당 정산에 참여해야 하는 정산 Category 들과의 연결자들
      TODO 바로 List<Category> 가 될 수 있는 방법은 ..
      */
-    @OneToMany(mappedBy = "memberSessionLinker", cascade = CascadeType.PERSIST)
+//    @OneToMany(mappedBy = "memberSessionLinker", cascade = CascadeType.PERSIST)
     private List<MemberSessionCategoryLinker> memberSessionCategoryLinkers = new ArrayList<>();
 
     public static MemberSessionLinker createMemberSessionLinker(int singleCost, MemberSessionState memberSessionState, Member member, MoimSession moimSession) {

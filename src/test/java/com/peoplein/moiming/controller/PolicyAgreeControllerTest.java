@@ -8,6 +8,7 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.PolicyAgreeUpdateReqDto.*;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -73,15 +75,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
 
 
     // PolicyAgree 까지 저장된 Member 제공
-    // 1개 성공 CASE
-    // 2개 성공 CASE
-    // AUTH 정보 없음 - 한번 해보자
-    // policies 가 비어 있음
-    // DTO 내부 Boolean 없음
-    // DTO 내부 PolicyType 없음
-    // DTO 내부 PolicyType 이 필수임
-    // 같은 상태로의 변경 요청임
-
+    // Update 필요 사항 - 다른 사람의 권한 수정 시도 (이거 해야 함), 필수 권한 수정 시도 (DTO 상 cut 이므로 해결됨)
 
     // 성공
     @Test
@@ -152,7 +146,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
 
     // 사실 필요 없는 테스트 401
     @Test
-    void updatePolicyAgree_shouldReturn401_whenAccessTokenMissing_by() throws Exception {
+    void updatePolicyAgree_shouldReturn401_whenAccessTokenMissing_byJWTVerificationException() throws Exception {
 
         // given
         Boolean[] hasAgreed = {false, true};
@@ -168,7 +162,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isUnauthorized());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_TOKEN_NOT_FOUND.getErrCode()));
 
         // then - db verify - 바뀌지 않음
         List<PolicyAgree> policyAgress = policyAgreeRepository.findByMemberId(testMember.getId());
@@ -279,7 +273,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
 
         // given
         Boolean[] hasAgrees = {true, true}; // MARKETING_EMAIL 은 이미 TRUE 임
-        PolicyType[] policyTypes = {MARKETING_EMAIL, MARKETING_EMAIL};
+        PolicyType[] policyTypes = {MARKETING_EMAIL, MARKETING_SMS};
         PolicyAgreeUpdateReqDto requestDto = new PolicyAgreeUpdateReqDto(makePolicyUpdateReqDtoList(hasAgrees, policyTypes));
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(testMember, 2000);
@@ -289,9 +283,9 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + accessToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
 
+
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isOk());
 
     }
 

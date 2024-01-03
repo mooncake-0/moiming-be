@@ -4,14 +4,18 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.exception.MoimingAuthApiException;
 import com.peoplein.moiming.exception.MoimingValidationException;
 import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 @RestControllerAdvice
 @Slf4j
@@ -19,10 +23,17 @@ public class MoimingExceptionHandler {
 
     @ExceptionHandler(MoimingApiException.class)
     public ResponseEntity<?> moimingApiException(MoimingApiException exception) {
-        log.error("API EXCEPTION : {}", exception.getMessage());
-        return ResponseEntity.badRequest().body(ResponseBodyDto.createResponse(exception.getErrCode(), exception.getMessage(), null));
-    }
 
+        log.error("Moiming API EXCEPTION : {}", exception.getMessage());
+
+        HttpStatus status = HttpStatus.resolve(exception.getEv().getStatus());
+        ResponseBodyDto<Object> responseBody = ResponseBodyDto.createResponse(exception.getEv().getErrCode(), exception.getMessage(), null);
+
+        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return new ResponseEntity<>(responseBody, status);
+
+    }
 
     @ExceptionHandler(MoimingValidationException.class)
     public ResponseEntity<?> moimingValidationException(MoimingValidationException exception) {
@@ -32,31 +43,40 @@ public class MoimingExceptionHandler {
 
 
     @ExceptionHandler(JWTVerificationException.class)
-    public ResponseEntity<?> refreshJwtVerificationException(JWTVerificationException exception) {
+    public ResponseEntity<?> refreshTokenException(JWTVerificationException exception) {
 
-        int statusCode;
-        String errCode = "-1";
-        String data = "";
+        log.error("JWT REFRESH API EXCEPTION : {}", exception.getMessage());
+
+        AuthExceptionValue ev = AUTH_REFRESH_TOKEN_EXTRA;
 
         if (exception instanceof SignatureVerificationException) {
-            log.error("SIGNATURE 에러, 올바르지 않은 Signature 로 접근하였습니다 : {}", exception.getMessage());
-            statusCode = HttpStatus.FORBIDDEN.value();
-            data = "SIGNATURE Error. Reported";
+            ev = AUTH_REFRESH_TOKEN_VERIFICATION_FAIL;
         } else if (exception instanceof TokenExpiredException) {
-            errCode = "-100";
-            statusCode = HttpStatus.UNAUTHORIZED.value();
-            data = "ACCESS_TOKEN_EXPIRED";
-
-        } else { // 그 외 모든 JWT Verification Exception
-            log.info("Refresh Token Verify 도중 알 수 없는 예외가 발생 : {}", exception.getMessage());
-            statusCode = HttpStatus.BAD_REQUEST.value();
+            ev = AUTH_REFRESH_TOKEN_EXPIRED;
         }
 
-        ResponseBodyDto responseBody = ResponseBodyDto.createResponse(errCode, exception.getMessage(), data);
+        HttpStatus status = HttpStatus.resolve(ev.getStatus());
+        ResponseBodyDto<Object> responseBody = ResponseBodyDto.createResponse(ev.getErrCode(), ev.getErrMsg() + " :: " + exception.getMessage(), null);
 
-        return new ResponseEntity<>(responseBody, HttpStatus.valueOf(statusCode));
+        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return new ResponseEntity<>(responseBody, status);
     }
 
+
+    @ExceptionHandler(MoimingAuthApiException.class)
+    public ResponseEntity<?> ssdAuthApiException(MoimingAuthApiException exception) {
+
+        log.error("Moiming AUTH API EXCEPTION : {}", exception.getMessage());
+
+        HttpStatus status = HttpStatus.resolve(exception.getEv().getStatus());
+        ResponseBodyDto<Object> responseBody = ResponseBodyDto.createResponse(exception.getEv().getErrCode(), exception.getMessage(), null);
+
+        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return new ResponseEntity<>(responseBody, status);
+
+    }
 
     // Repository Exception
     @ExceptionHandler(InvalidQueryParameterException.class)

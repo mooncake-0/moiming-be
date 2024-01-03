@@ -40,7 +40,7 @@ public class MemberService {
 
     public void logout(String accessToken, Member member) {
         if (accessToken == null || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         // refreshToken 을 영속화하기 위해
@@ -99,7 +99,7 @@ public class MemberService {
     public boolean confirmPw(String password, Member member) {
 
         if (!StringUtils.hasText(password) || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         String encodedInput = passwordEncoder.encode(password);
@@ -111,7 +111,7 @@ public class MemberService {
     public void changeNickname(String nickname, Member member) {
 
         if (!StringUtils.hasText(nickname) || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         if (member.getNickname().equals(nickname)) {
@@ -131,7 +131,7 @@ public class MemberService {
     public void changePw(String prePw, String postPw, Member member) {
 
         if (!StringUtils.hasText(prePw) || !StringUtils.hasText(postPw) || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         String encodedPrePw = passwordEncoder.encode(prePw);

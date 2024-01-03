@@ -1,5 +1,6 @@
-package com.peoplein.moiming.domain;
+package com.peoplein.moiming.temp;
 
+import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.enums.ScheduleMemberState;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
@@ -15,14 +16,14 @@ import java.util.List;
 /*
  COMPILE FIXED
  */
-@Entity
+//@Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Schedule extends BaseEntity{
+public class Schedule extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "schedule_id")
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+//    @Column(name = "schedule_id")
     private Long id;
     private String scheduleTitle;
     private String scheduleLocation;
@@ -32,11 +33,11 @@ public class Schedule extends BaseEntity{
     private Long createdMemberId;
     private Long updatedMemberId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "moim_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "moim_id")
     private Moim moim;
 
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
+//    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
     private List<MemberScheduleLinker> memberScheduleLinkers = new ArrayList<>();
 
     public static Schedule createSchedule(String scheduleTitle, String scheduleLocation, LocalDateTime scheduleDate, int maxCount, Moim moim, Member creator) {

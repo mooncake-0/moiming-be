@@ -1,17 +1,17 @@
 package com.peoplein.moiming.service;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.exception.MoimingInvalidTokenException;
+import com.peoplein.moiming.exception.MoimingAuthApiException;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
+import com.peoplein.moiming.service.util.LogoutTokenManager;
 import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +26,8 @@ import java.util.Optional;
 
 import org.springframework.util.StringUtils;
 
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 import static com.peoplein.moiming.security.token.MoimingTokenType.*;
@@ -33,17 +35,19 @@ import static com.peoplein.moiming.security.token.MoimingTokenType.*;
 @Slf4j
 @Service
 @Transactional
-@RequiredArgsConstructor // 중복 Type 이 있는 경우에만 직접 생성자 주입하도록 함
+@RequiredArgsConstructor
 public class AuthService {
 
     public final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
     public final String KEY_RESPONSE_DATA = "RESPONSE_DATA";
 
-    private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
-    private final MoimingTokenProvider tokenProvider;
     private final PolicyAgreeService policyAgreeService;
+
+    private final PasswordEncoder passwordEncoder;
+    private final MoimingTokenProvider tokenProvider;
+    private final LogoutTokenManager logoutTokenManager;
 
 
     public boolean checkEmailAvailable(String email) {
@@ -90,67 +94,52 @@ public class AuthService {
 
 
     /*
-    재발급은 우성 REFRESH TOKEN 으로만 진행한다
+    Reissue Token 은 토큰 재발급 요청
+    > 토큰을 발급하는 로직 자체와는 다름
+    > TODO :: Resp Dto 재 Setting 필요. Inner Dto 전달 금지
     */
     public TokenDto reissueToken(AuthTokenReqDto requestDto) {
 
-        String curRefreshToken = requestDto.getToken();
-        String rtEmail = "";
-
-        try {
-            rtEmail = verifyAndClaimEmail(JWT_RT, curRefreshToken);
-        } catch (JWTVerificationException exception) { // Verify 시 최상위 Exception
-            log.info("Verify 도중 알 수 없는 예외가 발생 : {}", exception.getMessage());
-            throw exception;
+        if (requestDto == null) {
+            log.error("Class {} : {}", getClass().getName(), COMMON_INVALID_PARAM.getErrMsg());
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        Member memberPs = memberRepository.findByEmail(rtEmail).orElseThrow(() ->
-                new MoimingApiException("해당 토큰에 저장된 Email 로 가입된 유저가 없습니다")
-        );
+        String curRefreshToken = requestDto.getToken();
+        String rtEmail = verifyMemberEmail(JWT_RT, requestDto.getToken());
 
-        // Refresh Token 저장값이 없다. 두 Refresh Token 이 일치하지 않는 경우 REFRESH TOKEN 삭제 및 재로그인 유도
+        Member memberPs = memberRepository.findByEmail(rtEmail).orElseThrow(() -> {
+            log.error("Class {} : {}", getClass().getName(), MEMBER_NOT_FOUND.getErrMsg());
+            return new MoimingApiException(MEMBER_NOT_FOUND);
+        });
+
+
         if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(curRefreshToken)) {
-            String errMsg = "Refresh Token 검증에 실패하였습니다. 다시 로그인 해주세요";
-            log.info(errMsg + ": {}", rtEmail); // 이메일 로깅
-
+            log.error("Class {} : {}", getClass().getName(), AUTH_REFRESH_TOKEN_NOT_MATCH.getErrMsg());
             memberPs.changeRefreshToken(""); // RefreshToken 을 삭제한다
-            throw new MoimingInvalidTokenException(errMsg);
+            throw new MoimingAuthApiException(AUTH_REFRESH_TOKEN_NOT_MATCH);
         }
 
         return issueTokensAndUpdateColumns(true, memberPs);
     }
 
 
+
     /*
      회원가입 전에 중복 조건들에 대해서 확인
      에러 발생시 회원 가입 중단
-     // TODO :: 이거 DB 에서 컷되는데 굳이 해줘야함? 세 개 가지고 조회하는거라 Fullscan 꽤 오버헤드 존재해보임
+     // TODO :: 이거 DB 에서 컷되는데 굳이 해줘야함? 세 개 가지고 조회하는거라 Full-scan 꽤 오버헤드 존재해보임
      //         당연히 당장은 큰 문제 X
      */
-    // Test 에서 보이게 하기 위한 package-private 으로 변경
     void checkUniqueColumnDuplication(String memberEmail, String memberPhone, String ci) {
 
         List<Member> duplicateMembers = memberRepository.findMembersByEmailOrPhoneOrCi(memberEmail, memberPhone, ci);
 
         if (!duplicateMembers.isEmpty()) {
-            for (Member member : duplicateMembers) {
-
-                if (member.getMemberEmail().equals(memberEmail)) {
-                    throw new MoimingApiException("[" + memberEmail + "] 는  이미 존재하는 회원입니다");
-                }
-
-                if (member.getMemberInfo().getMemberPhone().equals(memberPhone)) {
-                    throw new MoimingApiException("[" + memberPhone + "] 는  이미 존재하는 회원의 전화번호 입니다");
-                }
-
-                if (member.getCi().equals(ci)) {
-                    throw new MoimingApiException("이미 존재하는 회원의 CI 입니다");
-                }
-
-                //...
-            }
+            throw new MoimingAuthApiException(AUTH_SIGN_IN_DUPLICATE_COLUMN);
         }
     }
+
 
     public String tryCreateNicknameForUser() {
 
@@ -166,18 +155,23 @@ public class AuthService {
             trial += 1; // 중복이면 다시 시도
         }
 
-        throw new MoimingApiException("");
+        throw new MoimingAuthApiException(AUTH_SIGN_IN_NICKNAME_FAIL);
 
     }
 
 
-    // 3 가지 - 로그인 / 액토만료로 인한 재발급 / 회원가입
+    /*
+     토큰 발급 로직
+     사용 로직 : 로그인 / 회원가입 / (위에 있음) 토큰 재발급 로직
+               유저에 대한 인증, 갱신 토큰을 발급한다
+     */
     public TokenDto issueTokensAndUpdateColumns(boolean persisted, Member member) {
-        if (!persisted) {
-            member = memberRepository.findById(member.getId()).orElseThrow(
-                    () -> new MoimingApiException(ExceptionValue.MEMBER_NOT_FOUND)
-            );
-        }
+
+//        if (!persisted) {
+//            member = memberRepository.findById(member.getId()).orElseThrow(
+//                    () -> new MoimingApiException(ExceptionValue.MEMBER_NOT_FOUND)
+//            );
+//        }
 
         String jwtAccessToken = tokenProvider.generateToken(JWT_AT, member);
         String jwtRefreshToken = tokenProvider.generateToken(JWT_RT, member);
@@ -189,10 +183,37 @@ public class AuthService {
     }
 
 
-    // 토큰을 인증해준다 Provider 전담
-    public String verifyAndClaimEmail(MoimingTokenType type, String token) {
 
-        return tokenProvider.verifyMemberEmail(type, token);
+    /*
+     사용 로직 : 모든 요청 인증
+     모든 요청은 인증될 시, logoutTokenMap 에서 관리중인 토큰인지 확인한다
+     */
+    public boolean isLogoutToken(String accessToken) {
+        return logoutTokenManager.isUnusableToken(accessToken);
     }
 
+
+    /*
+      사용 로직 : 모든 요청 인증 / 갱신 토큰 인증
+      TokenProvider 를 사용해서 Knox Id 를 반환한다
+     */
+    public String verifyMemberEmail(MoimingTokenType type, String jwtToken) {
+        return tokenProvider.verifyMemberEmail(type, jwtToken);
+    }
+
+
+    /*
+     사용 로직 : 모든 요청 인증
+     모든 요청은 인증될 시, member 를 persist 해서 로그인 날짜를 최신화해준다
+    */
+    public void updateLoginAt(boolean persisted, Member member) {
+//        if (!persisted) { // update 를 위한 persist
+//            member = memberRepository.findById(member.getId()).orElseThrow(() ->
+//                     TODO :: 인 앱 예외 구체화 필요
+//                    new RuntimeException("해당 인원을 찾을 수 없습니다")
+//            );
+//        }
+
+        member.changeLastLoginAt();
+    }
 }

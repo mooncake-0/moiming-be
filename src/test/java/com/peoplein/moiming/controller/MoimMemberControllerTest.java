@@ -30,6 +30,7 @@ import java.util.Optional;
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.MoimMemberRoleType.*;
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimMemberReqDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static com.peoplein.moiming.support.TestModelParams.moimArea;
@@ -186,7 +187,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     // CASE2 잘못된 moim Id 전달
     @Test
-    void getActiveMoimMember_shouldReturn400_whenMoimNotFound_byMoimingApiException() throws Exception {
+    void getActiveMoimMember_shouldReturn404_whenMoimNotFound_byMoimingApiException() throws Exception {
 
         // given
         Long moimId = 1000L;
@@ -201,8 +202,8 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_NOT_FOUND.getErrCode()));
     }
 
 
@@ -295,7 +296,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
 
     // 실패 CASE 작성
-    // BODY 가 비어있음 // TODO :: ResponseBody 도 정규 응답이 없음 - 그냥 400만 Controller 매핑 단에서 스프링이 처리해주는 상황 (위 404와 동일)
+    // BODY 가 비어있음 // TODO :: ResponseBody 도 정규 응답이 없음 - 그냥 400 만 Controller 매핑 단에서 스프링이 처리해주는 상황 (위 404와 동일)
     @Test
     void joinMoim_shouldReturn400_whenRequestBodyEmpty() throws Exception {
 
@@ -330,7 +331,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -526,7 +527,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -653,7 +654,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
-    // BODY 가 비어있다 // TODO :: ResponseBody 도 정규 응답이 없음 - 그냥 400만 Controller 매핑 단에서 스프링이 처리해주는 상황 (위 404와 동일)
+    // BODY 가 비어있다 // TODO :: ResponseBody 도 정규 응답이 없음 - 그냥 400 만 Controller 매핑 단에서 스프링이 처리해주는 상황 (위 404와 동일)
     @Test
     void expelMember_shouldReturn400_whenBodyEmpty() throws Exception {
 
@@ -687,7 +688,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -709,7 +710,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.inactiveReason").doesNotExist()); // 공백으로 요청되는건 상관 없다
 
     }

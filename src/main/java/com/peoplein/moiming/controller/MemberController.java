@@ -1,9 +1,7 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.request.MemberReqDto;
-import com.peoplein.moiming.security.domain.SecurityMember;
+import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.MemberService;
 import io.swagger.annotations.*;
@@ -18,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
-import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 
@@ -160,7 +157,7 @@ public class MemberController {
         if (StringUtils.hasText(authorizationValue) && authorizationValue.startsWith(JwtParams.PREFIX)) {
             return authorizationValue.replace(JwtParams.PREFIX, "");
         } else { // 발생할리가 없음
-            throw new MoimingApiException(MEMBER_LOGOUT_AT_NOT_FOUND);
+            return null;
         }
     }
 }

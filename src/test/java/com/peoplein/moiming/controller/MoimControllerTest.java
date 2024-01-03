@@ -213,7 +213,7 @@ public class MoimControllerTest extends TestObjectCreator {
     }
 
 
-    // join rule Agerule 정보 없음
+    // join rule Age Rule 정보 없음
     @Test
     void createMoim_shouldReturn400_whenJoinRuleFieldMissing_byMoimingValidationException() throws Exception {
 

@@ -1,8 +1,8 @@
-package com.peoplein.moiming.domain.session;
+package com.peoplein.moiming.temp.session;
 
 
 import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.domain.Schedule;
+import com.peoplein.moiming.temp.Schedule;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,15 +15,15 @@ import java.util.List;
 /*
  COMPILE FIXED
  */
-@Entity
+//@Entity
 @Getter
-@Table(name = "moim_session")
+//@Table(name = "moim_session")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MoimSession {
 
-    @Id
-    @Column(name = "moim_session_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+//    @Id
+//    @Column(name = "moim_session_id")
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     private String sessionName;
@@ -44,25 +44,25 @@ public class MoimSession {
     private LocalDateTime updatedAt;
     private Long updatedMemberId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "moim_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "moim_id")
     private Moim moim;
 
     /*
      @Nullable
      특정 일정에 대한 정산활동일 수도 있고, 아닐 수도 있다
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id")
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "schedule_id")
     private Schedule schedule;
 
     /*
      다대다 연관관계 매핑
      */
-    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.PERSIST)
+//    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.PERSIST)
     private List<SessionCategoryItem> sessionCategoryItems = new ArrayList<>();
 
-    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.PERSIST)
+//    @OneToMany(mappedBy = "moimSession", cascade = CascadeType.PERSIST)
     private List<MemberSessionLinker> memberSessionLinkers = new ArrayList<>();
 
 

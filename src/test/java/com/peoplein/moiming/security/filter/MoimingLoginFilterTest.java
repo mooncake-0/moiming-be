@@ -92,7 +92,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_shouldReturn500_whenWrongDtoPassed_byExtraException() throws Exception {
+    void filter_shouldReturn400_whenWrongDtoPassed_byExtraException() throws Exception {
 
         // given
         Map<String, String> wrongDto = new HashMap<>();
@@ -104,12 +104,14 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isInternalServerError());
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_COMMON_INVALID_PARAM_NULL.getErrCode()));
+
     }
 
 
     @Test
-    void filter_shouldReturn400_whenEmptyParamPassed_byBadInputException() throws Exception {
+    void filter_shouldReturn400_whenEmptyParamPassed_byLoginAttemptException() throws Exception {
 
         // given
         AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberEmail, "");
@@ -120,11 +122,12 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_LOGIN_REQUEST_INVALID.getErrCode()));
     }
 
 
     @Test
-    void filter_shouldReturn200_whenEmailNotFound() throws Exception {
+    void filter_shouldReturn404_whenEmailNotFound_byLoginAttemptException() throws Exception {
 
         // given
         AuthLoginReqDto wrongDto = new AuthLoginReqDto("not@registered.com", "1234");
@@ -134,13 +137,14 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_EMAIL_NOT_FOUND.getErrCode()));
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_LOGIN_EMAIL_NOT_FOUND.getErrCode()));
     }
 
 
+
     @Test
-    void filter_shouldReturn200_whenPasswordWrong() throws Exception {
+    void filter_shouldReturn401_whenPasswordWrong_byLoginAttemptException() throws Exception {
 
         // given
         AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberEmail, password + "a");
@@ -150,21 +154,23 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_PW_INVALID.getErrCode()));
+        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_LOGIN_PASSWORD_INCORRECT.getErrCode()));
 
     }
 
 
     @Test
-    void filter_shouldReturn500_whenNothingGiven_byExtraException() throws Exception {
+    void filter_shouldReturn400_whenNothingGiven_byExtraException() throws Exception {
 
         // given
         // when
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN));
 
         // then
-        resultActions.andExpect(status().isInternalServerError());
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_COMMON_INVALID_PARAM_NULL.getErrCode()));
+
     }
 
 }

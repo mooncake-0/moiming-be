@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.session.MemberSessionLinker;
+import com.peoplein.moiming.temp.session.MemberSessionLinker;
 
 import java.util.Optional;
 

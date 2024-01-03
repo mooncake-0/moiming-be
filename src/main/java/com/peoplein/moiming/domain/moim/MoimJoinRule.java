@@ -3,10 +3,12 @@ package com.peoplein.moiming.domain.moim;
 import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.io.File;
@@ -14,6 +16,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+
+@Slf4j
 @Entity
 @Getter
 @Table(name = "moim_join_rule")
@@ -45,7 +50,8 @@ public class MoimJoinRule extends BaseEntity {
         }
 
         if (ageMin > ageMax) {
-            throw new MoimingApiException("잘못된 설정입니다: 최소 나이가 더 큰 값");
+            log.error("{}, {}", "나이 관계가 잘못 매핑되었습니다, 최소 나이가 더 큼, C999", COMMON_INVALID_SITUATION.getErrMsg());
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
 
         return new MoimJoinRule(ageRuleFlag, ageMax, ageMin, memberGender);
@@ -64,13 +70,13 @@ public class MoimJoinRule extends BaseEntity {
         if (this.hasAgeRule) {
             int memberAge = member.getMemberAge();
             if (this.ageMin > memberAge || this.ageMax < memberAge) { // 최소 나이보다 작거나 최대 나이보다 많다면
-                throw new MoimingApiException("요청한 유저가 가입 조건에 부합하지 않습니다: 나이 부적합");
+                throw new MoimingApiException(MOIM_JOIN_FAIL_BY_AGE_RULE);
             }
         }
 
         if (this.memberGender != MemberGender.N) {
             if (!member.getMemberInfo().getMemberGender().equals(this.memberGender)) {
-                throw new MoimingApiException("요청한 유저가 가입 조건에 부합하지 않습니다: 요구성별 - " + this.memberGender.toString());
+                throw new MoimingApiException(MOIM_JOIN_FAIL_BY_GENDER_RULE);
             }
         }
     }

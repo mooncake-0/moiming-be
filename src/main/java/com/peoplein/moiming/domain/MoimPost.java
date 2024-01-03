@@ -98,7 +98,7 @@ public class MoimPost extends BaseEntity {
 
     public void changeMember(Member member) {
         if (member == null) {
-            throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
         }
         this.member = member;
     }

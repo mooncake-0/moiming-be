@@ -4,7 +4,7 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.exception.MoimingInvalidTokenException;
+import com.peoplein.moiming.exception.MoimingAuthApiException;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.support.TestMockCreator;
@@ -163,7 +163,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void reissueToken_shouldRemoveSavedTokenAndThrowException_whenTokenNotMatch() {
+    void reissueToken_shouldRemoveSavedTokenAndThrowException_whenTokenNotMatch_byMoimingAuthApiException() {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, ci, mockRole(1L, RoleType.USER));
@@ -175,14 +175,14 @@ public class AuthServiceTest extends TestMockCreator {
 
         // when
         // then
-        assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingInvalidTokenException.class);
+        assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingAuthApiException.class);
         assertThat(mockMember.getRefreshToken()).isEmpty(); // REFRESH TOKEN 값을 삭제했음을 검증한다
 
     }
 
 
     @Test
-    void reissueToken_shouldThrowException_whenMemberNotHaveToken() {
+    void reissueToken_shouldThrowException_whenMemberNotHaveToken_byMoimingAuthApiException() {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, ci, mockRole(1L, RoleType.USER));
@@ -196,7 +196,7 @@ public class AuthServiceTest extends TestMockCreator {
 
         // when
         // then
-        assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingInvalidTokenException.class);
+        assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingAuthApiException.class);
         assertThat(mockMember.getRefreshToken()).isEmpty();
 
     }
