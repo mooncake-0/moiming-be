@@ -18,7 +18,7 @@
 //import com.peoplein.moiming.model.dto.response_b.ReviewQuestionResponseDto;
 //import com.peoplein.moiming.repository.MoimMemberRepository;
 //import com.peoplein.moiming.repository.MoimRepository;
-//import com.peoplein.moiming.repository.MoimReviewRepository;
+//import com.peoplein.moiming.temp.MoimReviewRepository;
 //import lombok.RequiredArgsConstructor;
 //import lombok.extern.slf4j.Slf4j;
 //import org.springframework.stereotype.Service;
