@@ -123,7 +123,7 @@ public class MoimMember extends BaseEntity {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        if (curState == memberState) {
+        if (curState == memberState) { // 같은 상태로의 변경은 서버가 처리할 수 없음
             throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }
 

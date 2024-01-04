@@ -338,7 +338,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     // 강퇴가 join 시도
     @Test
-    void joinMoim_shouldReturn400_whenIBFMemberJoin_byMoimingApiException() throws Exception {
+    void joinMoim_shouldReturn403_whenIBFMemberJoin_byMoimingApiException() throws Exception {
 
         // given - 추가 데이터
         testMoim1 = em.find(Moim.class, testMoim1.getId()); // 재영속화
@@ -356,7 +356,9 @@ public class MoimMemberControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_JOIN_FORBIDDEN.getErrCode()));
+
         em.flush();
         em.clear();
 
@@ -372,7 +374,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     // 정원 가득찬 모임 (DB상 최소 정원은 3이다)
     // 모든 테스트에서 testMoim 이 필요하진 않으니, 상황에 맞춰서 생성하고 가입시켜 준다
     @Test
-    void joinMoim_shouldReturn400_whenMemberJoinFullMoim_byMoimingApiException() throws Exception {
+    void joinMoim_shouldReturn403_whenMemberJoinFullMoim_byMoimingApiException() throws Exception {
 
         // given - data su
         Moim testMoim = makeTestMoim(moimName2, 3, moimArea.getState(), moimArea.getCity(), testMoimCategories, testMember1);
@@ -393,15 +395,15 @@ public class MoimMemberControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_JOIN_FAIL_BY_MEMBER_FULL.getErrCode()));
 
     }
 
 
     // 이미 가입되어 있는 사람이 가입하려 함 -> 같은 상태로의 전환 요청은 예외처리된다
     @Test
-    void joinMoim_shouldReturn400_whenAlreadyMoimMember_byMoimingApiException() throws Exception {
+    void joinMoim_shouldReturn422_whenAlreadyMoimMember_byMoimingApiException() throws Exception {
 
         // given
         MoimMemberJoinReqDto requestDto = new MoimMemberJoinReqDto(testMoim1.getId());
@@ -415,8 +417,8 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_STATE_CHANGE_FAIL.getErrCode()));
 
     }
 
@@ -450,10 +452,11 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     }
 
+
     // 실패 CASE 작성
-    // 모임을 못찾음
+    // 해당 모임에 있는 모임원을 찾지 못함 - Moim 혹은 Member 어느쪽이 잘못되었는지는 모름
     @Test
-    void leaveMoim_shouldReturn400_whenMoimNotFound_byMoimingApiException() throws Exception {
+    void leaveMoim_shouldReturn404_whenMoimMemberNotFound_byMoimingApiException() throws Exception {
 
         // given
         Long wrongMoimId = 1000L;
@@ -467,15 +470,15 @@ public class MoimMemberControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
 
     }
 
 
     // MANAGER 가 나가려 한다 (운영자(생성자)는 나갈 수 없음)
     @Test
-    void leaveMoim_shouldReturn400_whenManagerAttemptsLeave_byMoimingApiException() throws Exception {
+    void leaveMoim_shouldReturn403_whenManagerAttemptsLeave_byMoimingApiException() throws Exception {
 
         // given
         MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
@@ -488,8 +491,8 @@ public class MoimMemberControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_LEAVE_FAIL_BY_MANAGER.getErrCode()));
 
     }
 
@@ -567,7 +570,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     // 실패 CASE 작성
     // 스스로는 강퇴할 수 없음
     @Test
-    void expelMember_shouldReturn400_whenAttemptSelfExpel_byMoimingApiException() throws Exception {
+    void expelMember_shouldReturn422_whenAttemptSelfExpel_byMoimingApiException() throws Exception {
 
         // given
         MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember1.getId(), "");
@@ -580,14 +583,14 @@ public class MoimMemberControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_SITUATION.getErrCode()));
     }
 
 
     // 비운영자가 강퇴를 시도함
     @Test
-    void expelMember_shouldReturn400_whenAttemptByNoManager_byMoimingApiException() throws Exception {
+    void expelMember_shouldReturn403_whenAttemptByNoManager_byMoimingApiException() throws Exception {
 
         // given - 추가 데이터 - 일반 유저가 일반 유저를 강퇴하려는 시도를 TEST 하는게 맞아 보임 - member3 가입시키자
         testMoim1 = em.find(Moim.class, testMoim1.getId());
@@ -606,15 +609,15 @@ public class MoimMemberControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
 
     }
 
 
     // 모임에 없는 멤버를 강퇴하려고 한다
     @Test
-    void expelMember_shouldReturn400_whenAttemptToNoMoimMember_byMoimingApiException() throws Exception {
+    void expelMember_shouldReturn422_whenAttemptToNoMoimMember_byMoimingApiException() throws Exception {
 
         // given
         MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember3.getId(), ""); // 가입되어 있지 않은 유저
@@ -627,15 +630,15 @@ public class MoimMemberControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_SITUATION.getErrCode()));
 
     }
 
 
-    // 요청 유저가 가입한적 없는 모임이다 // 이걸 먼저 판별하기 때문에 운영자에서 안걸러진다
+    // 누군가를 강퇴하는 요청을 보낸 유저가 가입한적 없는 모임이다 // 이걸 먼저 판별하기 때문에 운영자에서 안걸러진다
     @Test
-    void expelMember_shouldReturn400_whenAttemptByNoMoimMember_byMoimingApiException() throws Exception {
+    void expelMember_shouldReturn422_whenAttemptByNoMoimMember_byMoimingApiException() throws Exception {
 
         // given
         MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember2.getId(), "");
@@ -648,8 +651,8 @@ public class MoimMemberControllerTest extends TestObjectCreator {
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
 
     }
 

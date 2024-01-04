@@ -114,7 +114,7 @@ public class MoimingAuthenticationFilterTest extends TestObjectCreator {
     }
 
     @Test
-    void filter_shouldReturn400_whenTokenInvalid_byJWTVerificationException() throws Exception {
+    void filter_shouldReturn401_whenTokenInvalid_byJWTVerificationException() throws Exception {
 
         //given
         String wrongToken = "WRONG_TOKEN";
@@ -123,7 +123,7 @@ public class MoimingAuthenticationFilterTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(get("/any/other/path").header(JwtParams.HEADER, JwtParams.PREFIX + wrongToken));
 
         //then
-        resultActions.andExpect(status().isBadRequest());
-
+        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(jsonPath("$.code").value(AuthExceptionValue.AUTH_TOKEN_EXTRA.getErrCode()));
     }
 }

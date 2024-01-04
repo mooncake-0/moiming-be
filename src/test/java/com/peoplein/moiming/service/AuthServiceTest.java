@@ -203,7 +203,7 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void checkUniqueColumnDuplication_shouldThrowException_whenEmailDuplicates() {
+    void checkUniqueColumnDuplication_shouldThrowException_whenEmailDuplicates_byMoimingAuthApiException() {
         // given
         String notRegisteredPhone = "01000000000";
         String notRegisteredCi = "not-registered";
@@ -218,12 +218,12 @@ public class AuthServiceTest extends TestMockCreator {
 
         //when
         //then
-        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(memberEmail, notRegisteredPhone, notRegisteredCi)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(memberEmail, notRegisteredPhone, notRegisteredCi)).isInstanceOf(MoimingAuthApiException.class);
     }
 
 
     @Test
-    void checkUniqueColumnDuplication_shouldThrowException_whenPhoneDuplicates() {
+    void checkUniqueColumnDuplication_shouldThrowException_whenPhoneDuplicates_byMoimingAuthApiException() {
         // given
         String notRegisteredEmail = "not@registered.com";
         String notRegisteredCi = "not-registered";
@@ -238,12 +238,12 @@ public class AuthServiceTest extends TestMockCreator {
 
         //when
         //then
-        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(notRegisteredEmail, memberPhone, notRegisteredCi)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(notRegisteredEmail, memberPhone, notRegisteredCi)).isInstanceOf(MoimingAuthApiException.class);
     }
 
 
     @Test
-    void checkUniqueColumnDuplication_shouldThrowException_whenCiDuplicates() {
+    void checkUniqueColumnDuplication_shouldThrowException_whenCiDuplicates_byMoimingAuthApiException() {
 
         // given
         String notRegisteredPhone = "01000000000";
@@ -259,7 +259,7 @@ public class AuthServiceTest extends TestMockCreator {
 
         //when
         //then
-        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(notRegisteredEmail, notRegisteredPhone, ci)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(notRegisteredEmail, notRegisteredPhone, ci)).isInstanceOf(MoimingAuthApiException.class);
     }
 
 
@@ -293,7 +293,7 @@ public class AuthServiceTest extends TestMockCreator {
     }
 
     @Test
-    void tryCreateNicknameForUser_shouldThrowException_whenDuplicated10Times() {
+    void tryCreateNicknameForUser_shouldThrowException_whenDuplicated10Times_byMoiminAuthApiException() {
 
         // given
         Member mockMember = mockMember(1L, memberEmail, memberPhone, memberName, ci, mockRole(1L, RoleType.USER));
@@ -303,7 +303,7 @@ public class AuthServiceTest extends TestMockCreator {
 
         // when
         // then
-        assertThatThrownBy(() -> authService.tryCreateNicknameForUser()).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> authService.tryCreateNicknameForUser()).isInstanceOf(MoimingAuthApiException.class);
     }
 
 

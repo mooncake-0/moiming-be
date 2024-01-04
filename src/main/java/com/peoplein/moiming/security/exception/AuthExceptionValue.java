@@ -23,7 +23,7 @@ public enum AuthExceptionValue {
 
     AUTH_REFRESH_TOKEN_NOT_MATCH(HttpStatus.UNAUTHORIZED.value(), "ART000", "Member 에 저장된 Refresh Token 이 일치하지 않아 삭제됩니다. 다시 로그인 해주세요"), // 재발급 요청에 대한 클라이언트 미인증, 허용할 수 없음
     AUTH_REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED.value(), "ART001", "Refresh Token 이 만료되었습니다"),
-    AUTH_REFRESH_TOKEN_VERIFICATION_FAIL(HttpStatus.BAD_REQUEST.value(), "ART002", "유효하지 않은 Refresh Token 입니다"),
+    AUTH_REFRESH_TOKEN_VERIFICATION_FAIL(HttpStatus.UNAUTHORIZED.value(), "ART002", "유효하지 않은 Refresh Token 입니다"),
     AUTH_REFRESH_TOKEN_EXTRA(HttpStatus.UNAUTHORIZED.value(), "ART999", "알 수 없는 이유로 Refresh Token 인증에 실패했습니다"),
 
 

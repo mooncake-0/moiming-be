@@ -181,7 +181,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
     // Post Comment 생성 요청 오류 - Moim Member Not Active
     @Test
-    void createComment_shouldReturn400_whenMoimMemberNotActiveRequest_byMoimingApiException() throws Exception {
+    void createComment_shouldReturn403_whenMoimMemberNotActiveRequest_byMoimingApiException() throws Exception {
 
         // given
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
@@ -194,7 +194,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isForbidden());
         resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_ACTIVE.getErrCode()));
     }
 
@@ -221,7 +221,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
     // Post Comment 생성 요청 오류 - Parent Comment Mapping Error 하나만
     @Test
-    void createComment_shouldReturn400_whenParentCommentMappingWrong_byMoimingApiException() throws Exception {
+    void createComment_shouldReturn422_whenParentCommentMappingWrong_byMoimingApiException() throws Exception {
 
         // given
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 1);
@@ -234,7 +234,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isUnprocessableEntity());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_SITUATION.getErrCode()));
 
     }
@@ -345,7 +345,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
     // 댓글 수정 실패 - Inactive 모임원
     @Test
-    void updateComment_shouldReturn400_whenRequestByInactiveMember_byMoimingApiException() throws Exception {
+    void updateComment_shouldReturn403_whenRequestByInactiveMember_byMoimingApiException() throws Exception {
 
         // given
         createPostComment();
@@ -360,7 +360,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isForbidden());
         resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_ACTIVE.getErrCode()));
 
     }
@@ -368,7 +368,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
     // commentId null validation
     @Test
-    void updateComment_shouldReturn400_whenCommentIdNull_byMoimingValidationException() throws Exception {
+    void updateComment_shouldReturn403_whenCommentIdNull_byMoimingValidationException() throws Exception {
 
         // given
         createPostComment();
@@ -568,7 +568,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
     // 댓글 삭제 실패 - inActive 모임원
     @Test
-    void deleteComment_shouldReturn400_whenRequestByInactiveMember_byMoimingApiException() throws Exception {
+    void deleteComment_shouldReturn403_whenRequestByInactiveMember_byMoimingApiException() throws Exception {
 
         // given
         createPostComment();
@@ -581,7 +581,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
                 .header(HEADER, PREFIX + accessToken));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isForbidden());
         resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_ACTIVE.getErrCode()));
 
         // then - db verify
