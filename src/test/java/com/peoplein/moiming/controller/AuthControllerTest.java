@@ -6,9 +6,9 @@ import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.ExceptionValue;
-import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +30,10 @@ import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.support.TestDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -108,7 +111,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
 
     @Test
-    void checkEmailAvailable_shouldReturn400_whenEmailUnavailable_byMoimingApiException() throws Exception {
+    void checkEmailAvailable_shouldReturn200_whenEmailUnavailable() throws Exception {
 
         // given
         String unavailableEmail = "registered@mail.com";
@@ -175,9 +178,8 @@ public class AuthControllerTest extends TestObjectCreator {
 
     // 중복 EMAIL 유저
     @Test
-    void signIn_shouldReturn400_whenEmailDuplicates_byMoimingApiException() throws Exception {
+    void signIn_shouldReturn409_whenEmailDuplicates_byMoimingApiException() throws Exception {
 
-//        System.out.println("========== STARTING TEST ========= ");
         // given
         String unavailableEmail = "registered@mail.com";
         TestMemberRequestDto reqDto = makeMemberReqDto(unavailableEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
@@ -187,21 +189,15 @@ public class AuthControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
-
-        //
-//        Optional<Member> email = memberRepository.findByEmail(unavailableEmail);
-//        System.out.println("end of TEST ===================================");
-//        System.out.println(email.get());
-
+        resultActions.andExpect(status().isConflict());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SIGN_IN_DUPLICATE_COLUMN.getErrCode()));
 
     }
 
 
     // 중복 핸드폰 유저
     @Test
-    void signIn_shouldReturn400_whenPhoneDuplicates_byMoimingApiException() throws Exception {
+    void signIn_shouldReturn409_whenPhoneDuplicates_byMoimingApiException() throws Exception {
 
         // given
         String unavailablePhone = "01000000000";
@@ -212,14 +208,14 @@ public class AuthControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isConflict());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SIGN_IN_DUPLICATE_COLUMN.getErrCode()));
     }
 
 
     // 중복 CI 값 유저 - 불가능
     @Test
-    void signIn_shouldReturn400_whenCiDuplicates_byMoimingApiException() throws Exception {
+    void signIn_shouldReturn409_whenCiDuplicates_byMoimingApiException() throws Exception {
 
         // given
         String unavailableCi = "registered-ci";
@@ -230,8 +226,8 @@ public class AuthControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(status().isConflict());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SIGN_IN_DUPLICATE_COLUMN.getErrCode()));
     }
 
 
@@ -251,7 +247,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -272,7 +268,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
     }
 
 
@@ -295,7 +291,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -316,7 +312,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -337,9 +333,10 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
+
 
     // 필수 Policy Agreement 가 false 로 들어옴
     @Test
@@ -359,7 +356,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_POLICY_ESSENTIAL.getErrCode()));
 
     }
 
@@ -382,7 +379,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
 
@@ -394,7 +391,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void reissueToken_shouldReturnNewTokenAnd200_whenSuccessful() throws Exception {
 
         // given
-        TokenReqDto reqDto = new TokenReqDto();
+        AuthTokenReqDto reqDto = new AuthTokenReqDto();
         reqDto.setGrantType("REFRESH_TOKEN");
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
         String requestBody = om.writeValueAsString(reqDto);
@@ -416,10 +413,10 @@ public class AuthControllerTest extends TestObjectCreator {
      통합테스트 이므로, 추후 검증까지 진행해본다
      */
     @Test
-    void reissueToken_shouldSaveNewTokenToRequestingMember_whenSuccessful() throws Exception {
+    void reissueToken_shouldSaveNewTokenToRequestingMemberAndReturn200_whenSuccessful() throws Exception {
 
         // given
-        TokenReqDto reqDto = new TokenReqDto();
+        AuthTokenReqDto reqDto = new AuthTokenReqDto();
         reqDto.setGrantType("REFRESH_TOKEN");
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
         String requestBody = om.writeValueAsString(reqDto);
@@ -437,13 +434,13 @@ public class AuthControllerTest extends TestObjectCreator {
 
     }
 
-    // RT Expire 일 경우
 
+    // RT Expire 일 경우
     @Test
     void reissueToken_shouldReturn401_whenRefreshTokenExpired_byTokenExpiredException() throws Exception {
 
         // given
-        TokenReqDto reqDto = new TokenReqDto();
+        AuthTokenReqDto reqDto = new AuthTokenReqDto();
         reqDto.setGrantType("REFRESH_TOKEN");
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
 
@@ -457,6 +454,6 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isUnauthorized());
-        resultActions.andExpect(jsonPath("$.code").value(-100));
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_REFRESH_TOKEN_EXPIRED.getErrCode()));
     }
 }

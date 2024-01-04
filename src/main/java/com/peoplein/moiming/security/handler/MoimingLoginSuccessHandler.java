@@ -1,13 +1,11 @@
 package com.peoplein.moiming.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
-import com.peoplein.moiming.security.domain.SecurityMember;
+import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.security.token.JwtParams;
-import com.peoplein.moiming.security.token.MoimingTokenProvider;
-import com.peoplein.moiming.security.token.MoimingTokenType;
-import com.peoplein.moiming.security.service.SecurityMemberService;
 import com.peoplein.moiming.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
+import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 
 @RequiredArgsConstructor
 public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler {
@@ -35,15 +33,17 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
-        SecurityMember securityMember = (SecurityMember) authentication.getPrincipal();
-        TokenDto tokenDto = authService.issueTokensAndUpdateColumns(false, securityMember.getMember());
-        ResponseBodyDto<MemberLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공", new MemberLoginRespDto(securityMember.getMember()));
+        Member member = ((SecurityMember) authentication.getPrincipal()).getMember();
+        TokenDto tokenDto = authService.issueTokensAndUpdateColumns(false, member);
+
+        ResponseBodyDto<AuthLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공"
+                , new AuthLoginRespDto(member)
+        );
 
         response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + tokenDto.getAccessToken());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(om.writeValueAsString(responseBody));
-
         response.setStatus(HttpStatus.OK.value());
 
     }

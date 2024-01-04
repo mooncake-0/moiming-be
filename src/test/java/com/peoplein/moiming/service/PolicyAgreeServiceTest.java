@@ -17,7 +17,7 @@ import java.util.List;
 
 import static com.peoplein.moiming.domain.PolicyAgree.*;
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;

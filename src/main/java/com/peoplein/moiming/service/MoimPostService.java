@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 
 /*
@@ -42,14 +44,14 @@ public class MoimPostService {
     public MoimPost createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
-            throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), requestDto.getMoimId())
-                .orElseThrow(() -> new MoimingApiException("모임원이 아닙니다: 잘못된 요청입니다"));
+                .orElseThrow(() -> new MoimingApiException(MOIM_MEMBER_NOT_FOUND));
 
         if (!moimMember.getMemberState().equals(MoimMemberState.ACTIVE)) {
-            throw new MoimingApiException("게시물을 생성할 권한이 없습니다");
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
         MoimPost post = MoimPost.createMoimPost(requestDto.getPostTitle(), requestDto.getPostContent(), requestDto.getMoimPostCategory()
@@ -66,7 +68,7 @@ public class MoimPostService {
     public StateMapperDto<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
 
         if (moimId == null || member == null) {
-            throw new MoimingApiException("수신되는 Arguments 들은 Null 일 수 없습니다");
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         /*
@@ -76,7 +78,7 @@ public class MoimPostService {
         MoimPost lastPost = null;
         if (lastPostId != null) {
             lastPost = moimPostRepository.findWithMoimAndMemberById(lastPostId).orElseThrow(() ->
-                    new MoimingApiException("마지막으로 검색한 Post 를 찾을 수 없습니다")
+                    new MoimingApiException(MOIM_POST_NOT_FOUND)
             );
         }
 

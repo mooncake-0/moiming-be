@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -87,7 +88,7 @@ public class Moim extends BaseEntity {
 
     public void addCurMemberCount() {
         if (this.curMemberCount + 1 > this.maxMember) {
-            throw new MoimingApiException("모임 정원이 가득찼습니다");
+            throw new MoimingApiException(ExceptionValue.MOIM_JOIN_FAIL_BY_MEMBER_FULL);
         }
         this.curMemberCount++;
     }
@@ -95,7 +96,7 @@ public class Moim extends BaseEntity {
 
     public void minusCurMemberCount() {
         if (this.curMemberCount == 1) {
-            throw new MoimingApiException("마지막 회원입니다");
+            throw new MoimingApiException(ExceptionValue.MOIM_LEAVE_FAIL_BY_LAST_MEMBER);
         } else {
             this.curMemberCount--;
         }

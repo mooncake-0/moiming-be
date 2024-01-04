@@ -2,10 +2,15 @@ package com.peoplein.moiming.domain.enums;
 
 
 import com.peoplein.moiming.domain.fixed.Category;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+
+@Slf4j
 @Getter
 @AllArgsConstructor
 public enum CategoryName {
@@ -121,7 +126,8 @@ public enum CategoryName {
                 return cName;
             }
         }
-        throw new MoimingApiException("부적합한 카테고리 명입니다: " + value);
+        log.error("{}, {}", "존재하지 않는 카테고리 전환 시도, [" + value + "], C999", COMMON_INVALID_SITUATION.getErrMsg());
+        throw new MoimingApiException(COMMON_INVALID_SITUATION);
     }
 
 }

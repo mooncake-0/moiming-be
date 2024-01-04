@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.domain.Schedule;
+import com.peoplein.moiming.temp.Schedule;
 import com.peoplein.moiming.repository.ScheduleRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

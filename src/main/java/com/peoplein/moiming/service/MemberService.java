@@ -12,12 +12,16 @@ import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.service.util.LogoutTokenManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.transaction.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 
@@ -29,22 +33,24 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final MoimMemberRepository moimMemberRepository;
+
+    private final PasswordEncoder passwordEncoder;
     private final MoimingTokenProvider moimingTokenProvider;
     private final LogoutTokenManager logoutTokenManager;
 
     public void logout(String accessToken, Member member) {
         if (accessToken == null || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         // refreshToken 을 영속화하기 위해
-        final Long memberId = member.getId();
-        member = memberRepository.findById(memberId).orElseThrow(
-                () -> {
-                    log.error("[" + memberId + "] 의 멤버를 영속화할 수 없습니다");
-                    return new MoimingApiException(COMMON_INVALID_SITUATION);
-                }
-        );
+//        final Long memberId = member.getId();
+//        member = memberRepository.findById(memberId).orElseThrow(
+//                () -> {
+//                    log.error("[" + memberId + "] 의 멤버를 영속화할 수 없습니다");
+//                    return new MoimingApiException(COMMON_INVALID_SITUATION);
+//                }
+//        );
 
         member.changeRefreshToken(null);
 
@@ -83,6 +89,59 @@ public class MemberService {
         // 7 일 뒤 모두 삭제
         // PK 값은 유지, hasDeleted = true 로만 유지 한다. nickname, ci, memberEmail 모두 삭제처리
         // 필수값들은 삭제처리가 아닌 dummy 값으로 보관된다
+
+    }
+
+
+    //// 2024
+    //// TODO :: 예외 일괄 Refactoring 후 적용 필요!! 다 임시적으로 조치해놓음
+
+    public boolean confirmPw(String password, Member member) {
+
+        if (!StringUtils.hasText(password) || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        String encodedInput = passwordEncoder.encode(password);
+
+        return member.getPassword().equals(encodedInput);
+    }
+
+
+    public void changeNickname(String nickname, Member member) {
+
+        if (!StringUtils.hasText(nickname) || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        if (member.getNickname().equals(nickname)) {
+            throw new MoimingApiException(MEMBER_NOT_FOUND); // 현재와 동일한 닉네임 수정 불가
+        }
+
+        Optional<Member> memberOp = memberRepository.findByNickname(nickname);
+        if (memberOp.isPresent()) {
+            throw new MoimingApiException(MEMBER_NOT_FOUND); // 중복 닉네임 불가
+        }
+
+        member.changeNickname(nickname);
+
+    }
+
+
+    public void changePw(String prePw, String postPw, Member member) {
+
+        if (!StringUtils.hasText(prePw) || !StringUtils.hasText(postPw) || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        String encodedPrePw = passwordEncoder.encode(prePw);
+
+        if (!member.getPassword().equals(encodedPrePw)) {
+            throw new MoimingApiException(MEMBER_NOT_FOUND); // 현재 비밀번호가 맞는지 확인
+        }
+
+        String encodedPw = passwordEncoder.encode(postPw);
+        member.changePassword(encodedPw);
 
     }
 

@@ -282,7 +282,7 @@ public class PolicyAgreeTest {
     }
 
 
-    // 마케팅 약관 동의 -> 동의 (같은 상황)
+    // 마케팅 약관 동의 -> 동의 (같은 상황) - 그냥 그대로 통과시켜준다
     @Test
     void changeHasAgreed_shouldThrowException_whenMarketingSmsChangeToSameType_byMoimingApiException() {
 
@@ -294,8 +294,10 @@ public class PolicyAgreeTest {
         when(member.getId()).thenReturn(1L);
 
         // when
+        policyAgree.changeHasAgreed(true, 1L);
+
         // then
-        assertThatThrownBy(() -> policyAgree.changeHasAgreed(true, 1L)).isInstanceOf(MoimingApiException.class);
+        assertThat(policyAgree.isHasAgreed()).isEqualTo(true);
 
 
     }

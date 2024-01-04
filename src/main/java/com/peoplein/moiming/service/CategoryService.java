@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +15,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
+
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -55,7 +59,8 @@ public class CategoryService {
 
         // 검증 -> 1. 둘 중 하나라도 없으면 Exception   2. 둘이 종속관계가 아니면 Exception
         if (Objects.isNull(parentCategory) || Objects.isNull(childCategory) || !Objects.equals(childCategory.getParent().getCategoryName(), parentCategory.getCategoryName())) {
-            throw new MoimingApiException("전달받은 카테고리들이 잘못된 관계에 있습니다");
+            log.error("{}, {}", "잘못된 관계의 카테고리가 매핑되었습니다, C999", COMMON_INVALID_SITUATION.getErrMsg());
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
     }
 }

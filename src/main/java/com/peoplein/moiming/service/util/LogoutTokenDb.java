@@ -4,6 +4,7 @@ import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -12,18 +13,24 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 
+@Slf4j
 @Getter
 public class LogoutTokenDb implements LogoutTokenManager {
 
+
     private static final Map<String, Date> logoutTokenDb = new ConcurrentHashMap<>();
+
 
     @Override
     public void saveLogoutToken(String accessToken, Date expireAt) {
         if (logoutTokenDb.containsKey(accessToken)) {
-            throw new MoimingApiException(MEMBER_LOGOUT_AT_DUPLICATE);
+            String errMsg = COMMON_INVALID_SITUATION.getErrMsg() + " :: 이미 로그아웃 관리중인 Access Token 을 다시 등록하려는 시도";
+            log.info("Class {} : {}", getClass().getName(), errMsg);
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
         logoutTokenDb.put(accessToken, expireAt);
     }
+
 
     @Override
     public boolean isUnusableToken(String accessToken) {
@@ -31,27 +38,26 @@ public class LogoutTokenDb implements LogoutTokenManager {
     }
 
 
-    @Scheduled(fixedRate = 60 * 1000 * 60) // 1시간에 한 번씩
-    public void deleteExpiredTokens() {
-        System.out.println("Remove Logout Token Scheduler Activated .. ");
+    @Override
+    public void clearManager() {
+        logoutTokenDb.clear();
+    }
+
+
+    @Scheduled(fixedRate = 60 * 1000 * 60 * 24) // 일단 하루에 한 번씩
+    public int deleteExpiredTokens() {
+        log.info("{}", "만료된 로그아웃 관리 토큰 확인 중 .. ");
         int cnt = 0;
         for (String accessToken : logoutTokenDb.keySet()) {
-            Date currentDate = new Date();
+            Date current = new Date();
             Date expireDate = logoutTokenDb.get(accessToken);
-            boolean isAfter = currentDate.after(expireDate); // 지났음
-            if (isAfter) {
+            if (current.after(expireDate)) {
                 logoutTokenDb.remove(accessToken);
                 cnt++;
             }
         }
-        System.out.println(cnt + " : 개의 만료된 로그아웃 액세스 토큰이 삭제되었습니다");
+        log.info("{} : {}", cnt, "개의 만료된 로그아웃 액세스 토큰이 삭제되었습니다");
+        return cnt;
     }
 
-
-    public void printCurrent() {
-        System.out.println("Printing Current Logout Token DB ============================");
-        for (String s : logoutTokenDb.keySet()) {
-            System.out.println(s);
-        }
-    }
 }

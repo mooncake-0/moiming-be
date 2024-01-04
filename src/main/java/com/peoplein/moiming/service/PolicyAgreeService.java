@@ -4,6 +4,7 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 
 @Slf4j
@@ -29,11 +31,11 @@ public class PolicyAgreeService {
     public void createPolicyAgree(Member member, List<PolicyAgreeDto> policyDtos) {
 
         if (member == null || policyDtos == null) {
-            throw new MoimingApiException("요청자와 약관 항목 인자는 Null 일 수 없습니다");
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         if (policyDtos.size() != PolicyAgree.CUR_MOIMING_REQ_POLICY_CNT) {
-            throw new MoimingApiException("필요 약관 항목의 개수와 요청받은 약관 항목의 개수가 다릅니다");
+            throw new MoimingApiException(COMMON_REQUEST_VALIDATION);
         }
 
         for (PolicyAgreeDto reqDto : policyDtos) {
@@ -49,14 +51,15 @@ public class PolicyAgreeService {
     public void updatePolicyAgree(Member member, List<PolicyAgreeUpdateReqDto.PolicyAgreeDto> policyDtos) {
 
         if (member == null || policyDtos == null || policyDtos.isEmpty()) {
-            throw new MoimingApiException("요청자와 약관 항목 인자는 Null 이거나 비어있을 수 없습니다");
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         List<PolicyType> policyTypes = policyDtos.stream().map(PolicyAgreeUpdateReqDto.PolicyAgreeDto::getPolicyType).collect(Collectors.toList());
         List<PolicyAgree> policyAgrees = policyAgreeRepository.findByMemberIdAndPolicyTypes(member.getId(), policyTypes);
 
         if (policyTypes.size() != policyAgrees.size() || policyAgrees.isEmpty()) {
-            throw new MoimingApiException("약관을 불러오는 중 오류가 발생");
+            log.error("{}, {}", "약관 수정 중 INTERNAL 오류 발생, C999", COMMON_INVALID_SITUATION.getErrMsg());
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
 
         for (PolicyAgree policyAgree : policyAgrees) {

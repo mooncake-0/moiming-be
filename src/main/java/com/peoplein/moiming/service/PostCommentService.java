@@ -31,7 +31,7 @@ public class PostCommentService {
     public PostComment createComment(PostCommentCreateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         MoimPost moimPost = moimPostRepository.findWithMoimById(requestDto.getPostId()).orElseThrow(() ->
@@ -52,7 +52,7 @@ public class PostCommentService {
     public PostComment updateComment(PostCommentUpdateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         PostComment comment = postCommentRepository.findWithMoimPostAndMoimById(requestDto.getCommentId()).orElseThrow(() ->
@@ -70,7 +70,7 @@ public class PostCommentService {
     public void deleteComment(Long postCommentId, Member member) {
 
         if (postCommentId == null || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM_NULL);
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         PostComment comment = postCommentRepository.findWithMoimPostAndMoimById(postCommentId).orElseThrow(() ->
@@ -94,7 +94,7 @@ public class PostCommentService {
 
         } else if (depth != 0 || parentId != null) {
 
-            throw new MoimingApiException(COMMON_INVALID_PARAM); // 부모 & 자식 관계 매핑 오류, 잘못된 요청
+            throw new MoimingApiException(COMMON_INVALID_SITUATION); // 부모 & 자식 관계 매핑 오류, 잘못된 요청
         }
 
         return parentComment; // 나머진 Null 로 배치된다

@@ -4,9 +4,9 @@ package com.peoplein.moiming.security.filter;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
@@ -74,7 +74,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void filter_shouldLogin_whenRightInfoPassed() throws Exception {
 
         //given
-        MemberLoginReqDto loginReqDto = new MemberLoginReqDto(memberEmail, password);
+        AuthLoginReqDto loginReqDto = new AuthLoginReqDto(memberEmail, password);
         String requestDto = om.writeValueAsString(loginReqDto);
 
         //when
@@ -92,7 +92,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
 
     @Test
-    void filter_shouldReturn500_whenWrongDtoPassed_byExtraException() throws Exception {
+    void filter_shouldReturn400_whenWrongDtoPassed_byExtraException() throws Exception {
 
         // given
         Map<String, String> wrongDto = new HashMap<>();
@@ -104,15 +104,17 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isInternalServerError());
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_COMMON_INVALID_PARAM_NULL.getErrCode()));
+
     }
 
 
     @Test
-    void filter_shouldReturn400_whenEmptyParamPassed_byBadInputException() throws Exception {
+    void filter_shouldReturn400_whenEmptyParamPassed_byLoginAttemptException() throws Exception {
 
         // given
-        MemberLoginReqDto wrongDto = new MemberLoginReqDto(memberEmail, "");
+        AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberEmail, "");
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
@@ -120,49 +122,55 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_LOGIN_REQUEST_INVALID.getErrCode()));
     }
 
 
     @Test
-    void filter_shouldReturn200_whenEmailNotFound() throws Exception {
+    void filter_shouldReturn404_whenEmailNotFound_byLoginAttemptException() throws Exception {
+
         // given
-        MemberLoginReqDto wrongDto = new MemberLoginReqDto("not@registered.com", "1234");
+        AuthLoginReqDto wrongDto = new AuthLoginReqDto("not@registered.com", "1234");
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_EMAIL_NOT_FOUND.getErrCode()));
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_LOGIN_EMAIL_NOT_FOUND.getErrCode()));
     }
 
 
+
     @Test
-    void filter_shouldReturn200_whenPasswordWrong() throws Exception {
+    void filter_shouldReturn401_whenPasswordWrong_byLoginAttemptException() throws Exception {
+
         // given
-        MemberLoginReqDto wrongDto = new MemberLoginReqDto(memberEmail, password + "a");
+        AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberEmail, password + "a");
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_PW_INVALID.getErrCode()));
+        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_LOGIN_PASSWORD_INCORRECT.getErrCode()));
 
     }
 
 
     @Test
-    void filter_shouldReturn500_whenNothingGiven_byExtraException() throws Exception {
+    void filter_shouldReturn400_whenNothingGiven_byExtraException() throws Exception {
 
         // given
         // when
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN));
 
         // then
-        resultActions.andExpect(status().isInternalServerError());
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_COMMON_INVALID_PARAM_NULL.getErrCode()));
+
     }
 
 }

@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.domain.MemberScheduleLinker;
+import com.peoplein.moiming.temp.MemberScheduleLinker;
 import com.peoplein.moiming.repository.MemberScheduleLinkerRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

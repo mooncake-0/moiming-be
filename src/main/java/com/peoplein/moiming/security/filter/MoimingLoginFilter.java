@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.peoplein.moiming.config.AppUrlPath;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.exception.LoginAttemptException;
-import com.peoplein.moiming.security.exception.ExtraAuthenticationException;
 import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,15 +19,16 @@ import org.springframework.util.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
+import java.io.IOException;
+
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 @Slf4j
 public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
 
-    private final ObjectMapper om = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    private final ObjectMapper om = new ObjectMapper();
+
 
     /*
       일반 Login 시도중임을 Filter
@@ -48,27 +49,20 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
-        MemberLoginReqDto memberLoginDto = null;
+        AuthLoginReqDto loginParams = null;
 
         try {
-            memberLoginDto = om.readValue(request.getReader(), MemberLoginReqDto.class);
-
-            if (!StringUtils.hasText(memberLoginDto.getMemberEmail()) || !StringUtils.hasText(memberLoginDto.getPassword())) {
-
-                throw new LoginAttemptException(AUTH_BAD_LOGIN_INPUT);
-            }
-
-        } catch (LoginAttemptException exception){ // 얘가 발생하면 그대로 날린다
-
-            throw exception;
-
-        } catch(Exception exception) { // 로그인 시도 중 그 외의 어떤 예외가 발생할 경우
-
-            throw new ExtraAuthenticationException(AUTH_EXTRA, exception);
+            loginParams = om.readValue(request.getReader(), AuthLoginReqDto.class);
+        } catch (IOException e) {
+            log.error("{}, {}", "로그인 정보 인식 실패", e.getMessage());
+            throw new LoginAttemptException(AUTH_COMMON_INVALID_PARAM_NULL, e);
         }
 
-        // 담긴 정보는 Authenticate 을 위해 Token 에 넣어서 Manager 에게 보내준다
-        JwtAuthenticationToken preAuthentication = new JwtAuthenticationToken(memberLoginDto.getMemberEmail(), memberLoginDto.getPassword());
+        if (!StringUtils.hasText(loginParams.getMemberEmail()) || !StringUtils.hasText(loginParams.getPassword())) {
+            throw new LoginAttemptException(AuthExceptionValue.AUTH_LOGIN_REQUEST_INVALID);
+        }
+
+        JwtAuthenticationToken preAuthentication = new JwtAuthenticationToken(loginParams.getMemberEmail(), loginParams.getPassword());
         AuthenticationManager authenticationManager = getAuthenticationManager();
 
         return authenticationManager.authenticate(preAuthentication);

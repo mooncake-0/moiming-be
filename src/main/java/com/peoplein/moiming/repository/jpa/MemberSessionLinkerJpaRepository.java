@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
-import com.peoplein.moiming.domain.session.MemberSessionLinker;
+import com.peoplein.moiming.temp.session.MemberSessionLinker;
 import com.peoplein.moiming.repository.MemberSessionLinkerRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

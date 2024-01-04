@@ -47,6 +47,7 @@ public class MoimReqDto {
         private JoinRuleCreateReqDto joinRuleDto;
 
         @NotEmpty
+        @Size(min = 2, max = 2)
         @JsonProperty("categories")
         private List<String> categoryNameValues = new ArrayList<>();
 

@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
@@ -32,6 +34,10 @@ public class MoimService {
 
     // 모임 생성
     public Moim createMoim(MoimCreateReqDto requestDto, Member curMember) {
+
+        if (requestDto == null || curMember == null || requestDto.getCategoryNameValues().size() != 2) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
 
         // 생성 자격에 대해서 논할 필요는 없음
         // 1. 카테고리를 준비한다 (같이 생성 필요)
@@ -72,10 +78,12 @@ public class MoimService {
     public Moim updateMoim(MoimUpdateReqDto requestDto, Member curMember) {
 
         // 차피 Moim 존속 여부랑은 별개로, MoimMember 가 있으면 되는 것이니, MoimMember 로 그냥 join 해와버리자
-        MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() -> new MoimingApiException("찾을 수 없습니다"));
+        MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_NOT_FOUND)
+        );
 
         if (!moimMemberPs.hasPermissionOfManager()) {
-            throw new MoimingApiException("해당 모임에 대한 수정 권한이 없는 회원입니다");
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
         List<Category> requestCategories = categoryService.generateCategoryList(requestDto.getCategoryNameValues());

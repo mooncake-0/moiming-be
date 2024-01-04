@@ -94,6 +94,12 @@ public abstract class AppUrlPath {
     // POST - /api/v0/member/logout
     public final static String PATH_MEMBER_LOGOUT = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/logout";
     public final static String PATH_MEMBER_DELETE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/delete";
+    public final static String PATH_MEMBER_GET_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/{memberId}";
+    public final static String PATH_MEMBER_CONFIRM_PW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
+    public final static String PATH_MEMBER_GET_DETAIL_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/detail" + "/{memberId}";
+    public final static String PATH_MEMBER_CHANGE_NICKNAME = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/nickname";
+    public final static String PATH_MEMBER_CHANGE_PASSWORD = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
+
 
 
     // 이하로는 점검되지 않은 URL

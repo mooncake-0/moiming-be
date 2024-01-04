@@ -5,20 +5,10 @@ import lombok.Getter;
 @Getter
 public class MoimingApiException extends RuntimeException{
 
-    private String errCode;
+    private final ExceptionValue ev;
 
-    public MoimingApiException(String errMsg) {
-        super(errMsg);
-        this.errCode = "-1";
-    }
-
-    public MoimingApiException(String errCode, String errMsg){
-        super(errMsg);
-        this.errCode = errCode;
-    }
-
-    public MoimingApiException(ExceptionValue exceptionValue) {
-        super(exceptionValue.getErrMsg());
-        this.errCode = exceptionValue.getErrCode();
+    public MoimingApiException(ExceptionValue ev) {
+        super(ev.getErrMsg());
+        this.ev = ev;
     }
 }

@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.MemberScheduleLinker;
+import com.peoplein.moiming.temp.MemberScheduleLinker;
 
 import java.util.List;
 

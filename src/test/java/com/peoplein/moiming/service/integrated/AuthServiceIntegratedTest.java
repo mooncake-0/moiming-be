@@ -6,9 +6,8 @@ import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
-import com.peoplein.moiming.exception.MoimingInvalidTokenException;
+import com.peoplein.moiming.exception.MoimingAuthApiException;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
-import com.peoplein.moiming.model.dto.request.TokenReqDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import com.peoplein.moiming.service.AuthService;
 import com.peoplein.moiming.support.TestObjectCreator;
@@ -23,9 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.MemberSignInReqDto.*;
-import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,11 +43,11 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
     private PolicyAgreeRepository policyAgreeRepository;
 
 
-    private MemberSignInReqDto makeSignInMemberReqDto() {
+    private AuthSignInReqDto makeSignInMemberReqDto() {
         PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
         boolean[] hasAgreeds = {true, true, true, true, false};
         List<PolicyAgreeDto> policies = makePolicyReqDtoList(hasAgreeds, policyTypes);
-        return new MemberSignInReqDto(
+        return new AuthSignInReqDto(
                 memberEmail, password, memberName, memberPhone, memberGender
                 , notForeigner, memberBirth, fcmToken, ci, policies
         );
@@ -58,11 +57,11 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
     void signIn_shouldSaveMemberAndMemberInfoAndPolicy_whenRightInfoPassed() {
 
         // given
-        MemberSignInReqDto requestDto = makeSignInMemberReqDto();
+        AuthSignInReqDto requestDto = makeSignInMemberReqDto();
 
         // when
         Map<String, Object> returnValue = authService.signIn(requestDto);
-        MemberSignInRespDto responseDto = (MemberSignInRespDto) returnValue.get(authService.KEY_RESPONSE_DATA);
+        AuthSignInRespDto responseDto = (AuthSignInRespDto) returnValue.get(authService.KEY_RESPONSE_DATA);
 
 
         // then - Return Val Confirm
@@ -120,7 +119,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         em.clear();
 
         // given
-        TokenReqDto requestDto = new TokenReqDto();
+        AuthTokenReqDto requestDto = new AuthTokenReqDto();
         requestDto.setGrantType("REFRESH_TOKEN");
         requestDto.setToken(preRefreshToken);
 
@@ -140,7 +139,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
 
     @Test
-    void reissueToken_shouldEmptyRefreshTokenData_whenReissueFail_byMoimingInvalidTokenException () {
+    void reissueToken_shouldEmptyRefreshTokenData_whenReissueFail_byMoimingAuthApiException () {
 
         // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
         Role testRole = makeTestRole(RoleType.USER);
@@ -153,13 +152,13 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         em.clear();
 
         // given
-        TokenReqDto requestDto = new TokenReqDto();
+        AuthTokenReqDto requestDto = new AuthTokenReqDto();
         requestDto.setGrantType("REFRESH_TOKEN");
         requestDto.setToken(preRefreshToken); // 다른 값으로 들어감
 
         // when
         // then
-        assertThatThrownBy(() -> authService.reissueToken(requestDto)).isInstanceOf(MoimingInvalidTokenException.class);
+        assertThatThrownBy(() -> authService.reissueToken(requestDto)).isInstanceOf(MoimingAuthApiException.class);
 
         // then - db verify
         Member member = em.find(Member.class, testMember.getId());

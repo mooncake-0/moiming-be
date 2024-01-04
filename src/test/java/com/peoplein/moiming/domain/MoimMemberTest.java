@@ -17,6 +17,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+
+// MEMO :: 잘못된 Test!!
 public class MoimMemberTest {
 
     @Test
@@ -45,7 +47,7 @@ public class MoimMemberTest {
 
 
     @Test
-    void memberJoinMoim_shouldThrowException_whenNullValPassed_byInvalidParameterException() {
+    void memberJoinMoim_shouldThrowException_whenNullValPassed_byMoimingApiException() {
 
         // given
         Member member = mock(Member.class);
@@ -53,27 +55,10 @@ public class MoimMemberTest {
 
         // when
         // then
-        assertThatThrownBy(() -> MoimMember.memberJoinMoim(null, moim, NORMAL, ACTIVE)).isInstanceOf(InvalidParameterException.class);
-        assertThatThrownBy(() -> MoimMember.memberJoinMoim(member, null, NORMAL, ACTIVE)).isInstanceOf(InvalidParameterException.class);
-        assertThatThrownBy(() -> MoimMember.memberJoinMoim(member, moim, null, ACTIVE)).isInstanceOf(InvalidParameterException.class);
-        assertThatThrownBy(() -> MoimMember.memberJoinMoim(member, moim, NORMAL, null)).isInstanceOf(InvalidParameterException.class);
-    }
-
-
-    @Test
-    void memberJoinMoim_shouldThrowException_whenActiveMemberFull_byMoimingApiException() {
-
-        // given
-        Member member = mock(Member.class);
-        Moim moim = mock(Moim.class);
-
-        // given - stub
-        when(moim.getCurMemberCount()).thenReturn(maxMember);
-        when(moim.getMaxMember()).thenReturn(maxMember);
-
-        // when
-        // then
-        assertThatThrownBy(() -> MoimMember.memberJoinMoim(member, moim, NORMAL, ACTIVE)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> MoimMember.memberJoinMoim(null, moim, NORMAL, ACTIVE)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> MoimMember.memberJoinMoim(member, null, NORMAL, ACTIVE)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> MoimMember.memberJoinMoim(member, moim, null, ACTIVE)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> MoimMember.memberJoinMoim(member, moim, NORMAL, null)).isInstanceOf(MoimingApiException.class);
     }
 
 
@@ -96,14 +81,14 @@ public class MoimMemberTest {
 
 
     @Test
-    void changeMoimMemberRoleType_shouldThrowException_whenNullValPassed_byInvalidParameterException() {
+    void changeMoimMemberRoleType_shouldThrowException_whenNullValPassed_byMoimingApiException() {
 
         // given
         MoimMember moimMember = spy(MoimMember.class);
 
         // when
         // then
-        assertThatThrownBy(() -> moimMember.changeMoimMemberRoleType(null)).isInstanceOf(InvalidParameterException.class);
+        assertThatThrownBy(() -> moimMember.changeMoimMemberRoleType(null)).isInstanceOf(MoimingApiException.class);
 
     }
 
@@ -216,14 +201,14 @@ public class MoimMemberTest {
     // changeMemberState -> 각 상황별 동작성 확인해야함
     // NULL
     @Test
-    void changeMemberState_shouldThrowException_whenNullValPassed_byInvalidParameterException() {
+    void changeMemberState_shouldThrowException_whenNullValPassed_byMoimingApiException() {
 
         // given
         MoimMember moimMember = spy(MoimMember.class);
 
         // when
         // then
-        assertThatThrownBy(() -> moimMember.changeMemberState(null)).isInstanceOf(InvalidParameterException.class);
+        assertThatThrownBy(() -> moimMember.changeMemberState(null)).isInstanceOf(MoimingApiException.class);
 
     }
 

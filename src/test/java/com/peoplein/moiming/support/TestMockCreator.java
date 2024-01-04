@@ -10,7 +10,7 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.model.dto.request.TokenReqDto;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
-import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 
 /*
  MOCK - id 를 직접 지정해서 모킹한 모델 (ID Verifying 까지를 위함)
@@ -31,13 +31,13 @@ import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 public class TestMockCreator {
 
 
-    protected MemberSignInReqDto mockSigninReqDto() { // 모델들 추가되면 그 때 분할
-        return new MemberSignInReqDto(memberEmail, password, memberName, memberPhone, memberGender, notForeigner, memberBirth,  fcmToken, ci,
+    protected AuthSignInReqDto mockSigninReqDto() { // 모델들 추가되면 그 때 분할
+        return new AuthSignInReqDto(memberEmail, password, memberName, memberPhone, memberGender, notForeigner, memberBirth,  fcmToken, ci,
                 new ArrayList<>());
     }
 
-    protected TokenReqDto mockTokenReqDto(String refreshToken) {
-        TokenReqDto tokenReqDto = new TokenReqDto();
+    protected AuthTokenReqDto mockTokenReqDto(String refreshToken) {
+        AuthTokenReqDto tokenReqDto = new AuthTokenReqDto();
         tokenReqDto.setGrantType("REFRESH_TOKEN");
         tokenReqDto.setToken(refreshToken);
         return tokenReqDto;

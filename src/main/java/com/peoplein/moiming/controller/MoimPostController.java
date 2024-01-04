@@ -1,6 +1,5 @@
 package com.peoplein.moiming.controller;
 
-import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
@@ -8,10 +7,8 @@ import com.peoplein.moiming.domain.member.DeletedMember;
 import com.peoplein.moiming.domain.member.DormantMember;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
-import com.peoplein.moiming.model.dto.response.MoimPostRespDto;
-import com.peoplein.moiming.security.domain.SecurityMember;
+import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimPostService;
-import com.peoplein.moiming.service.PostCommentService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

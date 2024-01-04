@@ -1,6 +1,6 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.session.MoimSession;
+import com.peoplein.moiming.temp.session.MoimSession;
 
 import java.util.List;
 import java.util.Optional;

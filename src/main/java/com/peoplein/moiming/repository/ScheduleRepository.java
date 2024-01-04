@@ -1,8 +1,6 @@
 package com.peoplein.moiming.repository;
 
-import com.peoplein.moiming.domain.MoimPost;
-import com.peoplein.moiming.domain.Schedule;
-import com.querydsl.core.Tuple;
+import com.peoplein.moiming.temp.Schedule;
 
 import java.util.List;
 import java.util.Optional;
