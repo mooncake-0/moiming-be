@@ -102,9 +102,8 @@ public class MemberService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        String encodedInput = passwordEncoder.encode(password);
+        return passwordEncoder.matches(password, member.getPassword());
 
-        return member.getPassword().equals(encodedInput);
     }
 
 
@@ -128,19 +127,17 @@ public class MemberService {
     }
 
 
-    public void changePw(String prePw, String postPw, Member member) {
+    public void changePw(String prePw, String newPw, Member member) {
 
-        if (!StringUtils.hasText(prePw) || !StringUtils.hasText(postPw) || member == null) {
+        if (!StringUtils.hasText(prePw) || !StringUtils.hasText(newPw) || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        String encodedPrePw = passwordEncoder.encode(prePw);
-
-        if (!member.getPassword().equals(encodedPrePw)) {
-            throw new MoimingApiException(MEMBER_NOT_FOUND); // 현재 비밀번호가 맞는지 확인
+        if (!passwordEncoder.matches(prePw, member.getPassword())) {
+            throw new MoimingApiException(MEMBER_PW_INCORRECT); // 현재 비밀번호가 맞는지 확인
         }
 
-        String encodedPw = passwordEncoder.encode(postPw);
+        String encodedPw = passwordEncoder.encode(newPw);
         member.changePassword(encodedPw);
 
     }

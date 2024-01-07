@@ -73,7 +73,8 @@ public class MemberController {
     public ResponseEntity<?> getMember(@PathVariable Long memberId,
                                        @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "멤버 조회 성공", new MemberViewRespDto(principal.getMember())));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "멤버 조회 성공"
+                , new MemberViewRespDto(principal.getMember())));
     }
 
 
@@ -140,7 +141,7 @@ public class MemberController {
     @PatchMapping(PATH_MEMBER_CHANGE_PASSWORD)
     public ResponseEntity<?> changePw(@RequestBody @Valid MemberChangePwReqDto requestDto,
                                       @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-        memberService.changePw(requestDto.getPrePw(), requestDto.getPostPw(), principal.getMember());
+        memberService.changePw(requestDto.getPrePw(), requestDto.getNewPw(), principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "비밀번호 변경 성공", null));
     }
 

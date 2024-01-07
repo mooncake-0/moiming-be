@@ -1,6 +1,7 @@
 package com.peoplein.moiming.model.dto.request;
 
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,6 +14,7 @@ public class MemberReqDto {
     @Getter
     @Setter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class MemberConfirmPwReqDto{
 
         @NotEmpty
@@ -42,7 +44,7 @@ public class MemberReqDto {
         private String prePw;
 
         @NotEmpty
-        private String postPw;
+        private String newPw;
 
     }
 }
