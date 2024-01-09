@@ -1,5 +1,6 @@
 package com.peoplein.moiming.repository;
 
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 
 import java.util.List;
@@ -32,5 +33,7 @@ public interface MoimMemberRepository {
     List<MoimMember> findWithMoimByMemberId(Long memberId);
 
     List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds);
+
+    List<MoimMember> findMemberMoimsWithRuleAndCategoriesByConditionsPaged(Long memberId, boolean isActiveReq, boolean isManagerReq, Moim lastMoim, int limit);
 
 }

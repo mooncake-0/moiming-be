@@ -96,15 +96,15 @@ public class MemberService {
     //// 2024
     //// TODO :: 예외 일괄 Refactoring 후 적용 필요!! 다 임시적으로 조치해놓음
 
-    public boolean confirmPw(String password, Member member) {
+    public void confirmPw(String password, Member member) {
 
         if (!StringUtils.hasText(password) || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        String encodedInput = passwordEncoder.encode(password);
-
-        return member.getPassword().equals(encodedInput);
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new MoimingApiException(MEMBER_PW_INCORRECT);
+        }
     }
 
 
@@ -115,12 +115,12 @@ public class MemberService {
         }
 
         if (member.getNickname().equals(nickname)) {
-            throw new MoimingApiException(MEMBER_NOT_FOUND); // 현재와 동일한 닉네임 수정 불가
+            throw new MoimingApiException(MEMBER_NICKNAME_UNAVAILABLE); // 현재와 동일한 닉네임 수정 불가
         }
 
         Optional<Member> memberOp = memberRepository.findByNickname(nickname);
         if (memberOp.isPresent()) {
-            throw new MoimingApiException(MEMBER_NOT_FOUND); // 중복 닉네임 불가
+            throw new MoimingApiException(MEMBER_NICKNAME_UNAVAILABLE); // 중복 닉네임 불가
         }
 
         member.changeNickname(nickname);
@@ -128,19 +128,17 @@ public class MemberService {
     }
 
 
-    public void changePw(String prePw, String postPw, Member member) {
+    public void changePw(String prePw, String newPw, Member member) {
 
-        if (!StringUtils.hasText(prePw) || !StringUtils.hasText(postPw) || member == null) {
+        if (!StringUtils.hasText(prePw) || !StringUtils.hasText(newPw) || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        String encodedPrePw = passwordEncoder.encode(prePw);
-
-        if (!member.getPassword().equals(encodedPrePw)) {
-            throw new MoimingApiException(MEMBER_NOT_FOUND); // 현재 비밀번호가 맞는지 확인
+        if (!passwordEncoder.matches(prePw, member.getPassword())) {
+            throw new MoimingApiException(MEMBER_PW_INCORRECT); // 현재 비밀번호가 맞는지 확인
         }
 
-        String encodedPw = passwordEncoder.encode(postPw);
+        String encodedPw = passwordEncoder.encode(newPw);
         member.changePassword(encodedPw);
 
     }

@@ -82,9 +82,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.DEV_SERVER_SSH_KEY }}
           script: |
+            echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
             docker rm -f ${{ env.DEV_CONTAINER_NAME }}
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }}
-            docker run -d -p 8080:8080 --network=dev-moiming-network --name ${{ env.DEV_CONTAINER_NAME }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }}
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }}:latest
+            docker run -d -p 8080:8080 --network=dev-moiming-network --name ${{ env.DEV_CONTAINER_NAME }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }}:latest
 
       # 추가되었던 IP 를 제거한다
       - name: Remove Github Actions IP from security group

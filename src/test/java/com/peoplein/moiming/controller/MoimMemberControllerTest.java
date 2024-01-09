@@ -59,7 +59,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Autowired
     private MoimMemberRepository moimMemberRepository;
 
-
     private Member testMember1; // Moim1 모임장
     private Member testMember2; // Moim1 모임원
     private Member testMember3; // Moim1 미가입

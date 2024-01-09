@@ -34,6 +34,9 @@ public enum ExceptionValue {
 
     // Member Domain
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MEM000", "해당 유저를 찾을 수 없습니다"),
+    MEMBER_PW_INCORRECT(HttpStatus.UNAUTHORIZED.value(), "MEM001", "비밀번호가 일치하지 않습니다"),
+    MEMBER_NICKNAME_UNAVAILABLE(HttpStatus.BAD_REQUEST.value(), "MEM002", "닉네임 변경을 할 수 없습니다 (현재 닉네임 or 이미 사용중인 닉네임)"),
+
 
     // Member Policy
     MEMBER_POLICY_ESSENTIAL(HttpStatus.BAD_REQUEST.value(), "MEMP000", "동의 필수 약관입니다"),

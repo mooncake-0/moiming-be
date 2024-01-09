@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -73,7 +74,8 @@ public class MemberController {
     public ResponseEntity<?> getMember(@PathVariable Long memberId,
                                        @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "멤버 조회 성공", new MemberViewRespDto(principal.getMember())));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "멤버 조회 성공"
+                , new MemberViewRespDto(principal.getMember())));
     }
 
 
@@ -87,11 +89,10 @@ public class MemberController {
     })
     @PostMapping(PATH_MEMBER_CONFIRM_PW)
     public ResponseEntity<?> confirmPw(@RequestBody @Valid MemberConfirmPwReqDto requestDto,
+                                       BindingResult br,
                                        @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-        boolean successful = memberService.confirmPw(requestDto.getPassword(), principal.getMember());
-        String code = successful ? "1" : "-1";
-        String msg = successful ? "비밀번호 일치" : "비밀번호 불일치";
-        return ResponseEntity.ok(ResponseBodyDto.createResponse(code, msg, null));
+        memberService.confirmPw(requestDto.getPassword(), principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "비밀번호 일치", null));
     }
 
 
@@ -122,6 +123,7 @@ public class MemberController {
     })
     @PatchMapping(PATH_MEMBER_CHANGE_NICKNAME)
     public ResponseEntity<?> changeNickname(@RequestBody @Valid MemberChangeNicknameReqDto requestDto,
+                                            BindingResult br,
                                             @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         memberService.changeNickname(requestDto.getNickname(), principal.getMember());
@@ -139,8 +141,9 @@ public class MemberController {
     })
     @PatchMapping(PATH_MEMBER_CHANGE_PASSWORD)
     public ResponseEntity<?> changePw(@RequestBody @Valid MemberChangePwReqDto requestDto,
+                                      BindingResult br,
                                       @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-        memberService.changePw(requestDto.getPrePw(), requestDto.getPostPw(), principal.getMember());
+        memberService.changePw(requestDto.getPrePw(), requestDto.getNewPw(), principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "비밀번호 변경 성공", null));
     }
 
