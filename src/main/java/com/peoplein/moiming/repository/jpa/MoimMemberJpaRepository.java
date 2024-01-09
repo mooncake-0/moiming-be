@@ -1,9 +1,13 @@
 package com.peoplein.moiming.repository.jpa;
 
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
+import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.member.MemberInfo;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -21,6 +25,7 @@ import static com.peoplein.moiming.domain.member.QMember.*;
 import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
 import static com.peoplein.moiming.domain.fixed.QCategory.*;
+import static com.peoplein.moiming.domain.moim.QMoimJoinRule.*;
 
 @Repository
 @Transactional
@@ -161,4 +166,58 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                 )
                 .fetch();
     }
+
+
+    // 내가 가지고 있는 모임을 가져온다는 건..
+    /*
+    select from moim_member mm
+            join moim m on m.moim_id == mm.moim_id
+            where mm.member_id = {my_id} // 이게 기본 조건
+    // 내가 운영하는 모임이라면 다음이 추가된다
+                and (mm.member_role_type == MAMAGER)
+
+    // 이 때, lastMoimId 가 있다면, 그거에서 부터 시작한다
+                and (m.created_at < last_moim_created_at
+                       or m.created_at == last_moim_created_at and m.id < given_id)
+
+            order by m.created_at desc, m.moim_id desc
+            limit 20; // 20개 씩 가져온다
+    ;
+     */
+
+    @Override
+    public List<MoimMember> findMemberMoimsWithRuleAndCategoriesByConditionsPaged(Long memberId
+            , boolean isActiveReq, boolean isManagerReq, Moim lastMoim, int limit) {
+
+        BooleanBuilder dynamicQuery = new BooleanBuilder();
+
+        if (isActiveReq) { // 아닐 경우 다 들고온다, 보통 isActive 만 찾을 것임
+            dynamicQuery.and(moimMember.memberState.eq(MoimMemberState.ACTIVE));
+        }
+
+        if (isManagerReq) {
+            dynamicQuery.and(moimMember.memberRoleType.eq(MoimMemberRoleType.MANAGER));
+        }
+
+        if (lastMoim != null) {
+            dynamicQuery.and(
+                    moimMember.moim.createdAt.before(lastMoim.getCreatedAt())
+                            .or(
+                                    moimMember.moim.createdAt.eq(lastMoim.getCreatedAt())
+                                            .and(moimMember.moim.id.lt(lastMoim.getId()))
+                            )
+            );
+        }
+
+        // TODO :: moimCategoryLinkers 는 일대다 관계를 가져오려는 것. Fetch Join 이 가능한게 맞는가? 되는걸 보면 맞긴 함
+        return queryFactory.selectFrom(moimMember)
+                .join(moimMember.moim, moim).fetchJoin()
+                .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
+                .where(moimMember.member.id.eq(memberId), dynamicQuery)// 기본 where 외로 and 가 붙는다
+                .orderBy(moimMember.moim.createdAt.desc(), moimMember.moim.id.desc())
+                .limit(limit)
+                .fetch();
+    }
+
 }

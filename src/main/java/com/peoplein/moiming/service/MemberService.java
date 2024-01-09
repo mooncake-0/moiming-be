@@ -96,14 +96,15 @@ public class MemberService {
     //// 2024
     //// TODO :: 예외 일괄 Refactoring 후 적용 필요!! 다 임시적으로 조치해놓음
 
-    public boolean confirmPw(String password, Member member) {
+    public void confirmPw(String password, Member member) {
 
         if (!StringUtils.hasText(password) || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        return passwordEncoder.matches(password, member.getPassword());
-
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new MoimingApiException(MEMBER_PW_INCORRECT);
+        }
     }
 
 
@@ -114,12 +115,12 @@ public class MemberService {
         }
 
         if (member.getNickname().equals(nickname)) {
-            throw new MoimingApiException(MEMBER_NOT_FOUND); // 현재와 동일한 닉네임 수정 불가
+            throw new MoimingApiException(MEMBER_NICKNAME_UNAVAILABLE); // 현재와 동일한 닉네임 수정 불가
         }
 
         Optional<Member> memberOp = memberRepository.findByNickname(nickname);
         if (memberOp.isPresent()) {
-            throw new MoimingApiException(MEMBER_NOT_FOUND); // 중복 닉네임 불가
+            throw new MoimingApiException(MEMBER_NICKNAME_UNAVAILABLE); // 중복 닉네임 불가
         }
 
         member.changeNickname(nickname);

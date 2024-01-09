@@ -223,4 +223,15 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
     }
 
 
+    // findMemberMoimsByConditions Test
+    @Test
+    void findMemberMoimsWithRuleAndCategoriesByConditionsPaged_shouldReturnList_whenRightInfoPassed() {
+
+        // given
+
+        // when
+
+        // then
+    }
+
 }

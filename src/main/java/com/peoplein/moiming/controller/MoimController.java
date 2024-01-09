@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimService;
@@ -16,6 +17,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.validation.Valid;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
@@ -49,20 +51,25 @@ public class MoimController {
 
 
 
-    @ApiOperation("모임 일반 조회 - 특정 유저의 모든 모임 조회")
+    @ApiOperation("모임 일반 조회 - 유저의 모임 20개씩 조회 Paging (운영중인 모임 조회 설정 가능)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "유저 모든 모임 조회 성공", response = MoimViewRespDto.class),
-            @ApiResponse(code = 400, message = "유저 모든 모임 조회 실패, ERR MSG 확인")
+            @ApiResponse(code = 200, message = "유저의 모임 Paging 조회 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 400, message = "유저의 모임 Paging 조회 실패, ERR MSG 확인")
     })
     @GetMapping(PATH_MOIM_GET_VIEW)
-    public ResponseEntity<?> getMemberMoims(@AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-        List<MoimViewRespDto> responseData = moimService.getMemberMoims(principal.getMember());
+    public ResponseEntity<?> getMemberMoims(
+            @RequestParam(required = false, value = "lastMoimId") Long lastMoimId
+            , @RequestParam(required = false, value = "isManagerReq", defaultValue = "false") boolean isManagerReq
+            , @RequestParam(required = false, defaultValue = "20") int limit
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        List<MoimMember> moimMembers = moimService.getMemberMoims(lastMoimId, true, isManagerReq, limit, principal.getMember());
+        List<MoimViewRespDto> responseData = moimMembers.stream().map(MoimViewRespDto::new).collect(Collectors.toList());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "조회 성공", responseData));
     }
-
 
 
 

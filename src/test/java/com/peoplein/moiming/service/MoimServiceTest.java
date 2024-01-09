@@ -1,239 +1,154 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.member.Member;
-import com.peoplein.moiming.domain.enums.*;
-import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
-import com.peoplein.moiming.support.TestMockCreator;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
-
-import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class MoimServiceTest extends TestMockCreator {
+import static org.assertj.core.api.Assertions.*;
 
-    @Spy
+
+@ExtendWith(MockitoExtension.class)
+public class MoimServiceTest {
+
     @InjectMocks
     private MoimService moimService;
 
     @Mock
-    private CategoryService categoryService;
-
-    @Mock
     private MoimRepository moimRepository;
-
     @Mock
     private MoimMemberRepository moimMemberRepository;
-
-    private Member curMember;
-
-
-    @BeforeEach
-    void be() {
-        curMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole(1L, RoleType.USER));
-    }
+    @Mock
+    private CategoryService categoryService;
 
 
+    // 성공
     @Test
-    void createMoim_shouldReturnMoimEntity_whenSuccessful() {
+    void getMemberMoims_shouldProcess_whenRightInfoWithNotNullMoimIdPassed() {
 
         // given
-        MoimCreateReqDto requestDto = mockMoimCreateReqDto(moimName, maxMember, true, true, 10, 40
-                , MemberGender.N, depth1SampleCategory, depth2SampleCategory);
-
-        // given - return val ready
-        List<Category> categories = new ArrayList<>();
-        Category depth1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category depth2 = mockCategory(2L, CategoryName.fromValue(depth2SampleCategory), 2, depth1);
-        categories.add(depth1);
-        categories.add(depth2);
-
-        // given - stub (필요 순서대로
-        doReturn(categories).when(categoryService).generateCategoryList(any());
-        doNothing().when(moimRepository).save(any());
-
-        // when
-        Moim moimOut = moimService.createMoim(requestDto, curMember);
-
-        // then
-        assertThat(moimOut.getMoimName()).isEqualTo(moimName);
-        assertThat(moimOut.getMaxMember()).isEqualTo(maxMember);
-        assertThat(moimOut.getCurMemberCount()).isEqualTo(1);
-        assertFalse(Objects.isNull(moimOut.getMoimJoinRule()));
-        assertThat(moimOut.getMoimJoinRule().getAgeMin()).isEqualTo(10);
-        assertThat(moimOut.getMoimCategoryLinkers().size()).isEqualTo(2);
-
-    }
-
-
-    @Test
-    void createMoim_shoulReturnMoimEntity_whenSuccessfulWithoutJoinRule() {
-
-        // given - hasJoinRule - false 이므로 column 값들은 어떤 값이 들어오든 매핑이 안된다
-        MoimCreateReqDto requestDto = mockMoimCreateReqDto(moimName, maxMember, false, false, 0, 0
-                , MemberGender.N, depth1SampleCategory, depth2SampleCategory);
-
-        // given - return val ready
-        List<Category> categories = new ArrayList<>();
-        Category depth1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category depth2 = mockCategory(2L, CategoryName.fromValue(depth2SampleCategory), 2, depth1);
-        categories.add(depth1);
-        categories.add(depth2);
-
-
-        // given - stub (필요 순서대로
-        doReturn(categories).when(categoryService).generateCategoryList(any());
-        doNothing().when(moimRepository).save(any());
-
-
-        // when
-        Moim moimOut = moimService.createMoim(requestDto, curMember);
-
-        // then
-        assertThat(moimOut.getMoimName()).isEqualTo(moimName);
-        assertThat(moimOut.getMaxMember()).isEqualTo(maxMember);
-        assertThat(moimOut.getCurMemberCount()).isEqualTo(1);
-        assertTrue(Objects.isNull(moimOut.getMoimJoinRule()));
-        assertThat(moimOut.getMoimCategoryLinkers().size()).isEqualTo(2);
-    }
-
-
-    // 어차피 mock 써도 get val 값들 다 넣어줘야함.. 그냥 실객체로 Mocking 처럼 쓰자\
-    // 상당히 잘못된 방향이긴 한듯... return value 에 집착하지 말아라....
-    @Test
-    void getMemberMoims_shouldReturnCollection_whenSuccessful() {
-
-        // given
-        // given - return val ready
-        Moim moim1 = mockMoimWithoutRuleJoin(1L, moimName, maxMember, depth1SampleCategory, depth2SampleCategory, curMember);
-        Moim moim2 = mockMoimWithRuleJoin(2L, moimName2, maxMember2, true, 20, 15, null, depth1SampleCategory2, depth2SampleCategory2, curMember);
-        MoimMember moimMember = mockMoimMember(1L, curMember, moim1);
-        MoimMember moimMember2 = mockMoimMember(2L, curMember, moim2);
-        List<MoimMember> mockedMoimMembers = List.of(moimMember, moimMember2);
+        Member member = mock(Member.class);
+        Moim lastMoim = mock(Moim.class);
+        Long lastMoimId = 1L; // Not Null
 
         // given - stub
-        doReturn(mockedMoimMembers).when(moimMemberRepository).findWithMoimAndCategoryByMemberId(curMember.getId());
+        when(moimRepository.findById(lastMoimId)).thenReturn(Optional.of(lastMoim));
 
         // when
-        List<MoimViewRespDto> curMemberMoims = moimService.getMemberMoims(curMember);
+        moimService.getMemberMoims(lastMoimId, false, false, 0, member); // ANY VALUE
 
         // then
-        assertThat(curMemberMoims.size()).isEqualTo(2);
+        verify(moimMemberRepository, times(1)).findMemberMoimsWithRuleAndCategoriesByConditionsPaged(any(), anyBoolean(), anyBoolean(), any(), anyInt());
 
-        // 원하는대로 들어갔는지 확인한다
-        for (MoimViewRespDto curMemberMoim : curMemberMoims) {
-            if (curMemberMoim.getMoimJoinRuleDto() == null) {
-                assertThat(curMemberMoim.getMoimId()).isEqualTo(1L);
-            } else {
-                assertThat(curMemberMoim.getMoimId()).isEqualTo(2L);
-            }
-        }
     }
 
 
-    // 상호 작용 기반 테스트
+    // 성공 lastMoimId = Null 이여도
     @Test
-    void updateMoim_shouldReturnMoimEntity_whenSuccessful() {
+    void getMemberMoims_shouldProcess_whenRightInfoWithNullMoimIdPassed() {
 
         // given
-        MoimUpdateReqDto mockReqDto = mock(MoimUpdateReqDto.class);
-        Moim moim = mock(Moim.class);
-        MoimMember moimMember = mock(MoimMember.class);
-        // moimMember.setMoimMemberRoleType(MoimMemberRoleType.MANAGER); // 다른 함수의 문제가 개입될 수 있는건 모두  Stubbing 해야함 (종속관계에 있는 것)
-
-        // given - stub
-        doReturn(true).when(moimMember).hasPermissionOfManager();
-        doReturn(Optional.ofNullable(moimMember)).when(moimMemberRepository).findByMemberAndMoimId(any(), any());
-        doReturn(new ArrayList<>()).when(categoryService).generateCategoryList(any());
-        doReturn(moim).when(moimMember).getMoim();
+        Member member = mock(Member.class);
+        Long lastMoimId = null; // Not Null
 
         // when
-        moimService.updateMoim(mockReqDto, curMember); // 그냥 뭐를 넣어주든 그닥 상관 없고, return val 에도 그닥 관심 없음
+        moimService.getMemberMoims(lastMoimId, false, false, 0, member); // ANY VALUE
 
-        verify(moim, times(1)).updateMoim(any(), any(), any()); //
+        // then
+        verify(moimMemberRepository, times(1)).findMemberMoimsWithRuleAndCategoriesByConditionsPaged(any(), anyBoolean(), anyBoolean(), any(), anyInt());
 
     }
 
-    // 연산의 결과를 반환하는 것이면 반환값 중요
-    // 종속된 객체를 호출해서 값을 확인해야한다면, 반환값이 중요하지 않고, 객체를 어떻게 호출했는지가 중요
-    // 생성자에서 argument로 주입된 객체(aggregation) or 함수의 argument로 전달된 객체(dependency) or 생성자에서 생성된 객체(composition)
-    // singleton pattern을 썼거나 함수 내부에서 객체를 생성하는 행위 등은 테스트가 좀 어려울 수 있다. code smell.
-    /*
-     * Bad Way
-     * public class Human{
-     *
-     *   public void 공격행동(총알 ar){
-     *       총 gun = new 총(ar);
-     *   }
-     * }
-     *
-     * Good Way
-     * public class Human{
-     *
-     *   public void 공격행동(Attackable attackable){
-     *       attackable.Attack();
-     *   }
-     * }
-     *
-     * public class 기관총 : Attackable {
-     *   public 기관총(총알){
-     *
-     *   }
-     *   public void Attack(){
-     *   }
-     * }
-     *
-     * public interface Attackable{
-     *   void Attack();
-     * }
-     * */
 
-    // 결과 기반 테스트
+    // 실패 member null
     @Test
-    void updateMoim_shouldReturnMoimEntity_whenSuccessful2() {
+    void getMemberMoims_shouldThrowException_whenMemberNull_byMoimingApiException() {
 
         // given
-        Moim mockMoim = mockMoimWithoutRuleJoin(1L, moimName, maxMember, depth1SampleCategory, depth2SampleCategory, curMember);
-        MoimUpdateReqDto reqDto = mockMoimUpdateReqDto(mockMoim.getId(), moimName2, maxMember2, moimArea2.getState(), moimArea2.getCity());
-        MoimMember mockMoimMember = mockMoimMember(1L, curMember, mockMoim);
-        mockMoimMember.changeMoimMemberRoleType(MoimMemberRoleType.MANAGER); // 실객체들의 함수는 정말 동작해야한다 // 근데 이런게 관심 없는게 맞음
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.getMemberMoims(null, false, false, 0, null)).isInstanceOf(MoimingApiException.class);
 
-        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory2), 1, null); // 수정되려는 애임
-        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory2), 2, category1);
+    }
+
+
+    @Test
+    void updateMoim_shouldProcess_whenRightInfoPassed() {
+
+        // given
+        Moim mockMoim = mock(Moim.class);
+        Member mockMember = mock(Member.class);
+        MoimMember mockMoimMember = mock(MoimMember.class);
+        MoimUpdateReqDto reqDto = mock(MoimUpdateReqDto.class); // updateMoim 에서 validation 하는 부분이 없음 - 뭐가 들었든 관심 없음
+
+        // given - stub
+        doReturn(Optional.ofNullable(mockMoimMember)).when(moimMemberRepository).findByMemberAndMoimId(any(), any()); // 뭘 찾아오든 상관 없음, 동작만 하면 됨
+        doReturn(true).when(mockMoimMember).hasPermissionOfManager(); // 이것도 state 자체를 바꾼다면 hasPermissionUpdate 가 뭔지 확인하러 들어가봐야 함 (이 함수의 동작은 아무짝에 관심없음)
+        doReturn(new ArrayList<>()).when(categoryService).generateCategoryList(any()); // generateCategoryList 가 잘되는지는 거기서 확인하게된다
+        doReturn(mockMoim).when(mockMoimMember).getMoim(); // mockMoim 반환하도록 한다
+
+        // when
+        moimService.updateMoim(reqDto, mockMember);
+
+        // then
+        verify(mockMoim, times(1)).updateMoim(any(), any(), any()); // 호출을 확인한다
+
+        // return val 은 통합을 통해 확인할 수 있다
+    }
+
+    // requestCategory 가 채워있냐 비어있냐 -> Moim.updateMoim() 에서 수행해야함
+    // update 가 잘되는지 -> Moim.updateMoim() 에서 수행해야 한다
+
+
+    // updateMoim 테스트에서는 직접 예외상황이 될 수 있는 부분을 처리해준다
+    @Test
+    void updateMoim_shouldThrowException_whenMoimMemberNotFound_byMoimingApiException() {
+
+        // given
+        Member mockMember = mock(Member.class);
+        MoimUpdateReqDto mockDto = mock(MoimUpdateReqDto.class);
+
+        // given - stub
+        doReturn(Optional.empty()).when(moimMemberRepository).findByMemberAndMoimId(any(), any()); // 뭘 넣든 상관 없이, 당장 예외상황이 나야 하는 부분을 검증
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.updateMoim(mockDto, mockMember)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    @Test
+    void updateMoim_shouldThrowException_whenMemberDoesNotHavePermission_byMoimingApiException() {
+
+        // given
+        Member mockMember = mock(Member.class);
+        MoimMember mockMoimMember = mock(MoimMember.class);
+        MoimUpdateReqDto reqDto = mock(MoimUpdateReqDto.class);
 
         // given - stub
         doReturn(Optional.ofNullable(mockMoimMember)).when(moimMemberRepository).findByMemberAndMoimId(any(), any());
-        doReturn(List.of(category1, category2)).when(categoryService).generateCategoryList(any());
+        doReturn(false).when(mockMoimMember).hasPermissionOfManager();
 
         // when
-        Moim moim = moimService.updateMoim(reqDto, curMember);
-
         // then
-        assertThat(moim.getMoimName()).isEqualTo(moimName2); // 수정됨
-        assertThat(moim.getMoimInfo()).isEqualTo(moimInfo); // 수정 안됨
-        assertThat(moim.getMaxMember()).isEqualTo(maxMember2);
-        assertThat(moim.getMoimArea().getState()).isEqualTo(moimArea2.getState());
+        assertThatThrownBy(() -> moimService.updateMoim(reqDto, mockMember)).isInstanceOf(MoimingApiException.class);
+
     }
 
 }
+

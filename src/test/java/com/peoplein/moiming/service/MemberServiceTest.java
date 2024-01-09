@@ -38,6 +38,9 @@ public class MemberServiceTest {
         String password = "NOT_EMPTY";
         Member member = mock(Member.class);
 
+        // given - stub
+        when(encoder.matches(any(), any())).thenReturn(true);
+
         // when
         memberService.confirmPw(password, member);
 
@@ -54,6 +57,24 @@ public class MemberServiceTest {
         // when
         // then
         assertThatThrownBy(() -> memberService.confirmPw("", null)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 비밀번호 틀림
+    @Test
+    void confirmPw_shouldThrowException_whenPwWrong_byMoimingApiException() {
+
+        // given
+        String password = "NOT_EMPTY";
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(encoder.matches(any(), any())).thenReturn(false);
+
+        // when
+        // then
+        assertThatThrownBy(() -> memberService.confirmPw(password, member)).isInstanceOf(MoimingApiException.class);
 
     }
 

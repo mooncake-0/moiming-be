@@ -79,7 +79,8 @@ public class MoimRespDto {
         private int maxMember;
         private String areaCity;
         private String areaState;
-
+        private String createdAt;
+        private String updatedAt;
         @JsonProperty("joinRule")
         private MoimJoinRuleDto moimJoinRuleDto;
         private List<String> categories;
@@ -91,6 +92,8 @@ public class MoimRespDto {
             this.maxMember = moimMember.getMoim().getMaxMember();
             this.areaCity = moimMember.getMoim().getMoimArea().getCity();
             this.areaState = moimMember.getMoim().getMoimArea().getState();
+            this.createdAt = moimMember.getMoim().getCreatedAt() + "";
+            this.updatedAt = moimMember.getMoim().getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(moimMember.getMoim().getMoimCategoryLinkers());
             if (!Objects.isNull(moimMember.getMoim().getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
                 this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());

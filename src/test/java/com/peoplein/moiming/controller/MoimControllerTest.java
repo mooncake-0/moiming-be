@@ -1,12 +1,15 @@
 package com.peoplein.moiming.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.member.Member;
-import com.peoplein.moiming.domain.enums.CategoryName;
-import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimJoinRule;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.repository.CategoryRepository;
 import com.peoplein.moiming.repository.MemberRepository;
@@ -24,6 +27,8 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
@@ -31,8 +36,8 @@ import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -68,12 +73,15 @@ public class MoimControllerTest extends TestObjectCreator {
 
     private String testAccessToken;
     private Member curMember;
+    private Member testMember2;
     private Moim createdMoim;
     private Role testRole;
     private Category testCategory1;
     private Category testCategory1_1;
     private Category testCategory2;
     private Category testCategory2_1;
+
+    private List<Category> categories = new ArrayList<>();
 
     @BeforeEach
     void be() {
@@ -96,9 +104,11 @@ public class MoimControllerTest extends TestObjectCreator {
         categoryRepository.save(testCategory2);
         categoryRepository.save(testCategory2_1);
 
+        categories.add(testCategory1);
+        categories.add(testCategory1_1);
 
         // 2번 1번 Member 가 Moim 형성
-        createdMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), curMember);
+        createdMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), categories, curMember);
         moimRepository.save(createdMoim);
 
         // 3번 Member의 Access Token 발급
@@ -108,6 +118,53 @@ public class MoimControllerTest extends TestObjectCreator {
         em.clear();
 
     }
+
+
+    void makeAnotherMember() {
+        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        em.persist(testMember2);
+
+        em.flush();
+        em.clear();
+    }
+
+
+    /*
+     정렬을 잘 확인하기 위해서,
+     일부 Thread Sleep 을 달아준다
+     */
+    // 내가 주인인 Moim 을 만든다
+    void buildManagingMoims(int END) throws InterruptedException {
+        Moim lastMoim = null;
+        for (int i = 0; i < END; i++) {
+            lastMoim = makeTestMoim(moimName + i, maxMember, moimArea.getState(), moimArea.getCity(), categories, curMember);
+            em.persist(lastMoim);
+            if (i % 3 == 0) {
+                Thread.sleep(100);
+            }
+        }
+        MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
+        lastMoim.setMoimJoinRule(joinRule);
+    }
+
+
+    // 나는 다른 Moim 에 Join 한다
+    void buildOtherMoims(int END, int END2) throws InterruptedException {
+
+        for (int i = 0; i < END2; i++) { // ACTIVE 하지 않은 모임들도 추가해보자
+            Moim moim = makeTestMoim(moimName + ", 탈퇴한 모임임 " + i, maxMember, moimArea.getState(), moimArea.getCity(), categories, testMember2);
+            MoimMember.memberJoinMoim(curMember, moim, MoimMemberRoleType.NORMAL, MoimMemberState.IBW);
+            em.persist(moim);
+        }
+
+        for (int i = 0; i < END; i++) {
+            Moim moim = makeTestMoim(moimName + ", 일반회원임 " + i, maxMember, moimArea.getState(), moimArea.getCity(), categories, testMember2);
+            MoimMember.memberJoinMoim(curMember, moim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
+            em.persist(moim);
+            Thread.sleep(100);
+        }
+    }
+
 
 
     @Test
@@ -248,46 +305,122 @@ public class MoimControllerTest extends TestObjectCreator {
 
 
     @Test
-    void getMemberMoims_shouldReturn200_whenRightInfoPassed() throws Exception {
+    void getMemberMoims_shouldReturn200WithSortedMoims_whenFirstReq() throws Exception {
 
-        // given
-        suAnotherMoim();
+        //given
+        makeAnotherMember();
+        buildManagingMoims(25);
+        buildOtherMoims(5, 5);
+        em.flush();
+        em.clear();
 
-        // when
-        ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW).header(HEADER, PREFIX + testAccessToken));
-        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+        // when - limit 과 isManagerReq 는 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
+                .header(HEADER, PREFIX + testAccessToken)
+        );
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.data").isArray()); // Collection 이 반환된다
-        resultActions.andExpect(jsonPath("$.data", hasSize(2))); // 갯수가 현재 2개의 모임에 가입되어 있다.
-        resultActions.andExpect(jsonPath("$.data[*].moimName", hasItem(moimName)))
-                .andExpect(jsonPath("$.data[*].moimName", hasItem(moimName2))) // 새로 가입시켜준 모임이 소속 모임 중에 있다
-                .andExpect(jsonPath("$.data[*].categories", hasSize(2))); // 카테고리 필드는 2개 있다
+        // JSON 안에 있는 Value 들이 Sorting 되어 있는지?
+        String resp = resultActions.andReturn().getResponse().getContentAsString();
+
+        JsonNode jsonNode = om.readTree(resp);
+        ArrayNode arrayNode = (ArrayNode) jsonNode.get("data");
+
+        for (int i = 0; i < arrayNode.size() - 1; i++) {
+            JsonNode node = arrayNode.get(i);
+            JsonNode nextNode = arrayNode.get(i + 1);
+            LocalDateTime nodeTime = LocalDateTime.parse(node.get("createdAt").asText());
+            LocalDateTime nextNodeTime = LocalDateTime.parse(nextNode.get("createdAt").asText());
+            assertTrue(nodeTime.isAfter(nextNodeTime) || nodeTime.isEqual(nextNodeTime)); // 같거나 빠른 날짜 순서대로 정렬된다
+        }
+
+        assertThat(arrayNode.size()).isEqualTo(20);
+    }
+
+
+    // 두번의 요청을 연속해서 수행한다 - 정확한 테스트를 위함
+    @Test
+    void getMemberMoims_shouldReturn200WithNextMoims_whenNextPagingReqSent() throws Exception {
+
+        //given
+        makeAnotherMember();
+        buildManagingMoims(25);
+        buildOtherMoims(5, 5);
+        em.flush();
+        em.clear();
+
+        // when - limit 과 isManagerReq 는 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
+                .header(HEADER, PREFIX + testAccessToken)
+        );
+
+        String resp = resultActions.andReturn().getResponse().getContentAsString();
+        JsonNode jsonNode = om.readTree(resp);
+        ArrayNode arrayNode = (ArrayNode) jsonNode.get("data");
+        long lastMoimId = arrayNode.get(arrayNode.size() - 1).get("moimId").asLong();
+
+
+        // 위는 위 테스트에서 확인함. when -2 를 날린다
+        // when - 2 이번엔 그냥 다 넣어서 날려보자
+        ResultActions resultActions2 = mvc.perform(get(PATH_MOIM_GET_VIEW)
+                .header(HEADER, PREFIX + testAccessToken)
+                .param("lastMoimId", String.valueOf(lastMoimId))
+                .param("isManagerReq", String.valueOf(false))
+                .param("limit", String.valueOf(20))
+        );
+
+        String resp2 = resultActions2.andReturn().getResponse().getContentAsString();
+
+        JsonNode jsonNode2 = om.readTree(resp2);
+        ArrayNode arrayNode2 = (ArrayNode) jsonNode2.get("data");
+
+        for (int i = 0; i < arrayNode2.size() - 1; i++) {
+            JsonNode node = arrayNode2.get(i);
+            JsonNode nextNode = arrayNode2.get(i + 1);
+            LocalDateTime nodeTime = LocalDateTime.parse(node.get("createdAt").asText());
+            LocalDateTime nextNodeTime = LocalDateTime.parse(nextNode.get("createdAt").asText());
+            assertTrue(nodeTime.isAfter(nextNodeTime) || nodeTime.isEqual(nextNodeTime)); // 같거나 빠른 날짜 순서대로 정렬된다
+        }
+
+        assertThat(arrayNode.size()).isEqualTo(20);
+        assertThat(arrayNode2.size()).isEqualTo(11);
 
     }
 
 
     @Test
-    void getMemberMoims_shouldReturn200_whenRightInfoPassedAndNoMoimJoined() throws Exception {
+    void getMemberMoims_shouldReturn200WithOnlyMyManagingMoims_whenRightInfoPassed() throws Exception {
 
-        // given
-        Member curMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2,testRole);
-        memberRepository.save(curMember2);
+        //given
+        makeAnotherMember();
+        buildManagingMoims(10); // 10 개만 받아지는지 확인한다
+        buildOtherMoims(10, 5);
         em.flush();
         em.clear();
 
-        String testAccessToken2 = createTestJwtToken(curMember2, 1000); // 아무 모임도 가입하지 않은 회원이 요청한다
-
-        // when
-        ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW).header(HEADER, PREFIX + testAccessToken2));
-        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
-
+        // when - limit 과 isManagerReq 는 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
+                .header(HEADER, PREFIX + testAccessToken)
+                .param("isManagerReq", String.valueOf(true))
+                .param("limit", String.valueOf(20))
+        );
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.data").isArray()); // Collection 이 반환된다
-        resultActions.andExpect(jsonPath("$.data", hasSize(0))); // 갯수가 현재 2개의 모임에 가입되어 있다.
+        // JSON 안에 있는 Value 들이 Sorting 되어 있는지?
+        String resp = resultActions.andReturn().getResponse().getContentAsString();
+
+        JsonNode jsonNode = om.readTree(resp);
+        ArrayNode arrayNode = (ArrayNode) jsonNode.get("data");
+
+        for (int i = 0; i < arrayNode.size() - 1; i++) {
+            JsonNode node = arrayNode.get(i);
+            JsonNode nextNode = arrayNode.get(i + 1);
+            LocalDateTime nodeTime = LocalDateTime.parse(node.get("createdAt").asText());
+            LocalDateTime nextNodeTime = LocalDateTime.parse(nextNode.get("createdAt").asText());
+            assertTrue(nodeTime.isAfter(nextNodeTime) || nodeTime.isEqual(nextNodeTime)); // 같거나 빠른 날짜 순서대로 정렬된다
+        }
+
+        assertThat(arrayNode.size()).isEqualTo(11);
     }
 
 

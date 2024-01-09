@@ -61,11 +61,21 @@ public class MoimService {
     }
 
 
-    // 모임 일반 조회
-    public List<MoimViewRespDto> getMemberMoims(Member curMember) {
+    // 컨디션에 따른 해당 멤버의 모임 조회 결과 List<Moim> 으로 반환
+    // 사용영역 > Home 화면 및 마이페이지 화면에서 사용될 예정
+    public List<MoimMember> getMemberMoims(Long lastMoimId, boolean isActiveReq,  boolean isManagerReq, int limit, Member curMember) {
 
-        List<MoimMember> moimMembers = moimMemberRepository.findWithMoimAndCategoryByMemberId(curMember.getId());
-        return moimMembers.stream().map(MoimViewRespDto::new).collect(Collectors.toList());
+        if (curMember == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        Moim lastMoim = null;
+        if (lastMoimId != null) {
+            lastMoim = moimRepository.findById(lastMoimId).orElse(null); // NULLABLE
+        }
+
+        return moimMemberRepository.findMemberMoimsWithRuleAndCategoriesByConditionsPaged(curMember.getId(), isActiveReq, isManagerReq, lastMoim, limit);
+
     }
 
 

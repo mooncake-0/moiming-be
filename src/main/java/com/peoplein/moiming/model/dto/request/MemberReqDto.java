@@ -27,6 +27,7 @@ public class MemberReqDto {
     @Getter
     @Setter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class MemberChangeNicknameReqDto{
 
         @NotEmpty
@@ -38,6 +39,7 @@ public class MemberReqDto {
     @Getter
     @Setter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class MemberChangePwReqDto{
 
         @NotEmpty
