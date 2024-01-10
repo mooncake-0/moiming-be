@@ -10,8 +10,6 @@ public interface MoimMemberRepository {
 
     void save(MoimMember mmLinker);
 
-
-
     List<MoimMember> findWithMoimAndCategoryByMemberId(Long memberId); // Moim 을 가져올 때 Category 까지 쭉 Fetch Join
 
     Optional<MoimMember> findByMemberAndMoimId(Long memberId, Long moimId);
@@ -35,5 +33,7 @@ public interface MoimMemberRepository {
     List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds);
 
     List<MoimMember> findMemberMoimsWithRuleAndCategoriesByConditionsPaged(Long memberId, boolean isActiveReq, boolean isManagerReq, Moim lastMoim, int limit);
+
+    void removeAllByMoimId(Long moimId);
 
 }

@@ -135,6 +135,8 @@ public class MoimRespDto {
         private int maxMember;
         private String areaCity;
         private String areaState;
+        private String createdAt;
+        private String updatedAt;
 
         // RULES 필요
         @JsonProperty("joinRule")
@@ -143,9 +145,20 @@ public class MoimRespDto {
         // 모든 MemberMoim 정보 전달 필요
         private List<String> categories;
 
-        public MoimDetailViewRespDto(MoimMember moimMember) {
-
-            this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());
+        public MoimDetailViewRespDto(Moim moim) {
+            this.moimId = moim.getId();
+            this.moimName = moim.getMoimName();
+            this.moimInfo = moim.getMoimInfo();
+            this.curMemberCount = moim.getCurMemberCount();
+            this.maxMember = moim.getMaxMember();
+            this.areaCity = moim.getMoimArea().getCity();
+            this.areaState = moim.getMoimArea().getState();
+            this.createdAt = moim.getCreatedAt() + "";
+            this.updatedAt = moim.getUpdatedAt() + "";
+            this.categories = MoimCategoryLinker.convertLinkersToNameValues(moim.getMoimCategoryLinkers());
+            if (moim.getMoimJoinRule() != null) {
+                this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
+            }
         }
 
         // 오히려 이게 필요 없을 수도 ?

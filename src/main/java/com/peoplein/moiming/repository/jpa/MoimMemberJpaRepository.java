@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.peoplein.moiming.domain.QPostComment.postComment;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.moim.QMoimMember.*;
 import static com.peoplein.moiming.domain.member.QMember.*;
@@ -218,6 +219,11 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                 .orderBy(moimMember.moim.createdAt.desc(), moimMember.moim.id.desc())
                 .limit(limit)
                 .fetch();
+    }
+
+    @Override
+    public void removeAllByMoimId(Long moimId) {
+        queryFactory.delete(moimMember).where(moimMember.moim.id.eq(moimId)).execute();
     }
 
 }

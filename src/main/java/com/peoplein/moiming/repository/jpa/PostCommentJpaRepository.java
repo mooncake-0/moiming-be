@@ -62,11 +62,12 @@ public class PostCommentJpaRepository implements PostCommentRepository {
     @Override
     public Long removeAllByMoimPostId(Long moimPostId) {
         JPADeleteClause clause = new JPADeleteClause(em, postComment);
-        return clause.where(postComment.moimPost.id.eq(moimPostId)).execute();
+        return clause.where(postComment.moimPost.id.eq(moimPostId)).execute(); // JPADeleteClause 는 아래랑 아무 차이 없는 쿼리
     }
 
     @Override
     public void removeAllByMoimPostIds(List<Long> moimPostIds) {
+
         queryFactory.delete(postComment).where(postComment.moimPost.id.in(moimPostIds)).execute();
     }
 

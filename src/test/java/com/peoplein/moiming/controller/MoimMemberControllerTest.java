@@ -402,7 +402,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     // 이미 가입되어 있는 사람이 가입하려 함 -> 같은 상태로의 전환 요청은 예외처리된다
     @Test
-    void joinMoim_shouldReturn422_whenAlreadyMoimMember_byMoimingApiException() throws Exception {
+    void joinMoim_shouldReturn409_whenAlreadyMoimMember_byMoimingApiException() throws Exception {
 
         // given
         MoimMemberJoinReqDto requestDto = new MoimMemberJoinReqDto(testMoim1.getId());
@@ -416,8 +416,8 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
-        resultActions.andExpect(status().isUnprocessableEntity());
-        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_STATE_CHANGE_FAIL.getErrCode()));
+        resultActions.andExpect(status().isConflict());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_JOIN_FAIL_BY_ALREADY_JOINED.getErrCode()));
 
     }
 

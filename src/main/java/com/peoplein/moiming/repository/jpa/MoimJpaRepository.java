@@ -92,18 +92,22 @@ public class MoimJpaRepository implements MoimRepository {
         return query.fetch();
     }
 
-
     @Override
-    public List<Moim> findAllMoim() {
-        return queryFactory
-                .selectFrom(moim)
-                .fetch();
+    public Optional<Moim> findWithJoinRuleAndCategoryById(Long moimId) {
+
+        return Optional.ofNullable(
+                queryFactory.selectFrom(moim).distinct()
+                        .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
+                        .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                        .where(moim.id.eq(moimId))
+                        .fetchOne()
+        );
     }
 
+
     @Override
-    public void remove(Moim moim) {
-        checkIllegalQueryParams(moim);
-        em.remove(moim);
+    public void remove(Long moimId) {
+        queryFactory.delete(moim).where(moim.id.eq(moimId)).execute();
     }
 
 

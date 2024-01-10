@@ -30,12 +30,6 @@ public class MoimPostJpaRepository implements MoimPostRepository {
 
 
     @Override
-    public void removeAll(List<Long> moimPostIds) {
-
-        queryFactory.delete(moimPost).where(moimPost.id.in(moimPostIds)).execute();
-    }
-
-    @Override
     public void remove(MoimPost moimPost) {
         em.remove(moimPost);
     }
@@ -88,6 +82,15 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     }
 
 
+    @Override
+    public List<MoimPost> findByMoimId(Long moimId) {
+
+        return queryFactory.selectFrom(moimPost)
+                .where(moimPost.moim.id.eq(moimId))
+                .fetch();
+    }
+
+
     /*
      Query :
       select * from MoimPost mp
@@ -131,6 +134,12 @@ public class MoimPostJpaRepository implements MoimPostRepository {
                 .orderBy(moimPost.createdAt.desc(), moimPost.id.desc()) // 기본적으로 1차 소팅은 날짜 순, 같을 경우 2차 소팅은 ID로
                 .limit(limit)
                 .fetch();
+    }
+
+    @Override
+    public void removeAllByMoimId(Long moimId) {
+
+        queryFactory.delete(moimPost).where(moimPost.moim.id.eq(moimId)).execute();
     }
 
 }
