@@ -60,6 +60,16 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                 .fetchOne());
     }
 
+    @Override
+    public Optional<MoimMember> findWithMoimByMemberAndMoimId(Long memberId, Long moimId) {
+        checkIllegalQueryParams(memberId, moimId);
+        return Optional.ofNullable(queryFactory.selectFrom(moimMember)
+                .join(moimMember.moim, moim).fetchJoin()
+                .where(moimMember.member.id.eq(memberId),
+                        moimMember.moim.id.eq(moimId))
+                .fetchOne());
+    }
+
 
     @Override
     public Optional<MoimMember> findWithMemberByMemberAndMoimId(Long memberId, Long moimId) {

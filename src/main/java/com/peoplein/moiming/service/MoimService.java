@@ -7,7 +7,6 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.MoimJoinRuleJpaRepository;
@@ -17,12 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
-import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
 
 @Slf4j
 @Service
@@ -114,8 +111,8 @@ public class MoimService {
     public Moim updateMoim(MoimUpdateReqDto requestDto, Member curMember) {
 
         // 차피 Moim 존속 여부랑은 별개로, MoimMember 가 있으면 되는 것이니, MoimMember 로 그냥 join 해와버리자
-        MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() ->
-                new MoimingApiException(MOIM_NOT_FOUND)
+        MoimMember moimMemberPs = moimMemberRepository.findWithMoimByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
         );
 
         if (!moimMemberPs.hasPermissionOfManager()) {
@@ -126,6 +123,42 @@ public class MoimService {
         moimMemberPs.getMoim().updateMoim(requestDto, requestCategories, curMember.getId()); // Moim 도 영속화됨
 
         return moimMemberPs.getMoim();
+
+    }
+
+
+    // 가입 조건 수정
+    public MoimJoinRule updateMoimJoinRule(MoimJoinRuleUpdateReqDto requestDto, Member member) {
+
+        if (requestDto == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        // 가입조건이 있든 없든 요청 들어온 조건을 만들어서 갈아 끼워준다
+        Moim moim = moimRepository.findWithJoinRuleById(requestDto.getMoimId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_NOT_FOUND)
+        );
+
+        // MoimMember 조회,
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), requestDto.getMoimId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
+        );
+
+        // 수정할 권한 확인
+        if (!moimMember.hasPermissionOfManager()) {
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
+        }
+
+        MoimJoinRule joinRule;
+        if (moim.getMoimJoinRule() == null) {
+            joinRule = MoimJoinRule.createMoimJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+            moim.setMoimJoinRule(joinRule);
+        } else {
+            joinRule = moim.getMoimJoinRule();
+            joinRule.changeJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+        }
+
+        return joinRule;
 
     }
 

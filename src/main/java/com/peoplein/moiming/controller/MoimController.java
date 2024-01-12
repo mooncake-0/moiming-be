@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
@@ -105,6 +106,25 @@ public class MoimController {
         Moim moimOut = moimService.updateMoim(requestDto, principal.getMember());
         MoimUpdateRespDto respDto = new MoimUpdateRespDto(moimOut);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 정보 수정 성공", respDto));
+
+    }
+
+
+    @ApiOperation("모임 가입 조건 수정")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 가입 조건 수정 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 400, message = "모임 가입 조건 수정 실패, ERR MSG 확인")
+    })
+    @PatchMapping(PATM_MOIM_JOIN_RULE_UPDATE)
+    public ResponseEntity<?> updateMoimJoinRule(@RequestBody @Valid MoimJoinRuleUpdateReqDto requestDto
+            , BindingResult br
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        MoimJoinRule joinRule = moimService.updateMoimJoinRule(requestDto, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 가입 조건 수정 성공", new MoimJoinRuleUpdateRespDto(joinRule)));
 
     }
 

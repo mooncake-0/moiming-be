@@ -12,17 +12,14 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.support.TestObjectCreator;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -442,10 +439,11 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.moimInfo").value(moimInfo)); // 변경되지 않음
         resultActions.andExpect(jsonPath("$.data.categories[*]", hasItem(depth1SampleCategory2))); // 변경된 Category 를 포함하고 있다
 
-        // updator 확인
+        // updater 확인
         assertThat(createdMoim.getUpdaterId()).isEqualTo(curMember.getId());
 
     }
+
 
     // moimId Validation
     @Test
@@ -552,7 +550,7 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.categories[*]", hasItem(depth1SampleCategory))); // 변경되기 전 Category 를 포함하고 있다
 
 
-        // updator 확인 // Category 외 수정한게 있음
+        // updater 확인 // Category 외 수정한게 있음
         assertThat(createdMoim.getUpdaterId()).isEqualTo(curMember.getId());
     }
 
@@ -576,6 +574,236 @@ public class MoimControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+
+    }
+
+
+    // updateMoim - 실패 : 모임원이 아님
+    @Test
+    void updateMoim_shouldReturn404_whenNotMoimMemberReq_byMoimingApiException() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+        makeAnotherMember();
+        String accessToken = createTestJwtToken(testMember2, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        Moim findMoim = em.find(Moim.class, createdMoim.getId());
+        assertThat(findMoim.getMoimName()).isEqualTo(moimName); // 바뀌지 않았음
+
+    }
+
+
+    // updateMoim - 실패 : 모임 운영자가 아님
+    @Test
+    void updateMoim_shouldReturn403_whenNormalMoimMemberReq_byMoimingApiException() throws Exception {
+
+        // given
+        makeAnotherMember();
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
+        em.flush();
+        em.clear();
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+        String accessToken = createTestJwtToken(testMember2, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        Moim findMoim = em.find(Moim.class, createdMoim.getId());
+        assertThat(findMoim.getMoimName()).isEqualTo(moimName); // 바뀌지 않았음
+
+    }
+
+
+    // updateMoimJoinRule - 성공 : JoinRule 없던 모임
+    @Test
+    void updateMoimJoinRule_shouldReturn200WithResp_whenNoJoinRuleMoim() throws Exception {
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), hasAgeRule1, ageMax1, ageMin1, genderRule1);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.hasAgeRule").value(hasAgeRule1));
+        resultActions.andExpect(jsonPath("$.data.ageMax").value(-1));
+        resultActions.andExpect(jsonPath("$.data.ageMin").value(-1));
+        resultActions.andExpect(jsonPath("$.data.memberGender").value(genderRule1 + ""));
+
+        // then - db verify
+        Moim moim = em.find(Moim.class, createdMoim.getId());
+        MoimJoinRule joinRule = moim.getMoimJoinRule();
+        assertNotNull(joinRule);
+        assertThat(joinRule.isHasAgeRule()).isEqualTo(hasAgeRule1);
+        assertThat(joinRule.getAgeMax()).isEqualTo(-1);
+        assertThat(joinRule.getAgeMin()).isEqualTo(-1);
+        assertThat(joinRule.getMemberGender()).isEqualTo(genderRule1);
+
+    }
+
+
+    // updateMoimJoinRule - 성공 : 이미 JoinRule 있는 모임
+    @Test
+    void updateMoimJoinRule_shouldReturn200WithResp_whenHasJoinRuleMoim() throws Exception {
+
+        // given - join Rule
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        MoimJoinRule joinRule = makeTestMoimJoinRule(hasAgeRule1, ageMax1, ageMin1, genderRule1);
+        createdMoim.setMoimJoinRule(joinRule);
+        em.flush();
+        em.clear();
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), hasAgeRule2, ageMax2, ageMin2, genderRule2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.hasAgeRule").value(hasAgeRule2));
+        resultActions.andExpect(jsonPath("$.data.ageMax").value(ageMax2));
+        resultActions.andExpect(jsonPath("$.data.ageMin").value(ageMin2));
+        resultActions.andExpect(jsonPath("$.data.memberGender").value(genderRule2 + ""));
+
+        // then - db verify
+        Moim moim = em.find(Moim.class, createdMoim.getId());
+        MoimJoinRule findJoinRule = moim.getMoimJoinRule();
+        assertNotNull(findJoinRule);
+        assertThat(findJoinRule.isHasAgeRule()).isEqualTo(hasAgeRule2);
+        assertThat(findJoinRule.getAgeMax()).isEqualTo(ageMax2);
+        assertThat(findJoinRule.getAgeMin()).isEqualTo(ageMin2);
+        assertThat(findJoinRule.getMemberGender()).isEqualTo(genderRule2);
+
+    }
+
+
+    // updateMoimJoinRule - 실패 : Validation 오류 400
+    @Test
+    void updateMoimJoinRule_shouldReturn400_whenRequestParamWrong_byMoimingValidationException() throws Exception {
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(null, null, 102, 3, null);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(5)));
+
+    }
+
+
+    // updateMoimJoinRule - 실패 : 모임 없음 404
+    @Test
+    void updateMoimJoinRule_shouldReturn404_whenMoimNotFound_byMoimingApiException() throws Exception {
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(1234L, hasAgeRule2, ageMax2, ageMin2, genderRule2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_NOT_FOUND.getErrCode()));
+
+    }
+
+
+    // updateMoimJoinRule - 실패 : 비모임원 404
+    @Test
+    void updateMoimJoinRule_shouldReturn404_whenNotMoimMember_byMoimingApiException() throws Exception {
+
+        // given
+        makeAnotherMember();
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), hasAgeRule2, ageMax2, ageMin2, genderRule2);
+        String requestBody = om.writeValueAsString(reqDto);
+        String accessToken = createTestJwtToken(testMember2, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
+
+    }
+
+
+    // updateMoimJoinRule - 실패 : 운영자가 아님 403
+    @Test
+    void updateMoimJoinRule_shouldReturn403_whenMoimMemberNotManager_byMoimingApiException() throws Exception {
+
+        // given
+        makeAnotherMember();
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
+        em.flush();
+        em.clear();
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), hasAgeRule2, ageMax2, ageMin2, genderRule2);
+        String requestBody = om.writeValueAsString(reqDto);
+        String accessToken = createTestJwtToken(testMember2, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
 
     }
 

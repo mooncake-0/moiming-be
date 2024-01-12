@@ -48,6 +48,8 @@ public abstract class AppUrlPath {
     public final static String PATH_MOIM_GET_DETAIL = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
     // PATCH - /api/v0/moim
     public final static String PATH_MOIM_UPDATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM;
+    // PATCH - /api/v0/moim/joinRule
+    public final static String PATM_MOIM_JOIN_RULE_UPDATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/joinRule";
     // DELETE - /api/v0/moim/{moimId}
     public final static String PATH_MOIM_DELETE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
 

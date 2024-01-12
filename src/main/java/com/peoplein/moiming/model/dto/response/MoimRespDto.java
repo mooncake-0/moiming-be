@@ -232,4 +232,24 @@ public class MoimRespDto {
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(moim.getMoimCategoryLinkers());
         }
     }
+
+
+    @ApiModel(value = "Moim API - 응답 - 모임 가입 조건 수정")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class MoimJoinRuleUpdateRespDto{
+
+        private boolean hasAgeRule;
+        private int ageMax;
+        private int ageMin;
+        private MemberGender memberGender;
+
+        public MoimJoinRuleUpdateRespDto(MoimJoinRule moimJoinRule) {
+            this.hasAgeRule = moimJoinRule.isHasAgeRule();
+            this.ageMax = moimJoinRule.getAgeMax();
+            this.ageMin = moimJoinRule.getAgeMin();
+            this.memberGender = moimJoinRule.getMemberGender();
+        }
+    }
 }

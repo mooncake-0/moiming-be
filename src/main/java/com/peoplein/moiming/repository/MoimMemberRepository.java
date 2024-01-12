@@ -10,6 +10,7 @@ public interface MoimMemberRepository {
 
     void save(MoimMember mmLinker);
     Optional<MoimMember> findByMemberAndMoimId(Long memberId, Long moimId);
+    Optional<MoimMember> findWithMoimByMemberAndMoimId(Long memberId, Long moimId);
     Optional<MoimMember> findWithMemberByMemberAndMoimId(Long memberId, Long moimId); // 조회되지 않은 Member 의 정보도 가져올 수 있다\
     List<MoimMember> findWithMoimByMemberId(Long memberId);
     List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds);

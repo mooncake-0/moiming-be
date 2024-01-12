@@ -81,4 +81,16 @@ public abstract class TestModelParams {
     public static String depth2SampleCategory2 = "재즈댄스";
 
 
+    // MoimJoinRule Set1
+    public static boolean hasAgeRule1 = false;
+    public static int ageMax1 = 100; // -1 로 변해서 저장
+    public static int ageMin1 = 15; // -1 로 변해서 저장
+    public static MemberGender genderRule1 = MemberGender.N;
+
+    // MoimJoinRule Set2
+    public static boolean hasAgeRule2 = true;
+    public static int ageMax2 = 40;
+    public static int ageMin2 = 20;
+    public static MemberGender genderRule2 = MemberGender.N;
+
 }

@@ -3,6 +3,7 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.*;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -31,8 +33,6 @@ public class MoimServiceTest {
     private MoimRepository moimRepository;
     @Mock
     private MoimMemberRepository moimMemberRepository;
-    @Mock
-    private CategoryService categoryService;
     @Mock
     private MoimPostRepository moimPostRepository;
     @Mock
@@ -95,24 +95,22 @@ public class MoimServiceTest {
     void updateMoim_shouldProcess_whenRightInfoPassed() {
 
         // given
-        Moim mockMoim = mock(Moim.class);
-        Member mockMember = mock(Member.class);
-        MoimMember mockMoimMember = mock(MoimMember.class);
+        Moim moim = mock(Moim.class);
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
         MoimUpdateReqDto reqDto = mock(MoimUpdateReqDto.class); // updateMoim 에서 validation 하는 부분이 없음 - 뭐가 들었든 관심 없음
 
         // given - stub
-        doReturn(Optional.ofNullable(mockMoimMember)).when(moimMemberRepository).findByMemberAndMoimId(any(), any()); // 뭘 찾아오든 상관 없음, 동작만 하면 됨
-        doReturn(true).when(mockMoimMember).hasPermissionOfManager(); // 이것도 state 자체를 바꾼다면 hasPermissionUpdate 가 뭔지 확인하러 들어가봐야 함 (이 함수의 동작은 아무짝에 관심없음)
-        doReturn(new ArrayList<>()).when(categoryService).generateCategoryList(any()); // generateCategoryList 가 잘되는지는 거기서 확인하게된다
-        doReturn(mockMoim).when(mockMoimMember).getMoim(); // mockMoim 반환하도록 한다
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasPermissionOfManager()).thenReturn(true);
+        when(moimMember.getMoim()).thenReturn(moim);
 
         // when
-        moimService.updateMoim(reqDto, mockMember);
+        moimService.updateMoim(reqDto, member);
 
         // then
-        verify(mockMoim, times(1)).updateMoim(any(), any(), any()); // 호출을 확인한다
+        verify(moim, times(1)).updateMoim(any(), any(), any()); // 호출을 확인한다
 
-        // return val 은 통합을 통해 확인할 수 있다
     }
 
     // requestCategory 가 채워있냐 비어있냐 -> Moim.updateMoim() 에서 수행해야함
@@ -124,34 +122,156 @@ public class MoimServiceTest {
     void updateMoim_shouldThrowException_whenMoimMemberNotFound_byMoimingApiException() {
 
         // given
-        Member mockMember = mock(Member.class);
-        MoimUpdateReqDto mockDto = mock(MoimUpdateReqDto.class);
-
-        // given - stub
-        doReturn(Optional.empty()).when(moimMemberRepository).findByMemberAndMoimId(any(), any()); // 뭘 넣든 상관 없이, 당장 예외상황이 나야 하는 부분을 검증
+        Member member = mock(Member.class);
+        MoimUpdateReqDto reqDto = mock(MoimUpdateReqDto.class);
 
         // when
         // then
-        assertThatThrownBy(() -> moimService.updateMoim(mockDto, mockMember)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimService.updateMoim(reqDto, member)).isInstanceOf(MoimingApiException.class);
 
     }
 
 
+    // updateMoim - 실패 : NOT MANAGER
     @Test
     void updateMoim_shouldThrowException_whenMemberDoesNotHavePermission_byMoimingApiException() {
 
         // given
-        Member mockMember = mock(Member.class);
-        MoimMember mockMoimMember = mock(MoimMember.class);
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
         MoimUpdateReqDto reqDto = mock(MoimUpdateReqDto.class);
 
         // given - stub
-        doReturn(Optional.ofNullable(mockMoimMember)).when(moimMemberRepository).findByMemberAndMoimId(any(), any());
-        doReturn(false).when(mockMoimMember).hasPermissionOfManager();
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
 
         // when
         // then
-        assertThatThrownBy(() -> moimService.updateMoim(reqDto, mockMember)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimService.updateMoim(reqDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 가입 조건 수정
+    // 성공 : 가입 조건이 이미 있을 때
+    @Test
+    void updateMoimJoinRule_shouldPass_whenMoimWithJoinRulePassed() {
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        Moim moim = mock(Moim.class);
+        MoimJoinRule joinRule = mock(MoimJoinRule.class);
+
+        // given - stub
+        when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasPermissionOfManager()).thenReturn(true);
+        when(moim.getMoimJoinRule()).thenReturn(joinRule);
+
+        // when
+        moimService.updateMoimJoinRule(reqDto, member);
+
+        // then
+        verify(joinRule, times(1)).changeJoinRule(anyBoolean(), anyInt(), anyInt(), any());
+
+    }
+
+
+    // 가입 조건 수정
+    // 성공 : 가입 조건이 이미 있을 때
+    @Test
+    void updateMoimJoinRule_shouldPass_whenMoimWithNoJoinRulePassed() {
+
+        try (MockedStatic<MoimJoinRule> mocker = mockStatic(MoimJoinRule.class)) {
+            // given
+            MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
+            Member member = mock(Member.class);
+            MoimMember moimMember = mock(MoimMember.class);
+            Moim moim = mock(Moim.class);
+
+            // given - stub
+            when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+            when(moimMember.hasPermissionOfManager()).thenReturn(true);
+            when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
+            mocker.when(() -> MoimJoinRule.createMoimJoinRule(anyBoolean(), anyInt(), anyInt(), any()))
+                    .thenReturn(null); // 해당 함수는 호출만 하고, 결과는 상관 없다
+
+            // when
+            moimService.updateMoimJoinRule(reqDto, member);
+
+            // then
+            verify(moim, times(1)).setMoimJoinRule(any());
+
+        }
+
+    }
+
+
+    // updateMoimJoinRule - 실패 : INVALID PARAM
+    @Test
+    void updateMoimJoinRule_shouldThrowException_whenParamNull_byMoimingApiException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.updateMoimJoinRule(null, null)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // updateMoimJoinRule - 실패 : 비모임원의 요청
+    @Test
+    void updateMoimJoinRule_shouldThrowException_whenReqMoimMemberNotFound_byMoimingApiException() {
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.updateMoimJoinRule(reqDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // updateMoimJoinRule - 실패 : 비운영자의 요청
+    @Test
+    void updateMoimJoinRule_shouldThrowException_whenMoimMemberNotManager_byMoimingApiException() {
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.updateMoimJoinRule(reqDto, member)).isInstanceOf(MoimingApiException.class);
+
+
+    }
+
+
+    // updateMoimJoinRule - 실패 : 모임을 찾을 수 없음
+    @Test
+    void updateMoimJoinRule_shouldThrowException_whenMoimNotFound_byMoimingApiException() {
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
+        Member member = mock(Member.class);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.updateMoimJoinRule(reqDto, member)).isInstanceOf(MoimingApiException.class);
 
     }
 
