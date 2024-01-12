@@ -12,6 +12,7 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.MoimJoinRuleJpaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -87,7 +89,7 @@ public class MoimService {
 
 
     // 모임 세부 조회 - 정보 , 가입조건, 지역 및 카테고리 ALL -- 누구나 요청 가능
-    public Moim getMoimDetail(Long moimId, Member member) {
+    public MoimMember getMoimDetail(Long moimId, Member member) {
 
         if (moimId == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
@@ -97,7 +99,14 @@ public class MoimService {
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
-        return moim;
+        // Creator 정보와 같이 전달해주기 위해, MoimMember 를 전달한다
+        // 굳이 쿼리 하나 늘리지 말고, 그냥 getMember 로 쿼리 발생하게 두자
+        MoimMember creatorMember = moimMemberRepository.findWithMemberByMemberAndMoimId(moim.getCreatorId(), moim.getId()).orElseThrow(()->{
+            log.error("{}, {}", "모임 생성자 정보를 찾을 수 없음, C999", COMMON_INVALID_SITUATION.getErrMsg());
+            return new MoimingApiException(COMMON_INVALID_SITUATION);
+        });
+
+        return creatorMember;
     }
 
 
@@ -131,10 +140,21 @@ public class MoimService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        // 모임 삭제를 위한 조회를 진행
         Moim moim = moimRepository.findWithJoinRuleAndCategoryById(moimId).orElseThrow(() ->
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
+        // 요청한 인원의 존재 여부와 권한을 확인한다
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimId).orElseThrow(() ->
+                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
+        );
+
+        if (!moimMember.hasPermissionOfManager()) {
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
+        }
+
+        // 게시물 우선 제어를 위해 조회
         List<MoimPost> moimPosts = moimPostRepository.findByMoimId(moim.getId());
 
         // MEMO :: JPQL 을 발생시키는건 Flush 를 진행하게 된다 - 영컨을 이용하면 순서가 보장되지 않음, FK 오류 가능, OrphanRemoval, Cascade.REMOVE 옵션은 사용하지 않도록 하자
@@ -153,11 +173,13 @@ public class MoimService {
         // 4) MoimCategoryLinker 삭제
         moimCategoryLinkerRepository.removeAllByMoimId(moim.getId());
 
-        // 5) MoimJoinRule 삭제
-        moimJoinRuleRepository.removeById(moim.getMoimJoinRule().getId());
-
-        // 6) Moim 삭제
+        // 5) Moim 삭제
         moimRepository.remove(moim.getId());
+
+        // 6) MoimJoinRule 삭제 // MEMO :: Moim 이 JoinRule 과의 연관관계 주인이므로, Moim 을 먼저 삭제한다
+        if (moim.getMoimJoinRule() != null) {
+            moimJoinRuleRepository.removeById(moim.getMoimJoinRule().getId());
+        }
 
     }
 

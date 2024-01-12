@@ -83,8 +83,8 @@ public class MoimController {
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal
     ) {
 
-        Moim moim = moimService.getMoimDetail(moimId, principal.getMember());
-        MoimDetailViewRespDto responseData = new MoimDetailViewRespDto(moim);
+        MoimMember moimMember = moimService.getMoimDetail(moimId, principal.getMember());
+        MoimDetailViewRespDto responseData = new MoimDetailViewRespDto(moimMember);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "세부 조회 성공", responseData));
     }
 

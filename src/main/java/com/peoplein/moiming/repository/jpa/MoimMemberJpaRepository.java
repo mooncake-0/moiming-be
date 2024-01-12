@@ -36,7 +36,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
-    private void checkIllegalQueryParams(Object ... objs) {
+    private void checkIllegalQueryParams(Object... objs) {
         for (Object obj : objs) {
             if (Objects.isNull(obj)) {
                 throw new InvalidQueryParameterException("쿼리 파라미터는 NULL 일 수 없습니다");
@@ -51,19 +51,6 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     }
 
 
-
-    @Override
-    public List<MoimMember> findWithMoimAndCategoryByMemberId(Long memberId) {
-        checkIllegalQueryParams(memberId);
-        return queryFactory.selectFrom(moimMember).distinct() // MoimCategoryLinker 의 Collection 조회로 인한 중복 데이터 제거 필요
-                .join(moimMember.moim, moim).fetchJoin()
-                .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
-                .join(moimCategoryLinker.category, category).fetchJoin()
-                .where(moimMember.member.id.eq(memberId))
-                .fetch();
-    }
-
-
     @Override
     public Optional<MoimMember> findByMemberAndMoimId(Long memberId, Long moimId) {
         checkIllegalQueryParams(memberId, moimId);
@@ -75,72 +62,15 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
 
     @Override
-    public MoimMember findWithMemberInfoByMemberAndMoimId(Long memberId, Long moimId) { // Join 없음
-
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.member, member).fetchJoin()
-                .join(member.memberInfo, memberInfo).fetchJoin()
-                .where(moimMember.member.id.eq(memberId),
-                        moimMember.moim.id.eq(moimId))
-                .fetchOne();
-    }
-
-
-    @Override
-    public MoimMember findWithMemberInfoAndMoimByMemberAndMoimId(Long memberId, Long moimId) {
-
-       /*
-         Query : select * from member_moim_linker mml
-                    join member m on mml.member_id = m.member_id
-                    join moim mo on mo.moim_id = mml.moim_id
-                    where mml.member_id = {memberId}
-                        and mml.moim_id = {moimId}
-        */
-
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.moim, moim).fetchJoin() // MEMO :: MoimMember 내부 Moim 정보를 주입시켜주기 위함, 없으면 moim select 절 나감
-                .join(moimMember.member, member).fetchJoin()
-                .join(member.memberInfo, memberInfo).fetchJoin()
-                .where(moimMember.member.id.eq(memberId)
-                        , moimMember.moim.id.eq(moimId))
-                .fetchOne()
-                ;
-    }
-
-    @Override
-    public List<MoimMember> findWithMemberInfoAndMoimByMoimId(Long moimId) {
-
-   /*
-     Query : select * from member_moim_linker mml
-                join member m on mml.member_id = m.member_id
-                join moim mo on mo.moim_id = mml.moim_id
-                where mml.moim_id = {moimId}
-    */
-
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.moim, moim).fetchJoin() // MEMO :: MoimMember 내부 Moim 정보를 주입시켜주기 위함, 없으면 moim select 절 나감
-                .join(moimMember.member, member).fetchJoin()
-                .join(member.memberInfo, memberInfo).fetchJoin()
-                .where(moimMember.moim.id.eq(moimId))
-                .fetch()
-                ;
-    }
-
-
-
-    @Override
-    public Optional<MoimMember> findOptionalWithMoimByMemberAndMoimId(Long memberId, Long moimId) {
+    public Optional<MoimMember> findWithMemberByMemberAndMoimId(Long memberId, Long moimId) {
+        checkIllegalQueryParams(memberId, moimId);
         return Optional.ofNullable(queryFactory.selectFrom(moimMember)
-                .join(moimMember.moim, moim).fetchJoin()
+                .join(moimMember.member, member).fetchJoin()
                 .where(moimMember.member.id.eq(memberId),
                         moimMember.moim.id.eq(moimId))
                 .fetchOne());
     }
 
-    @Override
-    public void remove(MoimMember moimMember) {
-        em.remove(moimMember);
-    }
 
     // 각 모임 정보를 모두 같이 불러온다
     // In USE

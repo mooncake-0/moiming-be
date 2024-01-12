@@ -3,6 +3,7 @@ package com.peoplein.moiming.model.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
@@ -145,23 +146,29 @@ public class MoimRespDto {
         // 모든 MemberMoim 정보 전달 필요
         private List<String> categories;
 
-        public MoimDetailViewRespDto(Moim moim) {
-            this.moimId = moim.getId();
-            this.moimName = moim.getMoimName();
-            this.moimInfo = moim.getMoimInfo();
-            this.curMemberCount = moim.getCurMemberCount();
-            this.maxMember = moim.getMaxMember();
-            this.areaCity = moim.getMoimArea().getCity();
-            this.areaState = moim.getMoimArea().getState();
-            this.createdAt = moim.getCreatedAt() + "";
-            this.updatedAt = moim.getUpdatedAt() + "";
-            this.categories = MoimCategoryLinker.convertLinkersToNameValues(moim.getMoimCategoryLinkers());
-            if (moim.getMoimJoinRule() != null) {
-                this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
+        @JsonProperty("creatorInfo")
+        private MoimCreatorInfoDto creatorInfoDto;
+
+        public MoimDetailViewRespDto(MoimMember moimMember) {
+            this.moimId = moimMember.getMoim().getId();
+            this.moimName = moimMember.getMoim().getMoimName();
+            this.moimInfo = moimMember.getMoim().getMoimInfo();
+            this.curMemberCount = moimMember.getMoim().getCurMemberCount();
+            this.maxMember = moimMember.getMoim().getMaxMember();
+            this.areaCity = moimMember.getMoim().getMoimArea().getCity();
+            this.areaState = moimMember.getMoim().getMoimArea().getState();
+            this.createdAt = moimMember.getMoim().getCreatedAt() + "";
+            this.updatedAt = moimMember.getMoim().getUpdatedAt() + "";
+
+            this.categories = MoimCategoryLinker.convertLinkersToNameValues(moimMember.getMoim().getMoimCategoryLinkers());
+            this.creatorInfoDto = new MoimCreatorInfoDto(moimMember.getMember());
+            if (moimMember.getMoim().getMoimJoinRule() != null) {
+                this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());
             }
+
         }
 
-        // 오히려 이게 필요 없을 수도 ?
+
         @Getter
         @Setter
         @NoArgsConstructor
@@ -177,6 +184,23 @@ public class MoimRespDto {
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
+            }
+        }
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        public static class MoimCreatorInfoDto {
+
+            // TODO :: 프로필 이미지
+
+            private Long memberId;
+
+            private String nickname;
+
+            public MoimCreatorInfoDto(Member member) {
+                this.memberId = member.getId();
+                this.nickname = member.getNickname();
             }
         }
     }

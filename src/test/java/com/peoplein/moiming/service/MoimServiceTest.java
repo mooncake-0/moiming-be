@@ -1,11 +1,11 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.repository.MoimMemberRepository;
-import com.peoplein.moiming.repository.MoimRepository;
+import com.peoplein.moiming.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,13 +27,18 @@ public class MoimServiceTest {
 
     @InjectMocks
     private MoimService moimService;
-
     @Mock
     private MoimRepository moimRepository;
     @Mock
     private MoimMemberRepository moimMemberRepository;
     @Mock
     private CategoryService categoryService;
+    @Mock
+    private MoimPostRepository moimPostRepository;
+    @Mock
+    private PostCommentRepository postCommentRepository;
+    @Mock
+    private MoimCategoryLinkerRepository moimCategoryLinkerRepository;
 
 
     // 성공
@@ -147,6 +152,156 @@ public class MoimServiceTest {
         // when
         // then
         assertThatThrownBy(() -> moimService.updateMoim(reqDto, mockMember)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // getMoimDetail - 성공
+    @Test
+    void getMoimDetail_shouldPass_whenRightInfoPassed() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimMember creator = mock(MoimMember.class);
+
+        // given - stub
+        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.of(moim));
+        when(moimMemberRepository.findWithMemberByMemberAndMoimId(any(), any())).thenReturn(Optional.of(creator));
+
+        // when
+        moimService.getMoimDetail(moimId, member);
+
+        // then
+        verify(moimRepository, times(1)).findWithJoinRuleAndCategoryById(any());
+
+    }
+
+
+    // getMoimDetail - 실패 : NULL PARAM
+    @Test
+    void getMoimDetail_shouldThrowException_whenParamNull_byMoimingApiException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.getMoimDetail(null, null)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // getMoimDetail - 실패 : MOIM NOT FOUND
+    @Test
+    void getMoimDetail_shouldThrowException_whenMoimNotFound_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.getMoimDetail(moimId, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // deleteMoim - 성공 - JoinRule 이 없어도 성공한다. 있으면 있다고 stubbing 필요
+    @Test
+    void deleteMoim_shouldPass_whenRightInfoPassed() {
+
+        // given - Moim 에 MoimPost 가 두 개있다고 가정한다
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimPost moimPost1 = mock(MoimPost.class);
+        MoimPost moimPost2 = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasPermissionOfManager()).thenReturn(true);
+        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.of(moim));
+        when(moimPostRepository.findByMoimId(any())).thenReturn(List.of(moimPost1, moimPost2));
+
+        // when
+        moimService.deleteMoim(moimId, member);
+
+        // then
+        verify(postCommentRepository, times(2)).removeAllByMoimPostId(any()); // moim 은 Null 아니라 괜찮음
+        verify(moimPostRepository, times(1)).removeAllByMoimId(any());
+        verify(moimCategoryLinkerRepository, times(1)).removeAllByMoimId(any());
+        verify(moimRepository, times(1)).remove(any());
+
+    }
+
+
+    // deleteMoim - 실패 : NULL PARAM
+    @Test
+    void deleteMoim_shouldThrowException_whenParamNull_byMoimingApiException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.deleteMoim(null, null)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // deleteMoim - 실패 : MOIM MEMBER NOT FOUND
+    @Test
+    void deleteMoim_shouldThrowException_whenMoimMemberNotFound_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.deleteMoim(moimId, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // deleteMoim - 실패 : MEMBER NOT AUTHORIZED
+    @Test
+    void deleteMoim_shouldThrowException_whenMoimMemberNotManager_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.of(moim));
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.deleteMoim(moimId, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // deleteMoim - 실패 : MOIM NOT FOUND
+    @Test
+    void deleteMoim_shouldThrowException_whenMoimNotFound_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.deleteMoim(moimId, member)).isInstanceOf(MoimingApiException.class);
 
     }
 
