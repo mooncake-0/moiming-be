@@ -31,12 +31,37 @@ public class MoimPostReqDto {
         private String postContent;
 
         @NotNull
-        private MoimPostCategory moimPostCategory;
+        private String moimPostCategory;
 
         @NotNull
         private Boolean hasFiles;
 
         @NotNull
+        private Boolean hasPrivateVisibility;
+
+    }
+
+
+    @ApiModel(value = "Moim Post API - 요청 - 게시물 수정")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MoimPostUpdateReqDto {
+
+        @NotNull
+        private Long moimPostId;
+
+        @Size(min = 5)
+        private String postTitle;
+
+        @Size(min = 10)
+        private String postContent;
+
+        private String moimPostCategory;
+
+        private Boolean hasFiles;
+
         private Boolean hasPrivateVisibility;
 
     }

@@ -1,5 +1,6 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
@@ -12,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
@@ -102,6 +103,19 @@ public class MoimMemberService {
         expelMoimMember.changeMemberState(IBF);
         expelMoimMember.setInactiveReason(requestDto.getInactiveReason());
 
+    }
+
+
+    public Map<Member, MoimMemberState> getMoimMemberStates(Long moimId, Set<Long> memberIds) {
+
+        List<MoimMember> writerMoimMembers = moimMemberRepository.findByMoimIdAndMemberIds(moimId, new ArrayList<>(memberIds));
+        Map<Member, MoimMemberState> stateMapper = new HashMap<>();
+
+        for (MoimMember writerMoimMember : writerMoimMembers) {
+            stateMapper.put(writerMoimMember.getMember(), writerMoimMember.getMemberState());
+        }
+
+        return stateMapper;
     }
 
 }

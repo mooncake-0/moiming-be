@@ -14,7 +14,9 @@ public interface PostCommentRepository {
 
     Optional<PostComment> findWithMoimPostAndMoimById(Long commentId);
 
-    List<PostComment> findByMoimPostInHierarchyQuery(Long moimPostId);
+    List<PostComment> findByMoimPostInHierarchyQuery(Long moimPostId); // MEMO :: 계층형 쿼리처럼 한 번에 정렬된 채로 가져오는건 좀 어려울 듯 하다 (오라클에선 네이티브로면 가능할텐데)
+
+    List<PostComment> findWithMemberByMoimPostInDepthAndCreatedOrder(Long moimPostId);
 
     void removeAllByMoimPostId(Long moimPostId);
 

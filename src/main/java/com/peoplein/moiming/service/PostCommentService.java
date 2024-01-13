@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
@@ -14,7 +15,11 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 import static com.peoplein.moiming.exception.ExceptionValue.*;
+import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 
 @Service
@@ -24,6 +29,7 @@ import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 public class PostCommentService {
 
     private final MoimPostRepository moimPostRepository;
+    private final MoimMemberService moimMemberService;
     private final PostCommentRepository postCommentRepository;
     private final MoimMemberRepository moimMemberRepository;
 
@@ -80,6 +86,34 @@ public class PostCommentService {
         checkActivePermission(member.getId(), comment.getMoimPost().getMoim().getId());
 
         comment.deleteComment(member.getId());
+    }
+
+
+    public PostCommentDetailsDto getSortedPostComments(Long postId) {
+
+        if (postId == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        List<PostComment> postComments = postCommentRepository.findWithMemberByMoimPostInDepthAndCreatedOrder(postId);
+        List<PostComment> parentComments = new ArrayList<>();
+        Map<Long, List<PostComment>> childCommentsMap = new HashMap<>();
+
+        // List 들은 현재 Order 가 보장된다
+        for (PostComment postComment : postComments) {
+            if (postComment.getDepth() == 0) {
+                parentComments.add(postComment);
+                childCommentsMap.put(postComment.getId(), new ArrayList<>());
+            } else {
+                List<PostComment> childComments = childCommentsMap.get(postComment.getParent().getId());
+                childComments.add(postComment);
+            }
+        }
+
+        // 여기서 MoimMemberState 을 준비한다
+        Set<Long> commentCreatorIds = postComments.stream().map(pc -> pc.getMember().getId()).collect(Collectors.toSet());
+
+        return new PostCommentDetailsDto(commentCreatorIds, parentComments, childCommentsMap);
     }
 
 

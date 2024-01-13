@@ -13,14 +13,14 @@ public enum ExceptionValue {
 
     // MOIM DOMAIN
     MOIM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "M000", "해당 모임을 찾을 수 없습니다"),
+    MOIM_ACT_NOT_AUTHORIZED(HttpStatus.FORBIDDEN.value(), "M001", "해당 모임에서 해당 요청을 수행할 권한이 없습니다"),
+    MOIM_JOIN_FAIL_BY_AGE_RULE(HttpStatus.FORBIDDEN.value(), "M002", "가입 조건 중 나이가 부합하지 않아 가입할 수 없습니다"),
+    MOIM_JOIN_FAIL_BY_GENDER_RULE(HttpStatus.FORBIDDEN.value(), "M003", "가입 조건 중 성별이 부합하지 않아 가입할 수 없습니다"),
+    MOIM_JOIN_FAIL_BY_MEMBER_FULL(HttpStatus.FORBIDDEN.value(), "M004", "모임 정원이 가득차서 가입할 수 없습니다"),
+    MOIM_JOIN_FAIL_BY_ALREADY_JOINED(HttpStatus.CONFLICT.value(), "M005", "이미 가입한 모임입니다"),
 
-    MOIM_JOIN_FAIL_BY_AGE_RULE(HttpStatus.FORBIDDEN.value(), "M001", "가입 조건 중 나이가 부합하지 않아 가입할 수 없습니다"),
-    MOIM_JOIN_FAIL_BY_GENDER_RULE(HttpStatus.FORBIDDEN.value(), "M002", "가입 조건 중 성별이 부합하지 않아 가입할 수 없습니다"),
-    MOIM_JOIN_FAIL_BY_MEMBER_FULL(HttpStatus.FORBIDDEN.value(), "M003", "모임 정원이 가득차서 가입할 수 없습니다"),
-    MOIM_JOIN_FAIL_BY_ALREADY_JOINED(HttpStatus.CONFLICT.value(), "M004", "이미 가입한 모임입니다"),
-
-    MOIM_LEAVE_FAIL_BY_LAST_MEMBER(HttpStatus.FORBIDDEN.value(), "M005", "마지막 회원으로, 모임을 나갈 수 없습니다 (MVP 에선 발생할 일 없음)"),
-    MOIM_LEAVE_FAIL_BY_MANAGER(HttpStatus.FORBIDDEN.value(), "M006", "운영자(개설자) 는 모임을 나갈 수 없습니다"),
+    MOIM_LEAVE_FAIL_BY_LAST_MEMBER(HttpStatus.FORBIDDEN.value(), "M006", "마지막 회원으로, 모임을 나갈 수 없습니다 (MVP 에선 발생할 일 없음)"),
+    MOIM_LEAVE_FAIL_BY_MANAGER(HttpStatus.FORBIDDEN.value(), "M007", "운영자(개설자) 는 모임을 나갈 수 없습니다"),
 
     MOIM_POST_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MP000", "해당 게시물을 찾을 수 없습니다"),
 

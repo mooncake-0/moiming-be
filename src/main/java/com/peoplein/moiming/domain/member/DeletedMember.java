@@ -8,9 +8,9 @@ public class DeletedMember extends Member{
     private Long memberId;
     private String nickname;
 
-    public DeletedMember(Long memberId) {
+    public DeletedMember(Member member) {
 
-        this.memberId = memberId;
+        this.memberId = member.getId();
         this.nickname = "탈퇴한 사용자";
     }
 }

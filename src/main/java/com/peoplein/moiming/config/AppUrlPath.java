@@ -70,6 +70,7 @@ public abstract class AppUrlPath {
     // Moim Post 관련 API
     // GET - /api/v0/moim/{moimId}/post?lastPostId={id}&category={category}&limit={val}
     public final static String PATH_MOIM_POST_GET_VIEW = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}" + API_MOIM_POST;
+    public final static String PATH_MOIM_POST_GET_DETAIL = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}" + API_MOIM_POST + "/{moimPostId}";
     // POST - /api/v0/moim/post
     public final static String PATH_MOIM_POST_CREATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + API_MOIM_POST;
     // PATCH - /api/v0/moim/post

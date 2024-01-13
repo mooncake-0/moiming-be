@@ -18,6 +18,8 @@ public interface MoimPostRepository {
 
     Optional<MoimPost> findWithMoimById(Long moimPostId);
 
+    Optional<MoimPost> findWithMemberById(Long moimPostId);
+
     Optional<MoimPost> findWithMoimAndMemberById(Long moimPostId); // 게시물 생성자와 모임정보를 같이 불러온다
 
     List<MoimPost> findByMoimId(Long moimId);

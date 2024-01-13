@@ -29,6 +29,7 @@ public class MoimPost extends BaseEntity {
 
     private String postTitle;
     private String postContent;
+    @Enumerated(EnumType.STRING)
     private MoimPostCategory moimPostCategory;
     private boolean hasPrivateVisibility;
     private boolean hasFiles;
@@ -80,19 +81,55 @@ public class MoimPost extends BaseEntity {
         this.postComments.add(postComment);
     }
 
-    public void removePostComment(PostComment postComment) {
-        this.postComments.remove(postComment);
+    // TODO:: 구체적인 DB 요구사항에 맞춰 checking 값 변경 필요
+    public void changeMoimPostInfo(String postTitle, String postContent, MoimPostCategory postCategory, Boolean hasFiles, Boolean hasPrivateVisibility, Long memberId) {
+
+        boolean isChanged = false;
+
+        if (StringUtils.hasText(postTitle)) {
+            isChanged = true;
+            changePostTitle(postTitle);
+        }
+
+        if (StringUtils.hasText(postContent)) {
+            isChanged = true;
+            changePostContent(postContent);
+        }
+
+        if (postCategory != null) {
+            isChanged = true;
+            changePostCategory(postCategory);
+        }
+
+        if (hasFiles != null) {
+            isChanged = true;
+            this.hasFiles = hasFiles;
+        }
+
+        if (hasPrivateVisibility != null) {
+            isChanged = true;
+            this.hasPrivateVisibility = hasPrivateVisibility;
+        }
+
+        if (isChanged) {
+            this.updatedMemberId = memberId;
+        }
+
     }
 
-    public void changePostTitle(String postTitle) {
+
+    private void changePostTitle(String postTitle) {
+        checkWrongParam(postTitle);
         this.postTitle = postTitle;
     }
 
-    public void changePostContent(String postContent) {
+    private void changePostContent(String postContent) {
+        checkWrongParam(postContent);
         this.postContent = postContent;
     }
 
-    public void changePostCategory(MoimPostCategory moimPostCategory) {
+    private void changePostCategory(MoimPostCategory moimPostCategory) {
+        checkWrongParam(moimPostCategory);
         this.moimPostCategory = moimPostCategory;
     }
 
@@ -102,12 +139,21 @@ public class MoimPost extends BaseEntity {
         }
         this.member = member;
     }
+
+
     public void addCommentCnt() {
         this.commentCnt += 1;
     }
 
     public void minusCommentCnt() {
         this.commentCnt -= 1;
+    }
+
+    private void checkWrongParam(Object obj) {
+        if (obj == null) {
+            throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
+        }
+
     }
 
     // Attribute - Class 내 포함 변수

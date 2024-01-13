@@ -68,6 +68,15 @@ public class MoimPostJpaRepository implements MoimPostRepository {
                         .fetchOne());
     }
 
+    @Override
+    public Optional<MoimPost> findWithMemberById(Long moimPostId) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(moimPost)
+                        .join(moimPost.member, member).fetchJoin()
+                        .where(moimPost.id.eq(moimPostId))
+                        .fetchOne());
+    }
+
 
     @Override
     public Optional<MoimPost> findWithMoimAndMemberById(Long moimPostId) {

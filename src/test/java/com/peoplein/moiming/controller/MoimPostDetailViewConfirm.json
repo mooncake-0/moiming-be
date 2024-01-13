@@ -1,0 +1,131 @@
+{
+  "moimPostId": 25,
+  "postTitle": "TITLE",
+  "postContent": "CONTENT",
+  "moimPostCategory": "공지",
+  "hasPrivateVisibility": false,
+  "hasFiles": false,
+  "commentCnt": 7,
+  "createdAt": "2024-01-13T21:22:43.894154",
+  "updatedAt": "2024-01-13T21:22:43.936889",
+  "updatedMemberId": 1,
+  "postCreatorInfo": {
+    "memberId": 1,
+    "nickname": "NICKNAME1"
+  },
+  "parentComments": [
+    {
+      "postCommentId": 31,
+      "content": "TITLE, NICKNAME2, 댓글입니다",
+      "depth": 0,
+      "hasDeleted": false,
+      "reported": false,
+      "updaterId": null,
+      "createdAt": "2024-01-13T21:22:43.922800",
+      "updatedAt": "2024-01-13T21:22:43.922800",
+      "parentId": null,
+      "commentCreatorInfo": {
+        "memberId": 4,
+        "nickname": "NICKNAME2"
+      }
+    },
+    {
+      "postCommentId": 33,
+      "content": "TITLE, NICKNAME5, 댓글입니다",
+      "depth": 0,
+      "hasDeleted": false,
+      "reported": false,
+      "updaterId": null,
+      "createdAt": "2024-01-13T21:22:43.924148",
+      "updatedAt": "2024-01-13T21:22:43.924148",
+      "parentId": null,
+      "commentCreatorInfo": {
+        "memberId": 13,
+        "nickname": "NICKNAME5"
+      }
+    },
+    {
+      "postCommentId": 35,
+      "content": "TITLE, NICKNAME4, 댓글입니다",
+      "depth": 0,
+      "hasDeleted": false,
+      "reported": false,
+      "updaterId": null,
+      "createdAt": "2024-01-13T21:22:43.925778",
+      "updatedAt": "2024-01-13T21:22:43.925778",
+      "parentId": null,
+      "commentCreatorInfo": {
+        "memberId": 10,
+        "nickname": "NICKNAME4"
+      }
+    }
+  ],
+  "childComments": {
+    "33": [
+      {
+        "postCommentId": 34,
+        "content": "TITLE, NICKNAME1, 답글입니다",
+        "depth": 1,
+        "hasDeleted": false,
+        "reported": false,
+        "updaterId": null,
+        "createdAt": "2024-01-13T21:22:43.925124",
+        "updatedAt": "2024-01-13T21:22:43.925124",
+        "parentId": 33,
+        "commentCreatorInfo": {
+          "memberId": 1,
+          "nickname": "NICKNAME1"
+        }
+      }
+    ],
+    "35": [
+      {
+        "postCommentId": 36,
+        "content": "TITLE, NICKNAME2, 답글입니다",
+        "depth": 1,
+        "hasDeleted": false,
+        "reported": false,
+        "updaterId": null,
+        "createdAt": "2024-01-13T21:22:43.926297",
+        "updatedAt": "2024-01-13T21:22:43.926297",
+        "parentId": 35,
+        "commentCreatorInfo": {
+          "memberId": 4,
+          "nickname": "NICKNAME2"
+        }
+      },
+      {
+        "postCommentId": 37,
+        "content": "TITLE, NICKNAME7, 답글입니다",
+        "depth": 1,
+        "hasDeleted": false,
+        "reported": false,
+        "updaterId": null,
+        "createdAt": "2024-01-13T21:22:43.926832",
+        "updatedAt": "2024-01-13T21:22:43.926832",
+        "parentId": 35,
+        "commentCreatorInfo": {
+          "memberId": null,
+          "nickname": "탈퇴한 사용자"
+        }
+      }
+    ],
+    "31": [
+      {
+        "postCommentId": 32,
+        "content": "TITLE, NICKNAME1, 답글입니다",
+        "depth": 1,
+        "hasDeleted": false,
+        "reported": false,
+        "updaterId": null,
+        "createdAt": "2024-01-13T21:22:43.923544",
+        "updatedAt": "2024-01-13T21:22:43.923544",
+        "parentId": 31,
+        "commentCreatorInfo": {
+          "memberId": 1,
+          "nickname": "NICKNAME1"
+        }
+      }
+    ]
+  }
+}}

@@ -97,7 +97,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), normalPostTitle, normalPostcontent, MoimPostCategory.REVIEW, false, true
+                testMoim.getId(), normalPostTitle, normalPostcontent, MoimPostCategory.REVIEW.getValue(), false, true
         );
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -122,7 +122,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                null, normalPostTitle, normalPostcontent, MoimPostCategory.REVIEW, false, true
+                null, normalPostTitle, normalPostcontent, MoimPostCategory.REVIEW.getValue(), false, true
         );
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -144,7 +144,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), null, normalPostcontent, MoimPostCategory.REVIEW, false, true
+                testMoim.getId(), null, normalPostcontent, MoimPostCategory.REVIEW.getValue(), false, true
         );
 
         String requestBody = om.writeValueAsString(requestDto);
@@ -169,7 +169,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), normalPostTitle, "내용은최소10자", MoimPostCategory.REVIEW, false, true
+                testMoim.getId(), normalPostTitle, "내용은최소10자", MoimPostCategory.REVIEW.getValue(), false, true
         );
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -217,7 +217,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), normalPostTitle, normalPostcontent, MoimPostCategory.REVIEW, false, null
+                testMoim.getId(), normalPostTitle, normalPostcontent, MoimPostCategory.REVIEW.getValue(), false, null
         );
         String requestBody = om.writeValueAsString(requestDto);
 
