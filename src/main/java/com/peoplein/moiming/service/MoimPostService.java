@@ -121,14 +121,7 @@ public class MoimPostService {
         );
 
         Optional<MoimMember> moimMemberOp = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId());
-
-        // moimMember 가 Active 가 아닐경우 + moimPost 가 비공개일 경우 > 거른다
-        // moimMember 가 없을 경우 + moimPost 가 비공개일 경우 > 거른다
-        if (moimPost.isHasPrivateVisibility()) {
-            if (moimMemberOp.isEmpty() || !moimMemberOp.get().hasActivePermission()) {
-                throw new MoimingApiException(MOIM_ACT_NOT_AUTHORIZED);
-            }
-        }
+        moimPost.checkMemberAccessibility(moimMemberOp);
 
         PostCommentDetailsDto commentsDto = postCommentService.getSortedPostComments(postId);
         commentsDto.getCommentCreatorIds().add(moimPost.getMember().getId()); // 게시물 생성자가 없을 수도 있음, 추가해준다

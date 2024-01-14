@@ -39,6 +39,8 @@ public class MoimServiceTest {
     private PostCommentRepository postCommentRepository;
     @Mock
     private MoimCategoryLinkerRepository moimCategoryLinkerRepository;
+    @Mock
+    private CategoryService categoryService;
 
 
     // 성공

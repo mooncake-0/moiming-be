@@ -3,6 +3,7 @@ package com.peoplein.moiming.domain;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
@@ -14,6 +15,9 @@ import org.springframework.util.StringUtils;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static com.peoplein.moiming.exception.ExceptionValue.MOIM_ACT_NOT_AUTHORIZED;
 
 @Entity
 @Getter
@@ -138,6 +142,21 @@ public class MoimPost extends BaseEntity {
             throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
         }
         this.member = member;
+    }
+
+
+    // 해당 게시물을 조회하려는 유저가 가능한 유저인지 판별한다
+    public void checkMemberAccessibility(Optional<MoimMember> moimMemberOp) {
+
+        if (this.hasPrivateVisibility) { // 비공개 게시물일 경우 하기를 탄다
+            // moimMember 가 Active 가 아닐경우 + moimPost 가 비공개일 경우 > 거른다
+            // moimMember 가 없을 경우 + moimPost 가 비공개일 경우 > 거른다
+            if (moimMemberOp.isEmpty() || !moimMemberOp.get().hasActivePermission()) {
+                throw new MoimingApiException(MOIM_ACT_NOT_AUTHORIZED);
+            }
+        }
+        // public 이면 누구나 가능
+
     }
 
 
