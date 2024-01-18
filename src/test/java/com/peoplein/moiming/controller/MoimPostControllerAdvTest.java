@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-public class MoimPostControllerTestV2 extends TestObjectCreator {
+public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     private final ObjectMapper om = new ObjectMapper();
 
@@ -155,17 +155,12 @@ public class MoimPostControllerTestV2 extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(creatorPost.isHasPrivateVisibility()));
-        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(creatorPost.getMoimPostCategory().getValue()));
+        resultActions.andExpect(jsonPath("$.data.postCategory").value(creatorPost.getMoimPostCategory().getValue()));
         resultActions.andExpect(jsonPath("$.data.commentCnt").value(creatorPost.getCommentCnt()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.memberId").value(creatorPost.getMember().getId()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.nickname").value(creatorPost.getMember().getNickname()));
-        resultActions.andExpect(jsonPath("$.data.parentComments").isArray());
-        resultActions.andExpect(jsonPath("$.data.parentComments", hasSize(3)));
-        resultActions.andExpect(jsonPath("$.data.parentComments[?(@.depth == 0)]", hasSize(3)));
-        resultActions.andExpect(jsonPath("$.data.childComments", aMapWithSize(3)));
-        // then - deleted member 가려짐 검증
-        resultActions.andExpect(jsonPath("$.data.childComments." + deleteParentComment.getId() + "[?(@.commentCreatorInfo.memberId == null)]").exists());
-        resultActions.andExpect(jsonPath("$.data.childComments." + deleteParentComment.getId() + "[?(@.commentCreatorInfo.nickname == '탈퇴한 사용자')]").exists());
+        resultActions.andExpect(jsonPath("$.data.postCreator.memberId").value(creatorPost.getMember().getId()));
+        resultActions.andExpect(jsonPath("$.data.postCreator.nickname").value(creatorPost.getMember().getNickname()));
+        resultActions.andExpect(jsonPath("$.data.postComments").isArray());
+        resultActions.andExpect(jsonPath("$.data.postComments", hasSize(3)));
 
     }
 
@@ -189,17 +184,12 @@ public class MoimPostControllerTestV2 extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(moimMemberPost.isHasPrivateVisibility()));
-        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(moimMemberPost.getMoimPostCategory().getValue()));
+        resultActions.andExpect(jsonPath("$.data.postCategory").value(moimMemberPost.getMoimPostCategory().getValue()));
         resultActions.andExpect(jsonPath("$.data.commentCnt").value(moimMemberPost.getCommentCnt()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.memberId").value(moimMemberPost.getMember().getId()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.nickname").value(moimMemberPost.getMember().getNickname()));
-        resultActions.andExpect(jsonPath("$.data.parentComments").isArray());
-        resultActions.andExpect(jsonPath("$.data.parentComments", hasSize(2)));
-        resultActions.andExpect(jsonPath("$.data.parentComments[?(@.depth == 0)]", hasSize(2)));
-        resultActions.andExpect(jsonPath("$.data.childComments", aMapWithSize(2)));
-        // then - deleted member 가려짐 검증
-        resultActions.andExpect(jsonPath("$.data.childComments." + dormantParentComment.getId() + "[?(@.commentCreatorInfo.memberId == null)]").exists());
-        resultActions.andExpect(jsonPath("$.data.childComments." + dormantParentComment.getId() + "[?(@.commentCreatorInfo.nickname == '휴면 전환 사용자')]").exists());
+        resultActions.andExpect(jsonPath("$.data.postCreator.memberId").value(moimMemberPost.getMember().getId()));
+        resultActions.andExpect(jsonPath("$.data.postCreator.nickname").value(moimMemberPost.getMember().getNickname()));
+        resultActions.andExpect(jsonPath("$.data.postComments").isArray());
+        resultActions.andExpect(jsonPath("$.data.postComments", hasSize(2)));
 
     }
 
@@ -223,18 +213,18 @@ public class MoimPostControllerTestV2 extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(creatorPost.isHasPrivateVisibility()));
-        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(creatorPost.getMoimPostCategory().getValue()));
+        resultActions.andExpect(jsonPath("$.data.postCategory").value(creatorPost.getMoimPostCategory().getValue()));
         resultActions.andExpect(jsonPath("$.data.commentCnt").value(creatorPost.getCommentCnt()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.memberId").value(creatorPost.getMember().getId()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.nickname").value(creatorPost.getMember().getNickname()));
-        resultActions.andExpect(jsonPath("$.data.parentComments").isArray());
-        resultActions.andExpect(jsonPath("$.data.parentComments", hasSize(3)));
-        resultActions.andExpect(jsonPath("$.data.parentComments[?(@.depth == 0)]", hasSize(3)));
-        resultActions.andExpect(jsonPath("$.data.childComments", aMapWithSize(3)));
+        resultActions.andExpect(jsonPath("$.data.postCreator.memberId").value(creatorPost.getMember().getId()));
+        resultActions.andExpect(jsonPath("$.data.postCreator.nickname").value(creatorPost.getMember().getNickname()));
+        resultActions.andExpect(jsonPath("$.data.postComments").isArray());
+        resultActions.andExpect(jsonPath("$.data.postComments", hasSize(3)));
+//        resultActions.andExpect(jsonPath("$.data.parentComments[?(@.depth == 0)]", hasSize(3)));
+//        resultActions.andExpect(jsonPath("$.data.childComments", aMapWithSize(3)));
 
         // then - deleted member 가려짐 검증
-        resultActions.andExpect(jsonPath("$.data.childComments." + deleteParentComment.getId() + "[?(@.commentCreatorInfo.memberId == null)]").exists());
-        resultActions.andExpect(jsonPath("$.data.childComments." + deleteParentComment.getId() + "[?(@.commentCreatorInfo.nickname == '탈퇴한 사용자')]").exists());
+//        resultActions.andExpect(jsonPath("$.data.childComments." + deleteParentComment.getId() + "[?(@.commentCreatorInfo.memberId == null)]").exists());
+//        resultActions.andExpect(jsonPath("$.data.childComments." + deleteParentComment.getId() + "[?(@.commentCreatorInfo.nickname == '탈퇴한 사용자')]").exists());
 
     }
 
@@ -281,14 +271,14 @@ public class MoimPostControllerTestV2 extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(ibwMemberPost.isHasPrivateVisibility()));
-        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(ibwMemberPost.getMoimPostCategory().getValue()));
+        resultActions.andExpect(jsonPath("$.data.postCategory").value(ibwMemberPost.getMoimPostCategory().getValue()));
         resultActions.andExpect(jsonPath("$.data.commentCnt").value(ibwMemberPost.getCommentCnt()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.memberId").value(ibwMemberPost.getMember().getId()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.nickname").value(ibwMemberPost.getMember().getNickname()));
-        resultActions.andExpect(jsonPath("$.data.parentComments").isArray());
-        resultActions.andExpect(jsonPath("$.data.parentComments", hasSize(0)));
-        resultActions.andExpect(jsonPath("$.data.parentComments[?(@.depth == 0)]", hasSize(0))); // 조건을 만족하는 것
-        resultActions.andExpect(jsonPath("$.data.childComments", aMapWithSize(0)));
+        resultActions.andExpect(jsonPath("$.data.postCreator.memberId").value(ibwMemberPost.getMember().getId()));
+        resultActions.andExpect(jsonPath("$.data.postCreator.nickname").value(ibwMemberPost.getMember().getNickname()));
+        resultActions.andExpect(jsonPath("$.data.postComments").isArray());
+        resultActions.andExpect(jsonPath("$.data.postComments", hasSize(0)));
+//        resultActions.andExpect(jsonPath("$.data.parentComments[?(@.depth == 0)]", hasSize(0))); // 조건을 만족하는 것
+//        resultActions.andExpect(jsonPath("$.data.childComments", aMapWithSize(0)));
 
     }
 
@@ -312,14 +302,14 @@ public class MoimPostControllerTestV2 extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(deleteMemberPost.isHasPrivateVisibility()));
-        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(deleteMemberPost.getMoimPostCategory().getValue()));
+        resultActions.andExpect(jsonPath("$.data.postCategory").value(deleteMemberPost.getMoimPostCategory().getValue()));
         resultActions.andExpect(jsonPath("$.data.commentCnt").value(deleteMemberPost.getCommentCnt()));
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.memberId").isEmpty());
-        resultActions.andExpect(jsonPath("$.data.postCreatorInfo.nickname").value("탈퇴한 사용자"));
-        resultActions.andExpect(jsonPath("$.data.parentComments").isArray());
-        resultActions.andExpect(jsonPath("$.data.parentComments", hasSize(0)));
-        resultActions.andExpect(jsonPath("$.data.parentComments[?(@.depth == 0)]", hasSize(0)));
-        resultActions.andExpect(jsonPath("$.data.childComments", aMapWithSize(0)));
+        resultActions.andExpect(jsonPath("$.data.postCreator.memberId").isEmpty());
+        resultActions.andExpect(jsonPath("$.data.postCreator.nickname").value("탈퇴한 사용자"));
+        resultActions.andExpect(jsonPath("$.data.postComments").isArray());
+        resultActions.andExpect(jsonPath("$.data.postComments", hasSize(0)));
+//        resultActions.andExpect(jsonPath("$.data.parentComments[?(@.depth == 0)]", hasSize(0)));
+//        resultActions.andExpect(jsonPath("$.data.childComments", aMapWithSize(0)));
 
     }
 

@@ -4,6 +4,7 @@ import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimService;
 import io.swagger.annotations.*;
@@ -145,4 +146,22 @@ public class MoimController {
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 및 모든 모임 정보 삭제 성공", null));
     }
 
+
+    @ApiOperation("모임 고정 정보 조회 (지역 / 카테고리)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 고정 정보 조회 성공"),
+            @ApiResponse(code = 400, message = "모임 고정 정보 조회 실패")
+    })
+    @GetMapping(PATH_MOIM_FIXED_VALUES)
+    public ResponseEntity<?> getFixedInfo() {
+
+        MoimFixedValInnerDto fixedValues = moimService.getFixedInfo();
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 지역 / 카테고리 정보 조회 성공",
+                new MoimFixedInfoRespDto(fixedValues.getAreaStates(), fixedValues.getCategoryDto().getParentCategories(), fixedValues.getCategoryDto().getChildCategoriesMap())
+        ));
+    }
 }

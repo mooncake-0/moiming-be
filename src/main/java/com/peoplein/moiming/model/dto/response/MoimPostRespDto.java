@@ -120,7 +120,7 @@ public class MoimPostRespDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class MoimPostDetailViewRespDto {
+    public static class MoimPostDetailViewRespDtoTemp {
 
         private Long moimPostId;
         private String postTitle;
@@ -190,7 +190,7 @@ public class MoimPostRespDto {
             }
         }
 
-        public MoimPostDetailViewRespDto(MoimPost moimPost, List<PostComment> parentComments, Map<Long, List<PostComment>> inputmap) {
+        public MoimPostDetailViewRespDtoTemp(MoimPost moimPost, List<PostComment> parentComments, Map<Long, List<PostComment>> inputmap) {
             this.moimPostId = moimPost.getId();
             this.postTitle = moimPost.getPostTitle();
             this.postContent = moimPost.getPostContent();
@@ -207,7 +207,7 @@ public class MoimPostRespDto {
 
         }
 
-        public Map<Long, List<PostCommentInfoDto>> convertMapToDto (Map<Long, List<PostComment>> inputmap){
+        public Map<Long, List<PostCommentInfoDto>> convertMapToDto(Map<Long, List<PostComment>> inputmap) {
 
             Map<Long, List<PostCommentInfoDto>> childCommentsDto = new HashMap<>();
             for (Long parentId : inputmap.keySet()) {

@@ -16,12 +16,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Component
+//@Component
 @RequiredArgsConstructor
 public class FileDeleteScheduler {
     private final FileUploadRepository fileUploadRepository;
 
-    @Transactional
+//    @Transactional
     public void delete() {
         log.info("FileDeletedScheduler Called");
         List<FileUpload> allDeletedMarkedFile = fileUploadRepository.findAllDeletedMarkedFile();

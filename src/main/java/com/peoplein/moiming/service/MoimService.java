@@ -1,6 +1,7 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
@@ -8,6 +9,7 @@ import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.MoimJoinRuleJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
@@ -213,7 +216,34 @@ public class MoimService {
         if (moim.getMoimJoinRule() != null) {
             moimJoinRuleRepository.removeById(moim.getMoimJoinRule().getId());
         }
+    }
 
+
+    // Fixed Value 를 반환해준다 - App 단에서 캐싱되면 좋을 듯
+    public MoimFixedValInnerDto getFixedInfo() {
+
+        // 지역 조회
+        List<AreaValue> areaState = getAreaStates();
+
+        // Category All 조회
+        MoimFixedValInnerDto.AppCategoryDto allCategories = categoryService.getAllCategories();
+
+        return new MoimFixedValInnerDto(allCategories, areaState);
+
+    }
+
+
+    private List<AreaValue>  getAreaStates() {
+
+        List<AreaValue> areaState = new ArrayList<>();
+
+        for (AreaValue areaValue : AreaValue.values()) {
+            if (areaValue.getState() == null) { // 부모일 경우
+                areaState.add(areaValue);
+            }
+        }
+
+        return areaState;
     }
 
 

@@ -6,7 +6,7 @@ import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.model.dto.auth.*;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.SmsVerificationRepository;
-import com.peoplein.moiming.service.core.SmsVerificationCore;
+import com.peoplein.moiming.service.support.SmsVerificationCore;
 import com.peoplein.moiming.service.shell.SmsSendShell;
 import lombok.RequiredArgsConstructor;
 import okhttp3.Request;

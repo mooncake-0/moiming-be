@@ -52,6 +52,7 @@ public abstract class AppUrlPath {
     public final static String PATM_MOIM_JOIN_RULE_UPDATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/joinRule";
     // DELETE - /api/v0/moim/{moimId}
     public final static String PATH_MOIM_DELETE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
+    public final static String PATH_MOIM_FIXED_VALUES = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/fixed";
 
 
 

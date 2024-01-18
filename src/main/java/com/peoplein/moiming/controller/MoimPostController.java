@@ -8,8 +8,8 @@ import com.peoplein.moiming.domain.member.DeletedMember;
 import com.peoplein.moiming.domain.member.DormantMember;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
+import com.peoplein.moiming.model.dto.response.MoimPostDetailViewRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimPostService;
 import io.swagger.annotations.*;
@@ -124,6 +124,7 @@ public class MoimPostController {
             checkToChangeCommentCreatorInfo(comments, memberStates);
         }
 
+//        MoimPostDetailViewRespDtoTemp responseData = new MoimPostDetailViewRespDtoTemp(post, parents, childsMap);
         MoimPostDetailViewRespDto responseData = new MoimPostDetailViewRespDto(post, parents, childsMap);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 세부 조회 성공", responseData));
     }

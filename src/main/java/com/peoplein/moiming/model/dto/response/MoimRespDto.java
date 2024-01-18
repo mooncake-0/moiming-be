@@ -2,7 +2,9 @@ package com.peoplein.moiming.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
+import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
@@ -13,7 +15,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class MoimRespDto {
 
@@ -250,6 +254,44 @@ public class MoimRespDto {
             this.ageMax = moimJoinRule.getAgeMax();
             this.ageMin = moimJoinRule.getAgeMin();
             this.memberGender = moimJoinRule.getMemberGender();
+        }
+    }
+
+
+    @ApiModel(value = "Moim API - 응답 - 모임 고정 정보 조회 (지역 / 카테고리)")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class MoimFixedInfoRespDto {
+
+        @JsonProperty("moimAreas")
+        private List<MoimAreaDto> moimAreaDto;
+
+        @JsonProperty("moimCategories")
+        private List<MoimCategoryDto> moimCategoryDto;
+
+        public MoimFixedInfoRespDto(List<AreaValue> areaState, List<Category> parentCategories, Map<Long, List<Category>> childCategoriesMap) {
+            this.moimAreaDto = areaState.stream().map(MoimAreaDto::new).collect(Collectors.toList());
+            this.moimCategoryDto = parentCategories.stream().map(parent -> new MoimCategoryDto(parent, childCategoriesMap.get(parent.getId()))).collect(Collectors.toList());
+
+        }
+
+        public static class MoimAreaDto {
+            public String state;
+            public List<String> cities;
+            public MoimAreaDto(AreaValue areaState) {
+                this.state = areaState.getName();
+                this.cities = areaState.getStateCities().stream().map(AreaValue::getName).collect(Collectors.toList());
+            }
+        }
+
+        public static class MoimCategoryDto {
+            public String parentCategory;
+            public List<String> childCategories;
+            public MoimCategoryDto(Category parent, List<Category> categories) {
+                this.parentCategory = parent.getCategoryName().getValue();
+                this.childCategories = categories.stream().map(category -> category.getCategoryName().getValue()).collect(Collectors.toList());
+            }
         }
     }
 }
