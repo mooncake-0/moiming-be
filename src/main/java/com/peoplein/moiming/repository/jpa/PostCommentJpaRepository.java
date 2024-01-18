@@ -17,6 +17,7 @@ import java.util.Optional;
 import static com.peoplein.moiming.domain.QPostComment.*;
 import static com.peoplein.moiming.domain.QMoimPost.*;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
+import static com.peoplein.moiming.domain.member.QMember.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -35,39 +36,22 @@ public class PostCommentJpaRepository implements PostCommentRepository {
         }
     }
 
-    @Override
-    public PostComment findWithMoimPostById(Long postCommentId) {
-        return queryFactory.selectFrom(postComment)
-                .join(postComment.moimPost, moimPost).fetchJoin()
-                .where(postComment.id.eq(postCommentId))
-                .fetchOne();
-    }
-
-    @Override
-    public List<PostComment> findWithMoimPostId(Long moimPostId) {
-        return queryFactory
-                .selectFrom(postComment)
-                .where(postComment.moimPost.id.eq(moimPostId))
-                .fetch();
-    }
-
-    @Override
-    public void remove(PostComment postComment) {
-        em.remove(postComment);
-    }
 
     /*
      특정 게시물의 모든 댓글 일괄 삭제
+     > 게시물이 삭제되거나, 모임이 삭제될 때 진행된다
+     > 이 때, FK 제약조건에 위배되지 않게 두 개의 쿼리가 발생해야 한다
+     > 답글이 연관관계의 주인 > 답글들이 댓글의 FK 를 가지고 있음
+     > 답글이 먼저 삭제되어야 한다
      */
     @Override
-    public Long removeAllByMoimPostId(Long moimPostId) {
-        JPADeleteClause clause = new JPADeleteClause(em, postComment);
-        return clause.where(postComment.moimPost.id.eq(moimPostId)).execute();
-    }
+    public void removeAllByMoimPostId(Long moimPostId) {
 
-    @Override
-    public void removeAllByMoimPostIds(List<Long> moimPostIds) {
-        queryFactory.delete(postComment).where(postComment.moimPost.id.in(moimPostIds)).execute();
+        queryFactory.delete(postComment)
+                .where(postComment.moimPost.id.eq(moimPostId), postComment.depth.eq(1)).execute();
+
+        queryFactory.delete(postComment)
+                .where(postComment.moimPost.id.eq(moimPostId)).execute();
     }
 
 
@@ -113,6 +97,15 @@ public class PostCommentJpaRepository implements PostCommentRepository {
         /*
         > 또다른 가능한 방법
 
+
+            id      content     depth   parent_id
+            1                     0         1
+            2                     1         1
+            3                     1         1
+            4                     0         4
+            5                     1         4
+
+
         SELECT C.COMMENT_ID, C.CONTENT, C.DEPTH, C.POST_ID, NVL(C.PARENT_ID, C.COMMENT_ID) "ㅈㄹ"
 
         FROM COMM C
@@ -126,13 +119,29 @@ public class PostCommentJpaRepository implements PostCommentRepository {
         List<Object[]> rawData = em.createQuery(
                         "SELECT c.id, c.content, c.depth, c.member, c.moimPost, COALESCE(c.parent, c.id) " +
                                 "FROM PostComment c " +
-                                "LEFT JOIN PostComment p " +
-                                "ON c.parent.id = p.id " +
+//                                "LEFT JOIN PostComment p " +
+//                                "ON c.parent.id = p.id " +
                                 "WHERE c.moimPost.id = :moimPostId " +
                                 "ORDER BY c.depth, c.createdAt", Object[].class)
                 .setParameter("moimPostId", moimPostId).getResultList();
 
         return null;
+
+    }
+
+
+    @Override
+    public List<PostComment> findWithMemberByMoimPostInDepthAndCreatedOrder(Long moimPostId) {
+
+        checkIllegalQueryParams(moimPostId);
+
+        //  Order By Depth 와 created At 으로 모두 불러오고, HashMap 으로 인 앱에서 최종 마무리를 한다
+        //  이 때, Member 까지 Join 해서 회원 정보도 전달할 수 있도록 한다
+        return queryFactory.selectFrom(postComment).distinct()
+                .join(postComment.member, member).fetchJoin()
+                .where(postComment.moimPost.id.eq(moimPostId))
+                .orderBy(postComment.depth.asc(), postComment.createdAt.asc()) // 먼저 단 댓글이 먼저 보여진다 // 최근게 나중으로
+                .fetch();
 
     }
 

@@ -58,6 +58,22 @@ public abstract class TestModelParams {
     public static String ci5 = "0P6Q7R8S9Q7R8S2W3X4Y5Z6a7b8c9d+0e1f2g3h4i5j6k7lM9n0o1p2A!2B=C3D+4E5F6G7H8I9J0K1L=M3N4";
 
 
+    // 6번 Member
+    public static String memberEmail6 = "t@moiming.io";
+    public static String memberName6 = "이동근";
+    public static String nickname6 = "NICKNAME6";
+    public static String memberPhone6 = "01082931111";
+    public static String ci6 = "12345R8S9T0U1ABCDE4Y987F7b8c9d+0e1f2g3h4i5j6k7lM9n0o1p2A!2B=C3D+4E5F65432I9J0K1FGhIJk";
+
+
+    // 7번 Member
+    public static String memberEmail7 = "p@moiming.io";
+    public static String memberName7 = "홍길동";
+    public static String nickname7 = "NICKNAME7";
+    public static String memberPhone7 = "01000998877";
+    public static String ci7 = "97531RTGiFUU1ABCDE4Y987F7b8c9d+0e1f2g3h4i1a2S3DM9n0o1p2A!2B=C3D+4E5F65432I9J0K1ABcDE";
+
+
     public static String fcmToken = "FCM_TOKEN";
     public static String accessToken = "ACCESS_TOKEN";
     public static String refreshToken = "REFRESH_TOKEN";
@@ -80,5 +96,17 @@ public abstract class TestModelParams {
     public static String depth1SampleCategory2 = "댄스/무용";
     public static String depth2SampleCategory2 = "재즈댄스";
 
+
+    // MoimJoinRule Set1
+    public static boolean hasAgeRule1 = false;
+    public static int ageMax1 = 100; // -1 로 변해서 저장
+    public static int ageMin1 = 15; // -1 로 변해서 저장
+    public static MemberGender genderRule1 = MemberGender.N;
+
+    // MoimJoinRule Set2
+    public static boolean hasAgeRule2 = true;
+    public static int ageMax2 = 40;
+    public static int ageMin2 = 20;
+    public static MemberGender genderRule2 = MemberGender.N;
 
 }

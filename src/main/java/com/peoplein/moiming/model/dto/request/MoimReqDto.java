@@ -107,4 +107,32 @@ public class MoimReqDto {
 
     }
 
+
+    /*
+     PATCH 특성상 없는 필드들이 더 많을 것이므로 모두 다 NULLABLE
+     */
+    @ApiModel(value = "Moim API - 요청 - 모임 가입 조건 수정")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MoimJoinRuleUpdateReqDto {
+
+        @NotNull
+        private Long moimId;
+
+        @NotNull
+        private Boolean hasAgeRule;
+
+        @Max(100)
+        private int ageMax;
+
+        @Min(15)
+        private int ageMin;
+
+        @NotNull
+        private MemberGender memberGender;
+
+    }
+
 }

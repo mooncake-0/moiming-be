@@ -43,8 +43,8 @@ public class MoimJoinRule extends BaseEntity {
     private MemberGender memberGender;
 
 
-    public static MoimJoinRule createMoimJoinRule(boolean ageRuleFlag, int ageMax, int ageMin, MemberGender memberGender) {
-        if (!ageRuleFlag) {
+    public static MoimJoinRule createMoimJoinRule(boolean hasAgeRule, int ageMax, int ageMin, MemberGender memberGender) {
+        if (!hasAgeRule) {
             ageMax = -1;
             ageMin = -1;
         }
@@ -54,7 +54,7 @@ public class MoimJoinRule extends BaseEntity {
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
 
-        return new MoimJoinRule(ageRuleFlag, ageMax, ageMin, memberGender);
+        return new MoimJoinRule(hasAgeRule, ageMax, ageMin, memberGender);
     }
 
 
@@ -79,6 +79,23 @@ public class MoimJoinRule extends BaseEntity {
                 throw new MoimingApiException(MOIM_JOIN_FAIL_BY_GENDER_RULE);
             }
         }
+    }
+
+
+    public void changeJoinRule(boolean hasAgeRule, int ageMax, int ageMin, MemberGender memberGender) {
+        if (!hasAgeRule) {
+            ageMax = -1;
+            ageMin = -1;
+        }
+
+        if (ageMin > ageMax) {
+            log.error("{}, {}", "나이 관계가 잘못 매핑되었습니다, 최소 나이가 더 큼, C999", COMMON_INVALID_SITUATION.getErrMsg());
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
+        }
+        this.hasAgeRule = hasAgeRule;
+        this.ageMax = ageMax;
+        this.ageMin = ageMin;
+        this.memberGender = memberGender;
     }
 
 

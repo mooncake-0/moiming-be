@@ -18,4 +18,6 @@ public interface CategoryRepository {
 
     List<Category> findByCategoryNames(List<CategoryName> categoryNames);
 
+    List<Category> findAllOrderByDepth();
+
 }

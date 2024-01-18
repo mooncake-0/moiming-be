@@ -19,7 +19,8 @@ public interface MoimRepository {
 
     List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category);
 
-    List<Moim> findAllMoim();
+    // MEMO :: NEW
+    Optional<Moim> findWithJoinRuleAndCategoryById(Long moimId);
 
-    void remove(Moim moim);
+    void remove(Long moimId);
 }

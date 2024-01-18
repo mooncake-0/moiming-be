@@ -48,8 +48,11 @@ public abstract class AppUrlPath {
     public final static String PATH_MOIM_GET_DETAIL = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
     // PATCH - /api/v0/moim
     public final static String PATH_MOIM_UPDATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM;
+    // PATCH - /api/v0/moim/joinRule
+    public final static String PATM_MOIM_JOIN_RULE_UPDATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/joinRule";
     // DELETE - /api/v0/moim/{moimId}
     public final static String PATH_MOIM_DELETE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
+    public final static String PATH_MOIM_FIXED_VALUES = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/fixed";
 
 
 
@@ -68,6 +71,7 @@ public abstract class AppUrlPath {
     // Moim Post 관련 API
     // GET - /api/v0/moim/{moimId}/post?lastPostId={id}&category={category}&limit={val}
     public final static String PATH_MOIM_POST_GET_VIEW = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}" + API_MOIM_POST;
+    public final static String PATH_MOIM_POST_GET_DETAIL = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}" + API_MOIM_POST + "/{moimPostId}";
     // POST - /api/v0/moim/post
     public final static String PATH_MOIM_POST_CREATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + API_MOIM_POST;
     // PATCH - /api/v0/moim/post

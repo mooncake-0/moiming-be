@@ -1,8 +1,10 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimService;
 import io.swagger.annotations.*;
@@ -49,8 +51,6 @@ public class MoimController {
     }
 
 
-
-
     @ApiOperation("모임 일반 조회 - 유저의 모임 20개씩 조회 Paging (운영중인 모임 조회 설정 가능)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
@@ -72,17 +72,23 @@ public class MoimController {
     }
 
 
-
     @ApiOperation("모임 세부 조회 - 특정 모임 전체 정보 조회")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 세부 조회 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 400, message = "모임 세부 조회 실패, ERR MSG 확인")
+    })
     @GetMapping(PATH_MOIM_GET_DETAIL)
-    public String getMoim() {
-        return "";
+    public ResponseEntity<?> getMoimDetail(@PathVariable Long moimId
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal
+    ) {
+
+        MoimMember moimMember = moimService.getMoimDetail(moimId, principal.getMember());
+        MoimDetailViewRespDto responseData = new MoimDetailViewRespDto(moimMember);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "세부 조회 성공", responseData));
     }
-
-
 
 
     @ApiOperation("모임 정보 수정")
@@ -105,14 +111,57 @@ public class MoimController {
     }
 
 
-
-    @ApiOperation("모임 삭제")
-    @DeleteMapping(PATH_MOIM_DELETE)
+    @ApiOperation("모임 가입 조건 수정")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
-    public String deleteMoim() {
-        return "";
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 가입 조건 수정 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 400, message = "모임 가입 조건 수정 실패, ERR MSG 확인")
+    })
+    @PatchMapping(PATM_MOIM_JOIN_RULE_UPDATE)
+    public ResponseEntity<?> updateMoimJoinRule(@RequestBody @Valid MoimJoinRuleUpdateReqDto requestDto
+            , BindingResult br
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        MoimJoinRule joinRule = moimService.updateMoimJoinRule(requestDto, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 가입 조건 수정 성공", new MoimJoinRuleUpdateRespDto(joinRule)));
+
     }
 
+
+    @ApiOperation("모임 삭제")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 및 모든 모임 정보 삭제 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 400, message = "모임 삭제 실패, ERR MSG 확인")
+    })
+    @DeleteMapping(PATH_MOIM_DELETE) // Moim 삭제시 정말 기록 남기지 않고 삭제한다
+    public ResponseEntity<?> deleteMoim(@PathVariable Long moimId
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        moimService.deleteMoim(moimId, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 및 모든 모임 정보 삭제 성공", null));
+    }
+
+
+    @ApiOperation("모임 고정 정보 조회 (지역 / 카테고리)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 고정 정보 조회 성공"),
+            @ApiResponse(code = 400, message = "모임 고정 정보 조회 실패")
+    })
+    @GetMapping(PATH_MOIM_FIXED_VALUES)
+    public ResponseEntity<?> getFixedInfo() {
+
+        MoimFixedValInnerDto fixedValues = moimService.getFixedInfo();
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 지역 / 카테고리 정보 조회 성공",
+                new MoimFixedInfoRespDto(fixedValues.getAreaStates(), fixedValues.getCategoryDto().getParentCategories(), fixedValues.getCategoryDto().getChildCategoriesMap())
+        ));
+    }
 }

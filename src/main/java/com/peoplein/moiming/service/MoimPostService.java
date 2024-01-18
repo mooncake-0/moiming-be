@@ -1,26 +1,28 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
+import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
+import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
+
 
 /*
 
@@ -37,8 +39,12 @@ import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 @RequiredArgsConstructor
 public class MoimPostService {
 
+
+    private final PostCommentService postCommentService;
+    private final MoimMemberService moimMemberService;
     private final MoimMemberRepository moimMemberRepository;
     private final MoimPostRepository moimPostRepository;
+    private final PostCommentRepository postCommentRepository;
 
     @Transactional
     public MoimPost createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
@@ -54,7 +60,8 @@ public class MoimPostService {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
-        MoimPost post = MoimPost.createMoimPost(requestDto.getPostTitle(), requestDto.getPostContent(), requestDto.getMoimPostCategory()
+        MoimPost post = MoimPost.createMoimPost(requestDto.getPostTitle(), requestDto.getPostContent()
+                , MoimPostCategory.fromValue(requestDto.getMoimPostCategory())
                 , requestDto.getHasPrivateVisibility(), requestDto.getHasFiles()
                 , moimMember.getMoim(), moimMember.getMember());
 
@@ -77,7 +84,7 @@ public class MoimPostService {
          */
         MoimPost lastPost = null;
         if (lastPostId != null) {
-            lastPost = moimPostRepository.findWithMoimAndMemberById(lastPostId).orElseThrow(() ->
+            lastPost = moimPostRepository.findById(lastPostId).orElseThrow(() ->
                     new MoimingApiException(MOIM_POST_NOT_FOUND)
             );
         }
@@ -92,32 +99,100 @@ public class MoimPostService {
         // Sort 됨, 중요!
         List<MoimPost> moimPosts = moimPostRepository.findWithMemberByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
 
-        List<Long> postWriterIds = moimPosts.stream().map(moimPost -> moimPost.getMember().getId()).collect(Collectors.toList());
+        // Post 들의 작성자들 상태
+        Set<Long> postCreatorIds = moimPosts.stream().map(moimPost -> moimPost.getMember().getId()).collect(Collectors.toSet());
+        Map<Member, MoimMemberState> postCreatorStates = moimMemberService.getMoimMemberStates(moimId, postCreatorIds);
 
-        List<MoimMember> writerMoimMembers = moimMemberRepository.findByMoimIdAndMemberIds(moimId, postWriterIds);
-        Map<Long, MoimMemberState> stateMapper = new HashMap<>();
-        for (MoimMember writerMoimMember : writerMoimMembers) {
-            stateMapper.put(writerMoimMember.getMember().getId(), writerMoimMember.getMemberState());
-        }
-
-        return new StateMapperDto<>(moimPosts, stateMapper);
+        return new StateMapperDto<>(moimPosts, postCreatorStates);
     }
 
 
     // 특정 Post 의 모든 Data 전달
-    public void getMoimPost() {
+    // 게시물 정보 반환, 게시물 댓글들 반환,
+    public PostDetailsDto getMoimPostDetail(Long postId, Member member) {
+
+        if (postId == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        // post 존재성 확인
+        MoimPost moimPost = moimPostRepository.findWithMemberById(postId).orElseThrow(() ->
+                new MoimingApiException(MOIM_POST_NOT_FOUND)
+        );
+
+        Optional<MoimMember> moimMemberOp = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId());
+        moimPost.checkMemberAccessibility(moimMemberOp);
+
+        PostCommentDetailsDto commentsDto = postCommentService.getSortedPostComments(postId);
+        commentsDto.getCommentCreatorIds().add(moimPost.getMember().getId()); // 게시물 생성자가 없을 수도 있음, 추가해준다
+        // moimMemberService 한테 이 MoimMember 들에 대한 상태를 조회한다
+        Map<Member, MoimMemberState> memberStates = moimMemberService.getMoimMemberStates(moimPost.getMoim().getId(), commentsDto.getCommentCreatorIds());
+
+        return new PostDetailsDto(moimPost, memberStates, commentsDto.getParentComments(), commentsDto.getChildCommentsMap());
 
     }
 
 
     // Post 수정
-    public void updateMoimPost() {
+    public MoimPost updateMoimPost(MoimPostUpdateReqDto requestDto, Member member) {
 
+        if (requestDto == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        // post 존재성 확인
+        MoimPost moimPost = moimPostRepository.findById(requestDto.getMoimPostId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_POST_NOT_FOUND)
+        );
+
+        // post 에 저장된 moimId + member 로 moimMember 조회
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
+        );
+
+        // MoimMember 권한 확인 (활동중이여야 하며, 작성자여야 한다)
+        if (!moimMember.hasActivePermission() || !moimPost.getMember().getId().equals(member.getId())) {
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
+        }
+
+        moimPost.changeMoimPostInfo(requestDto.getPostTitle(), requestDto.getPostContent(), MoimPostCategory.fromValue(requestDto.getMoimPostCategory())
+                , requestDto.getHasFiles(), requestDto.getHasPrivateVisibility(), member.getId());
+
+        return moimPost;
     }
 
-    // Post 삭제 (댓글 / 답글에 대한 로직 처리 후 최종 진행)
-    public void deleteMoimPost() {
 
+    // Post 삭제 (댓글 / 답글에 대한 로직 처리 후 최종 진행)
+    public void deleteMoimPost(Long postId, Member member) {
+
+        if (postId == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        // post 존재성 확인
+        MoimPost moimPost = moimPostRepository.findById(postId).orElseThrow(() ->
+                new MoimingApiException(MOIM_POST_NOT_FOUND)
+        );
+
+        // post 에 저장된 moimId + member 로 moimMember 조회
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId()).orElseThrow(() ->
+                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
+        );
+
+        // ACTIVE 아니면 무조건 안됨
+        // ACTIVE 안에서, MoimMember 권한 확인 (운영자 or 작성자) > 역은 둘다 동시에 아닌 것
+        if (!moimMember.hasActivePermission() ||
+                (!moimMember.hasPermissionOfManager() && !moimPost.getMember().getId().equals(member.getId()))) {
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
+        }
+
+        // 댓글 삭제 진행
+        postCommentRepository.removeAllByMoimPostId(postId);
+
+        // 게시물 삭제 진행
+        moimPostRepository.remove(moimPost);
+
+        // TODO:: 파일 삭제 진행
     }
 
 }

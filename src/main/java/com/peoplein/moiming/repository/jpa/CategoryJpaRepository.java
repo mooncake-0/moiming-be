@@ -63,4 +63,12 @@ public class CategoryJpaRepository implements CategoryRepository {
                 .where(category.categoryName.in(categoryNames))
                 .fetch();
     }
+
+
+    @Override
+    public List<Category> findAllOrderByDepth() {
+        return queryFactory.selectFrom(category)
+                .orderBy(category.categoryDepth.asc())
+                .fetch();
+    }
 }

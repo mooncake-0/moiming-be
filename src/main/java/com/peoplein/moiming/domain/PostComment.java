@@ -1,6 +1,7 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -101,15 +102,20 @@ public class PostComment extends BaseEntity{
         }
 
         if (requestDto.getContent() != null) {
-            this.setContent(requestDto.getContent());
+            this.changeContent(requestDto.getContent());
         }
 
         this.updaterId = updaterId;
     }
 
+    public void changeMember(Member member) {
+        if (member == null) {
+            throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
+        }
+        this.member = member;
+    }
 
-
-    private void setContent(String content) {
+    private void changeContent(String content) {
         this.content = content;
     }
 }

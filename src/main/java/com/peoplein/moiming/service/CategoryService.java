@@ -4,18 +4,18 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
 import com.peoplein.moiming.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
+import static com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto.*;
 
 @Slf4j
 @Service
@@ -42,6 +42,30 @@ public class CategoryService {
         return categories;
     }
 
+
+    public AppCategoryDto getAllCategories() {
+
+
+        List<Category> parentCategories = new ArrayList<>();
+        Map<Long, List<Category>> childCategoryMap = new HashMap<>();
+
+        List<Category> rawCategories = categoryRepository.findAllOrderByDepth();
+
+        for (Category category : rawCategories) {
+            if (category.getCategoryDepth() == 0) { // 부모임
+                parentCategories.add(category);
+                childCategoryMap.put(category.getId(), new ArrayList<>());
+            } else { // 자식임
+                if (childCategoryMap.containsKey(category.getParent().getId())) {
+                    childCategoryMap.get(category.getParent().getId()).add(category);
+                } else {
+                    throw new MoimingApiException(COMMON_INVALID_SITUATION);
+                }
+            }
+        }
+
+        return new AppCategoryDto(parentCategories, childCategoryMap);
+    }
 
 
     private void validateCategories(List<Category> categories) {

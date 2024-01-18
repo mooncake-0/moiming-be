@@ -51,17 +51,17 @@ public class Moim extends BaseEntity {
 
     private Long updaterId;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "moim_join_rule_id")
     private MoimJoinRule moimJoinRule;
 
 
     // MEMO :: Fetch 시 MoimMember 는 모든 상태를 불러온다 // curMemberCount 값과 size 가 다를 수 있음
-    @OneToMany(mappedBy = "moim", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "moim", cascade = CascadeType.PERSIST)
     private List<MoimMember> moimMembers = new ArrayList<>();
 
 
-    @OneToMany(mappedBy = "moim", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "moim", cascade = CascadeType.PERSIST)
     private List<MoimCategoryLinker> moimCategoryLinkers = new ArrayList<>();
 
 

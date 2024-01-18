@@ -1,4 +1,4 @@
-package com.peoplein.moiming.service.core;
+package com.peoplein.moiming.service.support;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;

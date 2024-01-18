@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
+@ApiIgnore
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(AppUrlPath.API_SERVER + AppUrlPath.API_SMS_VER + AppUrlPath.API_SMS)

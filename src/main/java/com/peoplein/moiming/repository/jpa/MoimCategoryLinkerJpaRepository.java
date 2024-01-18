@@ -23,9 +23,8 @@ public class MoimCategoryLinkerJpaRepository implements MoimCategoryLinkerReposi
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Long save(MoimCategoryLinker moimCategoryLinker) {
+    public void save(MoimCategoryLinker moimCategoryLinker) {
         em.persist(moimCategoryLinker);
-        return moimCategoryLinker.getId();
     }
 
     @Override
@@ -42,8 +41,8 @@ public class MoimCategoryLinkerJpaRepository implements MoimCategoryLinkerReposi
      특정 모임의 모든 CategoryLinker 모두 삭제
      */
     @Override
-    public Long removeAllByMoimId(Long moimId) {
+    public void removeAllByMoimId(Long moimId) {
         JPADeleteClause clause = new JPADeleteClause(em, moimCategoryLinker);
-        return clause.where(moimCategoryLinker.moim.id.eq(moimId)).execute();
+        clause.where(moimCategoryLinker.moim.id.eq(moimId)).execute();
     }
 }

@@ -6,12 +6,12 @@ import java.util.List;
 
 public interface MoimCategoryLinkerRepository {
 
-    Long save(MoimCategoryLinker mcLinker);
+    void save(MoimCategoryLinker mcLinker);
 
     List<MoimCategoryLinker> findWithCategoryByMoimId(Long moimId);
 
     /*
          특정 모임의 모든 CategoryLinker 모두 삭제
          */
-    Long removeAllByMoimId(Long moimId);
+    void removeAllByMoimId(Long moimId);
 }

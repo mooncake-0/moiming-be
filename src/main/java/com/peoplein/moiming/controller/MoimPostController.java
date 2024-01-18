@@ -1,12 +1,15 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.member.DeletedMember;
 import com.peoplein.moiming.domain.member.DormantMember;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
+import com.peoplein.moiming.model.dto.response.MoimPostDetailViewRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimPostService;
 import io.swagger.annotations.*;
@@ -25,6 +28,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
+import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
 
@@ -32,6 +36,7 @@ import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
 @RestController
 @RequiredArgsConstructor
 public class MoimPostController {
+
 
     private final MoimPostService moimPostService;
 
@@ -80,22 +85,119 @@ public class MoimPostController {
 
         StateMapperDto<MoimPost> stateMapper = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
         List<MoimPost> moimPosts = stateMapper.getEntities();
-        Map<Long, MoimMemberState> stateMap = stateMapper.getStateMapper();
-        for (MoimPost moimPost : moimPosts) {
-            Long postCreatorId = moimPost.getMember().getId();
-            MoimMemberState memberState = stateMap.get(postCreatorId);
-            if (memberState.equals(MoimMemberState.NOTFOUND)) {
-                moimPost.changeMember(new DeletedMember(postCreatorId));
-            }
-            if (memberState.equals(MoimMemberState.IBD)) {
-                moimPost.changeMember(new DormantMember(postCreatorId));
-            }
-        }
+        checkToChangePostCreatorInfo(moimPosts, stateMapper.getStateMapper());
 
         List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(moimPost -> new MoimPostViewRespDto(moimPost
                 , Objects.equals(moimPost.getMember().getId(), moimPost.getMoim().getCreatorId()) // Moim 과 Member 모두 Fetch Join 되어 영속화된 상태
         )).collect(Collectors.toList());
 
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모든 게시물 일반 조회 성공", responseBody));
+    }
+
+
+    @ApiOperation("게시물 세부 조회 - Post 의 모든 정보와 Comment 들이 전달 / ParentComment 는 일반 댓글 List 로, 최신순 정렬되어 있다")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESSibf_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "게시물 세부 조회 성공", response = MoimPostDetailViewRespDto.class),
+            @ApiResponse(code = 400, message = "게시물 세부 조회 실패")
+    })
+    @GetMapping(PATH_MOIM_POST_GET_DETAIL)
+    public ResponseEntity<?> getMoimPostDetail(@PathVariable(name = "moimId") Long moimId
+            , @PathVariable Long moimPostId
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        PostDetailsDto moimPostDetail = moimPostService.getMoimPostDetail(moimPostId, principal.getMember());
+        Map<Member, MoimMemberState> memberStates = moimPostDetail.getMemberStates();
+
+        // Post Creator 의 것 먼저 확인
+        MoimPost post = moimPostDetail.getMoimPost();
+        checkToChangePostCreatorInfo(List.of(post), memberStates);
+
+        // PostComment 쭉 확인
+        List<PostComment> parents = moimPostDetail.getParentComments();
+        checkToChangeCommentCreatorInfo(parents, memberStates);
+
+        Map<Long, List<PostComment>> childsMap = moimPostDetail.getChildCommentsMap();
+        for (List<PostComment> comments : childsMap.values()) { // 모든 Child 도 돌린다
+            checkToChangeCommentCreatorInfo(comments, memberStates);
+        }
+
+//        MoimPostDetailViewRespDtoTemp responseData = new MoimPostDetailViewRespDtoTemp(post, parents, childsMap);
+        MoimPostDetailViewRespDto responseData = new MoimPostDetailViewRespDto(post, parents, childsMap);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 세부 조회 성공", responseData));
+    }
+
+
+    @ApiOperation("게시물 수정")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "게시물 수정 성공", response = MoimPostUpdateRespDto.class),
+            @ApiResponse(code = 400, message = "게시물 수정 실패")
+    })
+    @PatchMapping(PATH_MOIM_POST_UPDATE)
+    public ResponseEntity<?> updatePost(
+            @RequestBody @Valid MoimPostUpdateReqDto requestDto
+            , BindingResult br
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        MoimPost moimPost = moimPostService.updateMoimPost(requestDto, principal.getMember());
+        // TODO :: 응답에 Comment 필요한가... 일단 갈아끼우는거만 전달하는걸로
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "게시물 수정 성공", new MoimPostUpdateRespDto(moimPost)));
+    }
+
+
+    // 삭제
+    @ApiOperation("게시물 삭제")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "게시물 삭제 성공"),
+            @ApiResponse(code = 400, message = "게시물 삭제 실패")
+    })
+    @DeleteMapping(PATH_MOIM_POST_DELETE)
+    public ResponseEntity<?> deletePost(@PathVariable Long moimId
+            , @PathVariable Long moimPostId
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        moimPostService.deleteMoimPost(moimPostId, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "게시물 삭제 성공", null));
+
+    }
+
+
+    private void checkToChangePostCreatorInfo(List<MoimPost> posts, Map<Member, MoimMemberState> memberStates) {
+
+        for (MoimPost post : posts) {
+            MoimMemberState postCreatorState = memberStates.get(post.getMember());
+
+            if (postCreatorState.equals(MoimMemberState.NOTFOUND)) {
+                post.changeMember(new DeletedMember(post.getMember()));
+            }
+            if (postCreatorState.equals(MoimMemberState.IBD)) {
+                post.changeMember(new DormantMember(post.getMember()));
+            }
+        }
+
+    }
+
+
+    private void checkToChangeCommentCreatorInfo(List<PostComment> comments, Map<Member, MoimMemberState> memberStates) {
+
+        for (PostComment comment : comments) {
+            MoimMemberState commentCreatorState = memberStates.get(comment.getMember());
+
+            if (commentCreatorState.equals(MoimMemberState.NOTFOUND)) {
+                comment.changeMember(new DeletedMember(comment.getMember()));
+            }
+            if (commentCreatorState.equals(MoimMemberState.IBD)) {
+                comment.changeMember(new DormantMember(comment.getMember()));
+            }
+        }
+
     }
 }

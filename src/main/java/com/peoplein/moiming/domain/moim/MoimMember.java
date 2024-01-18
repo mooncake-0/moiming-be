@@ -124,6 +124,9 @@ public class MoimMember extends BaseEntity {
         }
 
         if (curState == memberState) { // 같은 상태로의 변경은 서버가 처리할 수 없음
+            if (curState == ACTIVE) { // 이미 가입된 회원임
+                throw new MoimingApiException(MOIM_JOIN_FAIL_BY_ALREADY_JOINED);
+            }
             throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }
 

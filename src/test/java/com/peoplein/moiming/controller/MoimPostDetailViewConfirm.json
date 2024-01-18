@@ -1,0 +1,78 @@
+{
+  "code": "1",
+  "msg": "모임 세부 조회 성공",
+  "data": {
+    "moimPostId": 67,
+    "postTitle": "TITLE",
+    "postContent": "CONTENT",
+    "postCategory": "GREETING",
+    "hasPrivateVisibility": true,
+    "hasFiles": false,
+    "commentCnt": 4,
+    "createdAt": "2024-01-19T00:17:12.361561",
+    "updatedAt": "2024-01-19T00:17:12.377741",
+    "postCreator": {
+      "memberId": 45,
+      "nickname": "NICKNAME2"
+    },
+    "postComments": [
+      {
+        "parentCommentId": 79,
+        "content": "TITLE, NICKNAME1, 댓글입니다",
+        "depth": 0,
+        "hasDeleted": false,
+        "reported": false,
+        "createdAt": "2024-01-19T00:17:12.374915",
+        "updatedAt": "2024-01-19T00:17:12.374915",
+        "commentCreator": {
+          "memberId": 42,
+          "nickname": "NICKNAME1"
+        },
+        "childComments": [
+          {
+            "childCommentId": 80,
+            "content": "TITLE, NICKNAME2, 답글입니다",
+            "depth": 1,
+            "hasDeleted": false,
+            "reported": false,
+            "createdAt": "2024-01-19T00:17:12.375263",
+            "updatedAt": "2024-01-19T00:17:12.375263",
+            "parentId": 79,
+            "commentCreator": {
+              "memberId": 45,
+              "nickname": "NICKNAME2"
+            }
+          },
+          {
+            "childCommentId": 81,
+            "content": "TITLE, NICKNAME6, 답글입니다",
+            "depth": 1,
+            "hasDeleted": false,
+            "reported": false,
+            "createdAt": "2024-01-19T00:17:12.375643",
+            "updatedAt": "2024-01-19T00:17:12.375643",
+            "parentId": 79,
+            "commentCreator": {
+              "memberId": null,
+              "nickname": "휴면 전환 사용자"
+            }
+          }
+        ]
+      },
+      {
+        "parentCommentId": 82,
+        "content": "TITLE, NICKNAME5, 댓글입니다",
+        "depth": 0,
+        "hasDeleted": false,
+        "reported": false,
+        "createdAt": "2024-01-19T00:17:12.375896",
+        "updatedAt": "2024-01-19T00:17:12.375896",
+        "commentCreator": {
+          "memberId": 54,
+          "nickname": "NICKNAME5"
+        },
+        "childComments": []
+      }
+    ]
+  }
+}

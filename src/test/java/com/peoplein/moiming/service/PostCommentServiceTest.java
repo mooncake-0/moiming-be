@@ -17,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
@@ -563,5 +565,26 @@ public class PostCommentServiceTest extends TestMockCreator {
     // (생략) requestMember is MoimCreator - 이 서비스단의 검증 역할이 아니다
     // (생략) requestMember is NotCommentCreator - 이 서비스단의 검증 역할이 아니다
 
+
+    // sortedPostComments
+    // 성공
+    @Test
+    void getSortedPostComments_shouldPass_whenRightInfoPased() {
+
+        // given
+        Long postId = 1L;
+        List<PostComment> postComments = new ArrayList<>(); // NOT_NULL
+
+        // given - stub
+        // ANY 와 같은 빈 List
+        when(postCommentRepository.findWithMemberByMoimPostInDepthAndCreatedOrder(postId)).thenReturn(postComments);
+
+        // when
+        postCommentService.getSortedPostComments(postId);
+
+        // then
+        verify(postCommentRepository, times(1)).findWithMemberByMoimPostInDepthAndCreatedOrder(any());
+
+    }
 
 }
