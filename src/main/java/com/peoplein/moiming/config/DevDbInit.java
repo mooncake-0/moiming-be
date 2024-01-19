@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DevDbInit {
 
     @Bean
-    @Profile({"local", "dev"})
+    @Profile("local")
     CommandLineRunner init(RoleRepository roleRepository, CategoryRepository categoryRepository) {
         return (args) -> {
 

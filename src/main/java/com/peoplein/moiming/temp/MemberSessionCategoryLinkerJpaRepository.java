@@ -1,6 +1,6 @@
 //package com.peoplein.moiming.temp;
 //
-//import com.peoplein.moiming.repository.MemberSessionCategoryLinkerRepository;
+//import com.peoplein.moiming.temp.MemberSessionCategoryLinkerRepository;
 //import com.querydsl.jpa.impl.JPAQueryFactory;
 //import lombok.RequiredArgsConstructor;
 //import org.springframework.stereotype.Repository;
