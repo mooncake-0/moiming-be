@@ -116,7 +116,7 @@ public class MoimPostRespDto {
     }
 
 
-    @ApiModel(value = "Moim Post API - 응답 - 모임 특정 게시물 모든 정보와 댓글 정렬된 채로 전달")
+//    @ApiModel(value = "Moim Post API - 응답 - 모임 특정 게시물 모든 정보와 댓글 정렬된 채로 전달")
     @Getter
     @Setter
     @NoArgsConstructor

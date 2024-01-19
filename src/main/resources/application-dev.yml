@@ -12,15 +12,12 @@ spring:
     password: ${DEV_DB_PASSWORD}
 
   jpa:
-    hibernate:
-      ddl-auto: create
     database: mysql
     properties:
       dialect: org.hibernate.dialect.MySQL5InnoDBDialect
       hibernate:
         show_sql: true
         format_sql: true
-    generate-ddl: true
     open-in-view: false
 
 app_files:

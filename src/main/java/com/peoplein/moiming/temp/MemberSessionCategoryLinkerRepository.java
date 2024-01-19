@@ -1,4 +1,4 @@
-package com.peoplein.moiming.repository;
+package com.peoplein.moiming.temp;
 
 import java.util.List;
 
