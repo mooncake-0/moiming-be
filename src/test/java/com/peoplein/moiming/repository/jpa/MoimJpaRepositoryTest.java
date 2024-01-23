@@ -59,8 +59,8 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
         testMember1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci,testRole);
 
         // Moim Cateogry 저장
-        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 2, testCategory1);
+        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 1, testCategory1);
 
         // Moim 저장
         sampleMoim1 = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), testMember1);

@@ -111,8 +111,8 @@ public class PostCommentJpaRepositoryTest extends TestObjectCreator {
         em.persist(moimMember);
 
         // Moim Cateogry 저장 // 이것도 사실 Object Creator 에 저장되면 좋은데..
-        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 2, testCategory1);
+        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 1, testCategory1);
         Moim moim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), creator);
         em.persist(testCategory1);
         em.persist(testCategory1_1);

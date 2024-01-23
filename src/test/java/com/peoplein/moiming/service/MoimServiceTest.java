@@ -3,6 +3,7 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimDailyCount;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
@@ -41,7 +42,8 @@ public class MoimServiceTest {
     private MoimCategoryLinkerRepository moimCategoryLinkerRepository;
     @Mock
     private CategoryService categoryService;
-
+    @Mock
+    private MoimCountService moimCountService;
 
     // 성공
     @Test
@@ -280,7 +282,7 @@ public class MoimServiceTest {
 
     // getMoimDetail - 성공
     @Test
-    void getMoimDetail_shouldPass_whenRightInfoPassed() {
+    void getMoimDetail_shouldPass_whenMemberFirstVisitTodayWithRightInfoPassed() {
 
         // given
         Long moimId = 1L;
@@ -292,11 +294,13 @@ public class MoimServiceTest {
         when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.of(moim));
         when(moimMemberRepository.findWithMemberByMemberAndMoimId(any(), any())).thenReturn(Optional.of(creator));
 
+
         // when
         moimService.getMoimDetail(moimId, member);
 
         // then
         verify(moimRepository, times(1)).findWithJoinRuleAndCategoryById(any());
+        verify(moimCountService, times(1)).processMoimCounting(any(), any());
 
     }
 
