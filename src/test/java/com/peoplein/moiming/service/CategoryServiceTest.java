@@ -42,8 +42,8 @@ public class CategoryServiceTest extends TestMockCreator {
         List<String> params = List.of(depth1SampleCategory, depth2SampleCategory);
 
         // given - stub return val (validateCategories 검증을 통과 Case 여야 한다)
-        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory), 2, category1);
+        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory), 1, category1);
 
         // given - stub
         doReturn(List.of(category1, category2)).when(categoryRepository).findByCategoryNames(any()); // findByCategoryNames 의 동작성은 이 테스트와 무관
@@ -97,8 +97,8 @@ public class CategoryServiceTest extends TestMockCreator {
         List<String> params = List.of(depth2SampleCategory); // 예외 통과를 위해 필요 (사실 예외만 통과하면 뭔 값이든 상관 없음)
 
         // given - stub return val (validateCategories 검증을 통과 Case 여야 한다)
-        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory), 2, category1);
+        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory), 1, category1);
 
         // given - stub
         doReturn(List.of(category2)).when(categoryRepository).findByCategoryNames(any()); // findByCategoryNames 의 동작성은 이 테스트와 무관
@@ -118,8 +118,8 @@ public class CategoryServiceTest extends TestMockCreator {
         List<String> params = List.of(depth1SampleCategory); // 예외 통과를 위해 필요 (사실 예외만 통과하면 뭔 값이든 상관 없음)
 
         // given - stub return val (validateCategories 검증을 통과 Case 여야 한다)
-        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory), 2, category1);
+        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory), 1, category1);
 
         // given - stub
         doReturn(List.of(category1)).when(categoryRepository).findByCategoryNames(any()); // findByCategoryNames 의 동작성은 이 테스트와 무관
@@ -140,9 +140,9 @@ public class CategoryServiceTest extends TestMockCreator {
         List<String> params = List.of(wrongCategoryName, depth2SampleCategory);
 
         // given - stub return val (validateCategories 검증을 통과 Case 여야 한다)
-        Category wrongCategory = mockCategory(1L, CategoryName.fromValue(wrongCategoryName), 1, null);
-        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory), 2, category1); // 정상 부모 매핑, but 다른 1차 카테고리와 엮임
+        Category wrongCategory = mockCategory(1L, CategoryName.fromValue(wrongCategoryName), 0, null);
+        Category category1 = mockCategory(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category category2 = mockCategory(1L, CategoryName.fromValue(depth2SampleCategory), 1, category1); // 정상 부모 매핑, but 다른 1차 카테고리와 엮임
 
         // given - stub
         doReturn(List.of(wrongCategory, category2)).when(categoryRepository).findByCategoryNames(any()); // findByCategoryNames 의 동작성은 이 테스트와 무관

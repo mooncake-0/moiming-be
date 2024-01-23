@@ -92,10 +92,10 @@ public class MoimControllerTest extends TestObjectCreator {
 
 
         // 모임 카테고리 사전생성
-        testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        testCategory1_1 = new Category(2L, CategoryName.fromValue(depth2SampleCategory), 2, testCategory1);
-        testCategory2 = new Category(3L, CategoryName.fromValue(depth1SampleCategory2), 1, null);
-        testCategory2_1 = new Category(4L, CategoryName.fromValue(depth2SampleCategory2), 2, testCategory2);
+        testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        testCategory1_1 = new Category(2L, CategoryName.fromValue(depth2SampleCategory), 1, testCategory1);
+        testCategory2 = new Category(3L, CategoryName.fromValue(depth1SampleCategory2), 0, null);
+        testCategory2_1 = new Category(4L, CategoryName.fromValue(depth2SampleCategory2), 1, testCategory2);
         categoryRepository.save(testCategory1);
         categoryRepository.save(testCategory1_1);
         categoryRepository.save(testCategory2);
@@ -1351,6 +1351,19 @@ public class MoimControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
         assertNotNull(em.find(Moim.class, createdMoim.getId()));
+    }
+
+
+    // 고정 값 요청 - 별다른 인증 없이도 성공
+    @Test
+    void getFixedInfo_shouldReturn200_whenReqWithoutAuthentication() throws Exception {
+
+        // given
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_FIXED_VALUES));
+
+        // then
+        resultActions.andExpect(status().isOk());
     }
 
 }

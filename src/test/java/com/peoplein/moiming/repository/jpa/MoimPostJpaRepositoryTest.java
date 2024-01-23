@@ -48,8 +48,8 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
         em.persist(moimCreator);
 
         // Moim Cateogry 저장
-        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 2, testCategory1);
+        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory), 1, testCategory1);
         em.persist(testCategory1);
         em.persist(testCategory1_1);
 

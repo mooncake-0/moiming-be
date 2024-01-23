@@ -56,7 +56,7 @@ public class CategoryService {
                 parentCategories.add(category);
                 childCategoryMap.put(category.getId(), new ArrayList<>());
             } else { // 자식임
-                if (childCategoryMap.containsKey(category.getParent().getId())) {
+                if (category.getParent() != null && childCategoryMap.containsKey(category.getParent().getId())) {
                     childCategoryMap.get(category.getParent().getId()).add(category);
                 } else {
                     throw new MoimingApiException(COMMON_INVALID_SITUATION);
@@ -74,7 +74,7 @@ public class CategoryService {
         Category childCategory = null;
 
         for (Category category : categories) { // 카테고리 상하관계 분석
-            if (category.getCategoryDepth() == 1) {
+            if (category.getCategoryDepth() == 0) {
                 parentCategory = category;
             } else {
                 childCategory = category;

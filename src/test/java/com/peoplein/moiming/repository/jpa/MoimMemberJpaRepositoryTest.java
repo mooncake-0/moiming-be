@@ -54,8 +54,8 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
         testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
 
         // Category 주입
-        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory2), 2, testCategory1);
+        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth1SampleCategory2), 1, testCategory1);
         categories.add(testCategory1);
         categories.add(testCategory1_1);
 

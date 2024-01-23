@@ -88,8 +88,8 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         em.persist(deleteMember);
 
         // Moim 만들기
-        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 1, null);
-        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth2SampleCategory), 2, testCategory1);
+        Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth2SampleCategory), 1, testCategory1);
         em.persist(testCategory1);
         em.persist(testCategory1_1);
 

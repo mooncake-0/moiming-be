@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.domain.moim.MoimDailyCount;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
@@ -39,6 +41,8 @@ public class MoimService {
     private final PostCommentRepository postCommentRepository;
     private final MoimPostRepository moimPostRepository;
     private final MoimJoinRuleJpaRepository moimJoinRuleRepository;
+    private final MoimCountRepository moimCountRepository;
+    private final MoimCountService moimCountService;
 
 
     // 모임 생성
@@ -105,6 +109,9 @@ public class MoimService {
             log.error("{}, {}", "모임 생성자 정보를 찾을 수 없음, C999", COMMON_INVALID_SITUATION.getErrMsg());
             return new MoimingApiException(COMMON_INVALID_SITUATION);
         });
+
+        moimCountService.processMoimCounting(member, moim);
+
 
         return creatorMember;
     }
