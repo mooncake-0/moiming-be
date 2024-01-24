@@ -127,7 +127,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data[*].memberState", everyItem(is(ACTIVE.name())))); // 모두 ACTIVE 한 멤버들이여야 한다
 
         // then - 나도 거기에 포함되어 있음
-        String jsonPathExpression = String.format("$.data[?(@.memberDto.memberId==%d)]", requestMemberId);
+        String jsonPathExpression = String.format("$.data[?(@.moimMemberInfo.memberId==%d)]", requestMemberId);
         resultActions.andExpect(jsonPath(jsonPathExpression).exists());
 
     }

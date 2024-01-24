@@ -15,12 +15,12 @@ public interface MoimRepository {
 
     Optional<Moim> findWithJoinRuleById(Long moimId);
 
-    Optional<Moim> findWithMoimMembersById(Long moimId);
+    Optional<Moim> findWithMoimMemberAndMemberById(Long moimId);
 
     List<Moim> findMoimBySearchCondition(List<String> keywordList, Area area, Category category);
 
     // MEMO :: NEW
-    Optional<Moim> findWithJoinRuleAndCategoryById(Long moimId);
+    Optional<Moim> findWithJoinRuleAndCategoriesById(Long moimId);
 
     void remove(Long moimId);
 }

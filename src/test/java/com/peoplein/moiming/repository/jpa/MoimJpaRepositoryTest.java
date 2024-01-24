@@ -188,7 +188,7 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
         em.clear();
 
         // when (한방 쿼리 필요)
-        Optional<Moim> moimOp = moimRepository.findWithMoimMembersById(sampleMoim1.getId());
+        Optional<Moim> moimOp = moimRepository.findWithMoimMemberAndMemberById(sampleMoim1.getId());
 
         // then
         assertTrue(moimOp.isPresent());
@@ -204,7 +204,7 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
         Long wrongMoimId = 1234L;
 
         // when
-        Optional<Moim> moimOp = moimRepository.findWithMoimMembersById(wrongMoimId);
+        Optional<Moim> moimOp = moimRepository.findWithMoimMemberAndMemberById(wrongMoimId);
 
         // then
         assertTrue(moimOp.isEmpty());
@@ -218,7 +218,7 @@ public class MoimJpaRepositoryTest extends TestObjectCreator {
         // given
         // when
         // then
-        assertThatThrownBy(() -> moimRepository.findWithMoimMembersById(null)).isInstanceOf(InvalidQueryParameterException.class);
+        assertThatThrownBy(() -> moimRepository.findWithMoimMemberAndMemberById(null)).isInstanceOf(InvalidQueryParameterException.class);
 
     }
 

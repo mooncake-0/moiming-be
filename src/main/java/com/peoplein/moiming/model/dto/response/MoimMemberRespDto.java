@@ -1,5 +1,6 @@
 package com.peoplein.moiming.model.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
@@ -18,23 +19,25 @@ public class MoimMemberRespDto {
         private MoimMemberRoleType memberRoleType;
         private MoimMemberState memberState;
         private String createdAt;
-        private MemberDto memberDto;
+        @JsonProperty("moimMemberInfo")
+        private MoimMemberInfoDto memberDto;
 
         public ActiveMoimMemberRespDto(MoimMember moimMember) {
             this.memberRoleType = moimMember.getMemberRoleType();
             this.memberState = moimMember.getMemberState();
             this.createdAt = moimMember.getCreatedAt() + "";
-            this.memberDto = new MemberDto(moimMember.getMember());
+            this.memberDto = new MoimMemberInfoDto(moimMember.getMember());
         }
 
         @Getter
         @Setter
-        public static class MemberDto {
+        public static class MoimMemberInfoDto {
 
             private Long memberId;
             private String nickname;
 
-            public MemberDto(Member member) {
+            // TODO :: 사진 관련
+            public MoimMemberInfoDto(Member member) {
                 this.memberId = member.getId();
                 this.nickname = member.getNickname();
             }

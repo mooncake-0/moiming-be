@@ -25,6 +25,8 @@ import static com.peoplein.moiming.domain.moim.QMoimMember.*;
 import static com.peoplein.moiming.domain.moim.QMoimJoinRule.*;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.QMoimCategoryLinker.*;
+import static com.peoplein.moiming.domain.fixed.QCategory.*;
+import static com.peoplein.moiming.domain.member.QMember.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -73,12 +75,13 @@ public class MoimJpaRepository implements MoimRepository {
 
 
     @Override
-    public Optional<Moim> findWithMoimMembersById(Long moimId) {
+    public Optional<Moim> findWithMoimMemberAndMemberById(Long moimId) {
 
         checkIllegalQueryParams(moimId);
 
         return Optional.ofNullable(queryFactory.selectFrom(moim).distinct()
                 .join(moim.moimMembers, moimMember).fetchJoin()
+                .join(moimMember.member, member).fetchJoin()
                 .where(moim.id.eq(moimId))
                 .fetchOne());
     }
@@ -93,11 +96,12 @@ public class MoimJpaRepository implements MoimRepository {
     }
 
     @Override
-    public Optional<Moim> findWithJoinRuleAndCategoryById(Long moimId) {
+    public Optional<Moim> findWithJoinRuleAndCategoriesById(Long moimId) {
 
         return Optional.ofNullable(
                 queryFactory.selectFrom(moim).distinct()
                         .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
+                        .join(moimCategoryLinker.category, category).fetchJoin()
                         .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
                         .where(moim.id.eq(moimId))
                         .fetchOne()

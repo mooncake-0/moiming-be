@@ -105,7 +105,7 @@ public class MoimServiceTest {
         MoimUpdateReqDto reqDto = mock(MoimUpdateReqDto.class); // updateMoim 에서 validation 하는 부분이 없음 - 뭐가 들었든 관심 없음
 
         // given - stub
-        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMemberRepository.findWithMoimAndCategoriesByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasPermissionOfManager()).thenReturn(true);
         when(moimMember.getMoim()).thenReturn(moim);
 
@@ -146,7 +146,7 @@ public class MoimServiceTest {
         MoimUpdateReqDto reqDto = mock(MoimUpdateReqDto.class);
 
         // given - stub
-        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMemberRepository.findWithMoimAndCategoriesByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
 
         // when
         // then
@@ -291,7 +291,7 @@ public class MoimServiceTest {
         MoimMember creator = mock(MoimMember.class);
 
         // given - stub
-        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.of(moim));
+        when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.of(moim));
         when(moimMemberRepository.findWithMemberByMemberAndMoimId(any(), any())).thenReturn(Optional.of(creator));
 
 
@@ -299,7 +299,7 @@ public class MoimServiceTest {
         moimService.getMoimDetail(moimId, member);
 
         // then
-        verify(moimRepository, times(1)).findWithJoinRuleAndCategoryById(any());
+        verify(moimRepository, times(1)).findWithJoinRuleAndCategoriesById(any());
         verify(moimCountService, times(1)).processMoimCounting(any(), any());
 
     }
@@ -326,7 +326,7 @@ public class MoimServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
-        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.empty());
+        when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.empty());
 
         // when
         // then
@@ -350,7 +350,7 @@ public class MoimServiceTest {
         // given - stub
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasPermissionOfManager()).thenReturn(true);
-        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.of(moim));
+        when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.of(moim));
         when(moimPostRepository.findByMoimId(any())).thenReturn(List.of(moimPost1, moimPost2));
 
         // when
@@ -404,7 +404,7 @@ public class MoimServiceTest {
 
         // given - stub
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.of(moim));
+        when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.of(moim));
 
         // when
         // then
@@ -423,7 +423,7 @@ public class MoimServiceTest {
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimRepository.findWithJoinRuleAndCategoryById(any())).thenReturn(Optional.empty());
+        when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.empty());
 
         // when
         // then

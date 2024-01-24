@@ -35,7 +35,7 @@ public class MoimMemberService {
     //         모임원이 아니여도 모임페이지에 어느정도 노출은 있는데 그 구분이 확인되어야 한다
     public List<MoimMember> getActiveMoimMembers(Long moimId, Member curMember) {
 
-        Moim moimOp = moimRepository.findWithMoimMembersById(moimId).orElseThrow(
+        Moim moimOp = moimRepository.findWithMoimMemberAndMemberById(moimId).orElseThrow(
                 () -> new MoimingApiException(MOIM_NOT_FOUND)
         );
 

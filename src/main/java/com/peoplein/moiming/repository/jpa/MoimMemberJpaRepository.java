@@ -61,10 +61,12 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     }
 
     @Override
-    public Optional<MoimMember> findWithMoimByMemberAndMoimId(Long memberId, Long moimId) {
+    public Optional<MoimMember> findWithMoimAndCategoriesByMemberAndMoimId(Long memberId, Long moimId) {
         checkIllegalQueryParams(memberId, moimId);
         return Optional.ofNullable(queryFactory.selectFrom(moimMember)
                 .join(moimMember.moim, moim).fetchJoin()
+                .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
+                .join(moimCategoryLinker.category, category).fetchJoin()
                 .where(moimMember.member.id.eq(memberId),
                         moimMember.moim.id.eq(moimId))
                 .fetchOne());
@@ -155,6 +157,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                 .join(moimMember.moim, moim).fetchJoin()
                 .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
                 .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
+                .join(moimCategoryLinker.category, category).fetchJoin() // MEMO :: 좋은 방법인지?
                 .where(moimMember.member.id.eq(memberId), dynamicQuery)// 기본 where 외로 and 가 붙는다
                 .orderBy(moimMember.moim.createdAt.desc(), moimMember.moim.id.desc())
                 .limit(limit)

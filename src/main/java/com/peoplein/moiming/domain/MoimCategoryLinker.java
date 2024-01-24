@@ -2,6 +2,7 @@ package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.Moim;
+import com.peoplein.moiming.service.CategoryService;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,5 +46,9 @@ public class MoimCategoryLinker extends BaseEntity{
 
     public static List<String> convertLinkersToNameValues(List<MoimCategoryLinker> moimCategoryLinkers) {
         return moimCategoryLinkers.stream().map(mcl -> mcl.getCategory().getCategoryName().getValue()).collect(Collectors.toList());
+    }
+
+    public void changeCategory(Category category) {
+        this.category = category;
     }
 }

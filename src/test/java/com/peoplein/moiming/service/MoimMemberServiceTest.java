@@ -44,7 +44,7 @@ public class MoimMemberServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
-        when(moimRepository.findWithMoimMembersById(any())).thenReturn(Optional.empty());
+        when(moimRepository.findWithMoimMemberAndMemberById(any())).thenReturn(Optional.empty());
 
         // when
         // then
@@ -62,7 +62,7 @@ public class MoimMemberServiceTest {
         Moim moim = mock(Moim.class);
 
         // given - stub
-        when(moimRepository.findWithMoimMembersById(any())).thenReturn(Optional.ofNullable(moim));
+        when(moimRepository.findWithMoimMemberAndMemberById(any())).thenReturn(Optional.ofNullable(moim));
 
         // when
         moimMemberService.getActiveMoimMembers(any(), member);
