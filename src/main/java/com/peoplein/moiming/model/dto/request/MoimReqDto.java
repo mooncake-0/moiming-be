@@ -109,7 +109,7 @@ public class MoimReqDto {
 
 
     /*
-     PATCH 특성상 없는 필드들이 더 많을 것이므로 모두 다 NULLABLE
+     화면상 한번에 정보를 보내줄 것이기 때문에 전부 다 받는다
      */
     @ApiModel(value = "Moim API - 요청 - 모임 가입 조건 수정")
     @Getter

@@ -99,7 +99,7 @@ public class MoimService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        Moim moim = moimRepository.findWithJoinRuleAndCategoryById(moimId).orElseThrow(() ->
+        Moim moim = moimRepository.findWithJoinRuleAndCategoriesById(moimId).orElseThrow(() ->
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
@@ -121,7 +121,7 @@ public class MoimService {
     public Moim updateMoim(MoimUpdateReqDto requestDto, Member curMember) {
 
         // 차피 Moim 존속 여부랑은 별개로, MoimMember 가 있으면 되는 것이니, MoimMember 로 그냥 join 해와버리자
-        MoimMember moimMemberPs = moimMemberRepository.findWithMoimByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() ->
+        MoimMember moimMemberPs = moimMemberRepository.findWithMoimAndCategoriesByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
         );
 
@@ -184,7 +184,7 @@ public class MoimService {
         }
 
         // 모임 삭제를 위한 조회를 진행
-        Moim moim = moimRepository.findWithJoinRuleAndCategoryById(moimId).orElseThrow(() ->
+        Moim moim = moimRepository.findWithJoinRuleAndCategoriesById(moimId).orElseThrow(() ->
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 

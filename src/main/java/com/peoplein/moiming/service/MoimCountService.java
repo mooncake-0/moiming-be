@@ -31,10 +31,11 @@ public class MoimCountService {
 
         // 요청한 모임을 이미 조회한 유저인지 확인
         Optional<MoimDailyCount> dailyOp = moimCountRepository.findDailyByMemberIdAndMoimIdAndCurrentDate(member.getId(), moim.getId());
-        Optional<MoimMonthlyCount> monthlyOp = moimCountRepository.findMonthlyByMemberIdAndMoimIdAndCurrentDate(moim.getId());
 
         if (dailyOp.isEmpty()) {
             moimCountRepository.save(MoimDailyCount.createMoimAccessCount(member, moim));
+
+            Optional<MoimMonthlyCount> monthlyOp = moimCountRepository.findMonthlyByMemberIdAndMoimIdAndCurrentDate(moim.getId());
             // 처음 조회한 유저일 시, monthlyOp 을 증가시킨다
             if (monthlyOp.isEmpty()) {
                 moimCountRepository.save(MoimMonthlyCount.createMoimMonthlyCount(moim));

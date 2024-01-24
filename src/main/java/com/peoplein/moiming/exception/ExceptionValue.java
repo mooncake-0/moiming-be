@@ -20,6 +20,8 @@ public enum ExceptionValue {
     MOIM_LEAVE_FAIL_BY_LAST_MEMBER(HttpStatus.FORBIDDEN.value(), "M006", "마지막 회원으로, 모임을 나갈 수 없습니다 (MVP 에선 발생할 일 없음)"),
     MOIM_LEAVE_FAIL_BY_MANAGER(HttpStatus.FORBIDDEN.value(), "M007", "운영자(개설자) 는 모임을 나갈 수 없습니다"),
 
+    MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER(HttpStatus.CONFLICT.value(), "M008", "수정하려는 최대 모임원 수가 현재 모임원 수보다 적습니다"),
+
     MOIM_POST_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MP000", "해당 게시물을 찾을 수 없습니다"),
 
     MOIM_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MM000", "모임의 모임원이 아닙니다"),

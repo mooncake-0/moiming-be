@@ -130,6 +130,9 @@ public class Moim extends BaseEntity {
         }
 
         if (requestDto.getMaxMember() != null) {
+            if (requestDto.getMaxMember() < curMemberCount) { // 현존하는 회원 수보다 적게 수정하려 시도
+                throw new MoimingApiException(ExceptionValue.MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER);
+            }
             this.setMaxMember(requestDto.getMaxMember());
         }
 
@@ -139,10 +142,13 @@ public class Moim extends BaseEntity {
         }
 
         if (!categories.isEmpty()) {
-
-            this.getMoimCategoryLinkers().clear(); // 현재 저장된 SessionCategory 들을 모두 삭제
-            this.changeCategory(categories);
-
+            for (Category newCategory : categories) {
+                for (MoimCategoryLinker curCategoryLinker : this.getMoimCategoryLinkers()) {
+                    if (newCategory.getCategoryDepth() == curCategoryLinker.getCategory().getCategoryDepth()) {
+                        curCategoryLinker.changeCategory(newCategory);
+                    }
+                }
+            }
         }
 
         this.updaterId = updaterId; // validate 통과이므로 call 되면 수정되는 것
