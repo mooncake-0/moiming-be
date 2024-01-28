@@ -8,10 +8,7 @@ public interface MoimCategoryLinkerRepository {
 
     void save(MoimCategoryLinker mcLinker);
 
-    List<MoimCategoryLinker> findWithCategoryByMoimId(Long moimId);
+    List<MoimCategoryLinker> findWithCategoryByMoimId(List<Long> moimIds);
 
-    /*
-         특정 모임의 모든 CategoryLinker 모두 삭제
-         */
     void removeAllByMoimId(Long moimId);
 }

@@ -7,7 +7,13 @@ public enum ExceptionValue {
 
     COMMON_INVALID_PARAM(HttpStatus.BAD_REQUEST.value(), "C000", "잘못된 Parameter 전달 (NULL or Invalid)"),
     COMMON_REQUEST_VALIDATION(HttpStatus.BAD_REQUEST.value(), "C001", "잘못된 Dto Value 확인, Response Body 를 확인하세요"),
+    COMMON_INVALID_REQUEST_PARAM(HttpStatus.BAD_REQUEST.value(), "C002", "필수 QueryParameter 가 누락되었습니다"),
     COMMON_INVALID_SITUATION(HttpStatus.UNPROCESSABLE_ENTITY.value(), "C999", "잘못된 상황이 발생했습니다. 로그를 확인하세요"),
+
+    // SEARCH DOMAIN
+    SEARCH_KEYWORD_INVALID(HttpStatus.BAD_REQUEST.value(), "SM000", "잘못된 키워드의 검색입니다"),
+    SEARCH_KEYWORD_LENGTH_INVALID(HttpStatus.BAD_REQUEST.value(), "SM001", "키워드 길이는 2 이상 20 이하 입니다"),
+
 
     // MOIM DOMAIN
     MOIM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "M000", "해당 모임을 찾을 수 없습니다"),
