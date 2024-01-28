@@ -26,6 +26,17 @@ public abstract class AppUrlPath {
     public final static String API_MEMBER_POLICY = "/policy";
 
 
+    public final static String API_DOMAIN_SEARCH = "/search";
+    public final static String API_SEARCH_VER = "/v0";
+
+
+    // Search 관련 API
+    // /api/v0/search/moim?keyword={}&sortBy={}&areaFilter{}&categoryFilter={}&offset={}&limit={}
+
+    public final static String PATH_SEARCH_MOIM = API_SERVER + API_SEARCH_VER + API_DOMAIN_SEARCH + "/moim";
+
+
+
 
     // Auth 관련 API
     // GET - /api/v0/auth/available/{email}

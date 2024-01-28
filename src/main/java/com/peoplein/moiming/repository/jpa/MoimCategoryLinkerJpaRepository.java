@@ -28,18 +28,15 @@ public class MoimCategoryLinkerJpaRepository implements MoimCategoryLinkerReposi
     }
 
     @Override
-    public List<MoimCategoryLinker> findWithCategoryByMoimId(Long moimId) {
+    public List<MoimCategoryLinker> findWithCategoryByMoimId(List<Long> moimIds) {
 
         return queryFactory.selectFrom(moimCategoryLinker)
                 .join(moimCategoryLinker.category, category).fetchJoin()
-                .where(moimCategoryLinker.moim.id.eq(moimId))
+                .where(moimCategoryLinker.moim.id.in(moimIds))
                 .fetch();
 
     }
 
-    /*
-     특정 모임의 모든 CategoryLinker 모두 삭제
-     */
     @Override
     public void removeAllByMoimId(Long moimId) {
         JPADeleteClause clause = new JPADeleteClause(em, moimCategoryLinker);

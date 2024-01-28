@@ -8,6 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 
 @Slf4j
@@ -95,7 +98,7 @@ public enum CategoryName {
     ECONOMICS("시사/경제", 1),
     WRITING("작문/글쓰기", 1),
 
-    // 2차_J, 2OB
+    // 2차_JOB
     INVESTMENT("투자/재테크", 1),
     BRANDING("브랜딩", 1),
     SIDE_PROJECT("사이드프로젝트", 1),
@@ -206,6 +209,20 @@ public enum CategoryName {
         }
         log.error("{}, {}", "존재하지 않는 카테고리 전환 시도, [" + value + "], C999", COMMON_INVALID_SITUATION.getErrMsg());
         throw new MoimingApiException(COMMON_INVALID_SITUATION);
+    }
+
+
+    // 검색시 사용, 텍스트 일치는 1차 카테고리는 제외
+    public static List<CategoryName> consistsInCategoryName(String keyword) {
+        List<CategoryName> consistingCategoryName = new ArrayList<>();
+        for (CategoryName cName : CategoryName.values()) {
+            if (cName.getValue().contains(keyword)) {
+                if(cName.depth == 1) {
+                    consistingCategoryName.add(cName);
+                }
+            }
+        }
+        return consistingCategoryName;
     }
 
 }
