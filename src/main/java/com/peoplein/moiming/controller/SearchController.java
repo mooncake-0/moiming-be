@@ -34,7 +34,7 @@ import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.response.SearchRespDto.*;
 
 @Slf4j
-@Api(tags = "모임 검색 관련")
+@Api(tags = "검색 관련")
 @RestController
 @RequiredArgsConstructor
 public class SearchController {
@@ -66,7 +66,7 @@ public class SearchController {
         keyword = keyword.strip();
         moimKeywordValidation(keyword);
 
-        if (!StringUtils.hasText(keyword) || offset == -1) {
+        if (!StringUtils.hasText(keyword) || offset == -1 || !sortBy.equals("date")) {
             throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM); // 필수 parameter 누락,
         }
 

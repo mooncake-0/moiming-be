@@ -7,7 +7,8 @@ public enum ExceptionValue {
 
     COMMON_INVALID_PARAM(HttpStatus.BAD_REQUEST.value(), "C000", "잘못된 Parameter 전달 (NULL or Invalid)"),
     COMMON_REQUEST_VALIDATION(HttpStatus.BAD_REQUEST.value(), "C001", "잘못된 Dto Value 확인, Response Body 를 확인하세요"),
-    COMMON_INVALID_REQUEST_PARAM(HttpStatus.BAD_REQUEST.value(), "C002", "필수 QueryParameter 가 누락되었습니다"),
+    COMMON_INVALID_REQUEST_PARAM(HttpStatus.BAD_REQUEST.value(), "C002", "필수 QueryParameter 가 누락 혹은 잘못되었습니다"),
+    COMMON_FORBIDDEN_WORDS_FOUND(HttpStatus.BAD_REQUEST.value(), "C003", "허용되지 않은 용어가 포함되어 있습니다"),
     COMMON_INVALID_SITUATION(HttpStatus.UNPROCESSABLE_ENTITY.value(), "C999", "잘못된 상황이 발생했습니다. 로그를 확인하세요"),
 
     // SEARCH DOMAIN
