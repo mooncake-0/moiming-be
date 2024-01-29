@@ -178,7 +178,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 추천 검색 - 금달 기준 조회수 가장 많은 모임들 (offset=0 필수, limit 은 원하는 갯수 (Top 20 이면 20 지정))")
+    @ApiOperation("모임 추천 검색 - 이번 달 기준 조회수 가장 많은 모임들 (offset=0 필수, limit 은 원하는 갯수 (Top 20 이면 20 지정))")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })

@@ -296,7 +296,7 @@ public class MoimRespDto {
     }
 
 
-    @ApiModel(value = "Moim API - 응답 - 추천 모임 (금달 조회수가 가장 높은 모임들)")
+    @ApiModel(value = "Moim API - 응답 - 추천 모임 (이번 달 조회수가 가장 높은 모임들)")
     @Getter
     @Setter
     @NoArgsConstructor
