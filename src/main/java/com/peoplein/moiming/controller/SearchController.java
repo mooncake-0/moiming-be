@@ -41,24 +41,20 @@ public class SearchController {
 
     private final SearchService searchService;
 
-    // 규칙
-    // 1. 검색어 2자 이상, 2. sortBy 는 date 만 지원 (date가 default) , 3. 필요시 areaFilter, categoryFilter ON, 4. offset 은 필수. 처음이여도 0 기입. 5. 공백 전달, 자음, 모음만 전달 불가
-    // 6. State 전체시, 해당 State 이름을 보낸다
-    // 7. 검색어에서 카테고리, 지역 포함을 시킬 때는, depth ==1 수준은 제외된다. (즉, 서울로 입력했을때, 서울시 전체 지역 필터가 걸리지 않는다) (카테고리도 마찬가지)
-    @ApiOperation("메인화면 모임 검색")
+    @ApiOperation("메인화면 모임 검색 (검색 정책 컨플루언스 참조)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "검색 성공"),
+            @ApiResponse(code = 200, message = "검색 성공", response = SearchMoimRespDto.class),
             @ApiResponse(code = 400, message = "검색 실패, ERR MSG 확인")
     })
     @GetMapping(PATH_SEARCH_MOIM)
     public ResponseEntity<?> searchMoim(
             @RequestParam(defaultValue = "") String keyword
             , @RequestParam(required = false, defaultValue = "date") String sortBy
-            , @RequestParam(required = false, defaultValue =  "") String areaFilter
-            , @RequestParam(required = false, defaultValue =  "") String categoryFilter
+            , @RequestParam(required = false, defaultValue = "") String areaFilter
+            , @RequestParam(required = false, defaultValue = "") String categoryFilter
             , @RequestParam(defaultValue = "-1") int offset
             , @RequestParam(required = false, defaultValue = "20") int limit
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
@@ -87,9 +83,15 @@ public class SearchController {
             }
         }
 
-        List<SearchMoimRespDto> responses = searchPagedMoims.stream().map(moim -> new SearchMoimRespDto(moim, categoryLinkersMap.get(moim.getId()))).collect(Collectors.toList());
+        List<SearchMoimRespDto> searchedMoims = searchPagedMoims.stream().map(moim ->{
+            if (moim == null || !categoryLinkersMap.containsKey(moim.getId())) {
+                log.error("모임 검색 Controller :: {}, {}", "Moim 을 불러오지 못했거나, 잘못된 Id mapped : ", COMMON_INVALID_SITUATION.getErrMsg());
+                throw new MoimingApiException(COMMON_INVALID_SITUATION);
+            }
+            return new SearchMoimRespDto(moim, categoryLinkersMap.get(moim.getId()));
+        }).collect(Collectors.toList());
 
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 검색 성공", responses));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 검색 성공", searchedMoims));
     }
 
 
