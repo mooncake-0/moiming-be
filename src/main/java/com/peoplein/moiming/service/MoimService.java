@@ -1,14 +1,13 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.AreaValue;
+import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
-import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.domain.moim.MoimDailyCount;
-import com.peoplein.moiming.domain.moim.MoimJoinRule;
-import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.domain.moim.*;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
 import com.peoplein.moiming.repository.*;
@@ -17,10 +16,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
@@ -258,5 +258,36 @@ public class MoimService {
     private MoimJoinRule generateJoinRule(JoinRuleCreateReqDto ruleDto) {
         return MoimJoinRule.createMoimJoinRule(ruleDto.getHasAgeRule(), ruleDto.getAgeMax(), ruleDto.getAgeMin(), ruleDto.getMemberGender());
     }
+
+
+    public Map<String, Object> getSuggestedMoim(String areaFilter, String categoryFilter, int offset, int limit) {
+
+        // 지역 필터가 있으면, 지역 넘겨주면 됨 - AND 조건 걸림
+        AreaValue areaValue = null;
+        if (StringUtils.hasText(areaFilter)) {
+            areaValue = AreaValue.fromName(areaFilter);
+        }
+
+        // 카테고리 필터가 있으면, 카테고리 가져오면 됨 - AND 조건 걸림
+        CategoryName categoryName = null;
+        if (StringUtils.hasText(categoryFilter)) {
+            categoryName = CategoryName.fromValue(categoryFilter);
+        }
+
+        LocalDate conditionMonth = LocalDate.now();
+        conditionMonth = conditionMonth.withDayOfMonth(1);
+
+        List<MoimMonthlyCount> monthlyCounts = moimCountRepository.findMonthlyBySuggestedCondition(areaValue, categoryName, conditionMonth, offset, limit);
+        List<Long> moimIds = monthlyCounts.stream().map(mmc -> mmc.getMoim().getId()).collect(Collectors.toList());
+        List<MoimCategoryLinker> categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimId(moimIds);
+
+        Map<String, Object> listMap = new HashMap<>();
+        listMap.put("SUGGESTED_MOIMS", monthlyCounts); // Moim 은 이미 Fetch Join 되어 있으므로, Moim 은 프록시 객체가 아니다
+        listMap.put("CATEGORIES", categoryLinkers); // 같이 전달해서, 매핑을 진행해준다
+
+        return listMap;
+
+    }
+
 
 }

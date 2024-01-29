@@ -1,11 +1,8 @@
 package com.peoplein.moiming.controller;
 
 
-import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.enums.OrderBy;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
@@ -13,14 +10,11 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.exception.ExceptionValue;
-import com.peoplein.moiming.repository.SearchJpaRepository;
-import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +26,6 @@ import java.util.List;
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.AreaValue.*;
 import static com.peoplein.moiming.domain.enums.CategoryName.*;
-import static com.peoplein.moiming.domain.enums.MoimSearchType.NO_FILTER;
 import static com.peoplein.moiming.security.token.JwtParams.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 
@@ -49,9 +42,6 @@ public class SearchControllerTest extends TestObjectCreator {
 
     @Autowired
     private MockMvc mvc;
-
-    @Autowired
-    private SearchJpaRepository searchRepository;
 
     @Autowired
     private EntityManager em;

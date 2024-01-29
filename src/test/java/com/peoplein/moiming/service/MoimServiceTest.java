@@ -44,6 +44,8 @@ public class MoimServiceTest {
     private CategoryService categoryService;
     @Mock
     private MoimCountService moimCountService;
+    @Mock
+    private MoimCountRepository moimCountRepository;
 
     // 성공
     @Test
@@ -430,6 +432,22 @@ public class MoimServiceTest {
         assertThatThrownBy(() -> moimService.deleteMoim(moimId, member)).isInstanceOf(MoimingApiException.class);
 
     }
+
+
+    // getSuggestedMoim - 성공 - 무슨 값들이 오가는지 아무 상관 안한다
+    @Test
+    void getSuggestedMoim_shouldPass_whenRightInfoPassed() {
+
+        // given
+        // given - stub
+        // when
+        moimService.getSuggestedMoim("", "", 0, 0);
+
+        // then
+        verify(moimCountRepository, times(1)).findMonthlyBySuggestedCondition(any(), any(), any(), anyInt(), anyInt());
+        verify(moimCategoryLinkerRepository, times(1)).findWithCategoryByMoimId(any());
+    }
+
 
 }
 

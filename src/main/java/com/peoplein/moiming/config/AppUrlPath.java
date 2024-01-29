@@ -32,7 +32,6 @@ public abstract class AppUrlPath {
 
     // Search 관련 API
     // /api/v0/search/moim?keyword={}&sortBy={}&areaFilter{}&categoryFilter={}&offset={}&limit={}
-
     public final static String PATH_SEARCH_MOIM = API_SERVER + API_SEARCH_VER + API_DOMAIN_SEARCH + "/moim";
 
 
@@ -64,7 +63,7 @@ public abstract class AppUrlPath {
     // DELETE - /api/v0/moim/{moimId}
     public final static String PATH_MOIM_DELETE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
     public final static String PATH_MOIM_FIXED_VALUES = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/fixed";
-
+    public final static String PATH_MOIM_SUGGESTED = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/main" + "/suggest";
 
 
     // Moim Member 관련 API

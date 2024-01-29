@@ -1,30 +1,42 @@
 package com.peoplein.moiming.controller;
 
+import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.domain.moim.MoimMonthlyCount;
+import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
+import com.peoplein.moiming.model.dto.response.SearchRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
 
+@Slf4j
 @Api(tags = "모임 관련")
 @RestController
 @RequiredArgsConstructor
@@ -147,7 +159,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 고정 정보 조회 (지역 / 카테고리)")
+    @ApiOperation("모임 고정 정보 조회 (지역 / 카테고리) - 앱 기동중에는 변하지 않을 정보 - 매번 요청보다 저장 후 사용 권장")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -164,4 +176,56 @@ public class MoimController {
                 new MoimFixedInfoRespDto(fixedValues.getAreaStates(), fixedValues.getCategoryDto().getParentCategories(), fixedValues.getCategoryDto().getChildCategoriesMap())
         ));
     }
+
+
+    @ApiOperation("모임 추천 검색 - 이번 달 기준 조회수 가장 많은 모임들 (offset=0 필수, limit 은 원하는 갯수 (Top 20 이면 20 지정))")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 추천 성공", response = MoimSuggestedDto.class),
+            @ApiResponse(code = 400, message = "모임 추천 실패, ERR MSG 확인")
+    })
+    @GetMapping(PATH_MOIM_SUGGESTED)
+    public ResponseEntity<?> getSuggestedMoim(
+            @RequestParam(required = false, defaultValue = "") String areaFilter
+            , @RequestParam(required = false, defaultValue = "") String categoryFilter
+            , @RequestParam(defaultValue = "-1") int offset
+            , @RequestParam(required = false, defaultValue = "20") int limit
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        if (offset == -1) {
+            throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM); // 필수 parameter 누락,
+        }
+
+        Map<String, Object> listMap = moimService.getSuggestedMoim(areaFilter, categoryFilter, offset, limit);
+
+        List<MoimMonthlyCount> searchPagedMoims = (List<MoimMonthlyCount>) listMap.get("SUGGESTED_MOIMS");
+        List<MoimCategoryLinker> categoryLinkers = (List<MoimCategoryLinker>) listMap.get("CATEGORIES");
+
+        Map<Long, List<MoimCategoryLinker>> categoryLinkersMap = new HashMap<>();
+        for (MoimCategoryLinker categoryLinker : categoryLinkers) {
+            Long keyId = categoryLinker.getMoim().getId();
+            if (categoryLinkersMap.containsKey(keyId)) {
+                categoryLinkersMap.get(keyId).add(categoryLinker);
+            } else {
+                List<MoimCategoryLinker> eachCategories = new ArrayList<>();
+                eachCategories.add(categoryLinker);
+                categoryLinkersMap.put(keyId, eachCategories);
+            }
+        }
+
+        List<MoimSuggestedDto> suggestedMoims = searchPagedMoims.stream().map(mmc -> {
+            if (mmc.getMoim() == null || !categoryLinkersMap.containsKey(mmc.getMoim().getId())) {
+                log.error("추천 모임 Controller :: {}, {}", "Moim 을 불러오지 못했거나, 잘못된 Id mapped : ", COMMON_INVALID_SITUATION.getErrMsg());
+                throw new MoimingApiException(COMMON_INVALID_SITUATION);
+            }
+            return new MoimSuggestedDto(mmc.getMoim(), categoryLinkersMap.get(mmc.getMoim().getId()));
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 검색 성공", suggestedMoims));
+    }
+
 }
+
+

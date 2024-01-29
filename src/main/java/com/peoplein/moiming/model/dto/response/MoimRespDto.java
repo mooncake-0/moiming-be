@@ -294,4 +294,59 @@ public class MoimRespDto {
             }
         }
     }
+
+
+    @ApiModel(value = "Moim API - 응답 - 추천 모임 (이번 달 조회수가 가장 높은 모임들)")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class MoimSuggestedDto {
+        private Long moimId;
+        private String moimName;
+        private int curMemberCount;
+        private int maxMember;
+        private String areaCity;
+        private String areaState;
+        private String createdAt;
+        private String updatedAt;
+        @JsonProperty("joinRule")
+        private MoimJoinRuleDto moimJoinRuleDto;
+        private List<String> categories;
+
+        public MoimSuggestedDto(Moim moim, List<MoimCategoryLinker> categoryLinkers) {
+            this.moimId = moim.getId();
+            this.moimName = moim.getMoimName();
+            this.curMemberCount = moim.getCurMemberCount();
+            this.maxMember = moim.getMaxMember();
+            this.areaCity = moim.getMoimArea().getCity();
+            this.areaState = moim.getMoimArea().getState();
+            this.createdAt = moim.getCreatedAt() + "";
+            this.updatedAt = moim.getUpdatedAt() + "";
+            this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);
+            if (!Objects.isNull(moim.getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
+                this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
+            }
+        }
+
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        public static class MoimJoinRuleDto {
+
+            private boolean hasAgeRule;
+            private int ageMax;
+            private int ageMin;
+            private MemberGender memberGender;
+
+            public MoimJoinRuleDto(MoimJoinRule moimJoinRule) {
+                this.hasAgeRule = moimJoinRule.isHasAgeRule();
+                this.ageMax = moimJoinRule.getAgeMax();
+                this.ageMin = moimJoinRule.getAgeMin();
+                this.memberGender = moimJoinRule.getMemberGender();
+            }
+        }
+
+    }
+
 }
