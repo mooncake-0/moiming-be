@@ -13,6 +13,7 @@ import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +35,8 @@ import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 
 모이밍 서비스를 탈퇴한 멤버가 작성한 글은 user명이 --> 탈퇴한 사용자으로 남겨진다.
  */
+@Slf4j
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MoimPostService {
 
@@ -63,7 +64,7 @@ public class MoimPostService {
         MoimPost post = MoimPost.createMoimPost(requestDto.getPostTitle(), requestDto.getPostContent()
                 , MoimPostCategory.fromValue(requestDto.getMoimPostCategory())
                 , requestDto.getHasPrivateVisibility(), requestDto.getHasFiles()
-                , moimMember.getMoim(), moimMember.getMember());
+                , moimMember.getMoim(), member);
 
         moimPostRepository.save(post);
 
@@ -72,16 +73,13 @@ public class MoimPostService {
 
 
     // 모임의 모든 Post 전달 (필요 정보는 사실상 File 빼고 전부 다)
+    @Transactional(readOnly = true)
     public StateMapperDto<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
 
         if (moimId == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        /*
-         TODO : 1_오직 모임 생성자_id 만을 위해 Moim Fetch Join 을 해줘야한다 --> JPA 에서 객체 조회 말고 큰 다른 방법은 없을까?
-                2_각 게시물 생성자 정보를 같이 전달하기 위핸 Post Creator Member Fetch Join
-         */
         MoimPost lastPost = null;
         if (lastPostId != null) {
             lastPost = moimPostRepository.findById(lastPostId).orElseThrow(() ->
@@ -101,7 +99,7 @@ public class MoimPostService {
 
         // Post 들의 작성자들 상태
         Set<Long> postCreatorIds = moimPosts.stream().map(moimPost -> moimPost.getMember().getId()).collect(Collectors.toSet());
-        Map<Member, MoimMemberState> postCreatorStates = moimMemberService.getMoimMemberStates(moimId, postCreatorIds);
+        Map<Long, MoimMemberState> postCreatorStates = moimMemberService.getMoimMemberStates(moimId, postCreatorIds);
 
         return new StateMapperDto<>(moimPosts, postCreatorStates);
     }
@@ -109,6 +107,7 @@ public class MoimPostService {
 
     // 특정 Post 의 모든 Data 전달
     // 게시물 정보 반환, 게시물 댓글들 반환,
+    @Transactional(readOnly = true)
     public PostDetailsDto getMoimPostDetail(Long postId, Member member) {
 
         if (postId == null || member == null) {
@@ -120,20 +119,22 @@ public class MoimPostService {
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
+        // 요청자가 게시물 세부 정보를 요청할 수 있는가?
         Optional<MoimMember> moimMemberOp = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId());
         moimPost.checkMemberAccessibility(moimMemberOp);
 
         PostCommentDetailsDto commentsDto = postCommentService.getSortedPostComments(postId);
-        commentsDto.getCommentCreatorIds().add(moimPost.getMember().getId()); // 게시물 생성자가 없을 수도 있음, 추가해준다
-        // moimMemberService 한테 이 MoimMember 들에 대한 상태를 조회한다
-        Map<Member, MoimMemberState> memberStates = moimMemberService.getMoimMemberStates(moimPost.getMoim().getId(), commentsDto.getCommentCreatorIds());
+        commentsDto.getCommentCreatorIds().add(moimPost.getMember().getId()); // 게시물 생성자가 없을 수도 있음, 추가해준다 // 게시물 생성자의 memberState 메핑을 위함
+
+        // moimMemberService 한테 이 MoimMember 들에 대한 상태를 조회한다 - 단, Member 는 이시점에서 Join 되지 않는다, PostComment 객체에서 다 fetchJoin 되었기 때문에 Controller 에선 이걸 사용한다
+        Map<Long, MoimMemberState> memberStates = moimMemberService.getMoimMemberStates(moimPost.getMoim().getId(), commentsDto.getCommentCreatorIds());
 
         return new PostDetailsDto(moimPost, memberStates, commentsDto.getParentComments(), commentsDto.getChildCommentsMap());
 
     }
 
 
-    // Post 수정
+    @Transactional
     public MoimPost updateMoimPost(MoimPostUpdateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
@@ -146,12 +147,15 @@ public class MoimPostService {
         );
 
         // post 에 저장된 moimId + member 로 moimMember 조회
-        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId()).orElseThrow(() ->
-                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId()).orElseThrow(() -> {
+                    log.error("{}, updateMoimPost :: {}", this.getClass().getName(), "요청한 유저는 해당 모임에 가입한 적이 없습니다");
+                    return new MoimingApiException(MOIM_MEMBER_NOT_FOUND);
+                }
         );
 
         // MoimMember 권한 확인 (활동중이여야 하며, 작성자여야 한다)
         if (!moimMember.hasActivePermission() || !moimPost.getMember().getId().equals(member.getId())) {
+            log.error("{}, updateMoimPost :: {}", this.getClass().getName(), "요청한 유저는 모임을 수정할 권한이 없습니다");
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
@@ -163,6 +167,8 @@ public class MoimPostService {
 
 
     // Post 삭제 (댓글 / 답글에 대한 로직 처리 후 최종 진행)
+
+    @Transactional
     public void deleteMoimPost(Long postId, Member member) {
 
         if (postId == null || member == null) {

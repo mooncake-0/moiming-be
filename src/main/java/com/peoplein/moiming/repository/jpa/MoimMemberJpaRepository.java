@@ -101,8 +101,6 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     public List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds) {
 
         return queryFactory.selectFrom(moimMember)
-                .join(moimMember.member, member).fetchJoin()
-                .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(
                         moimMember.moim.id.eq(moimId),
                         moimMember.member.id.in(memberIds)
@@ -129,8 +127,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
      */
 
     @Override
-    public List<MoimMember> findMemberMoimsWithRuleAndCategoriesByConditionsPaged(Long memberId
-            , boolean isActiveReq, boolean isManagerReq, Moim lastMoim, int limit) {
+    public List<MoimMember> findMemberMoimsWithCursorConditions(Long memberId, boolean isActiveReq, boolean isManagerReq, Moim lastMoim, int limit) {
 
         BooleanBuilder dynamicQuery = new BooleanBuilder();
 
@@ -152,12 +149,9 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
             );
         }
 
-        // TODO :: moimCategoryLinkers 는 일대다 관계를 가져오려는 것. Fetch Join 이 가능한게 맞는가? 되는걸 보면 맞긴 함
         return queryFactory.selectFrom(moimMember)
                 .join(moimMember.moim, moim).fetchJoin()
                 .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
-                .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
-                .join(moimCategoryLinker.category, category).fetchJoin() // MEMO :: 좋은 방법인지?
                 .where(moimMember.member.id.eq(memberId), dynamicQuery)// 기본 where 외로 and 가 붙는다
                 .orderBy(moimMember.moim.createdAt.desc(), moimMember.moim.id.desc())
                 .limit(limit)

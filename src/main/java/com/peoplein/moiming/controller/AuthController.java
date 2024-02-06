@@ -2,6 +2,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.AuthService;
 import io.swagger.annotations.*;
@@ -71,10 +72,55 @@ public class AuthController {
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })
     @PostMapping(PATH_AUTH_REISSUE_TOKEN)
-    public ResponseEntity<?> reissueToken(@RequestBody @Valid AuthTokenReqDto requestDto, BindingResult br, HttpServletResponse response) {
+    public ResponseEntity<?> reissueToken(@RequestBody @Valid AuthTokenReqDto requestDto, BindingResult br) {
 
         TokenDto tokenDto = authService.reissueToken(requestDto);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "재발급 성공", tokenDto));
+
+    }
+
+
+    @ApiOperation("이메일 확인 요청 - SMS 인증 후 인증 번호 및 ID 전달 필요")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "이메일 확인 성공", response = AuthFindIdRespDto.class),
+            @ApiResponse(code = 400, message = "이메일 확인 실패, ERR MSG 확인")
+    })
+    @PostMapping(PATH_AUTH_FIND_MEMBER_EMAIL)
+    public ResponseEntity<?> findMemberEmail(@RequestBody @Valid AuthFindIdReqDto requestDto
+            , BindingResult br) {
+
+        String maskedEmail = authService.findMemberEmail(requestDto);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "이메일 확인 성공", new AuthFindIdRespDto(maskedEmail)));
+
+    }
+
+
+    @ApiOperation("비밀번호 재설정 인증 요청 - SMS 인증 후 인증 번호 및 ID 전달 필요")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "비밀번호 재설정 인증 성공"),
+            @ApiResponse(code = 400, message = "비밀번호 재설정 인증 실패, ERR MSG 확인")
+    })
+    @PostMapping(PATH_AUTH_RESET_PW_CONFIRM)
+    public ResponseEntity<?> confirmResetPassword(@RequestBody @Valid AuthResetPwConfirmReqDto requestDto
+            , BindingResult br) {
+
+        authService.confirmResetPassword(requestDto);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "비밀번호 재설정 인증 성공", null));
+
+    }
+
+
+    @ApiOperation("비밀번호 재설정 요청 - SMS 인증 후 ID 전달 필요")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "비밀번호 재설정 성공"),
+            @ApiResponse(code = 400, message = "비밀번호 재설정 실패, ERR MSG 확인")
+    })
+    @PostMapping(PATH_AUTH_RESET_PW)
+    public ResponseEntity<?> resetPassword(@RequestBody @Valid AuthResetPwReqDto requestDto
+            , BindingResult br) {
+
+        authService.resetPassword(requestDto);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "비밀번호 재설정 성공", null));
 
     }
 }

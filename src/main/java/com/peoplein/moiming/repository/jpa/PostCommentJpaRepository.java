@@ -68,12 +68,12 @@ public class PostCommentJpaRepository implements PostCommentRepository {
     }
 
     @Override
-    public Optional<PostComment> findWithMoimPostAndMoimById(Long commentId) {
+    public Optional<PostComment> findWithMemberAndMoimPostById(Long commentId) {
 
 
         return Optional.ofNullable(queryFactory.selectFrom(postComment)
                 .join(postComment.moimPost, moimPost).fetchJoin()
-                .join(moimPost.moim, moim).fetchJoin()
+                .join(postComment.member, member).fetchJoin()
                 .where(postComment.id.eq(commentId))
                 .fetchOne());
 
@@ -137,7 +137,7 @@ public class PostCommentJpaRepository implements PostCommentRepository {
 
         //  Order By Depth 와 created At 으로 모두 불러오고, HashMap 으로 인 앱에서 최종 마무리를 한다
         //  이 때, Member 까지 Join 해서 회원 정보도 전달할 수 있도록 한다
-        return queryFactory.selectFrom(postComment).distinct()
+        return queryFactory.selectFrom(postComment)
                 .join(postComment.member, member).fetchJoin()
                 .where(postComment.moimPost.id.eq(moimPostId))
                 .orderBy(postComment.depth.asc(), postComment.createdAt.asc()) // 먼저 단 댓글이 먼저 보여진다 // 최근게 나중으로

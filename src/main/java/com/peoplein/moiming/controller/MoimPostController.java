@@ -68,7 +68,7 @@ public class MoimPostController {
     }
 
 
-    @ApiOperation("게시물 일반 조회 - 모임의 게시물 일반 조회 (기본 정보 응답), (최신 작성일 기준 내림차순, lastId 필요, 10개씩 전달됨)")
+    @ApiOperation("게시물 일반 조회 - 모임의 게시물 일반 조회 (기본 정보 응답), (최신 작성일 기준 내림차순, 페이징시 lastId 필요, 20개씩 전달됨)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -80,7 +80,7 @@ public class MoimPostController {
     public ResponseEntity<?> getMoimPosts(@PathVariable(name = "moimId") Long moimId
             , @RequestParam(required = false, value = "lastPostId") Long lastPostId
             , @RequestParam(required = false, value = "category") MoimPostCategory category
-            , @RequestParam(required = false, defaultValue = "10") int limit
+            , @RequestParam(required = false, defaultValue = "20") int limit
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         StateMapperDto<MoimPost> stateMapper = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
@@ -109,7 +109,7 @@ public class MoimPostController {
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         PostDetailsDto moimPostDetail = moimPostService.getMoimPostDetail(moimPostId, principal.getMember());
-        Map<Member, MoimMemberState> memberStates = moimPostDetail.getMemberStates();
+        Map<Long, MoimMemberState> memberStates = moimPostDetail.getMemberStates();
 
         // Post Creator 의 것 먼저 확인
         MoimPost post = moimPostDetail.getMoimPost();
@@ -124,7 +124,6 @@ public class MoimPostController {
             checkToChangeCommentCreatorInfo(comments, memberStates);
         }
 
-//        MoimPostDetailViewRespDtoTemp responseData = new MoimPostDetailViewRespDtoTemp(post, parents, childsMap);
         MoimPostDetailViewRespDto responseData = new MoimPostDetailViewRespDto(post, parents, childsMap);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 세부 조회 성공", responseData));
     }
@@ -170,10 +169,10 @@ public class MoimPostController {
     }
 
 
-    private void checkToChangePostCreatorInfo(List<MoimPost> posts, Map<Member, MoimMemberState> memberStates) {
+    private void checkToChangePostCreatorInfo(List<MoimPost> posts, Map<Long, MoimMemberState> memberStates) {
 
         for (MoimPost post : posts) {
-            MoimMemberState postCreatorState = memberStates.get(post.getMember());
+            MoimMemberState postCreatorState = memberStates.get(post.getMember().getId());
 
             if (postCreatorState.equals(MoimMemberState.NOTFOUND)) {
                 post.changeMember(new DeletedMember(post.getMember()));
@@ -186,10 +185,10 @@ public class MoimPostController {
     }
 
 
-    private void checkToChangeCommentCreatorInfo(List<PostComment> comments, Map<Member, MoimMemberState> memberStates) {
+    private void checkToChangeCommentCreatorInfo(List<PostComment> comments, Map<Long, MoimMemberState> memberStates) {
 
         for (PostComment comment : comments) {
-            MoimMemberState commentCreatorState = memberStates.get(comment.getMember());
+            MoimMemberState commentCreatorState = memberStates.get(comment.getMember().getId());
 
             if (commentCreatorState.equals(MoimMemberState.NOTFOUND)) {
                 comment.changeMember(new DeletedMember(comment.getMember()));

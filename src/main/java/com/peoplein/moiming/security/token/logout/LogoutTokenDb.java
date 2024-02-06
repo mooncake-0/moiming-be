@@ -1,12 +1,9 @@
-package com.peoplein.moiming.service.util;
+package com.peoplein.moiming.security.token.logout;
 
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

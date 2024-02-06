@@ -90,18 +90,18 @@ public class MoimRespDto {
         private MoimJoinRuleDto moimJoinRuleDto;
         private List<String> categories;
 
-        public MoimViewRespDto(MoimMember moimMember) {
-            this.moimId = moimMember.getMoim().getId();
-            this.moimName = moimMember.getMoim().getMoimName();
-            this.curMemberCount = moimMember.getMoim().getCurMemberCount();
-            this.maxMember = moimMember.getMoim().getMaxMember();
-            this.areaCity = moimMember.getMoim().getMoimArea().getCity();
-            this.areaState = moimMember.getMoim().getMoimArea().getState();
-            this.createdAt = moimMember.getMoim().getCreatedAt() + "";
-            this.updatedAt = moimMember.getMoim().getUpdatedAt() + "";
-            this.categories = MoimCategoryLinker.convertLinkersToNameValues(moimMember.getMoim().getMoimCategoryLinkers());
-            if (!Objects.isNull(moimMember.getMoim().getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
-                this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());
+        public MoimViewRespDto(Moim moim, List<MoimCategoryLinker> categoryLinkers) {
+            this.moimId = moim.getId();
+            this.moimName = moim.getMoimName();
+            this.curMemberCount = moim.getCurMemberCount();
+            this.maxMember = moim.getMaxMember();
+            this.areaCity = moim.getMoimArea().getCity();
+            this.areaState = moim.getMoimArea().getState();
+            this.createdAt = moim.getCreatedAt() + "";
+            this.updatedAt = moim.getUpdatedAt() + "";
+            this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);
+            if (!Objects.isNull(moim.getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
+                this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
             }
         }
 

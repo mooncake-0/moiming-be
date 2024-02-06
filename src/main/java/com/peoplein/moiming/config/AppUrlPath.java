@@ -35,8 +35,6 @@ public abstract class AppUrlPath {
     public final static String PATH_SEARCH_MOIM = API_SERVER + API_SEARCH_VER + API_DOMAIN_SEARCH + "/moim";
 
 
-
-
     // Auth 관련 API
     // GET - /api/v0/auth/available/{email}
     public final static String PATH_AUTH_EMAIL_AVAILABLE = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/available/{email}";
@@ -46,6 +44,11 @@ public abstract class AppUrlPath {
     public final static String PATH_AUTH_LOGIN = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/login";
     // POST - /api/v0/auth/token
     public final static String PATH_AUTH_REISSUE_TOKEN = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/token";
+    public final static String PATH_AUTH_REQ_SMS_VERIFY = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/sms" + "/send";
+    public final static String PATH_AUTH_FIND_MEMBER_EMAIL = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/requestEmail";
+    public final static String PATH_AUTH_RESET_PW_CONFIRM = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/confirmResetPw";
+    public final static String PATH_AUTH_RESET_PW = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/resetPw";
+
 
 
 

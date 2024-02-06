@@ -28,7 +28,7 @@ public class MoimCategoryLinkerJpaRepository implements MoimCategoryLinkerReposi
     }
 
     @Override
-    public List<MoimCategoryLinker> findWithCategoryByMoimId(List<Long> moimIds) {
+    public List<MoimCategoryLinker> findWithCategoryByMoimIds(List<Long> moimIds) {
 
         return queryFactory.selectFrom(moimCategoryLinker)
                 .join(moimCategoryLinker.category, category).fetchJoin()

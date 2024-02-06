@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.PolicyType;
+import com.peoplein.moiming.domain.enums.VerificationType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
@@ -114,4 +115,65 @@ public class AuthReqDto {
         private String token;
 
     }
+
+
+    @ApiModel(value = "Auth API - 요청 - 회원 EMAIL 찾기 (SMS 인증번호 및 Id 필요)")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthFindIdReqDto {
+        @NotNull
+        private Long smsVerificationId;
+        @NotEmpty
+        private String memberPhone;
+        @NotEmpty
+        private String verificationNumber;
+    }
+
+
+    @ApiModel(value = "Auth API - 요청 - 비밀번호 재설정 인증 요청 (SMS 인증번호 및 Id 필요)")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthResetPwConfirmReqDto {
+        @NotNull
+        private Long smsVerificationId;
+        @NotEmpty
+        private String memberPhone;
+        @NotEmpty
+        private String verificationNumber;
+    }
+
+
+    @ApiModel(value = "Auth API - 요청 - 비밀번호 재설정 요청 (SMS Id 필요)")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthResetPwReqDto {
+        @NotNull
+        private Long smsVerificationId;
+        @NotEmpty
+        private String changePassword;
+    }
+
+
+
+    @ApiModel(value = "Auth SMS API - 요청 - SMS 인증번호 보내기")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthSmsReqDto {
+
+        @NotNull
+        private VerificationType verifyType;
+        private String memberName;
+        private String memberEmail;
+        @NotEmpty
+        private String memberPhone;
+    }
+
 }

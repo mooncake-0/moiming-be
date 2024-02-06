@@ -1,7 +1,7 @@
 package com.peoplein.moiming.config;
 
-import com.peoplein.moiming.service.util.LogoutTokenDb;
-import com.peoplein.moiming.service.util.LogoutTokenManager;
+import com.peoplein.moiming.security.token.logout.LogoutTokenDb;
+import com.peoplein.moiming.security.token.logout.LogoutTokenManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

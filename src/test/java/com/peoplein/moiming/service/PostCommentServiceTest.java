@@ -330,7 +330,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.of(comment));
 
         // given - stub for private method
         when(member.getId()).thenReturn(1L); // 상관없음
@@ -370,7 +370,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         Member member = mock(Member.class);
 
         // given - stub
-        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.empty());
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.empty());
 
         // when
         // then
@@ -391,7 +391,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         Moim moim = mock(Moim.class);
 
         // given - stub
-        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.of(comment));
 
         // given - stub for private method
         when(member.getId()).thenReturn(1L); // 상관없음
@@ -420,7 +420,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.of(comment));
 
         // given - stub for private method
         when(member.getId()).thenReturn(1L); // 상관없음
@@ -455,7 +455,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         PostComment postComment = mock(PostComment.class);
 
         // given - stub
-        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(postComment));
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.of(postComment));
 
         // given - stub for private method
         when(member.getId()).thenReturn(1L); // 상관 무
@@ -495,7 +495,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         Member member = mock(Member.class);
 
         // given - stub
-        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.empty());
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.empty());
 
         // when
         // then
@@ -516,7 +516,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         PostComment comment = mock(PostComment.class);
 
         // given - stub
-        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.of(comment));
 
         // given - stub for private method
         when(member.getId()).thenReturn(1L); // 상관없음
@@ -545,7 +545,7 @@ public class PostCommentServiceTest extends TestMockCreator {
         PostComment comment = mock(PostComment.class);
 
         // given - stub
-        when(postCommentRepository.findWithMoimPostAndMoimById(any())).thenReturn(Optional.of(comment));
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.of(comment));
 
         // given - stub for private method
         when(member.getId()).thenReturn(1L); // 상관없음

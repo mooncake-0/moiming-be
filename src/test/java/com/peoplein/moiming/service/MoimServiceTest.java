@@ -60,10 +60,10 @@ public class MoimServiceTest {
         when(moimRepository.findById(lastMoimId)).thenReturn(Optional.of(lastMoim));
 
         // when
-        moimService.getMemberMoims(lastMoimId, false, false, 0, member); // ANY VALUE
+        moimService.getMemberMoims(lastMoimId,  false, 0, member); // ANY VALUE
 
         // then
-        verify(moimMemberRepository, times(1)).findMemberMoimsWithRuleAndCategoriesByConditionsPaged(any(), anyBoolean(), anyBoolean(), any(), anyInt());
+        verify(moimMemberRepository, times(1)).findMemberMoimsWithCursorConditions(any(), anyBoolean(), anyBoolean(), any(), anyInt());
 
     }
 
@@ -77,10 +77,10 @@ public class MoimServiceTest {
         Long lastMoimId = null; // Not Null
 
         // when
-        moimService.getMemberMoims(lastMoimId, false, false, 0, member); // ANY VALUE
+        moimService.getMemberMoims(lastMoimId,  false, 0, member); // ANY VALUE
 
         // then
-        verify(moimMemberRepository, times(1)).findMemberMoimsWithRuleAndCategoriesByConditionsPaged(any(), anyBoolean(), anyBoolean(), any(), anyInt());
+        verify(moimMemberRepository, times(1)).findMemberMoimsWithCursorConditions(any(), anyBoolean(), anyBoolean(), any(), anyInt());
 
     }
 
@@ -92,7 +92,7 @@ public class MoimServiceTest {
         // given
         // when
         // then
-        assertThatThrownBy(() -> moimService.getMemberMoims(null, false, false, 0, null)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimService.getMemberMoims(null,  false, 0, null)).isInstanceOf(MoimingApiException.class);
 
     }
 
@@ -445,7 +445,7 @@ public class MoimServiceTest {
 
         // then
         verify(moimCountRepository, times(1)).findMonthlyBySuggestedCondition(any(), any(), any(), anyInt(), anyInt());
-        verify(moimCategoryLinkerRepository, times(1)).findWithCategoryByMoimId(any());
+        verify(moimCategoryLinkerRepository, times(1)).findWithCategoryByMoimIds(any());
     }
 
 

@@ -60,7 +60,7 @@ public class SearchService {
         List<Moim> searchPagedMoims = searchJpaRepository.findMoimByDynamicSearchCondition(moimSearchType, keyword, areaFilters, categoryFilters, offset, limit,orderBy);
         List<Long> moimIds = searchPagedMoims.stream().map(Moim::getId).collect(Collectors.toList());
 
-        List<MoimCategoryLinker> categoryLinkers = categoryRepository.findWithCategoryByMoimId(moimIds);
+        List<MoimCategoryLinker> categoryLinkers = categoryRepository.findWithCategoryByMoimIds(moimIds);
 
         Map<String, Object> listMap = new HashMap<>();
         listMap.put("PAGED_MOIMS", searchPagedMoims);

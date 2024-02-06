@@ -1,13 +1,17 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.VerificationType;
+import com.peoplein.moiming.exception.MoimingAuthApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Random;
+
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 /*
     TODO :: 의문 > 바로 삭제되는 것이 관리 차원에서 맞을까? (Id 찾은, Pw 찾은 이력이 남지 않는다)
@@ -23,6 +27,7 @@ import java.util.Random;
             그리고 모든 인증 시도는 저장한다
 
  */
+@Slf4j
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -41,7 +46,6 @@ public class SmsVerification {
     private Long memberId;
 
     private String memberPhoneNumber;
-
 
     private boolean isVerified;
 
@@ -71,6 +75,7 @@ public class SmsVerification {
         this.expiredAt = this.createdAt.plusMinutes(3); // 만료 시간은 생성 이후로 3분
     }
 
+
     /*
      생성시 Random 한 VerificationNumber 을 생성해준다
      */
@@ -88,8 +93,48 @@ public class SmsVerification {
         return strBuilder.toString();
     }
 
-    public void setVerified(boolean isVerified) {
-        this.isVerified = isVerified;
+
+    public void confirmVerification(VerificationType type, String verificationNumber) {
+
+        if (!this.verificationNumber.equals(verificationNumber)) {
+            log.error("{} confirmVerification :: {}", this.getClass().getName(), AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH.getErrMsg());
+            throw new MoimingAuthApiException(AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH);
+        }
+
+        checkVerificationType(type);
+        checkExpiration();
+
+        this.isVerified = true;
     }
 
+
+    public void isValidAndVerified(VerificationType type) {
+
+        if (!this.isVerified) {
+            log.error("{} isValidAndVerified :: {}", this.getClass().getName(), AUTH_SMS_NOT_VERIFIED.getErrMsg());
+            throw new MoimingAuthApiException(AUTH_SMS_NOT_VERIFIED);
+        }
+
+        checkVerificationType(type);
+        checkExpiration();
+    }
+
+
+    private void checkVerificationType(VerificationType type) {
+
+        if (!this.verificationType.equals(type)) {
+            log.error("{} checkVerificationType :: {}", this.getClass().getName(), AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH.getErrMsg());
+            throw new MoimingAuthApiException(AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH);
+        }
+
+    }
+
+
+    private void checkExpiration() {
+
+        if (this.expiredAt.isBefore(LocalDateTime.now())) {
+            log.error("{} checkExpiration :: {}", this.getClass().getName(), AUTH_SMS_VERIFICATION_EXPIRED.getErrMsg());
+            throw new MoimingAuthApiException(AUTH_SMS_VERIFICATION_EXPIRED);
+        }
+    }
 }

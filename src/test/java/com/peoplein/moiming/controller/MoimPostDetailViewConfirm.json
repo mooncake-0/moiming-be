@@ -1,78 +1,191 @@
 {
   "code": "1",
-  "msg": "모임 세부 조회 성공",
-  "data": {
-    "moimPostId": 67,
-    "postTitle": "TITLE",
-    "postContent": "CONTENT",
-    "postCategory": "GREETING",
-    "hasPrivateVisibility": true,
-    "hasFiles": false,
-    "commentCnt": 4,
-    "createdAt": "2024-01-19T00:17:12.361561",
-    "updatedAt": "2024-01-19T00:17:12.377741",
-    "postCreator": {
-      "memberId": 45,
-      "nickname": "NICKNAME2"
-    },
-    "postComments": [
-      {
-        "parentCommentId": 79,
-        "content": "TITLE, NICKNAME1, 댓글입니다",
-        "depth": 0,
-        "hasDeleted": false,
-        "reported": false,
-        "createdAt": "2024-01-19T00:17:12.374915",
-        "updatedAt": "2024-01-19T00:17:12.374915",
-        "commentCreator": {
-          "memberId": 42,
-          "nickname": "NICKNAME1"
-        },
-        "childComments": [
-          {
-            "childCommentId": 80,
-            "content": "TITLE, NICKNAME2, 답글입니다",
-            "depth": 1,
-            "hasDeleted": false,
-            "reported": false,
-            "createdAt": "2024-01-19T00:17:12.375263",
-            "updatedAt": "2024-01-19T00:17:12.375263",
-            "parentId": 79,
-            "commentCreator": {
-              "memberId": 45,
-              "nickname": "NICKNAME2"
-            }
-          },
-          {
-            "childCommentId": 81,
-            "content": "TITLE, NICKNAME6, 답글입니다",
-            "depth": 1,
-            "hasDeleted": false,
-            "reported": false,
-            "createdAt": "2024-01-19T00:17:12.375643",
-            "updatedAt": "2024-01-19T00:17:12.375643",
-            "parentId": 79,
-            "commentCreator": {
-              "memberId": null,
-              "nickname": "휴면 전환 사용자"
-            }
-          }
-        ]
-      },
-      {
-        "parentCommentId": 82,
-        "content": "TITLE, NICKNAME5, 댓글입니다",
-        "depth": 0,
-        "hasDeleted": false,
-        "reported": false,
-        "createdAt": "2024-01-19T00:17:12.375896",
-        "updatedAt": "2024-01-19T00:17:12.375896",
-        "commentCreator": {
-          "memberId": 54,
-          "nickname": "NICKNAME5"
-        },
-        "childComments": []
+  "msg": "모임 추천 조회 성공",
+  "data": [
+    {
+      "moimId": 16,
+      "moimName": "라틴어를 강남에서 배우는 공간",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강남구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.430966",
+      "updatedAt": "2024-02-05T20:46:02.569348",
+      "categories": [
+        "댄스/무용",
+        "라틴댄스"
+      ],
+      "joinRule": {
+        "hasAgeRule": true,
+        "ageMax": 50,
+        "ageMin": 25,
+        "memberGender": "N"
       }
-    ]
-  }
+    },
+    {
+      "moimId": 34,
+      "moimName": "여행 여기저기 다녀보자",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강남구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.524794",
+      "updatedAt": "2024-02-05T20:46:02.571525",
+      "categories": [
+        "댄스/무용",
+        "라틴댄스"
+      ],
+      "joinRule": {
+        "hasAgeRule": true,
+        "ageMax": 25,
+        "ageMin": 18,
+        "memberGender": "N"
+      }
+    },
+    {
+      "moimId": 19,
+      "moimName": "서울사는 사람들",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강동구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.485856",
+      "updatedAt": "2024-02-05T20:46:02.570395",
+      "categories": [
+        "아웃도어/액티비티",
+        "해외여행"
+      ],
+      "joinRule": {
+        "hasAgeRule": true,
+        "ageMax": 40,
+        "ageMin": 20,
+        "memberGender": "F"
+      }
+    },
+    {
+      "moimId": 25,
+      "moimName": "우리집 반려동물",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강동구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.502667",
+      "updatedAt": "2024-02-05T20:46:02.570896",
+      "categories": [
+        "댄스/무용",
+        "라틴댄스"
+      ],
+      "joinRule": {
+        "hasAgeRule": true,
+        "ageMax": 40,
+        "ageMin": 20,
+        "memberGender": "F"
+      }
+    },
+    {
+      "moimId": 37,
+      "moimName": "적합한 직무 찾기",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강동구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.531066",
+      "updatedAt": "2024-02-05T20:46:02.571968",
+      "categories": [
+        "아웃도어/액티비티",
+        "해외여행"
+      ],
+      "joinRule": {
+        "hasAgeRule": true,
+        "ageMax": 25,
+        "ageMin": 18,
+        "memberGender": "N"
+      }
+    },
+    {
+      "moimId": 22,
+      "moimName": "강아지들 모여라",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강남구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.495649",
+      "updatedAt": "2024-02-05T20:46:02.495649",
+      "categories": [
+        "아웃도어/액티비티",
+        "해외여행"
+      ],
+      "joinRule": null
+    },
+    {
+      "moimId": 31,
+      "moimName": "강아지 카메라 찍는 사람들",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강동구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.517485",
+      "updatedAt": "2024-02-05T20:46:02.517485",
+      "categories": [
+        "아웃도어/액티비티",
+        "해외여행"
+      ],
+      "joinRule": null
+    },
+    {
+      "moimId": 28,
+      "moimName": "프로그래밍 스터디",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강남구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.510053",
+      "updatedAt": "2024-02-05T20:46:02.510053",
+      "categories": [
+        "댄스/무용",
+        "라틴댄스"
+      ],
+      "joinRule": null
+    },
+    {
+      "moimId": 37,
+      "moimName": "적합한 직무 찾기",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강동구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.531066",
+      "updatedAt": "2024-02-05T20:46:02.571968",
+      "categories": [
+        "아웃도어/액티비티",
+        "해외여행"
+      ],
+      "joinRule": {
+        "hasAgeRule": true,
+        "ageMax": 25,
+        "ageMin": 18,
+        "memberGender": "N"
+      }
+    },
+    {
+      "moimId": 34,
+      "moimName": "여행 여기저기 다녀보자",
+      "curMemberCount": 1,
+      "maxMember": 10,
+      "areaCity": "강남구",
+      "areaState": "서울시",
+      "createdAt": "2024-02-05T20:46:02.524794",
+      "updatedAt": "2024-02-05T20:46:02.571525",
+      "categories": [
+        "댄스/무용",
+        "라틴댄스"
+      ],
+      "joinRule": {
+        "hasAgeRule": true,
+        "ageMax": 25,
+        "ageMin": 18,
+        "memberGender": "N"
+      }
+    }
+  ]
 }

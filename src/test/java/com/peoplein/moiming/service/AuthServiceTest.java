@@ -1,6 +1,7 @@
 package com.peoplein.moiming.service;
 
 
+import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
@@ -61,6 +62,9 @@ public class AuthServiceTest extends TestMockCreator {
 
     @Mock
     private PolicyAgreeService policyAgreeService;
+
+    @Mock
+    private SmsVerificationService smsVerificationService;
 
 
     @Test
@@ -292,6 +296,7 @@ public class AuthServiceTest extends TestMockCreator {
 
     }
 
+
     @Test
     void tryCreateNicknameForUser_shouldThrowException_whenDuplicated10Times_byMoiminAuthApiException() {
 
@@ -304,6 +309,157 @@ public class AuthServiceTest extends TestMockCreator {
         // when
         // then
         assertThatThrownBy(() -> authService.tryCreateNicknameForUser()).isInstanceOf(MoimingAuthApiException.class);
+    }
+
+
+    // findMemberEmail
+    // 성공
+    @Test
+    void findMemberEmail_shouldPass_whenRightInfoPassed() {
+
+        // given
+        AuthFindIdReqDto reqDto = mock(AuthFindIdReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
+        Member member = mock(Member.class);
+        when(reqDto.getMemberPhone()).thenReturn("01012345678");
+        when(smsVerification.getMemberPhoneNumber()).thenReturn("01012345678");
+
+        // given - stub
+        when(smsVerificationService.getVerifiedSmsVerification(any(), any(), any())).thenReturn(smsVerification);
+        when(memberRepository.findById(any())).thenReturn(Optional.of(member));
+
+        // when
+        authService.findMemberEmail(reqDto);
+
+        // then
+        verify(member, times(1)).getMaskedEmail();
+
+    }
+
+
+    // 실패 - memberPhoneNotMatch
+    @Test
+    void findMemberEmail_shouldThrowException_whenMemberPhoneNotMatch_byMoimingAuthApiException() {
+
+        // given
+        AuthFindIdReqDto reqDto = mock(AuthFindIdReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
+        when(reqDto.getMemberPhone()).thenReturn("01000000000");
+        when(smsVerification.getMemberPhoneNumber()).thenReturn("01012345678");
+
+        // given - stub
+        when(smsVerificationService.getVerifiedSmsVerification(any(), any(), any())).thenReturn(smsVerification);
+
+        // when
+        // then
+        assertThatThrownBy(() -> authService.findMemberEmail(reqDto)).isInstanceOf(MoimingAuthApiException.class);
+
+    }
+
+
+    // 실패 - member Not Found
+    @Test
+    void findMemberEmail_shouldThrowException_whenMemberInSmsNotFound_byMoimingAuthApiExcetpion() {
+
+        // given
+        AuthFindIdReqDto reqDto = mock(AuthFindIdReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
+        when(reqDto.getMemberPhone()).thenReturn("01012345678");
+        when(smsVerification.getMemberPhoneNumber()).thenReturn("01012345678");
+
+        // given - stub
+        when(smsVerificationService.getVerifiedSmsVerification(any(), any(), any())).thenReturn(smsVerification);
+        when(memberRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> authService.findMemberEmail(reqDto)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // confirmResetPassword
+    // 성공
+    @Test
+    void confirmResetPassword_shouldPass_whenRightInfoPassed() {
+
+        // given
+        AuthResetPwConfirmReqDto reqDto = mock(AuthResetPwConfirmReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
+        when(smsVerification.getMemberPhoneNumber()).thenReturn("01012345678");
+        when(reqDto.getMemberPhone()).thenReturn("01012345678");
+
+        // given - stub
+        when(smsVerificationService.getVerifiedSmsVerification(any(), any(), any())).thenReturn(smsVerification);
+
+        // when
+        // then
+        assertDoesNotThrow(() -> authService.confirmResetPassword(reqDto));
+
+    }
+
+
+    // 실패 - memberPhoneNotMatch
+    @Test
+    void confirmResetPassword_shouldThrowException_whenMemberPhoneNotMatch_byMoimingAuthApiException() {
+
+        // given
+        AuthResetPwConfirmReqDto reqDto = mock(AuthResetPwConfirmReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
+        when(smsVerification.getMemberPhoneNumber()).thenReturn("01012345678");
+        when(reqDto.getMemberPhone()).thenReturn("01000000000");
+
+        // given - stub
+        when(smsVerificationService.getVerifiedSmsVerification(any(), any(), any())).thenReturn(smsVerification);
+
+        // when
+        // then
+        assertThatThrownBy(() -> authService.confirmResetPassword(reqDto)).isInstanceOf(MoimingAuthApiException.class);
+
+    }
+
+
+    // resetPassword
+    // 성공
+    @Test
+    void resetPassword_shouldPassAndVerifyMethods_whenRightInfoPassed() {
+
+        // given
+        AuthResetPwReqDto reqDto = mock(AuthResetPwReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(smsVerificationService.confirmAndGetValidSmsVerification(any(), any())).thenReturn(smsVerification);
+        when(memberRepository.findById(any())).thenReturn(Optional.of(member));
+        doReturn(null).when(passwordEncoder).encode(any()); // Spy 객체이므로 실제 동작을 배제한다 - 사실 Mock 객체였어야 하는데, 잘못 만들어짐 - 뭘 반환하든지 알바 아님
+
+        // when
+        authService.resetPassword(reqDto);
+
+        // then
+        verify(passwordEncoder, times(1)).encode(any());
+        verify(member, times(1)).changePassword(any());
+
+    }
+
+
+    // 실패 - member Not Found
+    @Test
+    void resetPassword_shouldThrowException_whenMemberInVerificationNotFound_byMoimingAuthApiException() {
+
+        // given
+        AuthResetPwReqDto reqDto = mock(AuthResetPwReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
+
+        // given - stub
+        when(smsVerificationService.confirmAndGetValidSmsVerification(any(), any())).thenReturn(smsVerification);
+        when(memberRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> authService.resetPassword(reqDto)).isInstanceOf(MoimingApiException.class);
+
     }
 
 

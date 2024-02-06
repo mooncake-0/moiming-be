@@ -8,7 +8,7 @@ public interface MoimCategoryLinkerRepository {
 
     void save(MoimCategoryLinker mcLinker);
 
-    List<MoimCategoryLinker> findWithCategoryByMoimId(List<Long> moimIds);
+    List<MoimCategoryLinker> findWithCategoryByMoimIds(List<Long> moimIds);
 
     void removeAllByMoimId(Long moimId);
 }

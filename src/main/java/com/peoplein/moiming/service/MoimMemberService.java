@@ -106,13 +106,13 @@ public class MoimMemberService {
     }
 
 
-    public Map<Member, MoimMemberState> getMoimMemberStates(Long moimId, Set<Long> memberIds) {
+    public Map<Long, MoimMemberState> getMoimMemberStates(Long moimId, Set<Long> memberIds) {
 
         List<MoimMember> writerMoimMembers = moimMemberRepository.findByMoimIdAndMemberIds(moimId, new ArrayList<>(memberIds));
-        Map<Member, MoimMemberState> stateMapper = new HashMap<>();
+        Map<Long, MoimMemberState> stateMapper = new HashMap<>();
 
         for (MoimMember writerMoimMember : writerMoimMembers) {
-            stateMapper.put(writerMoimMember.getMember(), writerMoimMember.getMemberState());
+            stateMapper.put(writerMoimMember.getMember().getId(), writerMoimMember.getMemberState());
         }
 
         return stateMapper;

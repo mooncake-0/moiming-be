@@ -18,7 +18,7 @@ public class PostDetailsInnerDto {
     public static class PostDetailsDto {
 
         private MoimPost moimPost;
-        private Map<Member, MoimMemberState> memberStates;
+        private Map<Long, MoimMemberState> memberStates;
         private List<PostComment> parentComments;
         private Map<Long, List<PostComment>> childCommentsMap;
 

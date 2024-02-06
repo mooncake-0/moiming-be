@@ -14,7 +14,7 @@ public interface MoimMemberRepository {
     Optional<MoimMember> findWithMemberByMemberAndMoimId(Long memberId, Long moimId); // 조회되지 않은 Member 의 정보도 가져올 수 있다\
     List<MoimMember> findWithMoimByMemberId(Long memberId);
     List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds);
-    List<MoimMember> findMemberMoimsWithRuleAndCategoriesByConditionsPaged(Long memberId, boolean isActiveReq, boolean isManagerReq, Moim lastMoim, int limit);
+    List<MoimMember> findMemberMoimsWithCursorConditions(Long memberId, boolean isActiveReq, boolean isManagerReq, Moim lastMoim, int limit);
     void removeAllByMoimId(Long moimId);
 
 }

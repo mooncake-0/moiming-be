@@ -64,7 +64,7 @@ public class MemberJpaRepository implements MemberRepository {
 
 
     @Override
-    public Optional<Member> findByPhoneNumber(String memberPhoneNumber) {
+    public Optional<Member> findWithMemberInfoByPhoneNumber(String memberPhoneNumber) {
         return Optional.ofNullable(
                 queryFactory.selectFrom(member)
                         .join(member.memberInfo, memberInfo).fetchJoin()

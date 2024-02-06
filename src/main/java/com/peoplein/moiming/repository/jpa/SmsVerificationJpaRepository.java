@@ -27,7 +27,7 @@ public class SmsVerificationJpaRepository implements SmsVerificationRepository {
     }
 
     @Override
-    public Optional<SmsVerification> findOptionalById(Long smsVerificationId) {
+    public Optional<SmsVerification> findById(Long smsVerificationId) {
         return Optional.ofNullable(
                 queryFactory.selectFrom(smsVerification)
                         .where(smsVerification.id.eq(smsVerificationId))

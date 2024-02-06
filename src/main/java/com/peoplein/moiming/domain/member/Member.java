@@ -8,6 +8,7 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
@@ -20,9 +21,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
 import static com.peoplein.moiming.exception.ExceptionValue.MEMBER_NOT_FOUND;
 
 
+@Slf4j
 @Entity
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"member_email"}, name = "unique_member_email"),
@@ -158,6 +161,29 @@ public class Member extends BaseEntity {
         this.memberInfo.changeDormant(true);
         this.changeRefreshToken(null);
         this.changeFcmToken(null);
+    }
+
+
+    public String getMaskedEmail() {
+
+        String memberEmail = getMemberEmail();
+        String[] emailSplit = memberEmail.split("@", 2);
+        String front = emailSplit[0];
+
+        if (front.length() == 1) {
+            front = "*";
+        } else if (front.length() == 2) {
+            front = "**";
+        } else if (front.length() == 3) {
+            front = front.charAt(0) + "**";
+        } else if (front.length() > 3) {
+            front = front.substring(0, front.length() - 3) + "***";
+        } else {
+            log.error("{}, getMaskedEmail :: {}, {}", this.getClass().getName(), "적절하지 못한 이메일 길이 < 1", front);
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
+        }
+
+        return front + "@" + emailSplit[1];
     }
 
 

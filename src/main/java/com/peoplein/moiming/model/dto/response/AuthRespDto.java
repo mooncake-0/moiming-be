@@ -1,10 +1,17 @@
 package com.peoplein.moiming.model.dto.response;
 
+import com.peoplein.moiming.domain.SmsVerification;
+import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.member.MemberInfo;
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 public class AuthRespDto {
 
@@ -100,5 +107,32 @@ public class AuthRespDto {
                 this.isForeigner = memberInfo.isForeigner();
             }
         }
+    }
+
+
+    @ApiModel(value = "Auth SMS API - 응답 - SMS 인증 요청 응답")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthSmsRespDto {
+
+        private Long smsVerificationId;
+
+        public AuthSmsRespDto(SmsVerification smsVerification) {
+            this.smsVerificationId = smsVerification.getId();
+        }
+    }
+
+
+    @ApiModel(value = "Auth API - 응답 - 이메일 찾기 응답")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthFindIdRespDto {
+
+        private String maskedEmail;
+
     }
 }

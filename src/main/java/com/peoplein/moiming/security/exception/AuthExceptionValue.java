@@ -28,7 +28,22 @@ public enum AuthExceptionValue {
 
 
     AUTH_SIGN_IN_NICKNAME_FAIL(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS000", "자동 닉네임 생성에 실패하였습니다. 요청을 다시 시도해주세요"),
-    AUTH_SIGN_IN_DUPLICATE_COLUMN(HttpStatus.CONFLICT.value(), "AS001", "중복되는 회원입니다 (이메일, 전화번호, CI 중 중복 발생)");
+    AUTH_SIGN_IN_DUPLICATE_COLUMN(HttpStatus.CONFLICT.value(), "AS001", "중복되는 회원입니다 (이메일, 전화번호, CI 중 중복 발생)"),
+
+
+    // AUTH_SMS
+    AUTH_SMS_INVALID_NAME_WITH_PHONE(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS000", "핸드폰 번호로 조회한 유저의 이름과 전달받은 이름이 일치하지 않습니다"),
+    AUTH_SMS_INVALID_NAME_WITH_EMAIL(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS001", "핸드폰 번호로 조회한 유저의 이메일과 전달받은 이메일이 일치하지 않습니다"),
+    AUTH_SMS_REQUEST_BUILDING_JSON_FAIL(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ASMS002", "SMS 생성 중 오류가 발생 - 백단 인폼"),
+    AUTH_SMS_REQUEST_BUILDING_SIGNATURE_FAIL(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ASMS003", "SMS 생성 중 오류가 발생 - 백단 인폼"),
+    AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS004", "SMS 인증 번호가 일치하지 않습니다"),
+    AUTH_SMS_VERIFICATION_EXPIRED(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS005", "본인 인증 시도 시간이 만료, 인증 재시도 필요"),
+    AUTH_SMS_VERIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "ASMS006", "본인 인증 시도 내역을 확인할 수 없습니다"),
+    AUTH_SMS_NOT_VERIFIED(HttpStatus.UNAUTHORIZED.value(), "ASMS007", "인증되지 않은 인증 내역은 활용할 수 없습니다"),
+    AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH(HttpStatus.CONFLICT.value(), "ASMS008", "시도중인 인증 Type 이 요청 Type 과 일치하지 않습니다"),
+    AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS009", "요청 정보와 인증 내역의 전화번호 정보가 일치하지 않습니다");
+
+
 
 
     private int status;

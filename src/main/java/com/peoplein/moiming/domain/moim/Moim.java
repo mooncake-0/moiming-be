@@ -10,6 +10,7 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.persistence.*;
 import java.io.File;
@@ -20,8 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.ACTIVE;
+import static com.peoplein.moiming.exception.ExceptionValue.COMMON_UPDATE_REQUEST_FAILED;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 
+@Slf4j
 @Entity
 @Getter
 @Table(name = "moim")
@@ -121,11 +124,15 @@ public class Moim extends BaseEntity {
     // 값 존재 > Update 해야함 > Create 처럼 List<Category> 는 따로 넣어주는게 맞다
     public void updateMoim(MoimUpdateReqDto requestDto, List<Category> categories, Long updaterId) {
 
+        boolean isChanged = false;
+
         if (requestDto.getMoimName() != null) {
+            isChanged = true;
             this.setMoimName(requestDto.getMoimName());
         }
 
         if (requestDto.getMoimInfo() != null) {
+            isChanged = true;
             this.setMoimInfo(requestDto.getMoimInfo());
         }
 
@@ -133,15 +140,18 @@ public class Moim extends BaseEntity {
             if (requestDto.getMaxMember() < curMemberCount) { // 현존하는 회원 수보다 적게 수정하려 시도
                 throw new MoimingApiException(ExceptionValue.MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER);
             }
+            isChanged = true;
             this.setMaxMember(requestDto.getMaxMember());
         }
 
         if (requestDto.getAreaState() != null || requestDto.getAreaCity() != null) {
             // 둘 중 적어도 하나는 바뀌므로, 새 Area 필요
+            isChanged = true;
             this.setMoimArea(this.moimArea.checkToIssueNewArea(requestDto.getAreaState(), requestDto.getAreaCity()));
         }
 
         if (!categories.isEmpty()) {
+            isChanged = true;
             for (Category newCategory : categories) {
                 for (MoimCategoryLinker curCategoryLinker : this.getMoimCategoryLinkers()) {
                     if (newCategory.getCategoryDepth() == curCategoryLinker.getCategory().getCategoryDepth()) {
@@ -151,7 +161,12 @@ public class Moim extends BaseEntity {
             }
         }
 
-        this.updaterId = updaterId; // validate 통과이므로 call 되면 수정되는 것
+        if (isChanged) {
+            this.updaterId = updaterId; // validate 통과이므로 call 되면 수정되는 것
+        } else {
+            log.info("{}, updateMoim :: {}", this.getClass().getName(), "모임 수정 요청 중 아무 수정이 발생하지 않았습니다");
+            throw new MoimingApiException(COMMON_UPDATE_REQUEST_FAILED);
+        }
     }
 
 
@@ -182,7 +197,6 @@ public class Moim extends BaseEntity {
     }
 
 
-    // 유일한 Open Setter
     public void setMoimJoinRule(MoimJoinRule moimJoinRule) {
         this.moimJoinRule = moimJoinRule;
     }

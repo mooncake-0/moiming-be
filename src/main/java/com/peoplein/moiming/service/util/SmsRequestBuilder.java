@@ -1,13 +1,15 @@
-package com.peoplein.moiming.service.support;
+package com.peoplein.moiming.service.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.peoplein.moiming.model.SmsMessageDto;
+import com.peoplein.moiming.domain.SmsVerification;
+import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.exception.MoimingAuthApiException;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
@@ -17,12 +19,15 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
+import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_PARAM;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
+
 /*
  네이버 Cloud Platform SENS SMS API 를 사용하는 빈
  */
 @Component
 @Slf4j
-public class SmsVerificationCore {
+public class SmsRequestBuilder {
 
     /*
      NAVER SMS Request Header
@@ -48,29 +53,53 @@ public class SmsVerificationCore {
     @Value("${open_api_keys.naver_secret_key_id}")
     private String secretKey;
 
-    /*
-     문자의 최종 Response 를 만든다
-     */
-    public Request buildResponse(String verificationCode, String phoneNumber) {
 
-        String content = buildContent(verificationCode);
+    public Request getHttpRequest(SmsVerification verification) {
 
-        SmsMessageDto messageBody = SmsMessageDto.createSmsMessageDto(content, phoneNumber);
+        if (verification == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        String messageContent = buildContent(verification.getVerificationNumber());
+        SmsMessageTemplate messageBody = new SmsMessageTemplate(messageContent, verification.getMemberPhoneNumber());
+
+        return createSmsRequest(messageBody);
+    }
+
+
+    private Request createSmsRequest(SmsMessageTemplate messageBody) {
 
         try {
+            // HEADER DATA 준비
+            String requestUrl = NAVER_SMS_API_URL + serviceId + "/messages";
+            String contentType = "application/json; charset=utf-8";
+            String requestTimeStamp = createTimeStamp();
+            String requestSignature = createSignature(requestUrl, requestTimeStamp);
 
-            RequestBody requestBody = RequestBody.create(om.writeValueAsString(messageBody)
-                    , MediaType.get("application/json; charset=utf-8"));
+            // BODY DATA 준비
+            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"),
+                    om.writeValueAsString(messageBody));
 
-            return buildRequest(requestBody);
 
-        } catch (NoSuchAlgorithmException | InvalidKeyException | IOException e) {
+            // Request Builder
+            return new Request.Builder()
+                    .url(requestUrl)
+                    .addHeader(HEADER_CONTENT_TYPE, contentType)
+                    .addHeader(HEADER_TIME_STAMP, requestTimeStamp)
+                    .addHeader(HEADER_ACCESS_KEY, accessKey)
+                    .addHeader(HEADER_SIGNATURE, requestSignature)
+                    .post(requestBody)
+                    .build();
 
-            log.error("SIGNATURE 형성중 에러 :: {}", e.getMessage());
-            throw new RuntimeException(e);
-
+        } catch (JsonProcessingException exception) {
+            log.error("{}, SMS 생성 중 Json Process 오류 :: {}", this.getClass().getName(), exception.getMessage());
+            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_BUILDING_JSON_FAIL);
+        } catch (UnsupportedEncodingException | InvalidKeyException | NoSuchAlgorithmException exception) {
+            log.error("{}, SMS 생성 중 Signature 형성 오류 :: {}", this.getClass().getName(), exception.getMessage());
+            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_BUILDING_SIGNATURE_FAIL);
         }
     }
+
 
     /*
      문자 내용을 생성한다
@@ -81,34 +110,13 @@ public class SmsVerificationCore {
 
 
     /*
-     HEADER 정보를 생성하고
-     PARAMS 로 받은 Body 를 통해 Request 를 생성한다
-     */
-    private Request buildRequest(RequestBody requestBody) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-
-        // HEADER DATA 준비
-        String requestUrl = NAVER_SMS_API_URL + serviceId + "/messages";
-        String contentType = "application/json; charset=utf-8";
-        String requestTimeStamp = createTimeStamp();
-        String requestSignature = createSignature(requestUrl, requestTimeStamp);
-
-        return new Request.Builder()
-                .url(requestUrl)
-                .addHeader(HEADER_CONTENT_TYPE, contentType)
-                .addHeader(HEADER_TIME_STAMP, requestTimeStamp)
-                .addHeader(HEADER_ACCESS_KEY, accessKey)
-                .addHeader(HEADER_SIGNATURE, requestSignature)
-                .post(requestBody)
-                .build();
-    }
-
-    /*
      NAVER API HEADER 양식대로 TIMESTAMP 를 형성후 반환한다
      */
     private String createTimeStamp() {
         long timestamp = System.currentTimeMillis();
         return Long.toString(timestamp);
     }
+
 
     /*
      NAVER API HEADER 양식대로 Signature Key 값을 형성후 반환한다
@@ -119,15 +127,13 @@ public class SmsVerificationCore {
         String newLine = "\n";                    // new line
         String method = "POST";                    // method
 
-        String message = new StringBuilder()
-                .append(method)
-                .append(space)
-                .append(requestUrl)
-                .append(newLine)
-                .append(requestTimeStamp)
-                .append(newLine)
-                .append(accessKey)
-                .toString();
+        String message = method +
+                space +
+                requestUrl +
+                newLine +
+                requestTimeStamp +
+                newLine +
+                accessKey;
 
         SecretKeySpec signingKey = new SecretKeySpec(secretKey.getBytes("UTF-8"), "HmacSHA256");
         Mac mac = Mac.getInstance("HmacSHA256");
