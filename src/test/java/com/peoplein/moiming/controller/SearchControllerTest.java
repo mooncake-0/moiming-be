@@ -10,11 +10,13 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.model.dto.request.MoimReqDto;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,26 +98,26 @@ public class SearchControllerTest extends TestObjectCreator {
     }
 
 
-    // 필수 Param 없음 - offset 없음
-    @Test
-    void searchMoim_shouldReturn400_whenSearchedWithNoOffset_byMoimingApiException() throws Exception {
-
-        // given
-        suData();
-        String accessToken = createTestJwtToken(member1, 2000);
-
-        // when
-        ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
-                .param("keyword", "오류날겁니다")
-                .header(HEADER, PREFIX + accessToken));
-
-        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
-
-        // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_INVALID_REQUEST_PARAM.getErrCode()));
-
-    }
+    // 필수 Param 없음 - offset 없음 - OFFSET 제거됨
+//    @Test
+//    void searchMoim_shouldReturn400_whenSearchedWithNoOffset_byMoimingApiException() throws Exception {
+//
+//         given
+//        suData();
+//        String accessToken = createTestJwtToken(member1, 2000);
+//
+//         when
+//        ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
+//                .param("keyword", "오류날겁니다")
+//                .header(HEADER, PREFIX + accessToken));
+//
+//        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+//
+//         then
+//        resultActions.andExpect(status().isBadRequest());
+//        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_INVALID_REQUEST_PARAM.getErrCode()));
+//
+//    }
 
 
     // 필수 Param 오류 - sortBy 에 date 이외의 값이 들어옴
@@ -129,7 +131,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "오류날겁니다")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .param("sortBy", "FAMOUS_ORDER")
                 .header(HEADER, PREFIX + accessToken));
 
@@ -153,7 +155,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "검")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -176,7 +178,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "검 ")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -199,7 +201,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "이건20자를넘는그런검색어입니다그런검색어")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -222,7 +224,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "자음이ㅍ함됨")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -245,7 +247,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "모음ㅣ포함됨")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -268,7 +270,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "라틴")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -294,7 +296,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "서울")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -319,7 +321,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "강남")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -346,7 +348,7 @@ public class SearchControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "강남")
                 .param("areaFilter", CITY_GANGNAM.getName())
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -372,7 +374,7 @@ public class SearchControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "우리")
                 .param("areaFilter", STATE_SEOUL.getName())
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -398,7 +400,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "반려동물")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -423,7 +425,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "강아지")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -451,7 +453,7 @@ public class SearchControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "강아지")
                 .param("categoryFilter", "강아지")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -478,7 +480,7 @@ public class SearchControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "카메라")
                 .param("categoryFilter", "강아지")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -529,7 +531,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "사람")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -546,7 +548,7 @@ public class SearchControllerTest extends TestObjectCreator {
     }
 
 
-    // 12차 테스트 - 검색어 '사람' offset1 + limit2 - 검색 결과 : moim6, moim9 (1항부터 두개)
+    // 12차 테스트 - 검색어 '사람' offset1 + limit2 - 검색 결과 : moim6, moim9 (1항부터 두개) (offset 이 1 이길 희망하면 그 전엔 moim10 이 제일 마지막 건, 위 Test Base)
     @Test
     void searchMoim_shoulReturnSearchedMoim_whenSearchedPersonWithOffset1Limit2() throws Exception {
 
@@ -557,7 +559,8 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "사람")
-                .param("offset", "1")
+                .param("lastMoimId", moim10.getId().toString())
+//                .param("offset", "1")
                 .param("limit", "2")
                 .header(HEADER, PREFIX + accessToken));
 
@@ -573,7 +576,7 @@ public class SearchControllerTest extends TestObjectCreator {
     }
 
 
-    // 13차 테스트 - 검색어 '사람' offset2 + limit1 - 검색 결과 : moim6
+    // 13차 테스트 - 검색어 '사람' offset2 + limit1 - 검색 결과 : moim6 // 10, 9, 6, 2 중 두번째 항에서 한 개, 그럼 9가 마지막 모임
     @Test
     void searchMoim_shoulReturnSearchedMoim_whenSearchedPersonWithOffset2Limit1() throws Exception {
 
@@ -584,7 +587,8 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "사람")
-                .param("offset", "2")
+//                .param("offset", "2")
+                .param("lastMoimId", moim9.getId().toString())
                 .param("limit", "1")
                 .header(HEADER, PREFIX + accessToken));
 
@@ -599,7 +603,7 @@ public class SearchControllerTest extends TestObjectCreator {
     }
 
 
-    // 14차 테스트 - 검색어 '사람' offset1 + limit10 - 검색 결과 : moim2, moim6, moim9
+    // 14차 테스트 - 검색어 '사람' offset1 + limit10 - 검색 결과 : moim2, moim6, moim9 // 10, 9 , 6, 2 중 9부터 이므로 10이 마지막
     @Test
     void searchMoim_shoulReturnSearchedMoim_whenSearchedPersonWithOffset1Limit10() throws Exception {
 
@@ -610,8 +614,9 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "사람")
-                .param("offset", "1")
+//                .param("offset", "1")
                 .param("limit", "10")
+                .param("lastMoimId", moim10.getId().toString())
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -623,6 +628,52 @@ public class SearchControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim9.getId())); // 날짜순 정렬
         resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim6.getId()));
         resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim2.getId()));
+
+    }
+
+
+    // 14차 - 1 테스트 (위 상황에서 필터도 낌) - 검색어 '사람' offset1 + limit10 - 검색 결과 : moim2, moim6, moim9 // 10, 9 , 6, 2 중 9부터 이므로 10이 마지막
+    //                      10,9,6,2 중 지역 필터도 끼면, AND 조건이 만족된 이후 limit 을 건다는 점. 따라서 offset 조건은 지금 달라짐
+    //
+    @Test
+    void searchMoim_shoulReturnSearchedMoim_whenSearchedPersonWithOffset1Limit10WithFilter() throws Exception {
+
+        // given
+        suData();
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // given - data change - 9, 6, 2 를 지역을 노원으로 바꿔보자 그럼 필터 때문에 사람으로 검색해도 9,6,2 만 검색된다
+        moim9 = em.find(Moim.class, moim9.getId());
+        moim6 = em.find(Moim.class, moim6.getId());
+        moim2 = em.find(Moim.class, moim2.getId());
+
+        MoimReqDto.MoimUpdateReqDto updater = new MoimReqDto.MoimUpdateReqDto();
+        updater.setAreaCity("노원구");
+        moim9.updateMoim(updater, new ArrayList<>(), null);
+        moim6.updateMoim(updater, new ArrayList<>(), null);
+        moim2.updateMoim(updater, new ArrayList<>(), null);
+
+        em.flush();
+        em.clear();
+
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
+                .param("keyword", "사람")
+                .param("areaFilter", "노원구") // 그럼 9,6,2 가 검색되는 중,  이 때 9를 마지막 검색으로 잡는다면 6,2가 검색될 것
+                .param("limit", "10")
+                .param("lastMoimId", moim9.getId().toString())
+                .header(HEADER, PREFIX + accessToken));
+
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(2)));
+//        resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim9.getId())); // 날짜순 정렬
+        resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim6.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim2.getId()));
 
     }
 
@@ -640,7 +691,7 @@ public class SearchControllerTest extends TestObjectCreator {
                 .param("keyword", "사람")
                 .param("areaFilter", "서울시")
                 .param("categoryFilter", "강아지")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -668,7 +719,7 @@ public class SearchControllerTest extends TestObjectCreator {
                 .param("keyword", "사람")
                 .param("areaFilter", "도봉구")
                 .param("categoryFilter", "강아지")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -695,7 +746,7 @@ public class SearchControllerTest extends TestObjectCreator {
                 .param("keyword", "사람")
                 .param("areaFilter", "노원구")
                 .param("categoryFilter", "스터디")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -722,7 +773,7 @@ public class SearchControllerTest extends TestObjectCreator {
                 .param("keyword", "사람")
                 .param("areaFilter", "도봉구")
                 .param("categoryFilter", "스터디")
-                .param("offset", "0")
+//                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();

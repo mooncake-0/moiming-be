@@ -176,7 +176,7 @@ public class MoimCountJpaRepository implements MoimCountRepository {
     private List<QueryMoimSuggestMapDto> convertToQueryDto(List<Object[]> rawList) {
         List<QueryMoimSuggestMapDto> queryDtoList = new ArrayList<>();
         for (Object[] rawObj : rawList) {
-            queryDtoList.add(new QueryMoimSuggestMapDto((Moim) rawObj[0], (MoimJoinRule) rawObj[1]));
+            queryDtoList.add(new QueryMoimSuggestMapDto(rawObj));
         }
         return queryDtoList;
     }

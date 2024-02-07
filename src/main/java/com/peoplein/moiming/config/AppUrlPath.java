@@ -38,8 +38,8 @@ public abstract class AppUrlPath {
     // Auth 관련 API
     // GET - /api/v0/auth/available/{email}
     public final static String PATH_AUTH_EMAIL_AVAILABLE = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/available/{email}";
-    // POST - /api/v0/auth/signin
-    public final static String PATH_AUTH_SIGN_IN = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/signin";
+    // POST - /api/v0/auth/signup
+    public final static String PATH_AUTH_SIGN_IN = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/signup";
     // POST - /api/v0/auth/login
     public final static String PATH_AUTH_LOGIN = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/login";
     // POST - /api/v0/auth/token

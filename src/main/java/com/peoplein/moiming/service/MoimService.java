@@ -11,6 +11,7 @@ import com.peoplein.moiming.domain.moim.*;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.inner.MoimCategoryMapperDto;
 import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
+import com.peoplein.moiming.model.query.QueryMoimSuggestMapDto;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.MoimJoinRuleJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -269,7 +270,7 @@ public class MoimService {
     }
 
 
-    public Map<String, Object> getSuggestedMoim(String areaFilter, String categoryFilter, int offset, int limit) {
+    public MoimCategoryMapperDto getSuggestedMoim(String areaFilter, String categoryFilter, int offset, int limit) {
 
         // 지역 필터가 있으면, 지역 넘겨주면 됨 - AND 조건 걸림
         AreaValue areaValue = null;
@@ -281,22 +282,28 @@ public class MoimService {
         CategoryName categoryName = null;
         if (StringUtils.hasText(categoryFilter)) {
             categoryName = CategoryName.fromValue(categoryFilter);
+            if (categoryName.getDepth() == 0) { // 1 차 카테고리 필터는 금지되어 있다
+                log.info("{}, getSuggestedMoim :: {}", this.getClass().getName(), "1차 카테고리는 검색 필터가 될 수 없습니다");
+                throw new MoimingApiException(COMMON_INVALID_SITUATION);
+            }
         }
 
         LocalDate conditionThisMonth = LocalDate.now();
         conditionThisMonth = conditionThisMonth.withDayOfMonth(1);
         LocalDate conditionLastMonth = conditionThisMonth.minusMonths(1);
 
+        List<QueryMoimSuggestMapDto> suggestedMoimDto = moimCountRepository.findMonthlyBySuggestedConditionV2(areaValue, categoryName, List.of(conditionLastMonth, conditionThisMonth), offset, limit);
+        List<Moim> targetMoims = new ArrayList<>();
+        List<Long> moimIds = new ArrayList<>();
 
-        List<MoimMonthlyCount> monthlyCounts = moimCountRepository.findMonthlyBySuggestedCondition(areaValue, categoryName, List.of(conditionLastMonth, conditionThisMonth), offset, limit);
-        List<Long> moimIds = monthlyCounts.stream().map(mmc -> mmc.getMoim().getId()).collect(Collectors.toList());
+        for (QueryMoimSuggestMapDto queryDto : suggestedMoimDto) {
+            targetMoims.add(queryDto.getMoim());
+            moimIds.add(queryDto.getMoim().getId());
+        }
+
         List<MoimCategoryLinker> categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
 
-        Map<String, Object> listMap = new HashMap<>();
-        listMap.put("SUGGESTED_MOIMS", monthlyCounts); // Moim 은 이미 Fetch Join 되어 있으므로, Moim 은 프록시 객체가 아니다
-        listMap.put("CATEGORIES", categoryLinkers); // 같이 전달해서, 매핑을 진행해준다
-
-        return listMap;
+        return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
 
     }
 
