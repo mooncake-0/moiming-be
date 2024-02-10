@@ -4,6 +4,10 @@
 FROM        openjdk:11
 
 ARG         JAR_FILE=build/libs/*.jar
+ARG         DEV_DB_PASSWORD
+ARG         COOL_SMS_API_KEY
+ARG         COOL_SMS_SECRET_KEY
+
 
 ENV         PROFILE=dev \
             DEV_DB_HOST=dev-moiming-db-container \
