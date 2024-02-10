@@ -40,7 +40,7 @@ public class PostCommentService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        MoimPost moimPost = moimPostRepository.findWithMoimById(requestDto.getPostId()).orElseThrow(() ->
+        MoimPost moimPost = moimPostRepository.findById(requestDto.getPostId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
@@ -61,7 +61,7 @@ public class PostCommentService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        PostComment comment = postCommentRepository.findWithMoimPostAndMoimById(requestDto.getCommentId()).orElseThrow(() ->
+        PostComment comment = postCommentRepository.findWithMemberAndMoimPostById(requestDto.getCommentId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
         );
 
@@ -79,7 +79,7 @@ public class PostCommentService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        PostComment comment = postCommentRepository.findWithMoimPostAndMoimById(postCommentId).orElseThrow(() ->
+        PostComment comment = postCommentRepository.findWithMemberAndMoimPostById(postCommentId).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
         );
 

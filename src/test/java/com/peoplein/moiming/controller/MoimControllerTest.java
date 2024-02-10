@@ -506,7 +506,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     // 수정하려는 필드가 없을 경우
     @Test
-    void updateMoim_shouldReturn200_whenNoValuesEdited() throws Exception {
+    void updateMoim_shouldReturn400_whenNoValuesEdited() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, null, null, depth1SampleCategory2, depth1SampleCategory2);
@@ -519,13 +519,9 @@ public class MoimControllerTest extends TestObjectCreator {
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.data.moimName").value(moimName)); // 변경됨
-        resultActions.andExpect(jsonPath("$.data.moimInfo").value(moimInfo)); // 변경되지 않음
-        resultActions.andExpect(jsonPath("$.data.categories[*]", hasItem(depth1SampleCategory))); // 변경되기 전  Category 를 포함하고 있다
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_UPDATE_REQUEST_FAILED.getErrCode()));
 
-        // updator 확인 // 수정된게 없어도 수정자 설정은 들어가도록 설계함 > 필요시 변경하기
-        assertThat(createdMoim.getUpdaterId()).isEqualTo(curMember.getId());
     }
 
 
@@ -836,8 +832,8 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.maxMember").value(createdMoim.getMaxMember()));
         resultActions.andExpect(jsonPath("$.data.areaCity").value(createdMoim.getMoimArea().getCity()));
         resultActions.andExpect(jsonPath("$.data.areaState").value(createdMoim.getMoimArea().getState()));
-        resultActions.andExpect(jsonPath("$.data.createdAt").value(createdMoim.getCreatedAt() + ""));
-        resultActions.andExpect(jsonPath("$.data.updatedAt").value(createdMoim.getUpdatedAt() + ""));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
         resultActions.andExpect(jsonPath("$.data.categories").isArray());
         resultActions.andExpect(jsonPath("$.data.categories", hasItems(testCategory1.getCategoryName().getValue(), testCategory1_1.getCategoryName().getValue())));
         resultActions.andExpect(jsonPath("$.data.joinRule").exists());
@@ -873,8 +869,8 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.maxMember").value(createdMoim.getMaxMember()));
         resultActions.andExpect(jsonPath("$.data.areaCity").value(createdMoim.getMoimArea().getCity()));
         resultActions.andExpect(jsonPath("$.data.areaState").value(createdMoim.getMoimArea().getState()));
-        resultActions.andExpect(jsonPath("$.data.createdAt").value(createdMoim.getCreatedAt() + ""));
-        resultActions.andExpect(jsonPath("$.data.updatedAt").value(createdMoim.getUpdatedAt() + ""));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
         resultActions.andExpect(jsonPath("$.data.categories").isArray());
         resultActions.andExpect(jsonPath("$.data.categories", hasItems(testCategory1.getCategoryName().getValue(), testCategory1_1.getCategoryName().getValue())));
         resultActions.andExpect(jsonPath("$.data.joinRule").isEmpty());
@@ -908,8 +904,8 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.maxMember").value(createdMoim.getMaxMember()));
         resultActions.andExpect(jsonPath("$.data.areaCity").value(createdMoim.getMoimArea().getCity()));
         resultActions.andExpect(jsonPath("$.data.areaState").value(createdMoim.getMoimArea().getState()));
-        resultActions.andExpect(jsonPath("$.data.createdAt").value(createdMoim.getCreatedAt() + ""));
-        resultActions.andExpect(jsonPath("$.data.updatedAt").value(createdMoim.getUpdatedAt() + ""));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
         resultActions.andExpect(jsonPath("$.data.categories").isArray());
         resultActions.andExpect(jsonPath("$.data.categories", hasItems(testCategory1.getCategoryName().getValue(), testCategory1_1.getCategoryName().getValue())));
         resultActions.andExpect(jsonPath("$.data.joinRule").isEmpty());

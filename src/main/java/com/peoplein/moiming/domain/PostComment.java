@@ -6,12 +6,15 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 
+@Slf4j
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -84,6 +87,7 @@ public class PostComment extends BaseEntity{
         Long moimCreatorId = this.moimPost.getMoim().getCreatorId();
 
         if (!deleterId.equals(this.member.getId()) && !deleterId.equals(moimCreatorId)) {
+            log.error("{}, deleteComment :: {}", this.getClass().getName(), "요청자는 해당 댓글을 삭제할 권한이 없습니다");
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
@@ -98,11 +102,15 @@ public class PostComment extends BaseEntity{
 
         // 댓글 수정 권한 - 댓글 작성자가 아니면 수정할 수 없다
         if (!this.getMember().getId().equals(updaterId)) {
+            log.error("{}, updateComment :: {}", this.getClass().getName(), "요청자는 해당 댓글을 수정할 권한이 없습니다");
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
-        if (requestDto.getContent() != null) {
+        if (StringUtils.hasText(requestDto.getContent())) {
             this.changeContent(requestDto.getContent());
+        } else {
+            log.info("{}, updateComment :: {}", this.getClass().getName(), "게시물 댓글 수정 요청 중 아무 수정이 발생하지 않았습니다");
+            throw new MoimingApiException(COMMON_UPDATE_REQUEST_FAILED);
         }
 
         this.updaterId = updaterId;

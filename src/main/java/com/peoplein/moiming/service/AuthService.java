@@ -1,17 +1,19 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
 import com.peoplein.moiming.model.dto.inner.TokenDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
+import com.peoplein.moiming.repository.SmsVerificationRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
-import com.peoplein.moiming.service.util.LogoutTokenManager;
+import com.peoplein.moiming.security.token.logout.LogoutTokenManager;
 import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ import java.util.Optional;
 
 import org.springframework.util.StringUtils;
 
+import static com.peoplein.moiming.domain.enums.VerificationType.FIND_PW;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
@@ -44,6 +47,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
     private final PolicyAgreeService policyAgreeService;
+    private final SmsVerificationService smsVerificationService;
 
     private final PasswordEncoder passwordEncoder;
     private final MoimingTokenProvider tokenProvider;
@@ -124,7 +128,6 @@ public class AuthService {
     }
 
 
-
     /*
      회원가입 전에 중복 조건들에 대해서 확인
      에러 발생시 회원 가입 중단
@@ -161,6 +164,74 @@ public class AuthService {
 
 
     /*
+     이메일 확인 요청 확정 및 이메일 마스킹 전달
+     */
+    public String findMemberEmail(AuthFindIdReqDto requestDto) {
+
+        if (requestDto == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        // 검증된 verification 이 반환된다
+        SmsVerification verifiedSms = smsVerificationService.getVerifiedSmsVerification(requestDto.getSmsVerificationId(), VerificationType.FIND_ID, requestDto.getVerificationNumber());
+
+        if (!verifiedSms.getMemberPhoneNumber().equals(requestDto.getMemberPhone())) { // 발생할 일 없음
+            log.error("{}, findMemberEmail :: {}", this.getClass().getName(), "전달받은 전화번호와 조회된 Verification 객체의 전화번호가 일치하지 않음 - 발생할 일 없는 상황 발생");
+            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO);
+        }
+
+        Member member = memberRepository.findById(verifiedSms.getMemberId()).orElseThrow(() -> {
+                    log.error("{}, findMemberEmail :: {}", this.getClass().getName(), "인증 객체 내 member Id 의 멤버를 찾을 수 없음");
+                    return new MoimingApiException(MEMBER_NOT_FOUND);
+                }
+        );
+
+        return member.getMaskedEmail();
+    }
+
+
+    // 비밀번호 재설정 인증 확인을 진행한다 - 인증 번호를 통해 확인
+    // 통과 여부를 확인한다
+    public void confirmResetPassword(AuthResetPwConfirmReqDto requestDto) {
+
+        if (requestDto == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        // 검증된 verification 이 반환된다
+        SmsVerification verifiedSms = smsVerificationService.getVerifiedSmsVerification(requestDto.getSmsVerificationId(), FIND_PW, requestDto.getVerificationNumber());
+
+        if (!verifiedSms.getMemberPhoneNumber().equals(requestDto.getMemberPhone())) { // 발생할 일 없음
+            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO);
+        }
+
+    }
+
+
+    // 인증된 인증 객체를 확인하고, 비밀번호를 변경한다
+    public void resetPassword(AuthResetPwReqDto requestDto) {
+
+        if (requestDto == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        SmsVerification smsVerification = smsVerificationService.confirmAndGetValidSmsVerification(FIND_PW, requestDto.getSmsVerificationId());
+
+        // member 를 가져옴
+        Member member = memberRepository.findById(smsVerification.getMemberId()).orElseThrow(() -> {
+                    log.error("{}, resetPassword :: {}", this.getClass().getName(), "비밀번호 변경 인증 객체 내 member Id 의 멤버를 찾을 수 없음");
+                    return new MoimingApiException(MEMBER_NOT_FOUND);
+                }
+        );
+
+        // member 비밀번호를 변경한다
+        String encodedPw = passwordEncoder.encode(requestDto.getChangePassword());
+        member.changePassword(encodedPw);
+
+    }
+
+
+    /*
      토큰 발급 로직
      사용 로직 : 로그인 / 회원가입 / (위에 있음) 토큰 재발급 로직
                유저에 대한 인증, 갱신 토큰을 발급한다
@@ -181,7 +252,6 @@ public class AuthService {
 
         return new TokenDto(jwtAccessToken, jwtRefreshToken);
     }
-
 
 
     /*

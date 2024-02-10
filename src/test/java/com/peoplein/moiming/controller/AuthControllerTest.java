@@ -1,6 +1,9 @@
 package com.peoplein.moiming.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.peoplein.moiming.domain.SmsVerification;
+import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
@@ -11,17 +14,19 @@ import com.peoplein.moiming.repository.RoleRepository;
 import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.EntityManager;
 
@@ -36,6 +41,7 @@ import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.support.TestDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -64,23 +70,30 @@ public class AuthControllerTest extends TestObjectCreator {
     @Autowired
     private MemberRepository memberRepository;
 
-    private Member registeredMember;
+    private Member testMember;
 
     private String savedToken;
+
 
     @BeforeEach
     void dataSu() {
 
         Role testRole = makeTestRole(RoleType.USER);
-        registeredMember = makeTestMember("registered@mail.com", "01000000000", "등록된", "등록된닉네임", "registered-ci", testRole);
-        savedToken = createTestJwtToken(registeredMember, 2000);
-        registeredMember.changeRefreshToken(savedToken); // reissue 단 test 를 위해 Test token 을 주입해둔다
+        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        savedToken = createTestJwtToken(testMember, 2000);
+        testMember.changeRefreshToken(savedToken); // reissue 단 test 를 위해 Test token 을 주입해둔다
 
         roleRepository.save(testRole);
-        memberRepository.save(registeredMember);
+        memberRepository.save(testMember);
 
         em.flush();
         em.clear();
+
+    }
+
+
+    void makeTestMember() {
+
 
     }
 
@@ -96,8 +109,8 @@ public class AuthControllerTest extends TestObjectCreator {
     void checkEmailAvailable_shouldReturn200_whenEmailAvailable() throws Exception {
 
         // given
-        String availableEmail = memberEmail;
-        String [] params = {"email"};
+        String availableEmail = memberEmail2;
+        String[] params = {"email"};
         String[] vals = {availableEmail};
 
         // when
@@ -114,14 +127,13 @@ public class AuthControllerTest extends TestObjectCreator {
     void checkEmailAvailable_shouldReturn200_whenEmailUnavailable() throws Exception {
 
         // given
-        String unavailableEmail = "registered@mail.com";
-        String [] params = {"email"};
+        String unavailableEmail = memberEmail;
+        String[] params = {"email"};
         String[] vals = {unavailableEmail};
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        System.out.println("responseBody = " + responseBody);
 
 
         // then
@@ -136,7 +148,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // given
         String noEmail = "";
-        String [] params = {"email"};
+        String[] params = {"email"};
         String[] vals = {noEmail};
 
         // when
@@ -154,7 +166,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturnMemberDtoAnd200_whenSuccessful() throws Exception {
 
         // given
-        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail2, memberName2, memberPhone2, ci2, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -167,7 +179,7 @@ public class AuthControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isCreated());
         resultActions.andExpect(jsonPath("$.data.nickname").exists());
-        resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail));
+        resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail2));
         resultActions.andExpect(jsonPath("$.data.memberInfo.foreigner").value(notForeigner));
 //        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender));
         resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender.toString()));
@@ -181,8 +193,8 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn409_whenEmailDuplicates_byMoimingApiException() throws Exception {
 
         // given
-        String unavailableEmail = "registered@mail.com";
-        TestMemberRequestDto reqDto = makeMemberReqDto(unavailableEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
+        String unavailableEmail = memberEmail;
+        TestMemberRequestDto reqDto = makeMemberReqDto(unavailableEmail, memberName2, memberPhone2, ci2, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -200,8 +212,8 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn409_whenPhoneDuplicates_byMoimingApiException() throws Exception {
 
         // given
-        String unavailablePhone = "01000000000";
-        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, unavailablePhone, ci, provideNormalPolicyDtos());
+        String unavailablePhone = memberPhone;
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail2, memberName2, unavailablePhone, ci2, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -218,8 +230,8 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn409_whenCiDuplicates_byMoimingApiException() throws Exception {
 
         // given
-        String unavailableCi = "registered-ci";
-        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail, memberName, memberPhone, unavailableCi, provideNormalPolicyDtos());
+        String unavailableCi = ci;
+        TestMemberRequestDto reqDto = makeMemberReqDto(memberEmail2, memberName2, memberPhone2, unavailableCi, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -236,7 +248,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn400_whenRequestDtoValidationFails_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail2, memberName2, memberPhone2, ci2, provideNormalPolicyDtos());
         requestDto.setFcmToken(""); // 빈값 치환
         String requestString = om.writeValueAsString(requestDto);
 
@@ -258,7 +270,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // given
         String wrongEmailFormat = "hellonaver.com";
-        TestMemberRequestDto requestDto = makeMemberReqDto(wrongEmailFormat, memberName, memberPhone, ci, provideNormalPolicyDtos());
+        TestMemberRequestDto requestDto = makeMemberReqDto(wrongEmailFormat, memberName2, memberPhone2, ci2, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(requestDto);
 
         // when
@@ -280,7 +292,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn400_whenPasswordConditionFails_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, provideNormalPolicyDtos());
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail2, memberName2, memberPhone2, ci2, provideNormalPolicyDtos());
         requestDto.setPassword("123");
         String requestString = om.writeValueAsString(requestDto);
 
@@ -301,7 +313,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn400_whenPolicyListNull_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, null);
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail2, memberName2, memberPhone2, ci2, null);
         String requestString = om.writeValueAsString(requestDto);
 
         // when
@@ -322,7 +334,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signIn_shouldReturn400_whenPolicyListEmpty_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, new ArrayList<>());
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail2, memberName2, memberPhone2, ci2, new ArrayList<>());
         String requestString = om.writeValueAsString(requestDto);
 
         // when
@@ -345,7 +357,7 @@ public class AuthControllerTest extends TestObjectCreator {
         // given
         boolean[] isAgreeds = {true, true, false, true, false};
         PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, makePolicyReqDtoList(isAgreeds, policyTypes));
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail2, memberName2, memberPhone2, ci2, makePolicyReqDtoList(isAgreeds, policyTypes));
         String requestString = om.writeValueAsString(requestDto);
 
         // when
@@ -368,7 +380,7 @@ public class AuthControllerTest extends TestObjectCreator {
         // given
         boolean[] isAgreeds = {true, true, true, true};
         PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_EMAIL};
-        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail, memberName, memberPhone, ci, makePolicyReqDtoList(isAgreeds, policyTypes));
+        TestMemberRequestDto requestDto = makeMemberReqDto(memberEmail2, memberName2, memberPhone2, ci2, makePolicyReqDtoList(isAgreeds, policyTypes));
         String requestString = om.writeValueAsString(requestDto);
 
         // when
@@ -429,7 +441,7 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isOk());
 
         // then - member 조회 후 발급받은 Refresh Token 이 전달 받은것과 같은지 확인한다
-        Member findMemberPs = memberRepository.findById(registeredMember.getId()).orElseThrow(Exception::new);
+        Member findMemberPs = memberRepository.findById(testMember.getId()).orElseThrow(Exception::new);
         resultActions.andExpect(jsonPath("$.data.refreshToken").value(findMemberPs.getRefreshToken()));
 
     }
@@ -456,4 +468,420 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isUnauthorized());
         resultActions.andExpect(jsonPath("$.code").value(AUTH_REFRESH_TOKEN_EXPIRED.getErrCode()));
     }
+
+
+    // Test 가 어려워서 직접 API 날려봐야 할 것들
+    // 일단 성공 Case 들 날려봐야 함
+    // SMS Controller 로 문자 날라가서 생성되는 것 - 테스트 필요
+    // 3분 지나서 만료되는거 확인 - 테스트 필요
+
+
+    // 이메일 확인 요청 - 특정 멤버로 SMS 생성후 테스트
+    // 성공 - 응답 확인
+    @Test
+    void findMemberEmail_shouldReturn200WithMaskedEmail_whenRightInfoPassed() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_ID);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(smsVerification.getId(), memberPhone, verificationNumber);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        String maskedEmail = testMember.getMaskedEmail();
+        resultActions.andExpect(jsonPath("$.data.maskedEmail").value(maskedEmail));
+
+    }
+
+
+    // 실패 - Validation 오류
+    @Test
+    void findMemberEmail_shouldReturn400_whenRequestWrong_byMoimingValidationException() throws Exception {
+
+        // given
+        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(null, "", "");
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(3)));
+
+    }
+
+
+    // 실패 - Verification 숫자 오류
+    @Test
+    void findMemberEmail_shouldReturn422_whenSmsVerificationNumberNotMatch_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_ID);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(smsVerification.getId(), memberPhone, "00000");
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH.getErrCode()));
+
+    }
+
+
+    // 실패 - SMS 못찾음 오류
+    @Test
+    void findMemberEmail_shouldReturn400_whenSmsNotFound_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_ID);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(1234L, memberPhone, verificationNumber);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_NOT_FOUND.getErrCode()));
+
+    }
+
+
+    // 실패 - Phone 번호가 다른 오류
+    @Test
+    void findMemberEmail_shouldReturn422_whenSmsNumberNotMatchRequestNumber_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_ID);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(smsVerification.getId(), memberPhone2, verificationNumber);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO.getErrCode()));
+
+    }
+
+
+    // 실패 - Type 이 다른 경우
+    @Test
+    void findMemberEmail_shouldReturn409_whenSmsTypeNotMatch_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW); // PW 용 Type 으로 만들어졌었다고 가정
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(smsVerification.getId(), memberPhone, verificationNumber);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isConflict());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH.getErrCode()));
+
+    }
+
+
+    // 비밀번호 재설정 인증 요청 - SMS 생성후 테스트
+    // 성공
+    @Test
+    void confirmResetPassword_shouldReturn200_whenRightInfoPassed() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthResetPwConfirmReqDto reqDto = new AuthResetPwConfirmReqDto(smsVerification.getId(), memberPhone, verificationNumber);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isEmpty());
+
+    }
+
+
+    // 실패 - Validation 오류
+    @Test
+    void confirmResetPassword_shouldReturn400_whenValidiationFails_byMoimingValidationException() throws Exception {
+
+        // given
+        AuthResetPwConfirmReqDto reqDto = new AuthResetPwConfirmReqDto(null, "", "");
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(3)));
+
+    }
+
+
+    // 실패 - SMS 못찾음 오류
+    @Test
+    void confirmResetPassword_shouldReturn404_whenSmsNotFound_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthResetPwConfirmReqDto reqDto = new AuthResetPwConfirmReqDto(1234L, memberPhone, verificationNumber);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_NOT_FOUND.getErrCode()));
+
+    }
+
+
+    // 실패 - Verification 숫자 오류
+    @Test
+    void confirmResetPassword_shouldReturn422_whenSmsNumberNotMatch_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthResetPwConfirmReqDto reqDto = new AuthResetPwConfirmReqDto(smsVerification.getId(), memberPhone, "000000");
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH.getErrCode()));
+
+    }
+
+
+    // 실패 - Phone 번호가 다른 오류
+    @Test
+    void confirmResetPassword_shouldReturn422_whenSmsPhoneNumberNotMatchRequestNumber_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.clear();
+        em.flush();
+
+        AuthResetPwConfirmReqDto reqDto = new AuthResetPwConfirmReqDto(smsVerification.getId(), memberPhone2, verificationNumber);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO.getErrCode()));
+
+    }
+
+
+    // 비밀번호 재설정 요청 - SMS 생성후 테스트
+    // 성공 - 비밀번호 확인
+    @Test
+    void resetPassword_shouldReturn200AndChangeMemberPw_whenRightInfoPassed() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        String newPassword = "NEW_PASSWORD";
+        AuthResetPwReqDto reqDto = new AuthResetPwReqDto(smsVerification.getId(), newPassword);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // given - SMS 가 인증되어야 한다
+        smsVerification.confirmVerification(VerificationType.FIND_PW, verificationNumber);
+        em.flush();
+        em.clear();
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        resultActions.andExpect(status().isOk());
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        Member member = em.find(Member.class, testMember.getId());
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        boolean matches = encoder.matches(newPassword, member.getPassword());
+        assertTrue(matches);
+
+    }
+
+
+    // 실패 - SMS 못찾음 오류
+    @Test
+    void resetPassword_shouldReturn404_whenSmsVerificationNotFound_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        String newPassword = "NEW_PASSWORD";
+        AuthResetPwReqDto reqDto = new AuthResetPwReqDto(1234L, newPassword);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // given - SMS 가 인증되어야 한다
+        smsVerification.confirmVerification(VerificationType.FIND_PW, verificationNumber);
+        em.flush();
+        em.clear();
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_NOT_FOUND.getErrCode()));
+
+    }
+
+
+    // 실패 - Validation 오류
+    @Test
+    void resetPassword_shouldReturn400_whenValidationFails_byMoimingValidationException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        String newPassword = "NEW_PASSWORD";
+        AuthResetPwReqDto reqDto = new AuthResetPwReqDto(null, "");
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // given - SMS 가 인증되어야 한다
+        smsVerification.confirmVerification(VerificationType.FIND_PW, verificationNumber);
+        em.flush();
+        em.clear();
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2)));
+
+    }
+
+
+    // 실패 - 인증되지 않은 SMS 활용 오류
+    @Test
+    void resetPassword_shouldReturn401_whenSmsVerificationNotVerified_byMoimingAuthApiException() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        em.flush();
+        em.clear();
+
+        String newPassword = "NEW_PASSWORD";
+        AuthResetPwReqDto reqDto = new AuthResetPwReqDto(smsVerification.getId(), newPassword);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_NOT_VERIFIED.getErrCode()));
+    }
+
+
+    // TODO :: 실패 - 비밀번호 형식 오류
+
 }

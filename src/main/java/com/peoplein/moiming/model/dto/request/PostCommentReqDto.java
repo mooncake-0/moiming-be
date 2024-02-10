@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -23,7 +24,7 @@ public class PostCommentReqDto {
 
         private Long parentId;
 
-        @NotNull
+        @NotEmpty
         @Size(max = 100)
         private String content;
 
@@ -33,7 +34,7 @@ public class PostCommentReqDto {
     }
 
 
-    @ApiModel(value = "Post Comment API - 요청 - 댓글 수정")
+    @ApiModel(value = "Post Comment API - 요청 - 댓글 수정 (내용만 수정가능)")
     @Getter
     @Setter
     @NoArgsConstructor

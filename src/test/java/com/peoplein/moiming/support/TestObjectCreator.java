@@ -148,38 +148,4 @@ public class TestObjectCreator {
         return PostComment.createPostComment(content, member, moimPost, depth, parent);
     }
 
-
-    // 일일이 다 반환해서 또 em 돌리기 귀찮으니, 그냥 받아서 사용한다
-    // 스레드 공유가 아니므로 괜찮음. 단일 스레드에서 함수로 역할만 분리한거
-    protected void makeMoimPosts(int postCnt, Moim moim, Member member, EntityManager em) throws InterruptedException {
-
-        MoimPostCategory category = null;
-        boolean hasPrivateVisibility = false;
-
-        Random random = new Random();
-
-        for (int i = 0; i < postCnt; i++) {
-
-            int categoryRandom = random.nextInt(4);
-            int visibilityRandom = random.nextInt(2);
-
-            if (categoryRandom % 4 == 0) category = MoimPostCategory.NOTICE;
-            if (categoryRandom % 4 == 1) category = MoimPostCategory.GREETING;
-            if (categoryRandom % 4 == 2) category = MoimPostCategory.REVIEW;
-            if (categoryRandom % 4 == 3) category = MoimPostCategory.EXTRA;
-            if (visibilityRandom % 2 == 0) hasPrivateVisibility = true;
-            if (visibilityRandom % 2 == 1) hasPrivateVisibility = false;
-
-            String title = "제목" + visibilityRandom + i + categoryRandom;
-            MoimPost post = MoimPost.createMoimPost(title, "내용", category, hasPrivateVisibility, false, moim, member);
-            if (i % 3 == 1) {
-                Thread.sleep(100);
-            }
-            em.persist(post);
-        }
-
-        em.flush();
-        em.clear();
-    }
-
 }

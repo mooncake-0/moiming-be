@@ -1,4 +1,4 @@
-package com.peoplein.moiming.service.util;
+package com.peoplein.moiming.security.token.logout;
 
 import java.util.Date;
 

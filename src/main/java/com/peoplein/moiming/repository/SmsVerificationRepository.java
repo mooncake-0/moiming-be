@@ -8,6 +8,6 @@ public interface SmsVerificationRepository {
 
     Long save(SmsVerification smsVerification);
 
-    Optional<SmsVerification> findOptionalById(Long id);
+    Optional<SmsVerification> findById(Long id);
 
 }

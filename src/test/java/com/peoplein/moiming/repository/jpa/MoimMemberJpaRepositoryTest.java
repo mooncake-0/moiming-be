@@ -171,13 +171,13 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
         em.clear();
 
         // when
-        List<MoimMember> memberMoims = moimMemberRepository.findMemberMoimsWithRuleAndCategoriesByConditionsPaged(testMember.getId(), true, false, null, 20);
+        List<MoimMember> memberMoims = moimMemberRepository.findMemberMoimsWithCursorConditions(testMember.getId(), true, false, null, 20);
         if (memberMoims.isEmpty()) {
             return;
         }
 
         Moim lastMoim = memberMoims.get(memberMoims.size() - 1).getMoim();
-        List<MoimMember> memberMoims2 = moimMemberRepository.findMemberMoimsWithRuleAndCategoriesByConditionsPaged(testMember.getId(), true, false, lastMoim, 20);
+        List<MoimMember> memberMoims2 = moimMemberRepository.findMemberMoimsWithCursorConditions(testMember.getId(), true, false, lastMoim, 20);
 
 //        Assertions.assertThat(memberMoims2).isSortedAccordingTo((o1, o2) -> Localda)
 

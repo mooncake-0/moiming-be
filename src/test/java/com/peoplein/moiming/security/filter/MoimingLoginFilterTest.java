@@ -1,6 +1,7 @@
 package com.peoplein.moiming.security.filter;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
@@ -19,7 +20,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.EntityManager;
 

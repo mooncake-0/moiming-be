@@ -30,7 +30,7 @@ public class SearchJpaRepository {
 
 
     //
-    public List<Moim> findMoimByDynamicSearchCondition(MoimSearchType type, String keyword, List<AreaValue> areaFilters, List<CategoryName> categoryFilters, int offset, int limit, OrderBy orderBy) {
+    public List<Moim> findMoimByDynamicSearchCondition(MoimSearchType type, String keyword, List<AreaValue> areaFilters, List<CategoryName> categoryFilters, Moim lastSearchedMoim, int limit, OrderBy orderBy) {
 
         String areaLogicOp = "";
         String categoryLogicOp = "";
@@ -74,18 +74,25 @@ public class SearchJpaRepository {
         String jpql = "SELECT m FROM Moim m " +
                 "LEFT JOIN FETCH m.moimJoinRule ";
 
+        String baseWhereQuery = "";
+        if (lastSearchedMoim != null) {
+            baseWhereQuery = "m.moimName LIKE :keyword AND ((m.createdAt < :lastSearchedMoimCreatedAt) OR (m.createdAt = :lastSearchedMoimCreatedAt AND m.id < :lastMoimId))";
+        } else {
+            baseWhereQuery = "m.moimName LIKE :keyword";
+        }
+
         if (type.equals(BOTH_FILTER_ON) || type.equals(NO_FILTER)) { // 그냥 병렬로 하면 됨
-            jpql += "WHERE m.moimName LIKE :keyword " +
+            jpql += "WHERE " + baseWhereQuery + " " +
                     areaConditionBuilder +
                     categoryConditionBuilder;
         } else {
             if (type.equals(AREA_FILTER_ON)) { // (keyword OR category) AND area
-                jpql += "WHERE (m.moimName LIKE :keyword " +
+                jpql += "WHERE (" + baseWhereQuery + " " +
                         categoryConditionBuilder +
                         ")" +
                         areaConditionBuilder;
             } else { // (keyword OR area) AND category
-                jpql += "WHERE (m.moimName LIKE :keyword " +
+                jpql += "WHERE (" + baseWhereQuery + " " +
                         areaConditionBuilder +
                         ")" +
                         categoryConditionBuilder
@@ -108,19 +115,27 @@ public class SearchJpaRepository {
             query.setParameter("categoryFilters", categoryFilters);
         }
 
-        return query.setFirstResult(offset)
-                .setMaxResults(limit)
+        if (lastSearchedMoim != null) {
+            query.setParameter("lastSearchedMoimCreatedAt", lastSearchedMoim.getCreatedAt())
+                    .setParameter("lastMoimId", lastSearchedMoim.getId());
+
+        }
+
+        return query.setMaxResults(limit)
                 .getResultList();
 
     }
 
 
     public String getOrderBy(OrderBy orderBy) {
+        String ret = "";
         if (orderBy == OrderBy.date) {
-            return "ORDER BY m.createdAt DESC";
+            ret = "ORDER BY m.createdAt DESC";
         } else {
             throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
         }
+        ret += ", m.id DESC";
+        return ret;
     }
 
 }

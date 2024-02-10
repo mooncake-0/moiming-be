@@ -14,7 +14,7 @@ import java.util.Map;
 public class StateMapperDto<T> {
 
     private List<T> entities;
-    private Map<Member, MoimMemberState> stateMapper;
+    private Map<Long, MoimMemberState> stateMapper;
 
 
 }

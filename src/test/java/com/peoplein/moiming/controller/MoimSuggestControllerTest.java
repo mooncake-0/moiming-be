@@ -9,6 +9,8 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMonthlyCount;
+import com.peoplein.moiming.model.query.QueryMoimSuggestMapDto;
+import com.peoplein.moiming.repository.MoimCountRepository;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
@@ -47,6 +50,9 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     @Autowired
     private EntityManager em;
+
+    @Autowired
+    private MoimCountRepository moimCountRepository;
 
     private Member member1, member2, member3, member4, member5;
     private Moim moim1, moim2, moim3, moim4, moim5, moim6, moim7, moim8, moim9, moim10;
@@ -77,7 +83,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     // 실패 - offset 안들어 있음
     @Test
-    void getSuggestedMoim_shouldReturn400_whenOffsetMissing_byMoimingApiException() throws Exception {
+    void getSuggestedMoim_shouldReturn400_whenOffsetNotZero_byMoimingApiException() throws Exception {
 
         // given
         Role role = makeTestRole(RoleType.USER);
@@ -90,6 +96,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
         // when
         ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .param("offset", "1")
                 .header(HEADER, PREFIX + accessToken));
 
         // then
@@ -99,9 +106,34 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
     }
 
 
+    // 실패 - 1차 카테고리 필터링 시도
+    @Test
+    void getSuggestedMoim_shouldReturn422_whenDepth0CategoryFilterPassed_byMoimingApiException() throws Exception {
+
+        // given
+        Role role = makeTestRole(RoleType.USER);
+        em.persist(role);
+
+        member1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
+        em.persist(member1);
+
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .param("categoryFilter", "댄스/무용")
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_SITUATION.getErrCode()));
+
+    }
+
+
     // 성공 - 인기순을 불러온다 - Top 5 를 불러온다 - moim1, moim2, moim4, moim3, moim6
     @Test
-    void getSuggestedMoim_shouldReturn200WithData_whenReqTop5() throws Exception {
+    void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop5() throws Exception {
 
         // given
         suData();
@@ -129,7 +161,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     // 성공 - 인기순을 불러온다 - Top 10 를 불러온다 - moim9, moim10 가 없음을 확인 순서 확인 - moim1, moim2, moim4, moim3, moim6, moim8, moim7, moim5
     @Test
-    void getSuggestedMoim_shouldReturn200WithData_whenReqTop10() throws Exception {
+    void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop10() throws Exception {
 
         // given
         suData();
@@ -160,7 +192,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     // 성공 - 인기순이 바뀐다 - moim4 가 3번 count 가 증가한 후 다시 요청 - moim4 가 먼저 온다
     @Test
-    void getSuggestedMoim_shouldReturn200WithData_whenReqTop10AfterMoim4Inc3() throws Exception {
+    void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop10AfterMoim4Inc3() throws Exception {
 
         // given
         suData();
@@ -198,7 +230,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     // 성공 - moim9 가 count 가 생겨서 2로 는다
     @Test
-    void getSuggestedMoim_shouldReturn200WithData_whenReqTop10AfterMoim2Inc2() throws Exception {
+    void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop10AfterMoim2Inc2() throws Exception {
 
         // given
         suData();
@@ -237,7 +269,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     // 성공 - Top10 을 불러온다 - areaFilterOn - 서울시 전체
     @Test
-    void getSuggestedMoim_shouldReturn200WithData_whenReqTop10WithAreaFilterSeoul() throws Exception {
+    void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop10WithAreaFilterSeoul() throws Exception {
 
         // given
         suData();
@@ -269,7 +301,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     // 성공 - Top10 을 불러온다 - areaFilterOn - 강남구
     @Test
-    void getSuggestedMoim_shouldReturn200WithData_whenReqTop10WithAreaFilterGangNam() throws Exception {
+    void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop10WithAreaFilterGangNam() throws Exception {
 
         // given
         suData();
@@ -297,7 +329,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     // 성공 - Top10 을 불러온다 - categoryFilterOn
     @Test
-    void getSuggestedMoim_shouldReturn200WithData_whenReqTop10WithCategoryFilter() throws Exception {
+    void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop10WithCategoryFilter() throws Exception {
 
         // given
         suData();
@@ -325,7 +357,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
     // 성공 - Top10 을 불러온다 - area&categoryFilter ON
     @Test
-    void getSuggestedMoim_shouldReturn200WithData_whenReqTop10WithBothFilterOn() throws Exception {
+    void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop10WithBothFilterOn() throws Exception {
         // given
         suData();
         suCounting();
@@ -334,7 +366,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
                 .header(HEADER, PREFIX + accessToken)
-                        .param("areaFilter", "강동구")
+                .param("areaFilter", "강동구")
                 .param("categoryFilter", "라틴댄스")
                 .param("offset", "0")
                 .param("limit", "10"));
@@ -345,6 +377,190 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data").isArray());
         resultActions.andExpect(jsonPath("$.data", hasSize(1)));
         resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim4.getId()));
+
+    }
+
+
+    // 두달 집계 쿼리
+    // 성공 - 두 달에 대한 집계 후 데이터를 들고온다
+    @Test
+    void getSuggestedMoimTest_shouldReturn200WithResponse_whenTwoMonthReqTop10() throws Exception {
+
+        /*
+               지난달   |  이번달  |  합계
+         moim1  3     |   11       14  라틴어를 강남에서 배우는 공간    강남    라틴댄스
+         moim2  4     |   10       14  "서울사는 사람들";    강동    해외여행
+         moim3  1     |   7        8  "강아지들 모여라";    강남    해외여행
+         moim4  2     |   9        11  "우리집 반려동물";    강동    라틴댄스
+         moim5  6     |   4        10  "프로그래밍 스터디";    강남    라틴댄스
+         moim6  4     |   6        10  "강아지 카메라 찍는 사람들";    강동    해외여행
+         moim7  10    |   5        15  "여행 여기저기 다녀보자";    강남    라틴댄스
+         moim8  8     |   5        13  "적합한 직무 찾기";    강동    해외여행
+
+         > 순서 : 7 > 2 > 1 > 8 > 4 > 6 > 5 > 3
+         */
+
+        // given
+        suData();
+        suCounting();
+        suLastMonthCounting();
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .header(HEADER, PREFIX + accessToken)
+                .param("offset", "0")
+                .param("limit", "10"));
+
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println(response);
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(8)));
+        resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim7.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim2.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim1.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimId").value(moim8.getId()));
+        resultActions.andExpect(jsonPath("$.data[4].moimId").value(moim4.getId()));
+        resultActions.andExpect(jsonPath("$.data[5].moimId").value(moim6.getId()));
+        resultActions.andExpect(jsonPath("$.data[6].moimId").value(moim5.getId()));
+        resultActions.andExpect(jsonPath("$.data[7].moimId").value(moim3.getId()));
+
+    }
+
+
+    // 성공 - 지역 필터 낌
+    @Test
+    void getSuggestedMoimTest_shouldReturn200WithResponse_whenTwoMonthReqTop10WithAreaFilter() throws Exception {
+
+        /*
+               지난달   |  이번달  |  합계
+         moim1  3     |   11       14  라틴어를 강남에서 배우는 공간    강남    라틴댄스
+         moim2  4     |   10       14  "서울사는 사람들";    강동    해외여행
+         moim3  1     |   7        8  "강아지들 모여라";    강남    해외여행
+         moim4  2     |   9        11  "우리집 반려동물";    강동    라틴댄스
+         moim5  6     |   4        10  "프로그래밍 스터디";    강남    라틴댄스
+         moim6  4     |   6        10  "강아지 카메라 찍는 사람들";    강동    해외여행
+         moim7  10    |   5        15  "여행 여기저기 다녀보자";    강남    라틴댄스
+         moim8  8     |   5        13  "적합한 직무 찾기";    강동    해외여행
+
+         > 순서 : 7 > 1 > 5 > 3
+         */
+
+        // given
+        suData();
+        suCounting();
+        suLastMonthCounting();
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .header(HEADER, PREFIX + accessToken)
+                .param("areaFilter", "강남구")
+        );
+
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println(response);
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(4)));
+        resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim7.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim1.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim5.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimId").value(moim3.getId()));
+
+    }
+
+
+    // 성공 - 카테고리 필터 낌
+    @Test
+    void getSuggestedMoimTest_shouldReturn200WithResponse_whenTwoMonthReqTop10WithCategoryFilter() throws Exception {
+
+        /*
+               지난달   |  이번달  |  합계
+         moim1  3     |   11       14  라틴어를 강남에서 배우는 공간    강남    라틴댄스
+         moim2  4     |   10       14  "서울사는 사람들";    강동    해외여행
+         moim3  1     |   7        8  "강아지들 모여라";    강남    해외여행
+         moim4  2     |   9        11  "우리집 반려동물";    강동    라틴댄스
+         moim5  6     |   4        10  "프로그래밍 스터디";    강남    라틴댄스
+         moim6  4     |   6        10  "강아지 카메라 찍는 사람들";    강동    해외여행
+         moim7  10    |   5        15  "여행 여기저기 다녀보자";    강남    라틴댄스
+         moim8  8     |   5        13  "적합한 직무 찾기";    강동    해외여행
+
+         > 순서 :  2  > 8  > 6 > 3
+         */
+
+        // given
+        suData();
+        suCounting();
+        suLastMonthCounting();
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .header(HEADER, PREFIX + accessToken)
+                .param("categoryFilter", "해외여행"));
+
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println(response);
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(4)));
+        resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim2.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim8.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim6.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimId").value(moim3.getId()));
+
+    }
+
+
+    // 성공 - 지역필터, 카테고리 필터 모두 낌
+    @Test
+    void getSuggestedMoimTest_shouldReturn200WithResponse_whenTwoMonthReqTop10WithBothFilter() throws Exception {
+
+        /*
+               지난달   |  이번달  |  합계
+         moim1  3     |   11       14  라틴어를 강남에서 배우는 공간    강남    라틴댄스
+         moim2  4     |   10       14  "서울사는 사람들";    강동    해외여행
+         moim3  1     |   7        8  "강아지들 모여라";    강남    해외여행
+         moim4  2     |   9        11  "우리집 반려동물";    강동    라틴댄스
+         moim5  6     |   4        10  "프로그래밍 스터디";    강남    라틴댄스
+         moim6  4     |   6        10  "강아지 카메라 찍는 사람들";    강동    해외여행
+         moim7  10    |   5        15  "여행 여기저기 다녀보자";    강남    라틴댄스
+         moim8  8     |   5        13  "적합한 직무 찾기";    강동    해외여행
+
+         > 순서 : 7 > 1  > 5
+         */
+
+        // given
+        suData();
+        suCounting();
+        suLastMonthCounting();
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .header(HEADER, PREFIX + accessToken)
+                        .param("areaFilter", "강남구")
+                        .param("categoryFilter", "라틴댄스")
+                );
+
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println(response);
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(3)));
+        resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim7.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim1.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim5.getId()));
 
     }
 
@@ -371,11 +587,11 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
         increaseMoimMonthCount(moim1Count, 10);
         increaseMoimMonthCount(moim2Count, 9);
-        increaseMoimMonthCount(moim4Count, 8);
         increaseMoimMonthCount(moim3Count, 6);
+        increaseMoimMonthCount(moim4Count, 8);
         increaseMoimMonthCount(moim5Count, 3);
-        increaseMoimMonthCount(moim7Count, 4);
         increaseMoimMonthCount(moim6Count, 5);
+        increaseMoimMonthCount(moim7Count, 4);
         increaseMoimMonthCount(moim8Count, 4);
 
         // 인기 순서 : moim1, moim2, moim4, moim3, moim6, moim8, moim7, moim5 // (7,8 은 최신 생성일)
@@ -383,6 +599,36 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
 
         em.flush();
         em.clear();
+
+    }
+
+
+    // Java 객체로는 Test 생성이 어려우므로, JPQL 을 통해 주입해서 사용한다
+    // 지난달 모임 count 에 대한 정보도 넣어준다
+    void suLastMonthCounting() {
+        LocalDate lastMonth = LocalDate.now().withDayOfMonth(1).minusMonths(1);
+        runQuery(lastMonth, moim1.getId(), 3, 200L);
+        runQuery(lastMonth, moim2.getId(), 4, 201L);
+        runQuery(lastMonth, moim3.getId(), 1, 202L);
+        runQuery(lastMonth, moim4.getId(), 2, 203L);
+        runQuery(lastMonth, moim5.getId(), 6, 204L);
+        runQuery(lastMonth, moim6.getId(), 4, 205L);
+        runQuery(lastMonth, moim7.getId(), 10, 206L);
+        runQuery(lastMonth, moim8.getId(), 8, 207L);
+    }
+
+
+    void runQuery(LocalDate countDate, Long moimId, int monthlyCount, Long id) {
+
+        String query = "INSERT INTO moim_monthly_count (count_date, moim_id, monthly_count, moim_monthly_count_id) " +
+                "VALUES (:count_date, :moim_id, :monthly_count, :moim_monthly_count_id)";
+
+        em.createNativeQuery(query)
+                .setParameter("count_date", countDate)
+                .setParameter("moim_id", moimId)
+                .setParameter("monthly_count", monthlyCount)
+                .setParameter("moim_monthly_count_id", id)
+                .executeUpdate();
 
     }
 

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.peoplein.moiming.exception.ExceptionValue.COMMON_UPDATE_REQUEST_FAILED;
 import static com.peoplein.moiming.exception.ExceptionValue.MOIM_ACT_NOT_AUTHORIZED;
 
 @Entity
@@ -117,6 +118,9 @@ public class MoimPost extends BaseEntity {
 
         if (isChanged) {
             this.updatedMemberId = memberId;
+        }else {
+            log.info("{}, changeMoimPostInfo :: {}", this.getClass().getName(), "게시물 수정 요청 중 아무 수정이 발생하지 않았습니다");
+            throw new MoimingApiException(COMMON_UPDATE_REQUEST_FAILED);
         }
 
     }
@@ -152,6 +156,7 @@ public class MoimPost extends BaseEntity {
             // moimMember 가 Active 가 아닐경우 + moimPost 가 비공개일 경우 > 거른다
             // moimMember 가 없을 경우 + moimPost 가 비공개일 경우 > 거른다
             if (moimMemberOp.isEmpty() || !moimMemberOp.get().hasActivePermission()) {
+                log.error("{}, checkMemberAccessibility :: {}", this.getClass().getName(), "비공개 게시물에 접근할 수 없는 유저입니다");
                 throw new MoimingApiException(MOIM_ACT_NOT_AUTHORIZED);
             }
         }

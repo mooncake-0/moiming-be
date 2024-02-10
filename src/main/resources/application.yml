@@ -2,3 +2,12 @@ spring:
   profiles:
     active:
       - ${PROFILE}
+
+open_api:
+  cool_sms_api_key: ${COOL_SMS_API_KEY}
+  cool_sms_secret_key: ${COOL_SMS_SECRET_KEY}
+
+open_api_keys:
+  naver_sens_sms: NOT_USING
+  naver_access_key_id: NOT_USING
+  naver_secret_key_id: NOT_USING

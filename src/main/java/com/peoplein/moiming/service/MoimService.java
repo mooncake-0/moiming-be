@@ -9,7 +9,9 @@ import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.*;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.MoimCategoryMapperDto;
 import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
+import com.peoplein.moiming.model.query.QueryMoimSuggestMapDto;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.MoimJoinRuleJpaRepository;
 import lombok.RequiredArgsConstructor;
@@ -76,7 +78,7 @@ public class MoimService {
 
     // 컨디션에 따른 해당 멤버의 모임 조회 결과 List<Moim> 으로 반환
     // 사용영역 > Home 화면 및 마이페이지 화면에서 사용될 예정
-    public List<MoimMember> getMemberMoims(Long lastMoimId, boolean isActiveReq, boolean isManagerReq, int limit, Member curMember) {
+    public MoimCategoryMapperDto getMemberMoims(Long lastMoimId, boolean isManagerReq, int limit, Member curMember) {
 
         if (curMember == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
@@ -87,8 +89,21 @@ public class MoimService {
             lastMoim = moimRepository.findById(lastMoimId).orElse(null); // NULLABLE
         }
 
-        return moimMemberRepository.findMemberMoimsWithRuleAndCategoriesByConditionsPaged(curMember.getId(), isActiveReq, isManagerReq, lastMoim, limit);
+        List<MoimMember> memberMoims = moimMemberRepository.findMemberMoimsWithCursorConditions(curMember.getId(), true, isManagerReq, lastMoim, limit);
+        List<Moim> targetMoims = new ArrayList<>();
+        List<Long> moimIds = new ArrayList<>();
 
+        for (MoimMember memberMoim : memberMoims) {
+            targetMoims.add(memberMoim.getMoim());
+            moimIds.add(memberMoim.getMoim().getId());
+        }
+
+        List<MoimCategoryLinker> categoryLinkers = new ArrayList<>();
+        if(!moimIds.isEmpty()) {
+            categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
+        }
+
+        return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
     }
 
 
@@ -103,8 +118,6 @@ public class MoimService {
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
-        // Creator 정보와 같이 전달해주기 위해, MoimMember 를 전달한다
-        // 굳이 쿼리 하나 늘리지 말고, 그냥 getMember 로 쿼리 발생하게 두자
         MoimMember creatorMember = moimMemberRepository.findWithMemberByMemberAndMoimId(moim.getCreatorId(), moim.getId()).orElseThrow(()->{
             log.error("{}, {}", "모임 생성자 정보를 찾을 수 없음, C999", COMMON_INVALID_SITUATION.getErrMsg());
             return new MoimingApiException(COMMON_INVALID_SITUATION);
@@ -260,7 +273,7 @@ public class MoimService {
     }
 
 
-    public Map<String, Object> getSuggestedMoim(String areaFilter, String categoryFilter, int offset, int limit) {
+    public MoimCategoryMapperDto getSuggestedMoim(String areaFilter, String categoryFilter, int offset, int limit) {
 
         // 지역 필터가 있으면, 지역 넘겨주면 됨 - AND 조건 걸림
         AreaValue areaValue = null;
@@ -272,20 +285,30 @@ public class MoimService {
         CategoryName categoryName = null;
         if (StringUtils.hasText(categoryFilter)) {
             categoryName = CategoryName.fromValue(categoryFilter);
+            if (categoryName.getDepth() == 0) { // 1 차 카테고리 필터는 금지되어 있다
+                log.info("{}, getSuggestedMoim :: {}", this.getClass().getName(), "1차 카테고리는 검색 필터가 될 수 없습니다");
+                throw new MoimingApiException(COMMON_INVALID_SITUATION);
+            }
         }
 
-        LocalDate conditionMonth = LocalDate.now();
-        conditionMonth = conditionMonth.withDayOfMonth(1);
+        LocalDate conditionThisMonth = LocalDate.now();
+        conditionThisMonth = conditionThisMonth.withDayOfMonth(1);
+        LocalDate conditionLastMonth = conditionThisMonth.minusMonths(1);
 
-        List<MoimMonthlyCount> monthlyCounts = moimCountRepository.findMonthlyBySuggestedCondition(areaValue, categoryName, conditionMonth, offset, limit);
-        List<Long> moimIds = monthlyCounts.stream().map(mmc -> mmc.getMoim().getId()).collect(Collectors.toList());
-        List<MoimCategoryLinker> categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimId(moimIds);
+        List<QueryMoimSuggestMapDto> suggestedMoimDto = moimCountRepository.findMonthlyBySuggestedCondition(areaValue, categoryName, List.of(conditionLastMonth, conditionThisMonth), offset, limit);
+        List<Moim> targetMoims = new ArrayList<>();
+        List<Long> moimIds = new ArrayList<>();
 
-        Map<String, Object> listMap = new HashMap<>();
-        listMap.put("SUGGESTED_MOIMS", monthlyCounts); // Moim 은 이미 Fetch Join 되어 있으므로, Moim 은 프록시 객체가 아니다
-        listMap.put("CATEGORIES", categoryLinkers); // 같이 전달해서, 매핑을 진행해준다
+        for (QueryMoimSuggestMapDto queryDto : suggestedMoimDto) {
+            targetMoims.add(queryDto.getMoim());
+            moimIds.add(queryDto.getMoim().getId());
+        }
 
-        return listMap;
+        List<MoimCategoryLinker> categoryLinkers = new ArrayList<>();
+        if(!moimIds.isEmpty()) {
+             categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
+        }
+        return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
 
     }
 

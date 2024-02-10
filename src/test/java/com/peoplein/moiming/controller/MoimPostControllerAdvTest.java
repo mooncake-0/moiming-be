@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
@@ -18,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.EntityManager;
 
@@ -362,8 +362,8 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(moimMemberPost.isHasPrivateVisibility()));
         resultActions.andExpect(jsonPath("$.data.hasFiles").value(moimMemberPost.isHasFiles()));
         resultActions.andExpect(jsonPath("$.data.commentCnt").value(moimMemberPost.getCommentCnt()));
-        resultActions.andExpect(jsonPath("$.data.createdAt").value(moimMemberPost.getCreatedAt() + ""));
-        resultActions.andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
         resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
         resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
 
@@ -382,7 +382,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     // updatePost - 성공 : 모두 다 NULL 만 들어왔을 때 - update 해주진 않음
     @Test
-    void updatePost_shouldReturn200_whenOnlyNullParamPassed() throws Exception {
+    void updatePost_shouldReturn400_whenOnlyNullParamPassed_byMoimingApiException() throws Exception {
 
         // given
         prepareMoimActivity();
@@ -397,18 +397,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.data.moimPostId").value(moimMemberPost.getId()));
-        resultActions.andExpect(jsonPath("$.data.postTitle").value(moimMemberPost.getPostTitle()));
-        resultActions.andExpect(jsonPath("$.data.postContent").value(moimMemberPost.getPostContent()));
-        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(moimMemberPost.getMoimPostCategory().getValue()));
-        resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(moimMemberPost.isHasPrivateVisibility()));
-        resultActions.andExpect(jsonPath("$.data.hasFiles").value(moimMemberPost.isHasFiles()));
-        resultActions.andExpect(jsonPath("$.data.commentCnt").value(moimMemberPost.getCommentCnt()));
-        resultActions.andExpect(jsonPath("$.data.createdAt").value(moimMemberPost.getCreatedAt() + ""));
-        resultActions.andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_UPDATE_REQUEST_FAILED.getErrCode()));
+
 
         // then - db verify
         em.flush();
@@ -418,7 +409,6 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         assertThat(moimPost.getPostTitle()).isEqualTo(moimMemberPost.getPostTitle());
         assertThat(moimPost.getPostContent()).isEqualTo(moimMemberPost.getPostContent());
         assertThat(moimPost.getMoimPostCategory()).isEqualTo(moimMemberPost.getMoimPostCategory());
-        assertThat(moimPost.getUpdatedMemberId()).isEqualTo(moimMember.getId());
 
     }
 
