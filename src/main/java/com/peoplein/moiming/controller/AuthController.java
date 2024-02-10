@@ -115,7 +115,7 @@ public class AuthController {
             @ApiResponse(code = 200, message = "비밀번호 재설정 성공"),
             @ApiResponse(code = 400, message = "비밀번호 재설정 실패, ERR MSG 확인")
     })
-    @PostMapping(PATH_AUTH_RESET_PW)
+    @PatchMapping(PATH_AUTH_RESET_PW)
     public ResponseEntity<?> resetPassword(@RequestBody @Valid AuthResetPwReqDto requestDto
             , BindingResult br) {
 

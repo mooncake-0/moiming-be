@@ -5,11 +5,11 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
-import com.peoplein.moiming.model.dto.auth.*;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.SmsVerificationRepository;
-import com.peoplein.moiming.service.util.SmsRequestBuilder;
+import com.peoplein.moiming.service.util.sms.NaverSmsRequestBuilder;
 import com.peoplein.moiming.service.external.SmsSender;
+import com.peoplein.moiming.service.util.sms.SmsRequestBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Request;
@@ -75,7 +75,7 @@ public class SmsVerificationService {
         if (requestDto.getVerifyType().equals(FIND_PW)) {
             if (!curMember.getMemberEmail().equals(requestDto.getMemberEmail())) {
                 log.error("{}, 전달이메일 {} :: 유저의 SMS 비밀번호 변경 시도, 조회결과 전달받은 이메일 불일치", requestDto.getMemberPhone(), requestDto.getMemberEmail());
-                throw new MoimingAuthApiException(AUTH_SMS_INVALID_NAME_WITH_PHONE);
+                throw new MoimingAuthApiException(AUTH_SMS_INVALID_NAME_WITH_EMAIL);
             }
         }
 

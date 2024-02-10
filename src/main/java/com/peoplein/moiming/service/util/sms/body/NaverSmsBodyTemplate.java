@@ -1,4 +1,4 @@
-package com.peoplein.moiming.service.util;
+package com.peoplein.moiming.service.util.sms.body;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class SmsMessageTemplate {
+public class NaverSmsBodyTemplate {
 
     private String type; // SMS
     private String contentType; // COMM : 일반메시지
@@ -21,7 +21,7 @@ public class SmsMessageTemplate {
     private String content; // 문자 내용
     private List<Messages> messages;
 
-    public SmsMessageTemplate(String content, String... phoneNums) {
+    public NaverSmsBodyTemplate(String content, String... phoneNums) {
         this.type = "SMS";
         this.contentType = "COMM";
         this.countryCode = "82";

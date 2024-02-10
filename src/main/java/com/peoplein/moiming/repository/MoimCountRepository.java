@@ -21,7 +21,5 @@ public interface MoimCountRepository {
 
     Optional<MoimMonthlyCount> findMonthlyByMemberIdAndMoimIdAndCurrentDate(Long moimId);
 
-    List<MoimMonthlyCount> findMonthlyBySuggestedCondition(AreaValue areaFilter, CategoryName categoryFilter, List<LocalDate> givenDates, int offset, int limit);
-
-    List<QueryMoimSuggestMapDto> findMonthlyBySuggestedConditionV2(AreaValue areaFilter, CategoryName categoryFilter, List<LocalDate> givenDates, int offset, int limit);
+    List<QueryMoimSuggestMapDto> findMonthlyBySuggestedCondition(AreaValue areaFilter, CategoryName categoryFilter, List<LocalDate> givenDates, int offset, int limit);
 }

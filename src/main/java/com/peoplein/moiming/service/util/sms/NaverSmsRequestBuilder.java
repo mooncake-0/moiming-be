@@ -1,11 +1,11 @@
-package com.peoplein.moiming.service.util;
+package com.peoplein.moiming.service.util.sms;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
-import com.peoplein.moiming.security.exception.AuthExceptionValue;
+import com.peoplein.moiming.service.util.sms.body.NaverSmsBodyTemplate;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.codec.binary.Base64;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -25,9 +24,9 @@ import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 /*
  네이버 Cloud Platform SENS SMS API 를 사용하는 빈
  */
-@Component
+//@Component
 @Slf4j
-public class SmsRequestBuilder {
+public class NaverSmsRequestBuilder implements SmsRequestBuilder{
 
     /*
      NAVER SMS Request Header
@@ -46,14 +45,15 @@ public class SmsRequestBuilder {
     private final ObjectMapper om = new ObjectMapper();
 
     // APP 등록 정보
-    @Value("${open_api_keys.naver_sens_sms}")
+//    @Value("${open_api_keys.naver_sens_sms}")
     private String serviceId;
-    @Value("${open_api_keys.naver_access_key_id}")
+//    @Value("${open_api_keys.naver_access_key_id}")
     private String accessKey;
-    @Value("${open_api_keys.naver_secret_key_id}")
+//    @Value("${open_api_keys.naver_secret_key_id}")
     private String secretKey;
 
 
+    @Override
     public Request getHttpRequest(SmsVerification verification) {
 
         if (verification == null) {
@@ -61,13 +61,13 @@ public class SmsRequestBuilder {
         }
 
         String messageContent = buildContent(verification.getVerificationNumber());
-        SmsMessageTemplate messageBody = new SmsMessageTemplate(messageContent, verification.getMemberPhoneNumber());
+        NaverSmsBodyTemplate messageBody = new NaverSmsBodyTemplate(messageContent, verification.getMemberPhoneNumber());
 
         return createSmsRequest(messageBody);
     }
 
 
-    private Request createSmsRequest(SmsMessageTemplate messageBody) {
+    private Request createSmsRequest(NaverSmsBodyTemplate messageBody) {
 
         try {
             // HEADER DATA 준비

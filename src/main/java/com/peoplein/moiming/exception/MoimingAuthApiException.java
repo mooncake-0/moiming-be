@@ -16,4 +16,9 @@ public class MoimingAuthApiException extends RuntimeException {
         super(ev.getErrMsg());
         this.ev = ev;
     }
+
+    public MoimingAuthApiException(AuthExceptionValue ev, Throwable exception) {
+        super(ev.getErrMsg(), exception);
+        this.ev = ev;
+    }
 }

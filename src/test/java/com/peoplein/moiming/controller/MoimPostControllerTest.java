@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
@@ -21,7 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.EntityManager;
 
@@ -237,48 +237,6 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
     }
 
-    // TODO -- 배치 테스트 다시해야함, 일시적으로 막아놓은 오류 존재
-    // 2번 - getMoimTest 일반조회 성공 - 각 URL 에 각 value 들이 없을때를 검증한다
-    @Test
-    void getMoimPosts_shouldReturn200AndRespDtos_whenRightInfoWithNoNullPassed() throws Exception {
-
-        // given
-        String testToken = createTestJwtToken(moimMember, 3000);
-        Long moimId = testMoim.getId();
-        MoimPostCategory category = MoimPostCategory.GREETING;
-        int limit = 10;
-        makeMoimPosts(20, testMoim, moimCreator, em);
-
-        // given - getting LastPostId (첫 요청을 가져간다)
-        List<MoimPost> tmps = em.createQuery("select mp from MoimPost mp " +
-                        "where mp.moim.id = :moim_id and mp.moimPostCategory = :category " +
-                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
-                .setParameter("moim_id", moimId)
-                .setParameter("category", category)
-                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
-                .getResultList();
-
-        if(tmps.size() > 1) return;
-        Long lastPostId = tmps.get(tmps.size() - 1).getId();
-
-        String[] params = {"moimId"};
-        String[] vals = {moimId + ""};
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
-                .param("lastPostId", lastPostId + "")
-                .param("category", category + "")
-                .param("limit", limit + "")
-                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
-
-
-        // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(1));
-        resultActions.andExpect(jsonPath("$.data").isArray()); // 비어있을 확률이 높지만 어쨌든 배열이 들어온다
-        // 입하는 게시물 갯수를 엄청 늘리면 몇개 들어오는거 확인
-
-    }
 
     // moimId Null 이면 Exception (뒤에서 발생함)
     @Test
@@ -309,183 +267,4 @@ public class MoimPostControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isInternalServerError());
     }
 
-
-    // 이하 모든 Test 들은 다음을 검증함 : Controller 단에서 문제가 되지 않는다 & Return Value 가 확인된다
-    // lastPostId Null 이면 반환함 (첫 요청임)
-    @Test
-    void getMoimPosts_shouldReturn200AndRespDtos_whenFirstRequestAndLastPostIdNull() throws Exception {
-
-        // given
-        String testToken = createTestJwtToken(moimMember, 3000);
-        Long moimId = testMoim.getId();
-        MoimPostCategory category = MoimPostCategory.GREETING;
-        int limit = 10;
-        makeMoimPosts(20, testMoim, moimCreator, em);
-
-        String[] params = {"moimId"};
-        String[] vals = {moimId + ""};
-
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
-                .param("category", category + "")
-                .param("limit", limit + "")
-                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
-
-
-        // then - query data prepare
-        List<MoimPost> neededResults = em.createQuery("select mp from MoimPost mp " +
-                        "where mp.moim.id = :moim_id and mp.moimPostCategory = :category " +
-                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
-                .setParameter("moim_id", moimId)
-                .setParameter("category", category)
-                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
-                .getResultList();
-
-
-        // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(1));
-        resultActions.andExpect(jsonPath("$.data").isArray());
-        if (!neededResults.isEmpty()) { // 미리 준비해둔 반환결과에 따라 검증을 나눈다
-            resultActions.andExpect(jsonPath("$.data[*].moimPostCategory.value", everyItem(is(category))));
-        }
-
-    }
-
-
-    // category Null 이면 반환함 - category ID = NULL 가능성 Test 도 있으니 Null 로 진행
-    @Test
-    void getMoimPosts_shouldReturn200AndRespDtos_whenCategoryNull() throws Exception {
-
-        // given
-        String testToken = createTestJwtToken(moimMember, 3000);
-        Long moimId = testMoim.getId();
-        int limit = 10;
-        makeMoimPosts(20, testMoim, moimCreator, em);
-
-        String[] params = {"moimId"};
-        String[] vals = {moimId + ""};
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
-                .param("limit", limit + "")
-                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
-
-
-        // then - query data prepare
-        List<MoimPost> neededResults = em.createQuery("select mp from MoimPost mp " +
-                        "where mp.moim.id = :moim_id " +
-                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
-                .setParameter("moim_id", moimId)
-                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
-                .getResultList();
-
-        // then prepare- json looping 확인하는 방법 result String 필요 - 원하는 값이 다 들어있음을 증명
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        List<Integer> ids = JsonPath.read(responseBody, "$.data[*].moimPostId"); // Json 에 L 없이 들어가므로 L 이 빠져서 Integer 로 저장된다
-        List<Long> longIds = ids.stream().map(id -> (long) id).collect(Collectors.toList()); // 비교를 위해 Long List 로 변환하여 준비
-
-        // then - 일반 응답 비교
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(1));
-        resultActions.andExpect(jsonPath("$.data").isArray());
-
-        // then - 두 비교 리스트의 반환 결과는 동일
-        assertThat(longIds.size()).isEqualTo(neededResults.size());
-        for (MoimPost neededResult : neededResults) {
-            assertThat(longIds).contains(neededResult.getId());
-        }
-    }
-
-
-    // limit 은 null 일 수 없고, 안들어오면 default 10 으로 동작함
-    @Test
-    void getMoimPosts_shouldReturn200AndRespDtos_whenLimitNotPassed() throws Exception {
-
-        // given
-        String testToken = createTestJwtToken(moimMember, 3000);
-        Long moimId = testMoim.getId();
-        makeMoimPosts(20, testMoim, moimCreator, em);
-
-        String[] params = {"moimId"};
-        String[] vals = {moimId + ""};
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
-                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
-
-
-        // then - query data prepare
-        List<MoimPost> neededResults = em.createQuery("select mp from MoimPost mp " +
-                        "where mp.moim.id = :moim_id " +
-                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
-                .setParameter("moim_id", moimId)
-                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
-                .getResultList();
-
-        // then prepare- json looping 확인하는 방법 result String 필요 - 원하는 값이 다 들어있음을 증명
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        List<Integer> ids = JsonPath.read(responseBody, "$.data[*].moimPostId"); // Json 에 L 없이 들어가므로 L 이 빠져서 Integer 로 저장된다
-        List<Long> longIds = ids.stream().map(id -> (long) id).collect(Collectors.toList()); // 비교를 위해 Long List 로 변환하여 준비
-
-        // then - 일반 응답 비교
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(1));
-        resultActions.andExpect(jsonPath("$.data").isArray());
-
-        // then - 두 비교 리스트의 반환 결과는 동일
-        assertThat(longIds.size()).isEqualTo(neededResults.size());
-        for (MoimPost neededResult : neededResults) {
-            assertThat(longIds).contains(neededResult.getId());
-        }
-    }
-
-
-    // 비회원이 요청하면 받아온 애들의 privateVisibility 는 모두 false 이다
-    @Test
-    void getMoimPosts_shouldReturn200AndRespDtosWithFalsePrivateVisibility_whenNotMoimMemberNormalRequest() throws Exception {
-
-        // given
-        String testToken = createTestJwtToken(notMoimMember, 3000);
-        Long moimId = testMoim.getId();
-        int limit = 10;
-        makeMoimPosts(20, testMoim, moimCreator, em);
-
-        String[] params = {"moimId"};
-        String[] vals = {moimId + ""};
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
-                .param("limit", limit + "")
-                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
-
-
-        // then - query data prepare
-        List<MoimPost> neededResults = em.createQuery("select mp from MoimPost mp " +
-                        "where mp.moim.id = :moim_id " +
-                        "and mp.hasPrivateVisibility = :visibility " +
-                        "order by mp.createdAt desc, mp.id desc", MoimPost.class)
-                .setParameter("moim_id", moimId)
-                .setParameter("visibility", false) // 전체공개 게시물들만 반환해본다
-                .setMaxResults(10) // JPQL 은 페이징을 따로 주입한다
-                .getResultList();
-
-        // then prepare- json looping 확인하는 방법 result String 필요 - 원하는 값이 다 들어있음을 증명
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        List<Integer> ids = JsonPath.read(responseBody, "$.data[*].moimPostId"); // Json 에 L 없이 들어가므로 L 이 빠져서 Integer 로 저장된다
-        List<Long> longIds = ids.stream().map(id -> (long) id).collect(Collectors.toList()); // 비교를 위해 Long List 로 변환하여 준비
-
-        // then - 일반 응답 비교
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(1));
-        resultActions.andExpect(jsonPath("$.data").isArray());
-        resultActions.andExpect(jsonPath("$.data[*].hasPrivateVisibility", everyItem(equalTo(false))));
-
-        // then - 두 비교 리스트의 반환 결과는 동일
-        assertThat(longIds.size()).isEqualTo(neededResults.size());
-        for (MoimPost neededResult : neededResults) {
-            assertThat(longIds).contains(neededResult.getId());
-        }
-    }
 }

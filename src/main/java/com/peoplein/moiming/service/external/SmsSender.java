@@ -7,10 +7,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/*
- OkHttpClient 를 주입받아
- Naver API 와의 직접적인 통신 담당
- */
 @Component
 @Slf4j
 public class SmsSender {
@@ -29,13 +25,13 @@ public class SmsSender {
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
 
                 assert request.body() != null;
-                log.error("NAVER SMS API :: SMS 문자 실패 - {}, {}", request.body().toString(), e.getMessage());
+                log.error("SMS API :: SMS 문자 실패 - {}, {}", request.body().toString(), e.getMessage());
 
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                log.info("NAVER SMS API :: SMS 문자 시도 - {}", response.body().string());
+                log.info("SMS API :: SMS 문자 시도 - {}", response.body().string());
             }
         });
 

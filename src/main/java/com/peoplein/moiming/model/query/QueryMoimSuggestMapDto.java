@@ -25,6 +25,12 @@ public class QueryMoimSuggestMapDto {
     public QueryMoimSuggestMapDto(Object[] objects) {
         try {
             this.moim = (Moim) objects[0];
+
+            if (this.moim == null) {
+                log.error("{}, QueryMoimSuggestMapDto Constructor :: {}", this.getClass().getName(), "모임 추천 결과 쿼리에 Moim 이 존재하지 않습니다");
+                throw new MoimingApiException(ExceptionValue.COMMON_INVALID_SITUATION);
+            }
+
             if (this.moim.getMoimJoinRule() != null) {
                 this.moimJoinRule = (MoimJoinRule) objects[1];
             }

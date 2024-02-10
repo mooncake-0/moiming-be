@@ -2,7 +2,10 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.SmsVerification;
+import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.auth.*;
 import com.peoplein.moiming.model.dto.request.AuthReqDto;
@@ -11,8 +14,10 @@ import com.peoplein.moiming.model.dto.response.MoimRespDto;
 import com.peoplein.moiming.service.SmsVerificationService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,9 +28,12 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.validation.Valid;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
+import static com.peoplein.moiming.domain.enums.VerificationType.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 
+@Slf4j
 @ApiIgnore
 @RestController
 @RequiredArgsConstructor
@@ -45,8 +53,23 @@ public class SmsVerificationController {
     public ResponseEntity<?> processSmsVerification(@RequestBody @Valid AuthSmsReqDto requestDto
             , BindingResult br) {
 
+        checkValidReqDto(requestDto);
         SmsVerification smsVerification = smsVerificationService.processSmsVerification(requestDto);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "SMS 문자 송신 성공", new AuthSmsRespDto(smsVerification)));
+
+    }
+
+
+    private void checkValidReqDto(AuthSmsReqDto requestDto) {
+
+        if (requestDto == null || requestDto.getVerifyType() == null || (
+                requestDto.getVerifyType().equals(FIND_ID) && !StringUtils.hasText(requestDto.getMemberName()) // FIND_ID 이지만 이름이 비어있을 경우
+        ) || (
+                requestDto.getVerifyType().equals(FIND_PW) && !StringUtils.hasText(requestDto.getMemberEmail()) // FIND_PW 이지만 이메일이 비어있음
+        )) {
+            log.error("{}, checkValidReqDto :: {}", this.getClass().getName(), "ReqDto 문제 or FIND_ID 인데 이름이 없거나, FIND_PW 인데 이메일이 없음");
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
 
     }
 

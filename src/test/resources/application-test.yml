@@ -24,4 +24,8 @@ open_api_keys:
   naver_access_key_id: test
   naver_secret_key_id: test
 
+open_api:
+  cool_sms_api_key: test
+  cool_sms_secret_key: test
+
 file.dir: test

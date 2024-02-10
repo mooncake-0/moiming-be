@@ -40,7 +40,7 @@ public class SearchService {
         List<AreaValue> areaFilters;
         if (Objects.equals(areaFilterVal, "")) { // 필터가 안걸렸음 -> keyword 중에 지역이 존재하는지 확인
             areaFilters = AreaValue.consistsInArea(keyword);
-        }else { // 필터가 걸려있음 // 이게 최우선 지역 조건
+        } else { // 필터가 걸려있음 // 이게 최우선 지역 조건
             areaFilters = new ArrayList<>(List.of(AreaValue.fromName(areaFilterVal)));
             moimSearchType = AREA_FILTER_ON;
         }
@@ -52,24 +52,27 @@ public class SearchService {
             categoryFilters = new ArrayList<>(List.of(CategoryName.fromValue(categoryFilterVal)));
             if (moimSearchType.equals(AREA_FILTER_ON)) {
                 moimSearchType = BOTH_FILTER_ON;
-            }else {
+            } else {
                 moimSearchType = CATEGORY_FILTER_ON;
             }
         }
 
         Moim lastSearchedMoim = null;
         if (lastMoimId != null) {
-            lastSearchedMoim = moimRepository.findById(lastMoimId).orElseThrow(()->{
+            lastSearchedMoim = moimRepository.findById(lastMoimId).orElseThrow(() -> {
                 log.error("{}, searchMoim :: {}", this.getClass().getName(), "(이전 조회 마지막 모임) 현재 커서인 모임을 찾을 수 없습니다");
                 return new MoimingApiException(ExceptionValue.MOIM_NOT_FOUND);
             });
         }
 
 
-        List<Moim> searchPagedMoims = searchJpaRepository.findMoimByDynamicSearchCondition(moimSearchType, keyword, areaFilters, categoryFilters, lastSearchedMoim, limit,orderBy);
+        List<Moim> searchPagedMoims = searchJpaRepository.findMoimByDynamicSearchCondition(moimSearchType, keyword, areaFilters, categoryFilters, lastSearchedMoim, limit, orderBy);
         List<Long> moimIds = searchPagedMoims.stream().map(Moim::getId).collect(Collectors.toList());
-        List<MoimCategoryLinker> categoryLinkers = categoryRepository.findWithCategoryByMoimIds(moimIds);
 
+        List<MoimCategoryLinker> categoryLinkers = new ArrayList<>();
+        if (!moimIds.isEmpty()) {
+            categoryLinkers = categoryRepository.findWithCategoryByMoimIds(moimIds);
+        }
 
         return new MoimCategoryMapperDto(searchPagedMoims, categoryLinkers);
 

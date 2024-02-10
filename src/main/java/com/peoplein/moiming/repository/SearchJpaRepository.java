@@ -101,9 +101,6 @@ public class SearchJpaRepository {
         }
 
         jpql += getOrderBy(orderBy);
-        if (lastSearchedMoim != null) {
-            jpql += ", m.id DESC";
-        }
 
         List<String> areaFilterVals = areaFilters.stream().map(AreaValue::getName).collect(Collectors.toList());
 
@@ -131,11 +128,14 @@ public class SearchJpaRepository {
 
 
     public String getOrderBy(OrderBy orderBy) {
+        String ret = "";
         if (orderBy == OrderBy.date) {
-            return "ORDER BY m.createdAt DESC";
+            ret = "ORDER BY m.createdAt DESC";
         } else {
             throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
         }
+        ret += ", m.id DESC";
+        return ret;
     }
 
 }

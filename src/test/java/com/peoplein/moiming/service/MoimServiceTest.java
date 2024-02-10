@@ -445,7 +445,7 @@ public class MoimServiceTest {
 
         // then
         verify(moimCountRepository, times(1)).findMonthlyBySuggestedCondition(any(), any(), any(), anyInt(), anyInt());
-        verify(moimCategoryLinkerRepository, times(1)).findWithCategoryByMoimIds(any());
+        verify(moimCategoryLinkerRepository, times(0)).findWithCategoryByMoimIds(any());
     }
 
 

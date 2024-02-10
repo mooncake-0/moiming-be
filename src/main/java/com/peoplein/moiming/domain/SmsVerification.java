@@ -94,6 +94,10 @@ public class SmsVerification {
     }
 
 
+    /*
+     아이디 찾기 혹은 비밀번호 재설정 인증 요청은
+     Verification 을 확인 후 False 인 것을 변경해줘야 한다 - 인증을 확인하는 과정
+     */
     public void confirmVerification(VerificationType type, String verificationNumber) {
 
         if (!this.verificationNumber.equals(verificationNumber)) {
@@ -101,13 +105,23 @@ public class SmsVerification {
             throw new MoimingAuthApiException(AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH);
         }
 
+
         checkVerificationType(type);
         checkExpiration();
+
+        // 이미 인증된 객체는 재인증 요청할 수 없다 (인증 요청은 한번만 이루어져야 함)
+        if (this.isVerified) {
+            log.error("{} confirmVerification :: {}", this.getClass().getName(), AUTH_SMS_VERIFY_REQ_DUPLICATE.getErrMsg());
+            throw new MoimingAuthApiException(AUTH_SMS_VERIFY_REQ_DUPLICATE);
+        }
 
         this.isVerified = true;
     }
 
 
+    /*
+     비밀번호 재설정 요청은 인증된 객체를 사용해야 한다 - 인증된 객체 여부를 확인하는 과정
+     */
     public void isValidAndVerified(VerificationType type) {
 
         if (!this.isVerified) {

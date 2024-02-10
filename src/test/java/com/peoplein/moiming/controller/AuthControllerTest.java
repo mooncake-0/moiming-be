@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.member.Member;
@@ -26,7 +27,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.persistence.EntityManager;
 
@@ -774,7 +774,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.clear();
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -812,7 +812,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.clear();
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -842,7 +842,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.clear();
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -871,7 +871,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 

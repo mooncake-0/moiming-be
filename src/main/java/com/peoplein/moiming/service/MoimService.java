@@ -98,7 +98,10 @@ public class MoimService {
             moimIds.add(memberMoim.getMoim().getId());
         }
 
-        List<MoimCategoryLinker> categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
+        List<MoimCategoryLinker> categoryLinkers = new ArrayList<>();
+        if(!moimIds.isEmpty()) {
+            categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
+        }
 
         return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
     }
@@ -292,7 +295,7 @@ public class MoimService {
         conditionThisMonth = conditionThisMonth.withDayOfMonth(1);
         LocalDate conditionLastMonth = conditionThisMonth.minusMonths(1);
 
-        List<QueryMoimSuggestMapDto> suggestedMoimDto = moimCountRepository.findMonthlyBySuggestedConditionV2(areaValue, categoryName, List.of(conditionLastMonth, conditionThisMonth), offset, limit);
+        List<QueryMoimSuggestMapDto> suggestedMoimDto = moimCountRepository.findMonthlyBySuggestedCondition(areaValue, categoryName, List.of(conditionLastMonth, conditionThisMonth), offset, limit);
         List<Moim> targetMoims = new ArrayList<>();
         List<Long> moimIds = new ArrayList<>();
 
@@ -301,8 +304,10 @@ public class MoimService {
             moimIds.add(queryDto.getMoim().getId());
         }
 
-        List<MoimCategoryLinker> categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
-
+        List<MoimCategoryLinker> categoryLinkers = new ArrayList<>();
+        if(!moimIds.isEmpty()) {
+             categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
+        }
         return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
 
     }

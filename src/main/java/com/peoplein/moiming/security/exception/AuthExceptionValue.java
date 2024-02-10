@@ -40,8 +40,9 @@ public enum AuthExceptionValue {
     AUTH_SMS_VERIFICATION_EXPIRED(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS005", "본인 인증 시도 시간이 만료, 인증 재시도 필요"),
     AUTH_SMS_VERIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "ASMS006", "본인 인증 시도 내역을 확인할 수 없습니다"),
     AUTH_SMS_NOT_VERIFIED(HttpStatus.UNAUTHORIZED.value(), "ASMS007", "인증되지 않은 인증 내역은 활용할 수 없습니다"),
-    AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH(HttpStatus.CONFLICT.value(), "ASMS008", "시도중인 인증 Type 이 요청 Type 과 일치하지 않습니다"),
-    AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS009", "요청 정보와 인증 내역의 전화번호 정보가 일치하지 않습니다");
+    AUTH_SMS_VERIFY_REQ_DUPLICATE(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS008", "이미 인증된 내역을 재인증 요청할 수 없습니다"),
+    AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH(HttpStatus.CONFLICT.value(), "ASMS009", "시도중인 인증 Type 이 요청 Type 과 일치하지 않습니다"),
+    AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS010", "요청 정보와 인증 내역의 전화번호 정보가 일치하지 않습니다");
 
 
 

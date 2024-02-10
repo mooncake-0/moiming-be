@@ -6,11 +6,10 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
-import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.SmsVerificationRepository;
 import com.peoplein.moiming.service.external.SmsSender;
-import com.peoplein.moiming.service.util.SmsRequestBuilder;
+import com.peoplein.moiming.service.util.sms.NaverSmsRequestBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,7 +36,7 @@ public class SmsVerificationServiceTest {
     private SmsVerificationRepository smsRepository;
 
     @Mock
-    private SmsRequestBuilder smsRequestBuilder;
+    private NaverSmsRequestBuilder smsRequestBuilder;
 
     @Mock
     private SmsSender smsSender;

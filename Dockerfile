@@ -10,7 +10,9 @@ ENV         PROFILE=dev \
             DEV_DB_PORT=3306 \
             DEV_DB_SCHEMA_NAME=dev-moiming-db \
             DEV_DB_USERNAME=dev-app \
-            DEV_DB_PASSWORD=dev-app
+            DEV_DB_PASSWORD=${DEV_DB_PW} \
+            COOL_SMS_API_KEY=${COOL_SMS_API_KEY} \
+            COOL_SMS_SECRET_KEY=${COOL_SMS_SECRET_KEY}
 
 #JAR 복제
 COPY        ${JAR_FILE} dev-moiming-app.jar
