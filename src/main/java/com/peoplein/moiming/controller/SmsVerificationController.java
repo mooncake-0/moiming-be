@@ -34,6 +34,7 @@ import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 
 @Slf4j
+@Api(tags = "SMS 문자인증 요청")
 @RestController
 @RequiredArgsConstructor
 public class SmsVerificationController {
