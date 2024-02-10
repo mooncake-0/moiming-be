@@ -10,7 +10,7 @@ ENV         PROFILE=dev \
             DEV_DB_PORT=3306 \
             DEV_DB_SCHEMA_NAME=dev-moiming-db \
             DEV_DB_USERNAME=dev-app \
-            DEV_DB_PASSWORD=${DEV_DB_PW} \
+            DEV_DB_PASSWORD=${DEV_DB_PASSWORD} \
             COOL_SMS_API_KEY=${COOL_SMS_API_KEY} \
             COOL_SMS_SECRET_KEY=${COOL_SMS_SECRET_KEY}
 

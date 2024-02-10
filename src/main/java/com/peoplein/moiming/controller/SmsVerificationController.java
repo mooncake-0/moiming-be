@@ -34,7 +34,6 @@ import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 
 @Slf4j
-@ApiIgnore
 @RestController
 @RequiredArgsConstructor
 public class SmsVerificationController {
