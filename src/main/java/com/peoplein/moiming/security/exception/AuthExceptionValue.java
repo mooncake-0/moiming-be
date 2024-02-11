@@ -45,8 +45,6 @@ public enum AuthExceptionValue {
     AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS010", "요청 정보와 인증 내역의 전화번호 정보가 일치하지 않습니다");
 
 
-
-
     private int status;
     private String errCode;
     private String errMsg;

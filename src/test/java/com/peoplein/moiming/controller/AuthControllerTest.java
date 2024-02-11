@@ -170,21 +170,28 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestString = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN).content(requestString).contentType(MediaType.APPLICATION_JSON));
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        String jwtValue = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
-        String jwtAccessToken = jwtValue.replace(JwtParams.PREFIX, "");
-        System.out.println("responseBody = " + responseBody);
+        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_IN)
+                .content(requestString)
+                .contentType(MediaType.APPLICATION_JSON));
 
         // then
         resultActions.andExpect(status().isCreated());
+        resultActions.andExpect(jsonPath("$.data.id").exists());
         resultActions.andExpect(jsonPath("$.data.nickname").exists());
+        resultActions.andExpect(jsonPath("$.data.fcmToken").value(fcmToken));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo.accessToken").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo.accessTokenExp").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo.refreshToken").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo.refreshTokenExp").exists());
+
         resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail2));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberName").value(memberName2));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberPhone").value(memberPhone2));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberBirth").value(memberBirthStringFormat));
         resultActions.andExpect(jsonPath("$.data.memberInfo.foreigner").value(notForeigner));
-//        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender));
         resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender.toString()));
-        assertTrue(jwtValue.startsWith(JwtParams.PREFIX));
-        assertTrue(StringUtils.hasText(jwtAccessToken));
+
     }
 
 

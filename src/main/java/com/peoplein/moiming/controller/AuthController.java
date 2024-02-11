@@ -1,8 +1,7 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.inner.TokenDto;
-import com.peoplein.moiming.model.dto.request.AuthReqDto;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.AuthService;
 import io.swagger.annotations.*;
@@ -50,14 +49,8 @@ public class AuthController {
     public ResponseEntity<?> signInMember(@RequestBody @Valid AuthSignInReqDto requestDto, BindingResult br
             , HttpServletResponse response) {
 
-        Map<String, Object> transmit = authService.signIn(requestDto);
-
-        // 응답 준비
-        String jwtAccessToken = transmit.get(authService.KEY_ACCESS_TOKEN).toString();
-        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + jwtAccessToken);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-        return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "회원 생성 성공", transmit.get(authService.KEY_RESPONSE_DATA)), HttpStatus.CREATED);
+        AuthSignInRespDto responseDto = authService.signIn(requestDto);
+        return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "회원 생성 성공", responseDto), HttpStatus.CREATED);
 
     }
 
@@ -67,15 +60,15 @@ public class AuthController {
      */
     @ApiOperation("갱신 토큰 - 토큰 재발급 요청")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "접근 / 갱신 토큰 재발급 성공", response = TokenDto.class,
+            @ApiResponse(code = 200, message = "접근 / 갱신 토큰 재발급 성공", response = TokenRespDto.class,
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })
     @PostMapping(PATH_AUTH_REISSUE_TOKEN)
     public ResponseEntity<?> reissueToken(@RequestBody @Valid AuthTokenReqDto requestDto, BindingResult br) {
 
-        TokenDto tokenDto = authService.reissueToken(requestDto);
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "재발급 성공", tokenDto));
+        TokenRespDto tokenRespDto = authService.reissueToken(requestDto);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "재발급 성공", tokenRespDto));
 
     }
 

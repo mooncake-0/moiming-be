@@ -5,14 +5,16 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
-import com.peoplein.moiming.model.dto.inner.TokenDto;
+import com.peoplein.moiming.exception.MoimingAuthNoRollbackException;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import com.peoplein.moiming.repository.SmsVerificationRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
+import com.peoplein.moiming.security.token.TokenDto;
 import com.peoplein.moiming.security.token.logout.LogoutTokenManager;
 import com.peoplein.moiming.service.util.MemberNicknameCreator;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.util.StringUtils;
@@ -37,12 +37,8 @@ import static com.peoplein.moiming.security.token.MoimingTokenType.*;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class AuthService {
-
-    public final String KEY_ACCESS_TOKEN = "ACCESS_TOKEN";
-    public final String KEY_RESPONSE_DATA = "RESPONSE_DATA";
 
     private final MemberRepository memberRepository;
     private final RoleRepository roleRepository;
@@ -54,14 +50,15 @@ public class AuthService {
     private final LogoutTokenManager logoutTokenManager;
 
 
+    @Transactional(readOnly = true)
     public boolean checkEmailAvailable(String email) {
         Optional<Member> memberOp = memberRepository.findByEmail(email);
-        //            throw new MoimingApiException("[" + email + "]" + "는 이미 존재하는 EMAIL 입니다");
         return memberOp.isEmpty();
     }
 
 
-    public Map<String, Object> signIn(AuthSignInReqDto requestDto) {
+    @Transactional
+    public AuthSignInRespDto signIn(AuthSignInReqDto requestDto) {
 
         checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone(), requestDto.getCi());
 
@@ -85,15 +82,8 @@ public class AuthService {
         policyAgreeService.createPolicyAgree(signInMember, requestDto.getPolicyDtos());
 
         // Refresh 토큰 발급 & Response Data 생성
-        TokenDto tokenDto = issueTokensAndUpdateColumns(true, signInMember);
-        AuthSignInRespDto responseData = new AuthSignInRespDto(signInMember);
-
-        // 두 객체 응답을 위한 HashMap
-        Map<String, Object> transmit = new HashMap<>();
-        transmit.put(KEY_ACCESS_TOKEN, tokenDto.getAccessToken());
-        transmit.put(KEY_RESPONSE_DATA, responseData);
-
-        return transmit;
+        TokenRespDto tokenRespDto = issueTokensAndUpdateColumns(true, signInMember);
+        return new AuthSignInRespDto(signInMember, tokenRespDto);
     }
 
 
@@ -102,7 +92,8 @@ public class AuthService {
     > 토큰을 발급하는 로직 자체와는 다름
     > TODO :: Resp Dto 재 Setting 필요. Inner Dto 전달 금지
     */
-    public TokenDto reissueToken(AuthTokenReqDto requestDto) {
+    @Transactional(noRollbackFor = {MoimingAuthNoRollbackException.class})
+    public TokenRespDto reissueToken(AuthTokenReqDto requestDto) {
 
         if (requestDto == null) {
             log.error("Class {} : {}", getClass().getName(), COMMON_INVALID_PARAM.getErrMsg());
@@ -110,7 +101,7 @@ public class AuthService {
         }
 
         String curRefreshToken = requestDto.getToken();
-        String rtEmail = verifyMemberEmail(JWT_RT, requestDto.getToken());
+        String rtEmail = verifyMemberEmail(JWT_RT, curRefreshToken);
 
         Member memberPs = memberRepository.findByEmail(rtEmail).orElseThrow(() -> {
             log.error("Class {} : {}", getClass().getName(), MEMBER_NOT_FOUND.getErrMsg());
@@ -121,7 +112,7 @@ public class AuthService {
         if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(curRefreshToken)) {
             log.error("Class {} : {}", getClass().getName(), AUTH_REFRESH_TOKEN_NOT_MATCH.getErrMsg());
             memberPs.changeRefreshToken(""); // RefreshToken 을 삭제한다
-            throw new MoimingAuthApiException(AUTH_REFRESH_TOKEN_NOT_MATCH);
+            throw new MoimingAuthNoRollbackException(AUTH_REFRESH_TOKEN_NOT_MATCH);
         }
 
         return issueTokensAndUpdateColumns(true, memberPs);
@@ -144,6 +135,7 @@ public class AuthService {
     }
 
 
+    @Transactional(readOnly = true)
     public String tryCreateNicknameForUser() {
 
         MemberNicknameCreator nicknameCreator = new MemberNicknameCreator();
@@ -166,6 +158,7 @@ public class AuthService {
     /*
      이메일 확인 요청 확정 및 이메일 마스킹 전달
      */
+    @Transactional(readOnly = true)
     public String findMemberEmail(AuthFindIdReqDto requestDto) {
 
         if (requestDto == null) {
@@ -192,6 +185,7 @@ public class AuthService {
 
     // 비밀번호 재설정 인증 확인을 진행한다 - 인증 번호를 통해 확인
     // 통과 여부를 확인한다
+    @Transactional
     public void confirmResetPassword(AuthResetPwConfirmReqDto requestDto) {
 
         if (requestDto == null) {
@@ -209,6 +203,7 @@ public class AuthService {
 
 
     // 인증된 인증 객체를 확인하고, 비밀번호를 변경한다
+    @Transactional
     public void resetPassword(AuthResetPwReqDto requestDto) {
 
         if (requestDto == null) {
@@ -236,21 +231,22 @@ public class AuthService {
      사용 로직 : 로그인 / 회원가입 / (위에 있음) 토큰 재발급 로직
                유저에 대한 인증, 갱신 토큰을 발급한다
      */
-    public TokenDto issueTokensAndUpdateColumns(boolean persisted, Member member) {
+    @Transactional
+    public TokenRespDto issueTokensAndUpdateColumns(boolean persisted, Member member) {
 
-//        if (!persisted) {
-//            member = memberRepository.findById(member.getId()).orElseThrow(
-//                    () -> new MoimingApiException(ExceptionValue.MEMBER_NOT_FOUND)
-//            );
-//        }
+        if (!persisted) {
+            member = memberRepository.findById(member.getId()).orElseThrow(
+                    () -> new MoimingApiException(ExceptionValue.MEMBER_NOT_FOUND)
+            );
+        }
 
-        String jwtAccessToken = tokenProvider.generateToken(JWT_AT, member);
-        String jwtRefreshToken = tokenProvider.generateToken(JWT_RT, member);
+        TokenDto accessTokenDto = tokenProvider.generateToken(JWT_AT, member);
+        TokenDto refreshTokenDto = tokenProvider.generateToken(JWT_RT, member);
 
-        member.changeRefreshToken(jwtRefreshToken);
+        member.changeRefreshToken(refreshTokenDto.getJwtToken());
         member.changeLastLoginAt();
 
-        return new TokenDto(jwtAccessToken, jwtRefreshToken);
+        return new TokenRespDto(accessTokenDto.getJwtToken(), accessTokenDto.getExp(), refreshTokenDto.getJwtToken(), refreshTokenDto.getExp());
     }
 
 
@@ -276,13 +272,14 @@ public class AuthService {
      사용 로직 : 모든 요청 인증
      모든 요청은 인증될 시, member 를 persist 해서 로그인 날짜를 최신화해준다
     */
+    @Transactional
     public void updateLoginAt(boolean persisted, Member member) {
-//        if (!persisted) { // update 를 위한 persist
-//            member = memberRepository.findById(member.getId()).orElseThrow(() ->
+        if (!persisted) { // update 를 위한 persist
+            member = memberRepository.findById(member.getId()).orElseThrow(() ->
 //                     TODO :: 인 앱 예외 구체화 필요
-//                    new RuntimeException("해당 인원을 찾을 수 없습니다")
-//            );
-//        }
+                            new RuntimeException("해당 인원을 찾을 수 없습니다")
+            );
+        }
 
         member.changeLastLoginAt();
     }

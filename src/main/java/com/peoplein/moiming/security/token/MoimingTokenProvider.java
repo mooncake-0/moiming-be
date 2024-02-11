@@ -10,7 +10,7 @@ public interface MoimingTokenProvider {
      Authentication 에 필요한 Token 을 맞춰서 생성한다
      Current Token Type : JWT_AT, JWT_RT
     */
-    String generateToken(MoimingTokenType tokenType, Member member);
+    TokenDto generateToken(MoimingTokenType tokenType, Member member);
 
 
     /*

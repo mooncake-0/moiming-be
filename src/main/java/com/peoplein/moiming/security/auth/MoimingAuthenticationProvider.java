@@ -30,6 +30,7 @@ public class MoimingAuthenticationProvider implements AuthenticationProvider {
         UserDetails userDetails = userDetailsService.loadUserByUsername((String) authentication.getPrincipal());
 
         if (!passwordEncoder.matches((String) authentication.getCredentials(), userDetails.getPassword())) {
+            log.info("{}, authenticate (login attempt) :: {}", this.getClass().getName(), "잘못된 비밀번호로 로그인을 시도" );
             throw new LoginAttemptException(AUTH_LOGIN_PASSWORD_INCORRECT);
         }
 

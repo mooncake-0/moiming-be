@@ -263,7 +263,7 @@ public class MemberControllerTest extends TestObjectCreator {
 
     // 현재와 동일한 닉네임
     @Test
-    void changeNickname_shouldReturn400_whenCurrentNickname_byMoimingApiException() throws Exception {
+    void changeNickname_shouldReturn422_whenCurrentNickname_byMoimingApiException() throws Exception {
 
         // given
         prepareMember();
@@ -278,7 +278,7 @@ public class MemberControllerTest extends TestObjectCreator {
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isUnprocessableEntity());
         resultActions.andExpect(jsonPath("$.code").value(MEMBER_NICKNAME_UNAVAILABLE.getErrCode()));
 
         // then - db verify
@@ -293,7 +293,7 @@ public class MemberControllerTest extends TestObjectCreator {
 
     // 누군가 사용중인 닉네임
     @Test
-    void changeNickname_shouldReturn400_whenNicknameAlreadyInUse_byMoimingApiException() throws Exception {
+    void changeNickname_shouldReturn422_whenNicknameAlreadyInUse_byMoimingApiException() throws Exception {
 
         // given
         prepareMember();
@@ -309,7 +309,7 @@ public class MemberControllerTest extends TestObjectCreator {
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isUnprocessableEntity());
         resultActions.andExpect(jsonPath("$.code").value(MEMBER_NICKNAME_UNAVAILABLE.getErrCode()));
 
         // then - db verify
