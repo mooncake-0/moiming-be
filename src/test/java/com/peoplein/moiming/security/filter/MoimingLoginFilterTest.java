@@ -79,15 +79,25 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
         //when
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_LOGIN).content(requestDto).contentType(MediaType.APPLICATION_JSON));
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        String jwtAccessToken = resultActions.andReturn().getResponse().getHeader(JwtParams.HEADER);
 
         //then
         resultActions.andExpect(status().isOk());
+        // then
+        resultActions.andExpect(jsonPath("$.data.id").exists());
+        resultActions.andExpect(jsonPath("$.data.nickname").exists());
+        resultActions.andExpect(jsonPath("$.data.fcmToken").value(fcmToken));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo.accessToken").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo.accessTokenExp").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo.refreshToken").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo.refreshTokenExp").exists());
+
         resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail));
-        assertNotNull(jwtAccessToken);
-        assertThat(jwtAccessToken).startsWith(JwtParams.PREFIX);
-        assertTrue(StringUtils.hasText(jwtAccessToken.replace(JwtParams.PREFIX, "")));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberName").value(memberName));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberPhone").value(memberPhone));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberBirth").value(memberBirthStringFormat));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.foreigner").value(notForeigner));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender.toString()));
     }
 
 

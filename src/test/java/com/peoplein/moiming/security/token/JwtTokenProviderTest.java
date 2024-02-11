@@ -25,12 +25,14 @@ public class JwtTokenProviderTest extends TestMockCreator {
         Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole(1L, RoleType.USER));
 
         //when
-        String at = tokenProvider.generateToken(MoimingTokenType.JWT_AT, mockMember);
-        String rt = tokenProvider.generateToken(MoimingTokenType.JWT_RT, mockMember);
+        TokenDto atd = tokenProvider.generateToken(MoimingTokenType.JWT_AT, mockMember);
+        TokenDto rtd = tokenProvider.generateToken(MoimingTokenType.JWT_RT, mockMember);
 
         //then
-        assertTrue(StringUtils.hasText(at));
-        assertThat(StringUtils.hasText(rt));
+        assertTrue(StringUtils.hasText(atd.getJwtToken()));
+        assertNotNull(atd.getExp());
+        assertTrue(StringUtils.hasText(rtd.getJwtToken()));
+        assertNotNull(rtd.getExp());
 
     }
 

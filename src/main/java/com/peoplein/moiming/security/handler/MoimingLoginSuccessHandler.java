@@ -3,9 +3,8 @@ package com.peoplein.moiming.security.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.inner.TokenDto;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
-import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,13 +33,12 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
         Member member = ((SecurityMember) authentication.getPrincipal()).getMember();
-        TokenDto tokenDto = authService.issueTokensAndUpdateColumns(false, member);
+        TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member);
 
         ResponseBodyDto<AuthLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공"
-                , new AuthLoginRespDto(member)
+                , new AuthLoginRespDto(member, tokenRespDto)
         );
 
-        response.addHeader(JwtParams.HEADER, JwtParams.PREFIX + tokenDto.getAccessToken());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(om.writeValueAsString(responseBody));

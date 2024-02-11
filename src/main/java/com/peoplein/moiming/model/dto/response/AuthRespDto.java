@@ -1,5 +1,6 @@
 package com.peoplein.moiming.model.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.member.Member;
@@ -27,17 +28,17 @@ public class AuthRespDto {
         private String memberEmail;
         private String nickname; // TODO :: 생성해줄 예정
         private String fcmToken;
-        private String refreshToken;
         private String createdAt;
+        private TokenRespDto tokenInfo;
         private MemberInfoDto memberInfo;
 
-        public AuthSignInRespDto(Member member) {
+        public AuthSignInRespDto(Member member, TokenRespDto tokenRespDto) {
             this.id = member.getId();
             this.memberEmail = member.getMemberEmail();
             this.nickname = member.getNickname();
             this.fcmToken = member.getFcmToken();
-            this.refreshToken = member.getRefreshToken();
             this.createdAt = member.getCreatedAt() + "";
+            this.tokenInfo = tokenRespDto;
             this.memberInfo = new MemberInfoDto(member.getMemberInfo());
         }
 
@@ -57,7 +58,7 @@ public class AuthRespDto {
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
                 this.memberPhone = memberInfo.getMemberPhone();
-                this.memberGender = memberInfo.getMemberGender().toString();
+                this.memberGender = memberInfo.getMemberGender() + "";
                 this.memberBirth = memberInfo.getMemberBirth() + "";
                 this.isForeigner = memberInfo.isForeigner();
             }
@@ -71,20 +72,22 @@ public class AuthRespDto {
     @Getter
     @Setter
     public static class AuthLoginRespDto {
+
         private Long id;
         private String memberEmail;
         private String nickname;
         private String fcmToken;
-        private String refreshToken;
         private String createdAt;
+        private TokenRespDto tokenInfo;
         private MemberInfoDto memberInfo;
 
-        public AuthLoginRespDto(Member member) {
+        public AuthLoginRespDto(Member member, TokenRespDto tokenRespDto) {
             this.id = member.getId();
             this.memberEmail = member.getMemberEmail();
             this.nickname = member.getNickname();
             this.fcmToken = member.getFcmToken();
-            this.refreshToken = member.getRefreshToken();
+            this.createdAt = member.getCreatedAt() + "";
+            this.tokenInfo = tokenRespDto;
             this.memberInfo = new MemberInfoDto(member.getMemberInfo());
 
         }
@@ -102,7 +105,7 @@ public class AuthRespDto {
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
                 this.memberPhone = memberInfo.getMemberPhone();
-                this.memberGender = memberInfo.getMemberGender().toString();
+                this.memberGender = memberInfo.getMemberGender() + "";
                 this.memberBirth = memberInfo.getMemberBirth() + "";
                 this.isForeigner = memberInfo.isForeigner();
             }

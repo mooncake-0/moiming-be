@@ -50,8 +50,6 @@ public abstract class AppUrlPath {
     public final static String PATH_AUTH_RESET_PW = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/resetPw";
 
 
-
-
     // Moim 관련 API
     // POST - /api/v0/moim
     public final static String PATH_MOIM_CREATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM;
@@ -78,7 +76,6 @@ public abstract class AppUrlPath {
     public final static String PATH_MOIM_MEMBER_EXPEL = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + API_MOIM_MEMBER + "/expel";
     // GET - /api/v0/moim/{moimId}/member
     public final static String PATH_MOIM_MEMBER_GET_VIEW = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}" + API_MOIM_MEMBER;
-
 
 
     // Moim Post 관련 API
@@ -113,17 +110,15 @@ public abstract class AppUrlPath {
     public final static String PATH_MEMBER_DELETE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/delete";
     public final static String PATH_MEMBER_GET_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/{memberId}";
     public final static String PATH_MEMBER_CONFIRM_PW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
-    public final static String PATH_MEMBER_GET_DETAIL_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/detail" + "/{memberId}";
+    public final static String PATH_MEMBER_GET_DETAIL_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/{memberId}" + "/detail";
     public final static String PATH_MEMBER_CHANGE_NICKNAME = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/nickname";
     public final static String PATH_MEMBER_CHANGE_PASSWORD = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
-
 
 
     // 이하로는 점검되지 않은 URL
     public final static String API_MOIM_REVIEW = "/review";
     public final static String API_MOIM_RULES = "/rules";
     public final static String API_MOIM_SESSION = "/session";
-
 
 
     public final static String API_SMS_VER = "/v0";
@@ -134,11 +129,11 @@ public abstract class AppUrlPath {
 
 
     // {} 안에 있는 변수를 대상 String 으로 치환해준다
-    public static String setParameter(String target, String [] before, String [] after){
+    public static String setParameter(String target, String[] before, String[] after) {
 
         if (before.length != after.length) {
             throw new RuntimeException("Parameter 치환 갯수가 다릅니다");
-       }
+        }
 
         for (int i = 0; i < before.length; i++) {
             String withBrackets = "{" + before[i] + "}";

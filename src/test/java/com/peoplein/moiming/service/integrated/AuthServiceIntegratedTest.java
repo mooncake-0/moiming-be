@@ -7,7 +7,7 @@ import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
-import com.peoplein.moiming.model.dto.inner.TokenDto;
+import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
 import com.peoplein.moiming.service.AuthService;
 import com.peoplein.moiming.support.TestObjectCreator;
@@ -60,8 +60,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         AuthSignInReqDto requestDto = makeSignInMemberReqDto();
 
         // when
-        Map<String, Object> returnValue = authService.signIn(requestDto);
-        AuthSignInRespDto responseDto = (AuthSignInRespDto) returnValue.get(authService.KEY_RESPONSE_DATA);
+        AuthSignInRespDto responseDto = authService.signIn(requestDto);
 
 
         // then - Return Val Confirm
@@ -72,7 +71,8 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         assertThat(responseDto.getMemberInfo().getMemberPhone()).isEqualTo(memberPhone);
         assertThat(responseDto.getMemberInfo().getMemberBirth()).isEqualTo(memberBirth + "");
         assertTrue(StringUtils.hasText(responseDto.getNickname()));
-        assertTrue(StringUtils.hasText(responseDto.getRefreshToken()));
+        assertTrue(StringUtils.hasText(responseDto.getTokenInfo().getAccessToken()));
+        assertTrue(StringUtils.hasText(responseDto.getTokenInfo().getRefreshToken()));
 
         // then - DB Confirm
         Long id = responseDto.getId();
@@ -80,7 +80,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         assertThat(savedMember.getFcmToken()).isEqualTo(fcmToken);
         assertThat(savedMember.getCi()).isEqualTo(ci);
         assertThat(savedMember.getNickname()).isEqualTo(responseDto.getNickname());
-        assertThat(savedMember.getRefreshToken()).isEqualTo(responseDto.getRefreshToken());
+        assertThat(savedMember.getRefreshToken()).isEqualTo(responseDto.getTokenInfo().getRefreshToken());
         assertThat(savedMember.getMemberInfo().getMemberPhone()).isEqualTo(memberPhone);
 
 
@@ -124,9 +124,9 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         requestDto.setToken(preRefreshToken);
 
         // when
-        TokenDto tokenDto = authService.reissueToken(requestDto);
-        String reIssuedAt = tokenDto.getAccessToken();
-        String reIssuedRt = tokenDto.getRefreshToken();
+        TokenRespDto tokenRespDto = authService.reissueToken(requestDto);
+        String reIssuedAt = tokenRespDto.getAccessToken();
+        String reIssuedRt = tokenRespDto.getRefreshToken();
 
         // then
         assertTrue(StringUtils.hasText(reIssuedAt));

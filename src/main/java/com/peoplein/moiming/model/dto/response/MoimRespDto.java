@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
@@ -14,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -270,10 +272,17 @@ public class MoimRespDto {
         @JsonProperty("moimCategories")
         private List<MoimCategoryDto> moimCategoryDto;
 
+        @JsonProperty("moimPostCategories")
+        private List<String> moimPostCategories;
+
         public MoimFixedInfoRespDto(List<AreaValue> areaState, List<Category> parentCategories, Map<Long, List<Category>> childCategoriesMap) {
+
             this.moimAreaDto = areaState.stream().map(MoimAreaDto::new).collect(Collectors.toList());
             this.moimCategoryDto = parentCategories.stream().map(parent -> new MoimCategoryDto(parent, childCategoriesMap.get(parent.getId()))).collect(Collectors.toList());
-
+            this.moimPostCategories = new ArrayList<>();
+            for (MoimPostCategory mpc : MoimPostCategory.values()) {
+                moimPostCategories.add(mpc.getValue());
+            }
         }
 
         public static class MoimAreaDto {

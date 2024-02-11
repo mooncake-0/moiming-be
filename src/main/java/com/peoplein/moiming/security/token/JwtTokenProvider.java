@@ -15,7 +15,7 @@ public class JwtTokenProvider implements MoimingTokenProvider {
 
 
     @Override
-    public String generateToken(MoimingTokenType tokenType, Member member) {
+    public TokenDto generateToken(MoimingTokenType tokenType, Member member) {
 
         long expiresAt = System.currentTimeMillis();
 
@@ -32,15 +32,16 @@ public class JwtTokenProvider implements MoimingTokenProvider {
 
         }
 
+        Date expDate = new Date(expiresAt);
+
         // Token 을 통해 인증시 DB 에 조회할 것이기 때문에, role 도 담을 필요가 없음
         String jwtToken = JWT.create()
                 .withSubject(JwtParams.TEST_JWT_SUBJECT)
-                .withExpiresAt(new Date(expiresAt))
+                .withExpiresAt(expDate)
                 .withClaim(JwtParams.CLAIM_KEY_MEMBER_EMAIL, member.getMemberEmail())
                 .sign(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET));
 
-
-        return jwtToken;
+        return new TokenDto(jwtToken, expDate.getTime());
 
     }
 
