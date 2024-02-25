@@ -30,6 +30,11 @@ public abstract class AppUrlPath {
     public final static String API_SEARCH_VER = "/v0";
 
 
+    // NICE 인증 관련 API
+    public final static String PATH_AUTH_API_NICE_AUTHORIZATION = "/api/v0/auth/requestNice";
+    public final static String PATH_AUTH_API_NICE_RETURN_URL = "/api/v0/auth/receiveNice";
+
+
     // Search 관련 API
     // /api/v0/search/moim?keyword={}&sortBy={}&areaFilter{}&categoryFilter={}&offset={}&limit={}
     public final static String PATH_SEARCH_MOIM = API_SERVER + API_SEARCH_VER + API_DOMAIN_SEARCH + "/moim";

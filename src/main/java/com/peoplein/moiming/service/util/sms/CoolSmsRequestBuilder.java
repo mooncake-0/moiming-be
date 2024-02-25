@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
+import com.peoplein.moiming.security.exception.AuthExceptionValue;
+import com.peoplein.moiming.service.util.StringEncryptor;
 import com.peoplein.moiming.service.util.sms.body.CoolSmsBodyTemplate;
 import com.peoplein.moiming.service.util.sms.body.NaverSmsBodyTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +30,7 @@ import java.time.ZonedDateTime;
 import java.util.Base64;
 
 import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_PARAM;
-import static com.peoplein.moiming.security.exception.AuthExceptionValue.AUTH_SMS_REQUEST_BUILDING_JSON_FAIL;
-import static com.peoplein.moiming.security.exception.AuthExceptionValue.AUTH_SMS_REQUEST_BUILDING_SIGNATURE_FAIL;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
 
 /*
@@ -43,7 +44,6 @@ public class CoolSmsRequestBuilder implements SmsRequestBuilder {
     private final ObjectMapper om = new ObjectMapper();
     private final String AUTHORIZATION_HEADER = "Authorization";
     private String moimingSender = "01062338556";
-    private String SIGNATURE_ALGO = "HmacSHA256";
     private String AUTHENTICATION_METHOD = "HMAC-SHA256";
 
     @Value("${open_api.cool_sms_api_key}")
@@ -66,13 +66,18 @@ public class CoolSmsRequestBuilder implements SmsRequestBuilder {
 
 
     private Request createSmsRequest(CoolSmsBodyTemplate messageBody) {
+
+        StringEncryptor encryptor = new StringEncryptor();
+
         try {
 
             String requestUrl = "https://api.coolsms.co.kr/messages/v4/send";
             String contentType = "application/json; charset=utf-8";
             String salt = createSalt();
             String date = createDate();
-            String signature = createSignature(date, salt);
+            String targetValue = date + salt;
+            byte[] encryptedBytes = encryptor.encryptByAlgo(secretKey, targetValue);
+            String signature = new String(Hex.encodeHex(encryptedBytes));
 
             // BODY DATA 준비
             RequestBody requestBody = RequestBody.create(MediaType.parse(contentType),
@@ -90,10 +95,7 @@ public class CoolSmsRequestBuilder implements SmsRequestBuilder {
 
         } catch (JsonProcessingException exception) {
             log.error("{}, SMS 생성 중 Json Process 오류 :: {}", this.getClass().getName(), exception.getMessage());
-            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_BUILDING_JSON_FAIL, exception);
-        } catch (InvalidKeyException | NoSuchAlgorithmException exception) {
-            log.error("{}, SMS 생성 중 Signature 형성 오류 :: {}", this.getClass().getName(), exception.getMessage());
-            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_BUILDING_SIGNATURE_FAIL, exception);
+            throw new MoimingAuthApiException(AUTH_COMMON_JSON_IMPL_FAIL, exception);
         }
     }
 
@@ -112,22 +114,6 @@ public class CoolSmsRequestBuilder implements SmsRequestBuilder {
      */
     private String createDate() {
          return ZonedDateTime.now(ZoneId.of("Asia/Seoul")).toString().split("\\[")[0];
-    }
-
-
-    private String createSignature(String date, String salt) throws NoSuchAlgorithmException, InvalidKeyException {
-
-        String target = date + salt;
-
-        Mac hmacSha256 = Mac.getInstance(SIGNATURE_ALGO);
-        SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), SIGNATURE_ALGO);
-        hmacSha256.init(secretKeySpec);
-
-        byte[] hmacBytes = hmacSha256.doFinal(target.getBytes());
-
-//        return Base64.getEncoder().encodeToString(hmacBytes);
-        return new String(Hex.encodeHex(hmacBytes));
-
     }
 
 

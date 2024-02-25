@@ -93,10 +93,11 @@ public class NaverSmsRequestBuilder implements SmsRequestBuilder{
 
         } catch (JsonProcessingException exception) {
             log.error("{}, SMS 생성 중 Json Process 오류 :: {}", this.getClass().getName(), exception.getMessage());
-            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_BUILDING_JSON_FAIL);
+            throw new MoimingAuthApiException(AUTH_COMMON_JSON_IMPL_FAIL, exception);
         } catch (UnsupportedEncodingException | InvalidKeyException | NoSuchAlgorithmException exception) {
             log.error("{}, SMS 생성 중 Signature 형성 오류 :: {}", this.getClass().getName(), exception.getMessage());
-            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_BUILDING_SIGNATURE_FAIL);
+//            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_BUILDING_SIGNATURE_FAIL, exception);
+            throw new MoimingAuthApiException(AUTH_COMMON_INVALID_PARAM_NULL, exception);
         }
     }
 
