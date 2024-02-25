@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th = "http://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8">
+    </head>
+<body onload="submit()">
+
+    <form name="form" id="form" action="https://nice.checkplus.co.kr/CheckPlusSafeModel/service.cb">
+        <input type="hidden" id="m" name="m" value="service"/>
+        <input type="hidden" id="token_version_id" name="token_version_id" th:value="${token_version_id}"/>
+        <input type="hidden" id="enc_data" name="enc_data" th:value = "${enc_data}"/>
+        <input type="hidden" id="integrity_value" name="integrity_value" th:value="${integrity_value}"/>
+    </form>
+
+<script th:inline="javascript">
+    function submit() {
+        document.getElementById('form').submit();
+    }
+</script>
+</body>
+
+</html>

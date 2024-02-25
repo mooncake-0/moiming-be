@@ -8,7 +8,7 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.SmsVerificationRepository;
-import com.peoplein.moiming.service.external.SmsSender;
+import com.peoplein.moiming.service.external.ExternalReqSender;
 import com.peoplein.moiming.service.util.sms.NaverSmsRequestBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +39,7 @@ public class SmsVerificationServiceTest {
     private NaverSmsRequestBuilder smsRequestBuilder;
 
     @Mock
-    private SmsSender smsSender;
+    private ExternalReqSender externalReqSender;
 
 
     // 성공 - FIND ID
@@ -63,7 +63,7 @@ public class SmsVerificationServiceTest {
 
         // then
         verify(smsRequestBuilder, times(1)).getHttpRequest(any());
-        verify(smsSender, times(1)).sendMessage(any());
+        verify(externalReqSender, times(1)).sendAsynchronousMessage(any());
         verify(smsRepository, times(1)).save(any());
 
     }
@@ -90,7 +90,7 @@ public class SmsVerificationServiceTest {
 
         // then
         verify(smsRequestBuilder, times(1)).getHttpRequest(any());
-        verify(smsSender, times(1)).sendMessage(any());
+        verify(externalReqSender, times(1)).sendAsynchronousMessage(any());
         verify(smsRepository, times(1)).save(any());
 
     }

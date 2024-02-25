@@ -6,6 +6,10 @@ spring:
 open_api:
   cool_sms_api_key: ${COOL_SMS_API_KEY}
   cool_sms_secret_key: ${COOL_SMS_SECRET_KEY}
+  nice_api_client_id: ${NICE_API_CLIENT_ID}
+  nice_api_client_secret: ${NICE_API_CLIENT_SECRET}
+  nice_api_agency_token: ${NICE_API_AGENCY_TOKEN}
+  nice_api_agency_product_id: ${NICE_API_AGENCY_PRODUCT_ID}
 
 open_api_keys:
   naver_sens_sms: NOT_USING

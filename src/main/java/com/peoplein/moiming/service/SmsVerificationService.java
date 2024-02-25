@@ -7,8 +7,7 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.SmsVerificationRepository;
-import com.peoplein.moiming.service.util.sms.NaverSmsRequestBuilder;
-import com.peoplein.moiming.service.external.SmsSender;
+import com.peoplein.moiming.service.external.ExternalReqSender;
 import com.peoplein.moiming.service.util.sms.SmsRequestBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,7 @@ public class SmsVerificationService {
     private final MemberRepository memberRepository;
     private final SmsVerificationRepository smsVerificationRepository;
     private final SmsRequestBuilder smsRequestBuilder;
-    private final SmsSender smsSender;
+    private final ExternalReqSender externalReqSender;
 
 
     public SmsVerification processSmsVerification(AuthSmsReqDto requestDto) {
@@ -51,7 +50,7 @@ public class SmsVerificationService {
         SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberInfo().getMemberPhone(), requestDto.getVerifyType());
 
         Request request = smsRequestBuilder.getHttpRequest(smsVerification);
-        smsSender.sendMessage(request);
+        externalReqSender.sendAsynchronousMessage(request);
 
         smsVerificationRepository.save(smsVerification);
 

@@ -81,6 +81,8 @@ dependencies {
     // Test Static Mocker
     testImplementation 'org.mockito:mockito-inline:3.11.2'
 
+    // Thymeleaf for NICE
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
 }
 
