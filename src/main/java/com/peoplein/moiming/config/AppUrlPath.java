@@ -44,7 +44,9 @@ public abstract class AppUrlPath {
     // GET - /api/v0/auth/available/{email}
     public final static String PATH_AUTH_EMAIL_AVAILABLE = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/available/{email}";
     // POST - /api/v0/auth/signup
-    public final static String PATH_AUTH_SIGN_IN = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/signup";
+    public final static String PATH_AUTH_SIGN_UP = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/signup";
+    // POST - /api/v0/auth/signup/dev
+    public final static String PATH_AUTH_DEV_SIGN_UP = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/signup" + "/dev";
     // POST - /api/v0/auth/login
     public final static String PATH_AUTH_LOGIN = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/login";
     // POST - /api/v0/auth/token
@@ -52,6 +54,7 @@ public abstract class AppUrlPath {
     public final static String PATH_AUTH_REQ_SMS_VERIFY = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/sms" + "/send";
     public final static String PATH_AUTH_FIND_MEMBER_EMAIL = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/requestEmail";
     public final static String PATH_AUTH_RESET_PW_CONFIRM = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/confirmResetPw";
+    public final static String PATH_AUTH_SIGN_UP_CONFIRM = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/confirmSignUp";
     public final static String PATH_AUTH_RESET_PW = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/resetPw";
 
 

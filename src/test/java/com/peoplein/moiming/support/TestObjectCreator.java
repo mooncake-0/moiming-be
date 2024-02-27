@@ -2,14 +2,12 @@ package com.peoplein.moiming.support;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.peoplein.moiming.domain.SmsVerification;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.enums.MoimPostCategory;
-import com.peoplein.moiming.domain.enums.PolicyType;
-import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
@@ -37,11 +35,18 @@ public class TestObjectCreator {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode(password);
 
-        Member testMember = Member.createMember(email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, ci, role);
+        Member testMember = Member.createMember(email, encoded, name, phone, memberGender, memberBirth, fcmToken, ci, role);
         testMember.changeNickname(nickname);
 
         return testMember;
     }
+
+    protected SmsVerification makeTestSmsVerification(boolean verified, Long memberId, String memberPhoneNumber, VerificationType type) {
+        SmsVerification verification = SmsVerification.createSmsVerification(memberId, memberPhoneNumber, type);
+        if (verified) verification.confirmVerification(type, verification.getVerificationNumber());
+        return verification;
+    }
+
 
     protected Role makeTestRole(RoleType roleType) {
         return new Role(1L, "일반유저", roleType);
@@ -84,10 +89,6 @@ public class TestObjectCreator {
         return policyDtos;
     }
 
-
-    protected TestMemberRequestDto makeMemberReqDto(String email, String name, String phone, String ci, List<PolicyAgreeDto> policyDtos) {
-        return new TestMemberRequestDto(email, password, name, phone, memberGender, notForeigner, memberBirthStringFormat, fcmToken, ci, policyDtos);
-    }
 
     protected MoimCreateReqDto makeMoimReqDtoNoJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
         return new MoimCreateReqDto(

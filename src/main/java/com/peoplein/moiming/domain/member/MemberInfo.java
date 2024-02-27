@@ -35,20 +35,18 @@ public class MemberInfo extends BaseEntity {
 
     private boolean dormant;
 
-    private boolean foreigner;
 
     @OneToOne(mappedBy = "memberInfo", fetch = FetchType.LAZY)
     private Member member;
 
 
     // 초기 Input 값을 통해 생성
-    public MemberInfo(String memberName, String memberPhone, MemberGender memberGender, boolean foreigner, LocalDate memberBirth) {
+    public MemberInfo(String memberName, String memberPhone, MemberGender memberGender, LocalDate memberBirth) {
 
         this.memberName = memberName;
         this.memberPhone = memberPhone;
         this.memberGender = memberGender;
         this.memberBirth = memberBirth;
-        this.foreigner = foreigner;
 
         // 초기화
         this.dormant = false;

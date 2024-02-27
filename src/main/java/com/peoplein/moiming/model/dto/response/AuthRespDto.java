@@ -24,7 +24,7 @@ public class AuthRespDto {
     @Setter
     public static class AuthSignInRespDto {
 
-        private Long id;
+        private Long memberId;
         private String memberEmail;
         private String nickname; // TODO :: 생성해줄 예정
         private String fcmToken;
@@ -33,7 +33,7 @@ public class AuthRespDto {
         private MemberInfoDto memberInfo;
 
         public AuthSignInRespDto(Member member, TokenRespDto tokenRespDto) {
-            this.id = member.getId();
+            this.memberId = member.getId();
             this.memberEmail = member.getMemberEmail();
             this.nickname = member.getNickname();
             this.fcmToken = member.getFcmToken();
@@ -53,14 +53,12 @@ public class AuthRespDto {
             private String memberPhone;
             private String memberGender;
             private String memberBirth;
-            private boolean isForeigner;
 
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
                 this.memberPhone = memberInfo.getMemberPhone();
                 this.memberGender = memberInfo.getMemberGender() + "";
                 this.memberBirth = memberInfo.getMemberBirth() + "";
-                this.isForeigner = memberInfo.isForeigner();
             }
         }
     }
@@ -73,7 +71,7 @@ public class AuthRespDto {
     @Setter
     public static class AuthLoginRespDto {
 
-        private Long id;
+        private Long memberId;
         private String memberEmail;
         private String nickname;
         private String fcmToken;
@@ -82,7 +80,7 @@ public class AuthRespDto {
         private MemberInfoDto memberInfo;
 
         public AuthLoginRespDto(Member member, TokenRespDto tokenRespDto) {
-            this.id = member.getId();
+            this.memberId = member.getId();
             this.memberEmail = member.getMemberEmail();
             this.nickname = member.getNickname();
             this.fcmToken = member.getFcmToken();
@@ -100,14 +98,12 @@ public class AuthRespDto {
             private String memberPhone;
             private String memberGender;
             private String memberBirth;
-            private boolean isForeigner;
 
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
                 this.memberPhone = memberInfo.getMemberPhone();
                 this.memberGender = memberInfo.getMemberGender() + "";
                 this.memberBirth = memberInfo.getMemberBirth() + "";
-                this.isForeigner = memberInfo.isForeigner();
             }
         }
     }

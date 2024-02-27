@@ -43,7 +43,7 @@ public class SmsVerification {
 
     private String verificationNumber;
 
-    private Long memberId;
+    private Long memberId; // 회원가입인 경우 NULLABLE
 
     private String memberPhoneNumber;
 
@@ -104,7 +104,6 @@ public class SmsVerification {
             log.error("{} confirmVerification :: {}", this.getClass().getName(), AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH.getErrMsg());
             throw new MoimingAuthApiException(AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH);
         }
-
 
         checkVerificationType(type);
         checkExpiration();

@@ -127,7 +127,7 @@ public class MemberController {
                                             @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         memberService.changeNickname(requestDto.getNickname(), principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "닉네임 변경 성공", new MemberChangeNicknameRespDto(principal.getMember().getNickname())));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "닉네임 변경 성공", new MemberChangeNicknameRespDto(requestDto.getNickname()))); // 변경 시도한 닉네임으로 변경 성공
     }
 
 

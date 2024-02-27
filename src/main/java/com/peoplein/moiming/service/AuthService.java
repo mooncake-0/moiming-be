@@ -28,7 +28,11 @@ import java.util.Optional;
 
 import org.springframework.util.StringUtils;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import static com.peoplein.moiming.domain.enums.VerificationType.FIND_PW;
+import static com.peoplein.moiming.domain.enums.VerificationType.SIGN_UP;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
@@ -58,18 +62,27 @@ public class AuthService {
 
 
     @Transactional
-    public AuthSignInRespDto signIn(AuthSignInReqDto requestDto) {
+    public AuthSignInRespDto signUp(AuthSignInReqDto requestDto) {
 
-        checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone(), requestDto.getCi());
+        checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone());
+
+        SmsVerification smsVerification = smsVerificationService.confirmAndGetValidSmsVerification(SIGN_UP, requestDto.getSmsVerificationId());
 
         // TODO :: 인코딩 AOP 로 빼주면 좋을 듯
         String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
         Role roleUser = roleRepository.findByRoleType(RoleType.USER);
 
 
+        if (!smsVerification.getMemberPhoneNumber().equals(requestDto.getMemberPhone())) {
+            log.error("{}, signIn :: {}", this.getClass().getName(), "SMS Verification 사용된 번호와 회원 가입 번호가 불일치합니다");
+            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_INFO_NOT_MATCH_REQUESTING_INFO);
+        }
+
+
+        // MEMO :: MVP 에선 CI 는 ALL NULL 이다
         Member signInMember = Member.createMember(requestDto.getMemberEmail(), encodedPassword, requestDto.getMemberName()
-                , requestDto.getMemberPhone(), requestDto.getMemberGender(), requestDto.getForeigner()
-                , requestDto.getMemberBirth(), requestDto.getFcmToken(), requestDto.getCi(), roleUser);
+                , requestDto.getMemberPhone(), requestDto.getMemberGender()
+                , requestDto.getMemberBirth(), requestDto.getFcmToken(), null, roleUser);
 
 
         String createdNickname = tryCreateNicknameForUser(); // 실패시 일괄 rollback
@@ -87,11 +100,45 @@ public class AuthService {
     }
 
 
+    @Transactional
+    public AuthSignInRespDto devSignUp(DevAuthSignInReqDto requestDto) {
+
+        checkUniqueColumnDuplication(requestDto.getMemberEmail(), requestDto.getMemberPhone());
+
+        // TODO :: 인코딩 AOP 로 빼주면 좋을 듯
+        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        Role roleUser = roleRepository.findByRoleType(RoleType.USER);
+
+        // MEMO :: MVP 에선 CI 는 ALL NULL 이다
+        Member signInMember = Member.createMember(requestDto.getMemberEmail(), encodedPassword, requestDto.getMemberName()
+                , requestDto.getMemberPhone(), requestDto.getMemberGender()
+                , requestDto.getMemberBirth(), requestDto.getFcmToken(), null, roleUser);
+
+
+        String createdNickname = tryCreateNicknameForUser(); // 실패시 일괄 rollback
+        signInMember.changeNickname(createdNickname);
+
+        // member 저장
+        memberRepository.save(signInMember);
+
+        // Policy 저장 분리
+        policyAgreeService.createPolicyAgree(signInMember, requestDto.getPolicyDtos());
+
+        // Refresh 토큰 발급 & Response Data 생성
+        TokenRespDto tokenRespDto = issueTokensAndUpdateColumns(true, signInMember);
+
+        return new AuthSignInRespDto(signInMember, tokenRespDto);
+
+    }
+
+
+
     /*
     Reissue Token 은 토큰 재발급 요청
     > 토큰을 발급하는 로직 자체와는 다름
     > TODO :: Resp Dto 재 Setting 필요. Inner Dto 전달 금지
     */
+    // noRollbackFor 는 Token Not Match Exception 이 발생하여도 정상적으로 RefreshToken 이 삭제되게 하기 위함
     @Transactional(noRollbackFor = {MoimingAuthNoRollbackException.class})
     public TokenRespDto reissueToken(AuthTokenReqDto requestDto) {
 
@@ -125,11 +172,12 @@ public class AuthService {
      // TODO :: 이거 DB 에서 컷되는데 굳이 해줘야함? 세 개 가지고 조회하는거라 Full-scan 꽤 오버헤드 존재해보임
      //         당연히 당장은 큰 문제 X
      */
-    void checkUniqueColumnDuplication(String memberEmail, String memberPhone, String ci) {
+    void checkUniqueColumnDuplication(String memberEmail, String memberPhone) {
 
-        List<Member> duplicateMembers = memberRepository.findMembersByEmailOrPhoneOrCi(memberEmail, memberPhone, ci);
+        List<Member> duplicateMembers = memberRepository.findMembersByEmailOrPhone(memberEmail, memberPhone);
 
         if (!duplicateMembers.isEmpty()) {
+            log.info("{}, checkUniqueColumnDuplication :: {}", this.getClass().getName(), "[" + memberEmail + ", " + memberPhone + "] 중복되는 이메일 혹은 핸드폰 번호의 가입입니다");
             throw new MoimingAuthApiException(AUTH_SIGN_IN_DUPLICATE_COLUMN);
         }
     }
@@ -170,7 +218,7 @@ public class AuthService {
 
         if (!verifiedSms.getMemberPhoneNumber().equals(requestDto.getMemberPhone())) { // 발생할 일 없음
             log.error("{}, findMemberEmail :: {}", this.getClass().getName(), "전달받은 전화번호와 조회된 Verification 객체의 전화번호가 일치하지 않음 - 발생할 일 없는 상황 발생");
-            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO);
+            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_INFO_NOT_MATCH_REQUESTING_INFO);
         }
 
         Member member = memberRepository.findById(verifiedSms.getMemberId()).orElseThrow(() -> {
@@ -186,17 +234,17 @@ public class AuthService {
     // 비밀번호 재설정 인증 확인을 진행한다 - 인증 번호를 통해 확인
     // 통과 여부를 확인한다
     @Transactional
-    public void confirmResetPassword(AuthResetPwConfirmReqDto requestDto) {
+    public void verifySmsVerification(Long smsVerificationId, VerificationType type, String memberPhone, String verificationNumber) {
 
-        if (requestDto == null) {
+        if (smsVerificationId == null || type == null || !StringUtils.hasText(memberPhone) || !StringUtils.hasText(verificationNumber)) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
         // 검증된 verification 이 반환된다
-        SmsVerification verifiedSms = smsVerificationService.getVerifiedSmsVerification(requestDto.getSmsVerificationId(), FIND_PW, requestDto.getVerificationNumber());
+        SmsVerification verifiedSms = smsVerificationService.getVerifiedSmsVerification(smsVerificationId, type, verificationNumber);
 
-        if (!verifiedSms.getMemberPhoneNumber().equals(requestDto.getMemberPhone())) { // 발생할 일 없음
-            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO);
+        if (!verifiedSms.getMemberPhoneNumber().equals(memberPhone)) { // 발생할 일 없음
+            throw new MoimingAuthApiException(AUTH_SMS_REQUEST_INFO_NOT_MATCH_REQUESTING_INFO);
         }
 
     }

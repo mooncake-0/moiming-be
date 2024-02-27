@@ -25,16 +25,14 @@ public class TestDto {
     @AllArgsConstructor
     public static class TestMemberRequestDto {
 
+        private Long smsVerificationId;
         private String memberEmail;
         private String password;
         private String memberName;
         private String memberPhone;
         private MemberGender memberGender;
-        private Boolean foreigner;
         private String memberBirth; // 사실 얘 때문 ..
         private String fcmToken;
-
-        private String ci;
         @JsonProperty("policies")
         private List<PolicyAgreeDto> policyDtos;
 

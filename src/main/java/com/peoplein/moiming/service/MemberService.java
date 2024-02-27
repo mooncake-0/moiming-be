@@ -25,7 +25,6 @@ import static com.peoplein.moiming.exception.ExceptionValue.*;
 
 @Service
 @Slf4j
-@Transactional
 @RequiredArgsConstructor
 public class MemberService {
 
@@ -36,28 +35,24 @@ public class MemberService {
     private final MoimingTokenProvider moimingTokenProvider;
     private final LogoutTokenManager logoutTokenManager;
 
+
+    @Transactional
     public void logout(String accessToken, Member member) {
         if (accessToken == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        // refreshToken 을 영속화하기 위해
-//        final Long memberId = member.getId();
-//        member = memberRepository.findById(memberId).orElseThrow(
-//                () -> {
-//                    log.error("[" + memberId + "] 의 멤버를 영속화할 수 없습니다");
-//                    return new MoimingApiException(COMMON_INVALID_SITUATION);
-//                }
-//        );
-
+        member = persistSecurityMember(member.getId());
         member.changeRefreshToken(null);
 
+        // LOGOUT 처리 토큰으로 등재한다
         Date expireAt = moimingTokenProvider.verifyExpireAt(MoimingTokenType.JWT_AT, accessToken);
         logoutTokenManager.saveLogoutToken(accessToken, expireAt);
 
     }
 
 
+    @Transactional
     public void dormant(Long targetMemberId) {
 
         // 스케줄링 되는게 아니라, 별도의 input 에 따른 ADMIN 단의 요청 따위일 것(ADMIN 권한으로 처리된다)
@@ -91,9 +86,7 @@ public class MemberService {
     }
 
 
-    //// 2024
-    //// TODO :: 예외 일괄 Refactoring 후 적용 필요!! 다 임시적으로 조치해놓음
-
+    @Transactional
     public void confirmPw(String password, Member member) {
 
         if (!StringUtils.hasText(password) || member == null) {
@@ -101,16 +94,20 @@ public class MemberService {
         }
 
         if (!passwordEncoder.matches(password, member.getPassword())) {
+            log.error("{}, confirmPw :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 비밀번호 오류");
             throw new MoimingApiException(MEMBER_PW_INCORRECT);
         }
     }
 
 
+    @Transactional
     public void changeNickname(String nickname, Member member) {
 
         if (!StringUtils.hasText(nickname) || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
+
+        member = persistSecurityMember(member.getId());
 
         if (member.getNickname().equals(nickname)) {
             throw new MoimingApiException(MEMBER_NICKNAME_UNAVAILABLE); // 현재와 동일한 닉네임 수정 불가
@@ -126,13 +123,17 @@ public class MemberService {
     }
 
 
+    @Transactional
     public void changePw(String prePw, String newPw, Member member) {
 
         if (!StringUtils.hasText(prePw) || !StringUtils.hasText(newPw) || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        member = persistSecurityMember(member.getId());
+
         if (!passwordEncoder.matches(prePw, member.getPassword())) {
+            log.error("{}, changePw :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 유저의 비밀번호 변경 시도, 이전 비밀번호 불일치 발생");
             throw new MoimingApiException(MEMBER_PW_INCORRECT); // 현재 비밀번호가 맞는지 확인
         }
 
@@ -141,4 +142,11 @@ public class MemberService {
 
     }
 
+
+    private Member persistSecurityMember(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> {
+            log.error("{}, persistSecurityMember :: {}", this.getClass().getName(), "Member 영속화 중 Id [" + memberId + "] 조회 불가 예외 발생");
+            return new MoimingApiException(MEMBER_NOT_FOUND);
+        });
+    }
 }

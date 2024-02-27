@@ -142,7 +142,8 @@ public class MoimPostService {
         }
 
         // post 존재성 확인
-        MoimPost moimPost = moimPostRepository.findById(requestDto.getMoimPostId()).orElseThrow(() ->
+        // 게시물 생성자도 같이 보내줘야 하기 때문에 fetch join 해놓는다
+        MoimPost moimPost = moimPostRepository.findWithMemberById(requestDto.getMoimPostId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 

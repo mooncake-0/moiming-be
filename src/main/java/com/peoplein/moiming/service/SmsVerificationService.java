@@ -21,6 +21,9 @@ import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
 
+
+// TODO :: 고의적 연속 요청에 대한 방어로직은 어떻게 할 수 없을까?
+
 @Slf4j
 @Service
 @Transactional
@@ -48,6 +51,25 @@ public class SmsVerificationService {
 
         checkRightMemberRequest(curMember, requestDto);
         SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberInfo().getMemberPhone(), requestDto.getVerifyType());
+
+        Request request = smsRequestBuilder.getHttpRequest(smsVerification);
+        externalReqSender.sendAsynchronousMessage(request);
+
+        smsVerificationRepository.save(smsVerification);
+
+        return smsVerification;
+
+    }
+
+
+    public SmsVerification processSignUpSmsVerification(AuthSmsReqDto requestDto) {
+
+        if (requestDto == null || !requestDto.getVerifyType().equals(SIGN_UP)) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        // Member ID 가 없다. Member ID = NULL 인 경우로 저장
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(null, requestDto.getMemberPhone(), requestDto.getVerifyType());
 
         Request request = smsRequestBuilder.getHttpRequest(smsVerification);
         externalReqSender.sendAsynchronousMessage(request);
