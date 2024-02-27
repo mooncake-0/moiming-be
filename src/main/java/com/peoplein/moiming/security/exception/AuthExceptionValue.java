@@ -31,7 +31,7 @@ public enum AuthExceptionValue {
 
 
     AUTH_SIGN_IN_NICKNAME_FAIL(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS000", "자동 닉네임 생성에 실패하였습니다. 요청을 다시 시도해주세요"),
-    AUTH_SIGN_IN_DUPLICATE_COLUMN(HttpStatus.CONFLICT.value(), "AS001", "중복되는 회원입니다 (이메일, 전화번호, CI 중 중복 발생)"),
+    AUTH_SIGN_IN_DUPLICATE_COLUMN(HttpStatus.CONFLICT.value(), "AS001", "중복되는 회원입니다 (이메일, 전화번호 중 중복 발생)"),
 
 
     // AUTH_SMS
@@ -43,7 +43,7 @@ public enum AuthExceptionValue {
     AUTH_SMS_NOT_VERIFIED(HttpStatus.UNAUTHORIZED.value(), "ASMS005", "인증되지 않은 인증 내역은 활용할 수 없습니다"),
     AUTH_SMS_VERIFY_REQ_DUPLICATE(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS006", "이미 인증된 내역을 재인증 요청할 수 없습니다"),
     AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH(HttpStatus.CONFLICT.value(), "ASMS007", "시도중인 인증 Type 이 요청 Type 과 일치하지 않습니다"),
-    AUTH_SMS_REQUEST_INFO_NOT_MATCH_VERIFICATION_INFO(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS008", "요청 정보와 인증 내역의 전화번호 정보가 일치하지 않습니다"),
+    AUTH_SMS_REQUEST_INFO_NOT_MATCH_REQUESTING_INFO(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS008", "요청 정보와 인증 내역의 전화번호 정보가 일치하지 않습니다"),
 
     // AUTH_NICE
     AUTH_NICE_RESPONSE_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ANICE000", "NICE 서버와 API 통신 중 오류 발생"),

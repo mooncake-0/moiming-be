@@ -1,11 +1,13 @@
 package com.peoplein.moiming.controller;
 
+import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.service.AuthService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import javax.validation.Valid;
 import java.util.Map;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
+import static com.peoplein.moiming.domain.enums.VerificationType.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
 
@@ -39,17 +42,34 @@ public class AuthController {
     }
 
 
-    @ApiOperation("최종 회원 가입")
+    @ApiOperation("최종 회원 가입 (실제 로직, 번호 인증 필요)")
     @ApiResponses({
             @ApiResponse(code = 201, message = "회원 가입 성공", response = AuthSignInRespDto.class,
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })
-    @PostMapping(PATH_AUTH_SIGN_IN)
+    @PostMapping(PATH_AUTH_SIGN_UP)
     public ResponseEntity<?> signInMember(@RequestBody @Valid AuthSignInReqDto requestDto, BindingResult br
             , HttpServletResponse response) {
 
-        AuthSignInRespDto responseDto = authService.signIn(requestDto);
+        AuthSignInRespDto responseDto = authService.signUp(requestDto);
+        return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "회원 생성 성공", responseDto), HttpStatus.CREATED);
+
+    }
+
+
+    @Profile({"dev", "local"})
+    @ApiOperation("개발용 회원 가입 (인증만 불필요, 나머진 동일)")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "회원 가입 성공", response = AuthSignInRespDto.class,
+                    responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
+            @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
+    })
+    @PostMapping(PATH_AUTH_DEV_SIGN_UP)
+    public ResponseEntity<?> signUpMember(@RequestBody @Valid DevAuthSignInReqDto requestDto, BindingResult br
+            , HttpServletResponse response) {
+
+        AuthSignInRespDto responseDto = authService.devSignUp(requestDto);
         return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "회원 생성 성공", responseDto), HttpStatus.CREATED);
 
     }
@@ -88,7 +108,7 @@ public class AuthController {
     }
 
 
-    @ApiOperation("비밀번호 재설정 인증 요청 - SMS 인증 후 인증 번호 및 ID 전달 필요")
+    @ApiOperation("비밀번호 재설정 인증 요청 - SMS 인증 번호 및 ID 전달 필요")
     @ApiResponses({
             @ApiResponse(code = 200, message = "비밀번호 재설정 인증 성공"),
             @ApiResponse(code = 400, message = "비밀번호 재설정 인증 실패, ERR MSG 확인")
@@ -97,8 +117,23 @@ public class AuthController {
     public ResponseEntity<?> confirmResetPassword(@RequestBody @Valid AuthResetPwConfirmReqDto requestDto
             , BindingResult br) {
 
-        authService.confirmResetPassword(requestDto);
+        authService.verifySmsVerification(requestDto.getSmsVerificationId(), FIND_PW, requestDto.getMemberPhone(), requestDto.getVerificationNumber());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "비밀번호 재설정 인증 성공", null));
+
+    }
+
+
+    @ApiOperation("회원 가입 인증 요청 - SMS 인증 번호 및 ID 전달 필요")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "회원 가입 인증 성공"),
+            @ApiResponse(code = 400, message = "회원 가입 인증 실패, ERR MSG 확인")
+    })
+    @PostMapping(PATH_AUTH_SIGN_UP_CONFIRM)
+    public ResponseEntity<?> confirmSignUpSms(@RequestBody @Valid AuthSignUpSmsConfirmReqDto requestDto
+            , BindingResult br) {
+
+        authService.verifySmsVerification(requestDto.getSmsVerificationId(), SIGN_UP, requestDto.getMemberPhone(), requestDto.getVerificationNumber());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "회원 가입 인증 성공", null));
 
     }
 

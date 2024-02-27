@@ -8,6 +8,7 @@ import com.peoplein.moiming.domain.enums.VerificationType;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -41,6 +42,9 @@ public class AuthReqDto {
     @NoArgsConstructor
     public static class AuthSignInReqDto{
 
+        @NotNull
+        private Long smsVerificationId; // 인증된 상태인 SMS Verification ID 를 같이 전달
+
         @NotEmpty
         @Pattern(regexp = "^[a-zA-Z0-9]{1,30}@[a-z]{1,20}\\.[a-z]{1,10}$", message = "{1~30자리 영문 + 숫자}@{1~20자리 영문(소문자)}.{1~10자리 영문(소문자)}")
         private String memberEmail;
@@ -64,9 +68,6 @@ public class AuthReqDto {
         @NotNull
         private MemberGender memberGender;
 
-        @NotNull
-        private Boolean foreigner;
-
 
         @NotNull
         @JsonFormat(pattern = "yyyy-MM-dd")
@@ -75,10 +76,8 @@ public class AuthReqDto {
         @NotEmpty
         private String fcmToken;
 
-
-        @NotEmpty
-        @Size(max = 90, message = "CI 값은 88 byte 의 문자열입니다")
-        private String ci;
+//        @Size(max = 90, message = "CI 값은 88 byte 의 문자열입니다")
+//        private String ci; // ALL NULL 예정
 
 
         @NotEmpty // 안에 값이 들어있고, Null 이 아닌지도 체크
@@ -99,6 +98,55 @@ public class AuthReqDto {
             private PolicyType policyType;
 
         }
+    }
+
+
+    @ApiModel(value = "Auth API - 요청 - 개발 테스트용 회원가입 (인증 불필요)")
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DevAuthSignInReqDto{
+
+        @NotEmpty
+        @Pattern(regexp = "^[a-zA-Z0-9]{1,30}@[a-z]{1,20}\\.[a-z]{1,10}$", message = "{1~30자리 영문 + 숫자}@{1~20자리 영문(소문자)}.{1~10자리 영문(소문자)}")
+        private String memberEmail;
+
+        @NotEmpty
+        @Size(min = 4, max = 20, message = "4자~20자 (조건 Prod 시 추가 예정)")
+        private String password;
+
+        /*
+         TODO :: 부가적 조건들 추가 예정
+         */
+        @NotEmpty
+        @Size(max = 30, message = "이름은 최대 30자입니다")
+        private String memberName;
+
+        @NotEmpty
+        @Size(max = 20, message = "번호는 최대 20자입니다")
+        private String memberPhone;
+
+
+        @NotNull
+        private MemberGender memberGender;
+
+
+        @NotNull
+        @JsonFormat(pattern = "yyyy-MM-dd")
+        private LocalDate memberBirth;
+
+        @NotEmpty
+        private String fcmToken;
+
+
+        @NotEmpty // 안에 값이 들어있고, Null 이 아닌지도 체크
+        @Size(min = 5, max = 5, message = "필요 항목은 5개입니다")
+        @JsonProperty("policies")
+        private List<AuthSignInReqDto.PolicyAgreeDto> policyDtos;
+
+
+
     }
 
 
@@ -138,6 +186,21 @@ public class AuthReqDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class AuthResetPwConfirmReqDto {
+        @NotNull
+        private Long smsVerificationId;
+        @NotEmpty
+        private String memberPhone;
+        @NotEmpty
+        private String verificationNumber;
+    }
+
+
+    @ApiModel(value = "Auth API - 요청 - 회원 가입 인증 요청 (SMS 인증번호 및 Id 필요)")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthSignUpSmsConfirmReqDto {
         @NotNull
         private Long smsVerificationId;
         @NotEmpty

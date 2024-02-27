@@ -1,6 +1,8 @@
 package com.peoplein.moiming.service.integrated;
 
 
+import com.peoplein.moiming.domain.SmsVerification;
+import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
@@ -43,27 +45,31 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
     private PolicyAgreeRepository policyAgreeRepository;
 
 
-    private AuthSignInReqDto makeSignInMemberReqDto() {
+    @Test
+    void signUp_shouldSaveMemberAndMemberInfoAndPolicy_whenRightInfoPassed() {
+
+        // given - prep
+        SmsVerification smsVerification = makeTestSmsVerification(true, null, memberPhone, VerificationType.SIGN_UP);
+        em.persist(smsVerification);
+        em.flush();
+        em.clear();
+
         PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
         boolean[] hasAgreeds = {true, true, true, true, false};
         List<PolicyAgreeDto> policies = makePolicyReqDtoList(hasAgreeds, policyTypes);
-        return new AuthSignInReqDto(
-                memberEmail, password, memberName, memberPhone, memberGender
-                , notForeigner, memberBirth, fcmToken, ci, policies
-        );
-    }
-
-    @Test
-    void signIn_shouldSaveMemberAndMemberInfoAndPolicy_whenRightInfoPassed() {
 
         // given
-        AuthSignInReqDto requestDto = makeSignInMemberReqDto();
+        AuthSignInReqDto reqDto = new AuthSignInReqDto(smsVerification.getId()
+                , memberEmail, password, memberName, memberPhone, memberGender
+                , memberBirth, fcmToken, policies
+        );
 
         // when
-        AuthSignInRespDto responseDto = authService.signIn(requestDto);
+        AuthSignInRespDto responseDto = authService.signUp(reqDto);
 
 
         // then - Return Val Confirm
+        assertThat(responseDto.getMemberId()).isNotNull();
         assertThat(responseDto.getMemberEmail()).isEqualTo(memberEmail);
         assertThat(responseDto.getFcmToken()).isEqualTo(fcmToken);
         assertThat(responseDto.getMemberInfo().getMemberName()).isEqualTo(memberName);
@@ -75,10 +81,9 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         assertTrue(StringUtils.hasText(responseDto.getTokenInfo().getRefreshToken()));
 
         // then - DB Confirm
-        Long id = responseDto.getId();
+        Long id = responseDto.getMemberId();
         Member savedMember = em.find(Member.class, id);
         assertThat(savedMember.getFcmToken()).isEqualTo(fcmToken);
-        assertThat(savedMember.getCi()).isEqualTo(ci);
         assertThat(savedMember.getNickname()).isEqualTo(responseDto.getNickname());
         assertThat(savedMember.getRefreshToken()).isEqualTo(responseDto.getTokenInfo().getRefreshToken());
         assertThat(savedMember.getMemberInfo().getMemberPhone()).isEqualTo(memberPhone);
@@ -139,7 +144,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
 
     @Test
-    void reissueToken_shouldEmptyRefreshTokenData_whenReissueFail_byMoimingAuthApiException () {
+    void reissueToken_shouldEmptyRefreshTokenData_whenReissueFail_byMoimingAuthApiException() {
 
         // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
         Role testRole = makeTestRole(RoleType.USER);

@@ -1,22 +1,13 @@
 package com.peoplein.moiming.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
-import com.peoplein.moiming.domain.enums.MoimPostCategory;
-import com.peoplein.moiming.domain.moim.Moim;
 import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class MoimPostRespDto {
 
@@ -29,7 +20,7 @@ public class MoimPostRespDto {
         private Long moimPostId;
         private String postTitle;
         private String postContent;
-        private MoimPostCategory moimPostCategory;
+        private String moimPostCategory;
         private boolean hasPrivateVisibility;
         private boolean hasFiles;
         private int commentCnt;
@@ -42,7 +33,7 @@ public class MoimPostRespDto {
             this.moimPostId = moimPost.getId();
             this.postTitle = moimPost.getPostTitle();
             this.postContent = moimPost.getPostContent();
-            this.moimPostCategory = moimPost.getMoimPostCategory();
+            this.moimPostCategory = moimPost.getMoimPostCategory().getValue();
             this.commentCnt = moimPost.getCommentCnt();
             this.hasPrivateVisibility = moimPost.isHasPrivateVisibility();
             this.hasFiles = moimPost.isHasFiles();

@@ -31,11 +31,6 @@ import static com.peoplein.moiming.support.TestModelParams.*;
 public class TestMockCreator {
 
 
-    protected AuthSignInReqDto mockSigninReqDto() { // 모델들 추가되면 그 때 분할
-        return new AuthSignInReqDto(memberEmail, password, memberName, memberPhone, memberGender, notForeigner, memberBirth,  fcmToken, ci,
-                new ArrayList<>());
-    }
-
     protected AuthTokenReqDto mockTokenReqDto(String refreshToken) {
         AuthTokenReqDto tokenReqDto = new AuthTokenReqDto();
         tokenReqDto.setGrantType("REFRESH_TOKEN");
@@ -68,7 +63,7 @@ public class TestMockCreator {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode(password);
         Member mockMember = Member.createMember(
-                email, encoded, name, phone, memberGender, notForeigner, memberBirth, fcmToken, ci, role
+                email, encoded, name, phone, memberGender, memberBirth, fcmToken, ci, role
         );
         mockMember.changeRefreshToken(refreshToken); // 회원가입하면 일단 저장 필요
         mockMember.changeMockObjectIdForTest(id, getClassUrl());

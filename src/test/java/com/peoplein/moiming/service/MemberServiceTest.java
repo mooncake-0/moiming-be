@@ -87,6 +87,7 @@ public class MemberServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
+        when(memberRepository.findById(any())).thenReturn(Optional.of(member));
         when(member.getNickname()).thenReturn("NOT_SAME_WITH_GIVEN_NICKNAME"); // 동일하지 않게 세팅
         when(memberRepository.findByNickname(any())).thenReturn(Optional.empty());
 
@@ -111,7 +112,7 @@ public class MemberServiceTest {
     }
 
 
-    // NICKNAME NOT CHANGED
+    // NICKNAME NOT CHANGED - 변경하려는 닉네임이 기존과 동일
     @Test
     void changeNickname_shouldThrowException_whenNicknameNotChange_byMoimingApiException() {
 
@@ -120,7 +121,8 @@ public class MemberServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
-        when(member.getNickname()).thenReturn(nickname); // 기존과 도일
+        when(memberRepository.findById(any())).thenReturn(Optional.of(member));
+        when(member.getNickname()).thenReturn(nickname); // 기존과 동일
 
         // when
         // then
@@ -131,15 +133,16 @@ public class MemberServiceTest {
 
     // MEMBER NOT FOUND
     @Test
-    void changeNickname_shouldThrowException_whenMemberNotFound_byMoimingApiException() {
+    void changeNickname_shouldThrowException_whenNicknameInUse_byMoimingApiException() {
 
         // given
         String nickname = "NOT_EMPTY";
         Member member = mock(Member.class);
 
         // given - stub
+        when(memberRepository.findById(any())).thenReturn(Optional.of(member));
         when(member.getNickname()).thenReturn("NOT_SAME_WITH_GIVEN_NICKNAME");
-        when(memberRepository.findByNickname(any())).thenReturn(Optional.of(mock(Member.class)));
+        when(memberRepository.findByNickname(any())).thenReturn(Optional.of(mock(Member.class))); // 존재하는 유저가 반환됨
 
         // when
         // then
@@ -157,8 +160,10 @@ public class MemberServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
+        when(memberRepository.findById(any())).thenReturn(Optional.of(member));
         when(encoder.matches(any(), any())).thenReturn(true);
         when(encoder.encode(any())).thenReturn("ANY");
+
         // when
         memberService.changePw(prePw, newPw, member);
 
@@ -190,6 +195,7 @@ public class MemberServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
+        when(memberRepository.findById(any())).thenReturn(Optional.of(member));
         // TODO :: anyString 과 any, NULL 여부에 따라서 다른 것 같긴 하지만, 꼭 그 상황에서의 Null 까지 판단해줘야할까?
         //         그렇다면 member.getPassword() 까지 stubbing 해줘야 함. null 이든 말든 그냥 결과만 그렇다면 되는 듯?
         //         "뭐든 아무 상관 없고 결과가 이것!" 인게 중요해서 그래보인다

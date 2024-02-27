@@ -14,6 +14,8 @@ spring:
         show_sql: true
         format_sql: true
         default_batch_fetch_size: 100
+    open-in-view: false
+
 
 # TEST 통과를 위해 기재
 app_files:

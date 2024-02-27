@@ -106,6 +106,9 @@ public class MoimMemberService {
     }
 
 
+    /*
+     MoimMember 의 State 을 찾아와서 memberId 와 MoimMember 상태를 Mapping 해둔다
+     */
     public Map<Long, MoimMemberState> getMoimMemberStates(Long moimId, Set<Long> memberIds) {
 
         List<MoimMember> writerMoimMembers = moimMemberRepository.findByMoimIdAndMemberIds(moimId, new ArrayList<>(memberIds));

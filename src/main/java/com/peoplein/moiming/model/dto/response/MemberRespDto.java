@@ -72,14 +72,12 @@ public class MemberRespDto {
             private String memberPhone;
             private MemberGender memberGender;
             private String memberBirth;
-            private boolean foreigner;
 
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
                 this.memberPhone = memberInfo.getMemberPhone();
                 this.memberGender = memberInfo.getMemberGender();
                 this.memberBirth = memberInfo.getMemberBirth() + "";
-                this.foreigner = memberInfo.isForeigner();
             }
         }
     }

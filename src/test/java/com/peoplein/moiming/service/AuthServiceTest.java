@@ -2,6 +2,7 @@ package com.peoplein.moiming.service;
 
 
 import com.peoplein.moiming.domain.SmsVerification;
+import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
@@ -95,24 +96,52 @@ public class AuthServiceTest extends TestMockCreator {
 
 
     @Test
-    void signIn_shouldCreateAccount_whenRightInfoPassed() {
+    void signUp_shouldCreateAccount_whenRightInfoPassed() {
 
         // given
         AuthSignInReqDto requestDto = mock(AuthSignInReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
 
         // given - stub
-        when(memberRepository.findMembersByEmailOrPhoneOrCi(any(), any(), any())).thenReturn(new ArrayList<>());
+        when(smsVerification.getMemberPhoneNumber()).thenReturn("01000000000");
+        when(requestDto.getMemberPhone()).thenReturn("01000000000");
+        when(memberRepository.findMembersByEmailOrPhone(any(), any())).thenReturn(new ArrayList<>());
         when(memberRepository.findByNickname(any())).thenReturn(Optional.empty());
+        when(smsVerificationService.confirmAndGetValidSmsVerification(any(), any())).thenReturn(smsVerification);
+
         // 아무 수행이나 상관 없음을 지칭
         doReturn(null).when(authService).issueTokensAndUpdateColumns(anyBoolean(), any());
 
         // when
-        authService.signIn(requestDto);
+        authService.signUp(requestDto);
 
         // then
         verify(memberRepository, times(1)).save(any());
         verify(policyAgreeService, times(1)).createPolicyAgree(any(), any());
         verify(authService, times(1)).issueTokensAndUpdateColumns(anyBoolean(), any());
+
+    }
+
+
+    @Test
+    void signUp_shouldThrowException_whenReqPhoneNumberAndVerificationPhoneNumberNotMatch_byMoimingAuthApiException() {
+
+        // given
+        AuthSignInReqDto requestDto = mock(AuthSignInReqDto.class);
+        SmsVerification smsVerification = mock(SmsVerification.class);
+
+        // given - stub
+        when(smsVerification.getMemberPhoneNumber()).thenReturn("01012345678");
+        when(requestDto.getMemberPhone()).thenReturn("01000000000"); // NOT MATCH
+        when(memberRepository.findMembersByEmailOrPhone(any(), any())).thenReturn(new ArrayList<>());
+        when(smsVerificationService.confirmAndGetValidSmsVerification(any(), any())).thenReturn(smsVerification);
+
+        // when
+        // then
+        assertThatThrownBy(() -> authService.signUp(requestDto)).isInstanceOf(MoimingAuthApiException.class);
+        verify(memberRepository, times(0)).save(any());
+        verify(policyAgreeService, times(0)).createPolicyAgree(any(), any());
+        verify(authService, times(0)).issueTokensAndUpdateColumns(anyBoolean(), any());
 
     }
 
@@ -200,9 +229,9 @@ public class AuthServiceTest extends TestMockCreator {
 
     @Test
     void checkUniqueColumnDuplication_shouldThrowException_whenEmailDuplicates_byMoimingAuthApiException() {
+
         // given
         String notRegisteredPhone = "01000000000";
-        String notRegisteredCi = "not-registered";
         Role mockRole = mockRole(1L, RoleType.USER);
         Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole);
 
@@ -210,19 +239,19 @@ public class AuthServiceTest extends TestMockCreator {
         queriedMembers.add(mockMember);
 
         // given - stub
-        when(memberRepository.findMembersByEmailOrPhoneOrCi(memberEmail, notRegisteredPhone, notRegisteredCi)).thenReturn(queriedMembers);
+        when(memberRepository.findMembersByEmailOrPhone(memberEmail, notRegisteredPhone)).thenReturn(queriedMembers);
 
         //when
         //then
-        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(memberEmail, notRegisteredPhone, notRegisteredCi)).isInstanceOf(MoimingAuthApiException.class);
+        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(memberEmail, notRegisteredPhone)).isInstanceOf(MoimingAuthApiException.class);
     }
 
 
     @Test
     void checkUniqueColumnDuplication_shouldThrowException_whenPhoneDuplicates_byMoimingAuthApiException() {
+
         // given
         String notRegisteredEmail = "not@registered.com";
-        String notRegisteredCi = "not-registered";
         Role mockRole = mockRole(1L, RoleType.USER);
         Member mockMember = mockMember(1L, memberEmail, memberName, memberPhone, ci, mockRole);
 
@@ -230,11 +259,11 @@ public class AuthServiceTest extends TestMockCreator {
         queriedMembers.add(mockMember);
 
         // given - stub
-        when(memberRepository.findMembersByEmailOrPhoneOrCi(notRegisteredEmail, memberPhone, notRegisteredCi)).thenReturn(queriedMembers);
+        when(memberRepository.findMembersByEmailOrPhone(notRegisteredEmail, memberPhone)).thenReturn(queriedMembers);
 
         //when
         //then
-        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(notRegisteredEmail, memberPhone, notRegisteredCi)).isInstanceOf(MoimingAuthApiException.class);
+        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(notRegisteredEmail, memberPhone)).isInstanceOf(MoimingAuthApiException.class);
     }
 
 
@@ -251,11 +280,11 @@ public class AuthServiceTest extends TestMockCreator {
         queriedMembers.add(mockMember);
 
         // given - stub
-        when(memberRepository.findMembersByEmailOrPhoneOrCi(notRegisteredEmail, notRegisteredPhone, ci)).thenReturn(queriedMembers);
+        when(memberRepository.findMembersByEmailOrPhone(notRegisteredEmail, notRegisteredPhone)).thenReturn(queriedMembers);
 
         //when
         //then
-        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(notRegisteredEmail, notRegisteredPhone, ci)).isInstanceOf(MoimingAuthApiException.class);
+        assertThatThrownBy(() -> authService.checkUniqueColumnDuplication(notRegisteredEmail, notRegisteredPhone)).isInstanceOf(MoimingAuthApiException.class);
     }
 
 
@@ -265,11 +294,11 @@ public class AuthServiceTest extends TestMockCreator {
         List<Member> queriedMembers = new ArrayList<>();
 
         // given - stub
-        when(memberRepository.findMembersByEmailOrPhoneOrCi(memberEmail, memberPhone, ci)).thenReturn(queriedMembers);
+        when(memberRepository.findMembersByEmailOrPhone(memberEmail, memberPhone)).thenReturn(queriedMembers);
 
         //when
         //then
-        assertDoesNotThrow(() -> authService.checkUniqueColumnDuplication(memberEmail, memberPhone, ci)); // void returns
+        assertDoesNotThrow(() -> authService.checkUniqueColumnDuplication(memberEmail, memberPhone)); // void returns
     }
 
 
@@ -373,40 +402,44 @@ public class AuthServiceTest extends TestMockCreator {
     // confirmResetPassword
     // 성공
     @Test
-    void confirmResetPassword_shouldPass_whenRightInfoPassed() {
+    void verifySmsVerification_shouldPass_whenRightInfoPassed() {
 
         // given
-        AuthResetPwConfirmReqDto reqDto = mock(AuthResetPwConfirmReqDto.class);
+        Long smsVerificationId = 1L; // 상관없음, ANY
+        String verificationNumber = "123456"; // 상관없음, ANY
+        VerificationType type = VerificationType.SIGN_UP; // 상관 없음 // ANY
+        String memberPhone = "01012345678";
         SmsVerification smsVerification = mock(SmsVerification.class);
-        when(smsVerification.getMemberPhoneNumber()).thenReturn("01012345678");
-        when(reqDto.getMemberPhone()).thenReturn("01012345678");
 
         // given - stub
         when(smsVerificationService.getVerifiedSmsVerification(any(), any(), any())).thenReturn(smsVerification);
+        when(smsVerification.getMemberPhoneNumber()).thenReturn(memberPhone);
 
         // when
         // then
-        assertDoesNotThrow(() -> authService.confirmResetPassword(reqDto));
+        assertDoesNotThrow(() -> authService.verifySmsVerification(smsVerificationId, type, memberPhone, verificationNumber));
 
     }
 
 
     // 실패 - memberPhoneNotMatch
     @Test
-    void confirmResetPassword_shouldThrowException_whenMemberPhoneNotMatch_byMoimingAuthApiException() {
+    void verifySmsVerification_shouldThrowException_whenMemberPhoneNotMatch_byMoimingAuthApiException() {
 
         // given
-        AuthResetPwConfirmReqDto reqDto = mock(AuthResetPwConfirmReqDto.class);
+        Long smsVerificationId = 1L; // 상관없음, ANY
+        String verificationNumber = "123456"; // 상관없음, ANY
+        VerificationType type = VerificationType.SIGN_UP; // 상관 없음 // ANY
+        String memberPhone = "01012345678";
         SmsVerification smsVerification = mock(SmsVerification.class);
-        when(smsVerification.getMemberPhoneNumber()).thenReturn("01012345678");
-        when(reqDto.getMemberPhone()).thenReturn("01000000000");
 
         // given - stub
         when(smsVerificationService.getVerifiedSmsVerification(any(), any(), any())).thenReturn(smsVerification);
+        when(smsVerification.getMemberPhoneNumber()).thenReturn("01000000000"); // 다름
 
         // when
         // then
-        assertThatThrownBy(() -> authService.confirmResetPassword(reqDto)).isInstanceOf(MoimingAuthApiException.class);
+        assertThatThrownBy(() -> authService.verifySmsVerification(smsVerificationId, type, memberPhone, verificationNumber)).isInstanceOf(MoimingAuthApiException.class);
 
     }
 

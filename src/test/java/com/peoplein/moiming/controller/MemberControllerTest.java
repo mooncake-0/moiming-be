@@ -199,7 +199,7 @@ public class MemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.memberInfo.memberPhone").value(preMemberInfo.getMemberPhone()));
         resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(preMemberInfo.getMemberGender().toString()));
         resultActions.andExpect(jsonPath("$.data.memberInfo.memberBirth").value(preMemberInfo.getMemberBirth() + ""));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.foreigner").value(preMemberInfo.isForeigner()));
+
 
     }
 

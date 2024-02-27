@@ -53,7 +53,12 @@ public class SmsVerificationController {
             , BindingResult br) {
 
         checkValidReqDto(requestDto);
-        SmsVerification smsVerification = smsVerificationService.processSmsVerification(requestDto);
+        SmsVerification smsVerification;
+        if (requestDto.getVerifyType().equals(SIGN_UP)) {
+            smsVerification = smsVerificationService.processSignUpSmsVerification(requestDto);
+        }else{
+            smsVerification = smsVerificationService.processSmsVerification(requestDto);
+        }
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "SMS 문자 송신 성공", new AuthSmsRespDto(smsVerification)));
 
     }
