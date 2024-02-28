@@ -4,5 +4,5 @@ import com.peoplein.moiming.domain.Notification;
 
 public interface NotificationRepository {
 
-    Long save(Notification notification);
+    void save(Notification notification);
 }
