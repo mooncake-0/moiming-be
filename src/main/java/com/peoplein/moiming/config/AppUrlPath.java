@@ -121,6 +121,7 @@ public abstract class AppUrlPath {
     public final static String PATH_MEMBER_GET_DETAIL_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/{memberId}" + "/detail";
     public final static String PATH_MEMBER_CHANGE_NICKNAME = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/nickname";
     public final static String PATH_MEMBER_CHANGE_PASSWORD = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
+    public final static String PATH_MEMBER_NOTIFICATIONS = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notification";
 
 
     // 이하로는 점검되지 않은 URL

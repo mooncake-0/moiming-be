@@ -111,6 +111,34 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
+    // Post Comment 중 답글 생성 요청인데, 부모라고 보낸 글이 댓글이 아니라 답글이였음 (2차 이상 답글 생성 시도)
+    @Test
+    void createComment_shouldReturn422_whenTrialToReplyOnChildComment_byMoimingApiException() throws Exception {
+
+        // given
+        PostComment parentComment = makePostComment(moimCreator, testMoimPost, 0, null);
+        PostComment childComment = makePostComment(moimMember, testMoimPost, 1, parentComment);
+        em.persist(parentComment);
+        em.persist(childComment);
+        em.flush();
+        em.clear();
+
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), childComment.getId(), 1); // child 댓글이 부모라고 들어가지게 됨
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_POST_COMMENT_CREATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_POST_COMMENT_NOT_PARENT.getErrCode()));
+
+    }
+
+
     // Validation 요청 오류 점검 1) postId null 2) depth null
     @Test
     void createComment_shouldReturn400_whenRequestValidationFails_byMoimingValidationException() throws Exception {

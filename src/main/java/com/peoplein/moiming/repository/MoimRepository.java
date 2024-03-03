@@ -19,5 +19,7 @@ public interface MoimRepository {
 
     Optional<Moim> findWithJoinRuleAndCategoriesById(Long moimId);
 
+    Optional<Moim> findWithActiveMoimMembersById(Long moimId);
+
     void remove(Long moimId);
 }

@@ -40,6 +40,7 @@ public enum ExceptionValue {
     MOIM_MEMBER_ROLE_GRANT_FAIL(HttpStatus.FORBIDDEN.value(), "MM005", "해당 모임원에게 권한 부여가 불가능합니다 (MVP 에선 발생할 일 없음)"),
 
     MOIM_POST_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MC000", "관련 댓글을 찾을 수 없습니다"),
+    MOIM_POST_COMMENT_NOT_PARENT(HttpStatus.UNPROCESSABLE_ENTITY.value(), "MC001", "답글에 답글을 달 수 없습니다"),
 
     // Member Domain
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MEM000", "해당 유저를 찾을 수 없습니다"),
@@ -49,8 +50,11 @@ public enum ExceptionValue {
 
     // Member Policy
     MEMBER_POLICY_ESSENTIAL(HttpStatus.BAD_REQUEST.value(), "MEMP000", "동의 필수 약관입니다"),
-    MEMBER_POLICY_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN.value(), "MEMP001", "해당 약관 동의 여부를 수정할 권한이 없습니다");
+    MEMBER_POLICY_UPDATE_FORBIDDEN(HttpStatus.FORBIDDEN.value(), "MEMP001", "해당 약관 동의 여부를 수정할 권한이 없습니다"),
 
+
+    // Notification
+    MEMBER_NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MN000", "해당 알림을 찾을 수 없습니다");
 
     private int status;
     private String errCode;

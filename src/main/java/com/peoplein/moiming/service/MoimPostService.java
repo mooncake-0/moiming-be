@@ -1,16 +1,17 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.PostComment;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
-import com.peoplein.moiming.domain.enums.MoimMemberState;
-import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
+import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,11 +41,12 @@ import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 @RequiredArgsConstructor
 public class MoimPostService {
 
-
+    private final NotificationService notificationService;
     private final PostCommentService postCommentService;
     private final MoimMemberService moimMemberService;
     private final MoimMemberRepository moimMemberRepository;
     private final MoimPostRepository moimPostRepository;
+    private final MoimRepository moimRepository;
     private final PostCommentRepository postCommentRepository;
 
     @Transactional
@@ -61,12 +63,28 @@ public class MoimPostService {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
+        // Notification 을 위해서 필요하므로, Moim 과 관련 유저들은 모두 조회한다
+        // MOIM 에 대한 EAGER 조회
+        Moim moim = moimRepository.findWithActiveMoimMembersById(requestDto.getMoimId())
+                .orElseThrow(() -> new MoimingApiException(MOIM_NOT_FOUND));
+
         MoimPost post = MoimPost.createMoimPost(requestDto.getPostTitle(), requestDto.getPostContent()
                 , MoimPostCategory.fromValue(requestDto.getMoimPostCategory())
                 , requestDto.getHasPrivateVisibility(), requestDto.getHasFiles()
-                , moimMember.getMoim(), member);
+                , moim, member);
 
-        moimPostRepository.save(post);
+        moimPostRepository.save(post); // 영속화 후 Id 받은 상태 필요
+
+        // TODO :: createManyNotification 으로 변경 가능성 있음
+        List<MoimMember> moimMembers = moim.getMoimMembers();
+        for (MoimMember eachMember : moimMembers) {
+            if (eachMember.getMember().getId().equals(member.getId())) { // 위 Post 생성자는 제외하고 보낸다
+                continue;
+            }
+            Long eachMemberId = eachMember.getMember().getId(); // Member Id 들을 가져온다
+            notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.POST_CREATE, NotificationType.INFORM
+                    , eachMemberId, "", moim.getMoimName() + "에 새로운 게시글이 등록되었습니다", requestDto.getMoimId(), post.getId());
+        }
 
         return post;
     }

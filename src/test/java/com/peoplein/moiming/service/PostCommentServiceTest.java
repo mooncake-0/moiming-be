@@ -46,74 +46,95 @@ public class PostCommentServiceTest extends TestMockCreator {
     @Test
     void createComment_shouldPass_whenNormalCommentPassed() {
 
-        try (MockedStatic<PostComment> mocker = mockStatic(PostComment.class)) {
-            // given
-            PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
-            Member member = mock(Member.class);
-            MoimPost moimPost = mock(MoimPost.class);
-            MoimMember moimMember = mock(MoimMember.class);
-            Moim moim = mock(Moim.class);
+        // given
+        PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
+        Member member = mock(Member.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        Moim moim = mock(Moim.class);
 
-            // given - stub
-            when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
-            when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-            when(moimMember.hasActivePermission()).thenReturn(true);
-            when(moimPost.getMoim()).thenReturn(moim);
-            when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
+        // given - stub
+        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
 
-            // given - stub - 1차 댓글
-            when(requestDto.getDepth()).thenReturn(0);
-            when(requestDto.getParentId()).thenReturn(null);
+        // given - stub - 1차 댓글이 전달된다
+        when(requestDto.getDepth()).thenReturn(0);
+        when(requestDto.getParentId()).thenReturn(null);
 
-            // given - static stub - 생성했다 치자
-            mocker.when(() -> PostComment.createPostComment(
-                    any(), any(), any(), anyInt(), any()
-            )).thenReturn(null); // 어떤 값이든 상관 없음
+        // when
+        postCommentService.createComment(requestDto, member);
 
-            // when
-            postCommentService.createComment(requestDto, member);
+        // then
+        verify(postCommentRepository, times(1)).save(any());
 
-            // then
-            verify(postCommentRepository, times(1)).save(any());
-        }
     }
 
 
     @Test
     void createComment_shouldPass_whenReplyCommentPassed() {
 
-        try (MockedStatic<PostComment> mocker = mockStatic(PostComment.class)) {
-            // given
-            PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
-            Member member = mock(Member.class);
-            MoimPost moimPost = mock(MoimPost.class);
-            MoimMember moimMember = mock(MoimMember.class);
-            PostComment parentComment = mock(PostComment.class);
-            Moim moim = mock(Moim.class);
+        // given
+        PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
+        Member member = mock(Member.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        PostComment parentComment = mock(PostComment.class);
+        Moim moim = mock(Moim.class);
 
-            // given - stub
-            when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
-            when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-            when(moimMember.hasActivePermission()).thenReturn(true);
-            when(moimPost.getMoim()).thenReturn(moim);
-            when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
+        // given - stub
+        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
 
-            // given - stub - 댓글에 대한 답글
-            when(requestDto.getDepth()).thenReturn(1);
-            when(requestDto.getParentId()).thenReturn(1L); // any
-            when(postCommentRepository.findById(any())).thenReturn(Optional.of(parentComment));
+        // given - stub - 댓글에 대한 답글임이 전달
+        when(requestDto.getDepth()).thenReturn(1);
+        when(requestDto.getParentId()).thenReturn(1L); // any
+        when(postCommentRepository.findById(any())).thenReturn(Optional.of(parentComment));
 
-            // given - static stub - 생성했다 치자
-            mocker.when(() -> PostComment.createPostComment(
-                    any(), any(), any(), anyInt(), any()
-            )).thenReturn(null); // 어떤 값이든 상관 없음
 
-            // when
-            postCommentService.createComment(requestDto, member);
+        // when
+        postCommentService.createComment(requestDto, member);
 
-            // then
-            verify(postCommentRepository, times(1)).save(any());
-        }
+        // then
+        verify(postCommentRepository, times(1)).save(any());
+    }
+
+
+    @Test
+    void createComment_shouldThrowException_whenTrialToReplyOnChildComment_byMoimingApiException() {
+
+        // given
+        PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
+        Member member = mock(Member.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        PostComment parentComment = mock(PostComment.class);
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
+
+        // given - stub - 댓글에 대한 답글임이 전달
+        when(requestDto.getDepth()).thenReturn(1); /// 답글 생성 요청이긴 한데
+        when(requestDto.getParentId()).thenReturn(1L); // any
+        when(parentComment.getDepth()).thenReturn(1); // 조회된 부모가 댓글이 아닌 답글이였을 경우
+        when(postCommentRepository.findById(any())).thenReturn(Optional.of(parentComment));
+
+
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
+        verify(postCommentRepository, times(0)).save(any());
+
     }
 
 
@@ -358,7 +379,6 @@ public class PostCommentServiceTest extends TestMockCreator {
         // then
         assertThatThrownBy(() -> postCommentService.updateComment(null, null)).isInstanceOf(MoimingApiException.class);
     }
-
 
 
     // 3. postComment 못찾음
