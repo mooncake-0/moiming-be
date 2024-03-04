@@ -13,4 +13,6 @@ public interface NotificationRepository {
     Optional<Notification> findById(Long id);
 
     List<Notification> findMemberNotificationByCondition(Long memberId, NotificationTopCategory topCategory, String moimType, Notification lastNotification, int limit);
+
+    void remove(Notification notification);
 }

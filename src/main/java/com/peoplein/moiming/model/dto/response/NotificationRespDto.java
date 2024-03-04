@@ -25,7 +25,7 @@ public class NotificationRespDto {
         private String body;
         private Long topCategoryId;
         private Long subCategoryId; // SUB CATEGORY 는 게시글까지임
-
+        private String createdAt;
 
         public MemberNotificationRespDto(Notification notification) {
             this.notificationId = notification.getId();
@@ -35,6 +35,7 @@ public class NotificationRespDto {
             this.body = notification.getBody();
             this.topCategoryId = notification.getTopCategoryId();
             this.subCategoryId = notification.getSubCategoryId();
+            this.createdAt = notification.getCreatedAt() + "";
         }
 
         // TODO :: Notification 의 소속된 Moim 에 대한 정보 전달 필요 예정

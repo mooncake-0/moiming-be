@@ -1,17 +1,11 @@
 package com.peoplein.moiming.controller;
 
 
-import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.Notification;
-import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.enums.NotificationTopCategory;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
-import com.peoplein.moiming.model.dto.inner.StateMapperDto;
-import com.peoplein.moiming.model.dto.request.MoimPostReqDto;
-import com.peoplein.moiming.model.dto.response.MoimPostRespDto;
-import com.peoplein.moiming.model.dto.response.NotificationRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.NotificationService;
 import io.swagger.annotations.*;
@@ -19,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
@@ -70,4 +62,20 @@ public class NotificationController {
 
 
     // 알림 삭제
+    @ApiOperation("알림 삭제")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "알림 삭제 성공"),
+            @ApiResponse(code = 400, message = "알림 삭제 실패")
+    })
+    @DeleteMapping(PATH_MEMBER_NOTIFICATION_DELETE)
+    public ResponseEntity<?> deleteNotification(@PathVariable Long notificationId
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+        notificationService.deleteNotification(principal.getMember(), notificationId);
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "알림 일반 조회 성공", null));
+    }
+
+
 }

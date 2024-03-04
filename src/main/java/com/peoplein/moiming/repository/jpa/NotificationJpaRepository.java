@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,9 +38,9 @@ public class NotificationJpaRepository implements NotificationRepository {
 
         String jpql =
                 "SELECT n FROM Notification n " +
-                "JOIN Moim m ON n.topCategoryId = m.id " +
-                "WHERE n.receiverId = :memberId " +
-                "AND n.topCategory = :topCategory ";
+                        "JOIN Moim m ON n.topCategoryId = m.id " +
+                        "WHERE n.receiverId = :memberId " +
+                        "AND n.topCategory = :topCategory ";
 
         if (moimType.equals("manage")) {
             // n.topCategoryId 로 Join 을 해서 m.creatorId 가 나인 것을 가져와야 한다
@@ -57,11 +58,23 @@ public class NotificationJpaRepository implements NotificationRepository {
         jpql += "ORDER BY n.createdAt DESC, n.id DESC";
 
 
-        return em.createQuery(jpql, Notification.class)
+        TypedQuery<Notification> query = em.createQuery(jpql, Notification.class)
                 .setParameter("memberId", memberId)
-                .setParameter("topCategory", topCategory)
-                .setMaxResults(limit) // limit 절
+                .setParameter("topCategory", topCategory);
+
+        if (lastNotification != null) {
+            query.setParameter("lastNotificationCreatedAt", lastNotification.getCreatedAt())
+                    .setParameter("lastNotificationId", lastNotification.getId());
+        }
+
+        return query.setMaxResults(limit) // limit 절
                 .getResultList();
+
+    }
+
+    @Override
+    public void remove(Notification notification) {
+        em.remove(notification);
     }
 
 }

@@ -101,7 +101,7 @@ public class MoimJpaRepository implements MoimRepository {
     public Optional<Moim> findWithActiveMoimMembersById(Long moimId) {
 
         return Optional.ofNullable(queryFactory.selectFrom(moim)
-                .from(moim.moimMembers, moimMember).fetchJoin()
+                .join(moim.moimMembers, moimMember).fetchJoin()
                 .where(moim.id.eq(moimId),
                         moimMember.memberState.eq(MoimMemberState.ACTIVE))
                 .fetchOne());
