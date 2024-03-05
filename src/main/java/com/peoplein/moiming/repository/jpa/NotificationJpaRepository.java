@@ -27,10 +27,7 @@ public class NotificationJpaRepository implements NotificationRepository {
 
     @Override
     public Optional<Notification> findById(Long id) {
-        String jpql = "SELECT n FROM Notification n WHERE n.id = :id";
-        return Optional.ofNullable(em.createQuery(jpql, Notification.class)
-                .setParameter("id", id)
-                .getSingleResult());
+        return Optional.ofNullable(em.find(Notification.class, id));
     }
 
     @Override

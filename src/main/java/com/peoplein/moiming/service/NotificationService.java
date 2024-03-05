@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.enums.NotificationSubCategory;
 import com.peoplein.moiming.domain.enums.NotificationTopCategory;
 import com.peoplein.moiming.domain.enums.NotificationType;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.NotificationRepository;
@@ -29,7 +30,7 @@ public class NotificationService {
     public void createNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
             , Long receiverId, String title, String body, Long topCategoryId, Long subCategoryId) {
 
-        if (topCategory == null || subCategory == null || type== null || receiverId == null) {
+        if (topCategory == null || subCategory == null || type == null || receiverId == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
@@ -42,7 +43,13 @@ public class NotificationService {
 
     // TODO :: FCM 다량 요청 확인 후 점검
     @Transactional
-    public void createManyNotification() {
+    public void createManyNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
+            , List<Member> receivers, String title, String body, Long topCategoryId, Long subCategoryId) {
+        for (Member receiver : receivers) {
+            Long receiverId = receiver.getId(); // Member Id 들을 가져온다
+            Notification notification = Notification.createNotification(topCategory, subCategory, type, receiverId, title, body, topCategoryId, subCategoryId);
+            notificationRepository.save(notification);
+        }
 
     }
 

@@ -59,7 +59,7 @@ public class PostCommentService {
         String notiBody = moimPost.getPostTitle() + "에 새로운 댓글이 등록되었습니다";
         if (comment.getDepth() == 1) {
             subCategory = NotificationSubCategory.CHILD_COMMENT_CREATE;
-            receiverId = comment.getMember().getId();
+            receiverId = comment.getParent().getMember().getId();
             notiBody = moimPost.getPostTitle() + "에 남긴 댓글에 새로운 답글이 등록되었습니다";
         }
 

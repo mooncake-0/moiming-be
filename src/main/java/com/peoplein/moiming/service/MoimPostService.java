@@ -75,16 +75,14 @@ public class MoimPostService {
 
         moimPostRepository.save(post); // 영속화 후 Id 받은 상태 필요
 
-        // TODO :: createManyNotification 으로 변경 가능성 있음
         List<MoimMember> moimMembers = moim.getMoimMembers();
-        for (MoimMember eachMember : moimMembers) {
-            if (eachMember.getMember().getId().equals(member.getId())) { // 위 Post 생성자는 제외하고 보낸다
-                continue;
-            }
-            Long eachMemberId = eachMember.getMember().getId(); // Member Id 들을 가져온다
-            notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.POST_CREATE, NotificationType.INFORM
-                    , eachMemberId, "", moim.getMoimName() + "에 새로운 게시글이 등록되었습니다", requestDto.getMoimId(), post.getId());
-        }
+        List<Member> receivers = moimMembers.stream()
+                .map(MoimMember::getMember)
+                .filter(mem -> !mem.getId().equals(member.getId()))
+                .collect(Collectors.toList());
+
+        notificationService.createManyNotification(NotificationTopCategory.MOIM, NotificationSubCategory.POST_CREATE, NotificationType.INFORM
+                , receivers, "", moim.getMoimName() + "에 새로운 게시글이 등록되었습니다", requestDto.getMoimId(), post.getId());
 
         return post;
     }

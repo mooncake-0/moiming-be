@@ -41,6 +41,9 @@ public class PostCommentServiceTest extends TestMockCreator {
     @Mock
     private MoimMemberRepository moimMemberRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
 
     // Success - 1차 댓글일 경우 성공한다
     @Test
@@ -63,12 +66,15 @@ public class PostCommentServiceTest extends TestMockCreator {
         // given - stub - 1차 댓글이 전달된다
         when(requestDto.getDepth()).thenReturn(0);
         when(requestDto.getParentId()).thenReturn(null);
+        when(moimPost.getMember()).thenReturn(mock(Member.class)); // 1차 댓글일 경우 게시물 생성자에게 알림을 전달한다
 
         // when
         postCommentService.createComment(requestDto, member);
 
         // then
         verify(postCommentRepository, times(1)).save(any());
+        verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
 
     }
 
@@ -94,6 +100,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // given - stub - 댓글에 대한 답글임이 전달
         when(requestDto.getDepth()).thenReturn(1);
         when(requestDto.getParentId()).thenReturn(1L); // any
+        when(moimPost.getMember()).thenReturn(mock(Member.class)); // 게시물 생성자를 우선 매핑해준다
+        when(parentComment.getMember()).thenReturn(mock(Member.class)); // 부모 댓글 생성자를 매핑해준다 // comment 는 실제 만들어지고 parentComment 로 실제 매핑되어 생성되기 때문에, 이렇게 넣어주면 됨
         when(postCommentRepository.findById(any())).thenReturn(Optional.of(parentComment));
 
 
@@ -102,6 +110,8 @@ public class PostCommentServiceTest extends TestMockCreator {
 
         // then
         verify(postCommentRepository, times(1)).save(any());
+        verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
     }
 
 
@@ -134,6 +144,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // then
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
         verify(postCommentRepository, times(0)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
 
     }
 
@@ -164,6 +176,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // when
         // then
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
+        verify(postCommentRepository, times(0)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
 
@@ -182,6 +196,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // when
         // then
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
+        verify(postCommentRepository, times(0)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
 
@@ -208,7 +224,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // when
         // then
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
+        verify(postCommentRepository, times(0)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
     }
 
 
@@ -236,7 +253,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // when
         // then
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
+        verify(postCommentRepository, times(0)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
     }
 
 
@@ -269,7 +287,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // when
         // then
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
+        verify(postCommentRepository, times(0)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
     }
 
 
@@ -301,7 +320,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // when
         // then
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
+        verify(postCommentRepository, times(0)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
     }
 
 
@@ -333,7 +353,8 @@ public class PostCommentServiceTest extends TestMockCreator {
         // when
         // then
         assertThatThrownBy(() -> postCommentService.createComment(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
+        verify(postCommentRepository, times(0)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
     }
 
 
