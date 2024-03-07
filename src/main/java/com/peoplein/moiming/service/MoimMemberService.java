@@ -1,6 +1,9 @@
 package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.enums.MoimMemberState;
+import com.peoplein.moiming.domain.enums.NotificationSubCategory;
+import com.peoplein.moiming.domain.enums.NotificationTopCategory;
+import com.peoplein.moiming.domain.enums.NotificationType;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
@@ -29,6 +32,7 @@ public class MoimMemberService {
 
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
+    private final NotificationService notificationService;
 
 
     // TODO :: 모임원일 경우, 모임원이 아닐경우에 대한 구분
@@ -56,6 +60,10 @@ public class MoimMemberService {
         MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElse(null);
         moimPs.judgeMemberJoinByRule(moimMemberPs, curMember);
 
+        // 알림을 발생시킨다
+        notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_JOIN, NotificationType.INFORM
+                , moimPs.getCreatorId(), "", "\"" + curMember.getNickname() + "\"님이 모임에 가입하였습니다", moimPs.getId(), null);
+
     }
 
 
@@ -71,6 +79,11 @@ public class MoimMemberService {
         }
 
         moimMember.changeMemberState(IBW);
+
+        // MEMO :: MoimMember 에서 Moim 에 대한 Lazy Loading 발생 시점 (creatorId 조회)
+        // 알림을 발생시킨다
+        notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_IBW, NotificationType.INFORM
+                , moimMember.getMoim().getCreatorId(), "", "\"" + curMember.getNickname() + "\"님이 모임을 탈퇴하였습니다", moimMember.getMoim().getId(), null);
 
     }
 
@@ -102,6 +115,13 @@ public class MoimMemberService {
 
         expelMoimMember.changeMemberState(IBF);
         expelMoimMember.setInactiveReason(requestDto.getInactiveReason());
+
+
+        // MEMO :: MoimMember 에서 Moim 에 대한 Lazy Loading 발생 시점 (moimName 조회)
+        // 알림을 발생시킨다
+        String notiBody = expelMoimMember.getMoim().getMoimName() + "에서 " + requestDto.getInactiveReason() + "의 이유로 탈퇴 처리 되었습니다";
+        notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_IBF, NotificationType.INFORM
+                , expelMoimMember.getMember().getId(), "", notiBody, expelMoimMember.getMoim().getId(), null);
 
     }
 

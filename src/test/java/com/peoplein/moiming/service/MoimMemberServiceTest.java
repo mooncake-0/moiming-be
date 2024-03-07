@@ -29,10 +29,11 @@ public class MoimMemberServiceTest {
     @Mock
     private MoimRepository moimRepository;
 
-
     @Mock
     private MoimMemberRepository moimMemberRepository;
 
+    @Mock
+    private NotificationService notificationService;
 
     // getMoimMembers Test
     // 1. 모임 못찾음
@@ -107,8 +108,10 @@ public class MoimMemberServiceTest {
         // when
         moimMemberService.joinMoim(requestDto, member);
 
-        // then
+        // then - 어떤 값이 전달되는지 아무 신경쓰지 않음
         verify(moim, times(1)).judgeMemberJoinByRule(any(), any());
+        verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
     }
 
 
@@ -121,15 +124,19 @@ public class MoimMemberServiceTest {
         MoimMemberLeaveReqDto requestDto = mock(MoimMemberLeaveReqDto.class);
         Member member = mock(Member.class);
         MoimMember moimMember = mock(MoimMember.class);
+        Moim moim = mock(Moim.class); // Lazy Loading 으로 조회된다
 
         // given - stub
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.ofNullable(moimMember));
+        when(moimMember.getMoim()).thenReturn(moim);
 
         // when
         moimMemberService.leaveMoim(requestDto, member);
 
         // then
         verify(moimMember, times(1)).changeMemberState(any());
+        verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
 
     }
 
@@ -159,12 +166,16 @@ public class MoimMemberServiceTest {
         // given
         MoimMemberExpelReqDto requestDto = mock(MoimMemberExpelReqDto.class);
         MoimMember requestMoimMember = mock(MoimMember.class);
+        Member member = mock(Member.class); // 요청한 멤버
         MoimMember expelMoimMember = mock(MoimMember.class);
-        Member member = mock(Member.class);
+        Member expelMember = mock(Member.class); // 강퇴 대상 멤버
+        Moim moim = mock(Moim.class); // 대상 모임
 
         // given - stub1
         when(member.getId()).thenReturn(1L);
         when(requestDto.getExpelMemberId()).thenReturn(2L);
+        when(expelMoimMember.getMoim()).thenReturn(moim);
+        when(expelMoimMember.getMember()).thenReturn(expelMember);
 
 
         // given - stub
@@ -178,6 +189,7 @@ public class MoimMemberServiceTest {
         // then
         verify(expelMoimMember, times(1)).changeMemberState(any());
         verify(expelMoimMember, times(1)).setInactiveReason(any());
+        verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
 

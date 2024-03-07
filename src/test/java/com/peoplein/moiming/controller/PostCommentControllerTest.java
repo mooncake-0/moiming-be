@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
@@ -10,6 +11,7 @@ import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.support.TestObjectCreator;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,7 @@ import static com.peoplein.moiming.support.TestModelParams.*;
 import static com.peoplein.moiming.support.TestModelParams.moimArea;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.aMapWithSize;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -76,6 +79,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty());
         resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
         resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+
+        // then - Notification 생성 확인 (게시물 생성자에게)
+        Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", testMoimPost.getMember().getId())
+                .getSingleResult();
+        assertNotNull(notification);
+
     }
 
 
@@ -107,6 +117,116 @@ public class PostCommentControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty());
         resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
         resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+
+        // then - Notification 생성 확인 (댓글 생성자에게)
+        Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", parentComment.getMember().getId())
+                .getSingleResult();
+        assertNotNull(notification);
+
+    }
+
+
+    // Post Comment 생성 요청 - Normal Comment 인데 게시물 생성자가 활동중이 아님 (작성되지만 알림은 안간다)
+    @Test
+    void createComment_shouldReturn200_whenNormalCommentByMoimMemberButPostCreatorNotActive() throws Exception {
+
+        // given
+        MoimPost inactiveMemberPost = makeMoimPost(testMoim, inactiveMember, MoimPostCategory.NOTICE, false);
+        em.persist(inactiveMemberPost);
+        em.flush();
+        em.clear();
+
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(inactiveMemberPost.getId(), null, 0);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_POST_COMMENT_CREATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.commentId").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.content").value(requestDto.getContent()));
+        resultActions.andExpect(jsonPath("$.data.depth").value(requestDto.getDepth()));
+        resultActions.andExpect(jsonPath("$.data.parentId").value(requestDto.getParentId()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+
+        // then - Notification 생성 확인 (게시물 생성자가 활동중이 아니므로 알림이 발생하지 않음)
+        List<Notification> notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", testMoimPost.getMember().getId())
+                .getResultList();
+        assertTrue(notification.isEmpty());
+
+    }
+
+
+    // Post Comment 생성 요청 - Reply Comment 인데 댓글 작성자가 활동중이 아님
+    @Test
+    void createComment_shouldReturn200_whenReplyCommentByMoimMemberButParentCommentCreatorNotActive() throws Exception {
+
+        // given
+        PostComment parentComment = makePostComment(inactiveMember, testMoimPost, 0, null); // INACTIVE 한 유저의 댓글
+        em.persist(parentComment);
+        em.flush();
+        em.clear();
+
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), parentComment.getId(), 1);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_POST_COMMENT_CREATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.commentId").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.content").value(requestDto.getContent()));
+        resultActions.andExpect(jsonPath("$.data.depth").value(requestDto.getDepth()));
+        resultActions.andExpect(jsonPath("$.data.parentId").value(requestDto.getParentId()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+
+        // then - Notification 생성 확인 (댓글 생성자는 비활동중이므로 알림이 발생하지 않음 확인)
+        List<Notification> notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", parentComment.getMember().getId())
+                .getResultList();
+        assertTrue(notification.isEmpty());
+
+    }
+
+
+    // Post Comment 중 답글 생성 요청인데, 부모라고 보낸 글이 댓글이 아니라 답글이였음 (2차 이상 답글 생성 시도)
+    @Test
+    void createComment_shouldReturn422_whenTrialToReplyOnChildComment_byMoimingApiException() throws Exception {
+
+        // given
+        PostComment parentComment = makePostComment(moimCreator, testMoimPost, 0, null);
+        PostComment childComment = makePostComment(moimMember, testMoimPost, 1, parentComment);
+        em.persist(parentComment);
+        em.persist(childComment);
+        em.flush();
+        em.clear();
+
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), childComment.getId(), 1); // child 댓글이 부모라고 들어가지게 됨
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_POST_COMMENT_CREATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_POST_COMMENT_NOT_PARENT.getErrCode()));
 
     }
 

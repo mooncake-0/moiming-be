@@ -1,5 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
+import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimRepository;
@@ -29,7 +30,7 @@ public class MoimJpaRepository implements MoimRepository {
     private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
-    private void checkIllegalQueryParams(Object ... objs) {
+    private void checkIllegalQueryParams(Object... objs) {
         for (Object obj : objs) {
             if (Objects.isNull(obj)) {
                 throw new InvalidQueryParameterException("쿼리 파라미터는 NULL 일 수 없습니다");
@@ -91,6 +92,20 @@ public class MoimJpaRepository implements MoimRepository {
                         .where(moim.id.eq(moimId))
                         .fetchOne()
         );
+    }
+
+
+    // Moim List 조회가 아니므로 distinct 도 필요 없음
+    // MOIM 에 대한 MoimMember EAGER 조회
+    @Override
+    public Optional<Moim> findWithActiveMoimMembersById(Long moimId) {
+
+        return Optional.ofNullable(queryFactory.selectFrom(moim)
+                .join(moim.moimMembers, moimMember).fetchJoin()
+                .where(moim.id.eq(moimId),
+                        moimMember.memberState.eq(MoimMemberState.ACTIVE))
+                .fetchOne());
+
     }
 
 

@@ -3,6 +3,7 @@ package com.peoplein.moiming.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
+import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.*;
@@ -13,6 +14,7 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,7 @@ import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -120,7 +123,17 @@ public class MoimPostControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.commentCnt").value(0));
         resultActions.andExpect(jsonPath("$.data.createdAt").exists());
 
+        // then notification 생성 확인 - moimMember 가 만들었으니 다른 모임원인 creator 에게 알림이 감
+        Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", testMoim.getCreatorId())
+                .getSingleResult();
+        assertNotNull(notification);
 
+        // then notification 생성 확인 - moimMember 가 만들었으니 moimMember 에겐 안감
+        List<Notification> notification2 = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", moimMember.getId())
+                .getResultList();
+        assertTrue(notification2.isEmpty());
     }
 
 
@@ -266,7 +279,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals)) // " " 으로 moimId 제공
                 .param("lastPostId", samplePost.getId() + "") // 해당값 이후로 출력한다
-                .param("category", category + "")
+                .param("category", category.getValue())
                 .param("limit", limit + "")
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();

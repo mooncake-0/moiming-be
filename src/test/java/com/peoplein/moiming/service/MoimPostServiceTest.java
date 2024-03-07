@@ -10,6 +10,7 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
+import com.peoplein.moiming.repository.MoimRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +19,9 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
@@ -35,6 +38,8 @@ public class MoimPostServiceTest {
     private MoimPostService moimPostService;
 
     @Mock
+    private MoimRepository moimRepository;
+    @Mock
     private MoimMemberRepository moimMemberRepository;
 
     @Mock
@@ -49,27 +54,38 @@ public class MoimPostServiceTest {
     @Mock
     private PostCommentRepository postCommentRepository;
 
+    @Mock
+    private NotificationService notificationService;
 
     @Test
     void createMoimPost_shouldPass_whenRightInfoPassed() {
 
         try (MockedStatic<MoimPost> mocker = mockStatic(MoimPost.class)) {
+
             // given
             Member member = mock(Member.class);
-            MoimMember moimMember = mock(MoimMember.class);
+            MoimMember moimMember = mock(MoimMember.class); // 게시물 작성자
             MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
+            Moim moim = mock(Moim.class);
+            MoimPost createdPost = mock(MoimPost.class);
 
             // given - stub
             when(moimMember.getMemberState()).thenReturn(MoimMemberState.ACTIVE);
+            when(moimRepository.findWithActiveMoimMembersById(any())).thenReturn(Optional.of(moim));
             when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+            when(moim.getMoimMembers()).thenReturn(List.of(moimMember)); // 로직상 게시물 작성자는 있는데, 그 외는 신경 안쓴다
+            when(member.getId()).thenReturn(1L);
+            when(moimMember.getMember()).thenReturn(member); // 게시물 작성자가 모임원임
             mocker.when(() -> MoimPost.createMoimPost(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
-                    .thenReturn(null); // 해당 결과는 상관 없다는 것을 지칭
+                    .thenReturn(createdPost); // 목 객체를 생성만 한다
+
 
             // when
             moimPostService.createMoimPost(requestDto, member);
 
             // then
             verify(moimPostRepository, times(1)).save(any());
+            verify(notificationService, times(1)).createManyNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
         }
     }

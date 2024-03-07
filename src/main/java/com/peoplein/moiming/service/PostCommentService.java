@@ -1,5 +1,8 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.domain.enums.NotificationSubCategory;
+import com.peoplein.moiming.domain.enums.NotificationTopCategory;
+import com.peoplein.moiming.domain.enums.NotificationType;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.MoimPost;
@@ -12,8 +15,8 @@ import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,9 +32,9 @@ import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 public class PostCommentService {
 
     private final MoimPostRepository moimPostRepository;
-    private final MoimMemberService moimMemberService;
     private final PostCommentRepository postCommentRepository;
     private final MoimMemberRepository moimMemberRepository;
+    private final NotificationService notificationService;
 
 
     public PostComment createComment(PostCommentCreateReqDto requestDto, Member member) {
@@ -49,7 +52,28 @@ public class PostCommentService {
         PostComment comment = PostComment.createPostComment(requestDto.getContent(), member, moimPost,
                 requestDto.getDepth(), getParentCommentByReqDto(requestDto.getDepth(), requestDto.getParentId()));
 
+        // Comment 종류에 따른 알림 생성
+        NotificationSubCategory subCategory = NotificationSubCategory.COMMENT_CREATE;
+        Member notificationReceiver = moimPost.getMember();
+        String notiBody = moimPost.getPostTitle() + "에 새로운 댓글이 등록되었습니다";
+        if (comment.getDepth() == 1) {
+            subCategory = NotificationSubCategory.CHILD_COMMENT_CREATE;
+            notificationReceiver = comment.getParent().getMember();
+            notiBody = moimPost.getPostTitle() + "에 남긴 댓글에 새로운 답글이 등록되었습니다";
+        }
+
         postCommentRepository.save(comment);
+
+        // ACTIVE 한 구성원일시 알림을 전달한다
+        MoimMember receiverStatus = moimMemberRepository.findByMemberAndMoimId(notificationReceiver.getId(), moimPost.getMoim().getId()).orElseThrow(() -> {
+                    log.error("{}, createComment :: {}", this.getClass().getName(), "알림 대상자의 모임 이력을 찾을 수 없음, 발생하지 않는 상황 : C999");
+                    return new MoimingApiException(COMMON_INVALID_SITUATION);
+        });
+
+        if (receiverStatus.hasActivePermission()) { // 현재 활동중인 모임원 아니면 알림 안보냄
+            notificationService.createNotification(NotificationTopCategory.MOIM, subCategory, NotificationType.INFORM
+                    , notificationReceiver.getId(), "", notiBody, moimPost.getMoim().getId(), moimPost.getId());
+        }
 
         return comment;
     }
@@ -121,10 +145,17 @@ public class PostCommentService {
 
         PostComment parentComment = null;
 
+        // 답글이 아니라 댓글이라 parent 가 없을 경우 0, null 로 전달됨 // if 문을 타지 않고 NULL 로 반환된다
         if (depth != 0 && parentId != null) { // 답글임
 
             parentComment = postCommentRepository.findById(parentId)
                     .orElseThrow(() -> new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)); //답글로 전달되었으나 부모 댓글을 찾을 수 없음 (리소스를 찾을 수 없다)
+
+            // 부모가 depth 가 0 이 아닌경우
+            if (parentComment.getDepth() != 0) {
+                log.info("{}, getParentCommentByReqDto :: {}", this.getClass().getName(), "답글에 답글 생성 시도");
+                throw new MoimingApiException(MOIM_POST_COMMENT_NOT_PARENT);
+            }
 
         } else if (depth != 0 || parentId != null) {
 

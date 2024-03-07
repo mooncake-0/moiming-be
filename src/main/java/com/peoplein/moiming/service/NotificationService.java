@@ -1,90 +1,104 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.member.Member;
-import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.Notification;
-import com.peoplein.moiming.domain.enums.NotificationDomain;
-import com.peoplein.moiming.domain.enums.NotificationDomainCategory;
-import com.peoplein.moiming.model.inner.NotificationInput;
+import com.peoplein.moiming.domain.enums.NotificationSubCategory;
+import com.peoplein.moiming.domain.enums.NotificationTopCategory;
+import com.peoplein.moiming.domain.enums.NotificationType;
+import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.NotificationRepository;
-import com.peoplein.moiming.service.shell.NotificationServiceShell;
-import com.peoplein.moiming.service.support.FcmService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import static com.peoplein.moiming.exception.ExceptionValue.*;
+
+
+@Slf4j
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class NotificationService {
 
-    private final FcmService fcmService;
     private final NotificationRepository notificationRepository;
-    private final NotificationServiceShell notificationServiceShell;
 
-    public NotificationService(FcmService fcmService, NotificationRepository notificationRepository, NotificationServiceShell notificationServiceShell) {
-        this.fcmService = fcmService;
-        this.notificationRepository = notificationRepository;
-        this.notificationServiceShell = notificationServiceShell;
-    }
+    @Transactional
+    public void createNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
+            , Long receiverId, String title, String body, Long topCategoryId, Long subCategoryId) {
 
-    public void viewAllNotification(Member curMember) {
-
-
-    }
-
-    //
-    public void createNotification(NotificationInput notificationInput, Member receiver) {
-
-        // 1. 수신된 notificationDto 를 가지고 어떤 noti 인지 파악한다
-        List<String> info = buildTitleAndBody(notificationInput);
-
-        // 2. Notification Entity 를 만들어 저장한다
-        Notification notification = Notification.createNotification(notificationInput.getSenderId()
-                , info.get(0), info.get(1)
-                , notificationInput.getDomainId(), notificationInput.getNotiDomain(), notificationInput.getNotiDomainCategory()
-                , receiver);
-
-        notificationRepository.save(notification);
-
-        // 3. FCM 을 생성하여 전송한다
-        fcmService.sendSingleMessageTo(notification.getMember().getFcmToken()
-                , notification.getNotiTitle()
-                , notification.getNotiBody());
-
-        // 종료
-    }
-
-
-    // Noti 에 대한 정보를 토대로 제목과 내용을 작성한다
-    private List<String> buildTitleAndBody(NotificationInput notificationInput) {
-
-        List<String> res = new ArrayList<>();
-
-        String title = "";
-        String body = "";
-
-        // NotificationDomain 과 Category 에 다른 종류별 MSG BUILD
-        if (notificationInput.getNotiDomain().equals(NotificationDomain.MOIM)) {
-
-            notificationServiceShell.initMoim(notificationInput.getDomainId());
-            Moim moim = notificationServiceShell.getMoim();
-
-            if (notificationInput.getNotiDomainCategory().equals(NotificationDomainCategory.MOIM_NEW_MEMBER)) {
-                title = "모임 가입 수락 알림";
-                body = moim.getMoimName() + " 모임에서 가입을 수락하였습니다. 지금 바로 모임활동에 참여해보세요";
-            }
-
-            if (notificationInput.getNotiDomainCategory().equals(NotificationDomainCategory.MOIM_DECLINE_MEMBER)) {
-                title = "모임 가입 거절 알림";
-                body = moim.getMoimName() + " 모임에서 가입을 거절하였습니다. 거절 사유를 확인해보세요";
-            }
+        if (topCategory == null || subCategory == null || type == null || receiverId == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        res.add(title);
-        res.add(body);
+        Notification notification = Notification.createNotification(topCategory, subCategory, type, receiverId, title, body, topCategoryId, subCategoryId);
+        notificationRepository.save(notification);
 
-        return res;
+        // TODO :: FCM 관련 처리
     }
+
+
+    // TODO :: FCM 다량 요청 확인 후 점검
+    @Transactional
+    public void createManyNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
+            , List<Member> receivers, String title, String body, Long topCategoryId, Long subCategoryId) {
+        for (Member receiver : receivers) {
+            Long receiverId = receiver.getId(); // Member Id 들을 가져온다
+            Notification notification = Notification.createNotification(topCategory, subCategory, type, receiverId, title, body, topCategoryId, subCategoryId);
+            notificationRepository.save(notification);
+        }
+
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<Notification> getMemberNotification(Member member, NotificationTopCategory topCategory, String moimType, Long lastNotificationId, int limit) {
+
+        if (member == null || topCategory == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+
+        Notification lastNotification = null;
+        if (lastNotificationId != null) {
+            lastNotification = notificationRepository.findById(lastNotificationId).orElseThrow(() -> {
+                        log.info("{}, getMemberNotification :: {}", this.getClass().getName(), "[" + member.getId() + "]의 알림 조회 중 존재하지 않는 이전 알림 조회");
+                        return new MoimingApiException(MEMBER_NOTIFICATION_NOT_FOUND);
+                    }
+            );
+        }
+
+        return notificationRepository.findMemberNotificationByCondition(member.getId(), topCategory, moimType, lastNotification, limit);
+
+        // TODO :: 모임의 이미지들이 필요하다. Notification 의 subCategory Id 로 Moim Img 를 가져오든, 아니면 위 쿼리에서 병합해서 가져오든 해야 할 듯 하다
+        //         쿼리 병합은 안좋은 생각인듯. 응답에 어떤 Value 들이 추가될 지 모르니, 그냥 Moim 을 모두 조회 후 외부로 전달하는게 적합해 보인다
+    }
+
+
+    @Transactional
+    public void deleteNotification(Member member, Long notificationId) {
+
+        if (member == null || notificationId == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        // notificationId 조회 우선
+        Notification notification = notificationRepository.findById(notificationId).orElseThrow(() -> {
+                    log.info("{}, deleteNotification :: {}", this.getClass().getName(), "[" + member.getId() + "]의 알림 삭제 중 존재하지 않는 알림 조회");
+                    return new MoimingApiException(MEMBER_NOTIFICATION_NOT_FOUND);
+                }
+        );
+
+        // 권한 확인
+        if (!notification.getReceiverId().equals(member.getId())) {
+            log.error("{}, deleteNotification :: {}", this.getClass().getName(), "[" + member.getId() + "]의 본인 소유가 아닌 알림 삭제 시도");
+            throw new MoimingApiException(MEMBER_NOT_AUTHORIZED);
+        }
+
+        notificationRepository.remove(notification);
+    }
+
 }

@@ -1,8 +1,9 @@
 package com.peoplein.moiming.domain;
 
 
-import com.peoplein.moiming.domain.enums.NotificationDomain;
-import com.peoplein.moiming.domain.enums.NotificationDomainCategory;
+import com.peoplein.moiming.domain.enums.NotificationSubCategory;
+import com.peoplein.moiming.domain.enums.NotificationTopCategory;
+import com.peoplein.moiming.domain.enums.NotificationType;
 import com.peoplein.moiming.domain.member.Member;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,47 +22,51 @@ public class Notification extends BaseEntity {
     @GeneratedValue
     @Column(name = "notification_id")
     private Long id;
-    private Long senderId;    // 알림을 보낸 유저의 ID
-    private boolean isRead;
-    private String notiTitle;
-    private String notiBody;
-    private Long domainId;
 
+    private Long receiverId;   // 연관관계를 거는게 오히려 저장할 때 불필요한 쿼리 발생 가능성, 인덱스 두는게 좋을 듯 (Member 단에서 많이 사용할듯)
+
+    private boolean hasRead;
+
+    private String title;
+
+    private String body;
+
+    private Long topCategoryId;
+
+    private Long subCategoryId; // SUB CATEGORY 는 게시글까지임
+
+    // 대분류
     @Enumerated(value = EnumType.STRING)
-    private NotificationDomain notiDomain;
+    private NotificationTopCategory topCategory;
+
+    // 중분류
     @Enumerated(value = EnumType.STRING)
-    private NotificationDomainCategory notiCategory;
+    private NotificationSubCategory subCategory;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+    // 푸쉬 타입
+    @Enumerated(value = EnumType.STRING)
+    private NotificationType type;
 
-    public static Notification createNotification(Long senderId, String notiTitle, String notiBody, Long domainId, NotificationDomain notiDomain, NotificationDomainCategory notiCategory, Member member) {
 
-        Notification notification = new Notification(senderId,  notiTitle, notiBody, domainId, notiDomain, notiCategory, member);
+    public static Notification createNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
+            , Long receiverId, String title, String body, Long topCategoryId, Long subCategoryId) {
 
-        return notification;
+        return new Notification(topCategory, subCategory, type, receiverId, title, body, topCategoryId, subCategoryId);
+
     }
 
-    private Notification(Long senderId, String notiTitle, String notiBody, Long domainId, NotificationDomain notiDomain, NotificationDomainCategory notiCategory, Member member) {
 
-        // NULL 조건 추가 검증 필요
+    private Notification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
+             , Long receiverId, String title, String body, Long topCategoryId, Long subCategoryId) {
 
-        this.senderId = senderId;
-        this.notiTitle = notiTitle;
-        this.notiBody = notiBody;
-        this.domainId = domainId;
-        this.notiDomain = notiDomain;
-        this.notiCategory = notiCategory;
-
-        /*
-         초기화
-         */
-        this.isRead = false;
-
-        /*
-         연관관계 매핑
-         */
-        this.member = member;
+        this.topCategory = topCategory;
+        this.subCategory = subCategory;
+        this.type = type;
+        this.receiverId = receiverId;
+        this.title = title;
+        this.body = body;
+        this.topCategoryId = topCategoryId;
+        this.subCategoryId = subCategoryId;
+        this.hasRead = false;
     }
 }

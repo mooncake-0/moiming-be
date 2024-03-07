@@ -16,6 +16,7 @@ import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -79,11 +80,15 @@ public class MoimPostController {
     @GetMapping(PATH_MOIM_POST_GET_VIEW)
     public ResponseEntity<?> getMoimPosts(@PathVariable(name = "moimId") Long moimId
             , @RequestParam(required = false, value = "lastPostId") Long lastPostId
-            , @RequestParam(required = false, value = "category") MoimPostCategory category
+            , @RequestParam(required = false, value = "category") String category
             , @RequestParam(required = false, defaultValue = "20") int limit
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        StateMapperDto<MoimPost> stateMapper = moimPostService.getMoimPosts(moimId, lastPostId, category, limit, principal.getMember());
+        MoimPostCategory moimPostCategory = null;
+        if (StringUtils.hasText(category)) {
+            moimPostCategory = MoimPostCategory.fromQueryParam(category);
+        }
+        StateMapperDto<MoimPost> stateMapper = moimPostService.getMoimPosts(moimId, lastPostId, moimPostCategory, limit, principal.getMember());
         List<MoimPost> moimPosts = stateMapper.getEntities();
         checkToChangePostCreatorInfo(moimPosts, stateMapper.getStateMapper());
 
@@ -97,7 +102,7 @@ public class MoimPostController {
 
     @ApiOperation("게시물 세부 조회 - Post 의 모든 정보와 Comment 들이 전달 / ParentComment 는 일반 댓글 List 로, 최신순 정렬되어 있다")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESSibf_TOKEN}", required = true, paramType = "header")
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
     @ApiResponses({
             @ApiResponse(code = 200, message = "게시물 세부 조회 성공", response = MoimPostDetailViewRespDto.class),
