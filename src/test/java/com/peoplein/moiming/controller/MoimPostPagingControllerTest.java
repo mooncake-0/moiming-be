@@ -187,7 +187,7 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
-                .param("category", MoimPostCategory.EXTRA.toString())
+                .param("category", MoimPostCategory.EXTRA.getValue())
                 .header(HEADER, PREFIX + accessToken));
 
         // then
@@ -306,7 +306,7 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
-                .param("category", MoimPostCategory.EXTRA.toString())
+                .param("category", MoimPostCategory.EXTRA.getValue())
                 .param("lastPostId", post10.getId() + "")
                 .header(HEADER, PREFIX + accessToken));
 
@@ -364,7 +364,7 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
-                .param("category", MoimPostCategory.GREETING.toString())
+                .param("category", MoimPostCategory.GREETING.getValue())
                 .header(HEADER, PREFIX + accessToken));
 
         // then

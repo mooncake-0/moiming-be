@@ -51,22 +51,29 @@ public class PostCommentServiceTest extends TestMockCreator {
 
         // given
         PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
-        Member member = mock(Member.class);
-        MoimPost moimPost = mock(MoimPost.class);
-        MoimMember moimMember = mock(MoimMember.class);
-        Moim moim = mock(Moim.class);
+        Member member = mock(Member.class); // 요청자
+        when(member.getId()).thenReturn(11L);
+        MoimMember moimMember = mock(MoimMember.class); // 요청자 권한
+        MoimPost moimPost = mock(MoimPost.class); // 생성 게시물
+        Moim moim = mock(Moim.class); // 게시물이 속한 모임
+        Member postCreator = mock(Member.class);
+        when(postCreator.getId()).thenReturn(22L); // 위와 다름을 명시하기 위해 지정
+        MoimMember postCreatorStatus = mock(MoimMember.class);
 
         // given - stub
         when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        // 두개니까 지칭 필요
+        when(moimMemberRepository.findByMemberAndMoimId(eq(11L), any())).thenReturn(Optional.of(moimMember)); // 요청하는자 확인
+        when(moimMemberRepository.findByMemberAndMoimId(eq(22L), any())).thenReturn(Optional.of(postCreatorStatus)); // 댓글을 남기려는 자 확인
         when(moimMember.hasActivePermission()).thenReturn(true);
+        when(postCreatorStatus.hasActivePermission()).thenReturn(true);
         when(moimPost.getMoim()).thenReturn(moim);
-        when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
+        when(moimPost.getMember()).thenReturn(postCreator);
+        when(moim.getId()).thenReturn(33L); // 아무거나 상관 없음
 
         // given - stub - 1차 댓글이 전달된다
         when(requestDto.getDepth()).thenReturn(0);
         when(requestDto.getParentId()).thenReturn(null);
-        when(moimPost.getMember()).thenReturn(mock(Member.class)); // 1차 댓글일 경우 게시물 생성자에게 알림을 전달한다
 
         // when
         postCommentService.createComment(requestDto, member);
@@ -75,6 +82,44 @@ public class PostCommentServiceTest extends TestMockCreator {
         verify(postCommentRepository, times(1)).save(any());
         verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
+    }
+
+
+    @Test
+    void createComment_shouldPassAndNotCreateNotification_whenNormalCommentPassedButCreatorNotActive() {
+
+        // given
+        PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
+        Member member = mock(Member.class); // 요청자
+        when(member.getId()).thenReturn(11L);
+        MoimMember moimMember = mock(MoimMember.class); // 요청자 권한
+        MoimPost moimPost = mock(MoimPost.class); // 생성 게시물
+        Moim moim = mock(Moim.class); // 게시물이 속한 모임
+        Member postCreator = mock(Member.class);
+        when(postCreator.getId()).thenReturn(22L); // 위와 다름을 명시하기 위해 지정
+        MoimMember postCreatorStatus = mock(MoimMember.class);
+
+        // given - stub
+        when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
+        // 두개니까 지칭 필요
+        when(moimMemberRepository.findByMemberAndMoimId(eq(11L), any())).thenReturn(Optional.of(moimMember)); // 요청하는자 확인
+        when(moimMemberRepository.findByMemberAndMoimId(eq(22L), any())).thenReturn(Optional.of(postCreatorStatus)); // 댓글을 남기려는 자 확인
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(postCreatorStatus.hasActivePermission()).thenReturn(false);
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moimPost.getMember()).thenReturn(postCreator);
+        when(moim.getId()).thenReturn(33L); // 아무거나 상관 없음
+
+        // given - stub - 1차 댓글이 전달된다
+        when(requestDto.getDepth()).thenReturn(0);
+        when(requestDto.getParentId()).thenReturn(null);
+
+        // when
+        postCommentService.createComment(requestDto, member);
+
+        // then
+        verify(postCommentRepository, times(1)).save(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
 
@@ -84,26 +129,32 @@ public class PostCommentServiceTest extends TestMockCreator {
 
         // given
         PostCommentCreateReqDto requestDto = mock(PostCommentCreateReqDto.class);
-        Member member = mock(Member.class);
+        Member member = mock(Member.class); // 요청자
         MoimPost moimPost = mock(MoimPost.class);
         MoimMember moimMember = mock(MoimMember.class);
         PostComment parentComment = mock(PostComment.class);
+        Member parentCommentCreator = mock(Member.class); // 댓글 생성자
+        MoimMember parentCommentCreatorStatus = mock(MoimMember.class);
         Moim moim = mock(Moim.class);
+
+        when(parentComment.getMember()).thenReturn(parentCommentCreator);
+        when(member.getId()).thenReturn(11L); // 요청자
+        when(parentCommentCreator.getId()).thenReturn(22L);
 
         // given - stub
         when(moimPostRepository.findById(any())).thenReturn(Optional.of(moimPost));
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMemberRepository.findByMemberAndMoimId(eq(11L), any())).thenReturn(Optional.of(moimMember));// 요청자 권한
+        when(moimMemberRepository.findByMemberAndMoimId(eq(22L), any())).thenReturn(Optional.of(parentCommentCreatorStatus));// 수신자 권한
+
         when(moimMember.hasActivePermission()).thenReturn(true);
+        when(parentCommentCreatorStatus.hasActivePermission()).thenReturn(true); // 알림이 발생할 것임
         when(moimPost.getMoim()).thenReturn(moim);
-        when(moim.getId()).thenReturn(21234L); // 아무거나 상관 없음
+        when(moim.getId()).thenReturn(33L); // 아무거나 상관 없음
 
         // given - stub - 댓글에 대한 답글임이 전달
         when(requestDto.getDepth()).thenReturn(1);
         when(requestDto.getParentId()).thenReturn(1L); // any
-        when(moimPost.getMember()).thenReturn(mock(Member.class)); // 게시물 생성자를 우선 매핑해준다
-        when(parentComment.getMember()).thenReturn(mock(Member.class)); // 부모 댓글 생성자를 매핑해준다 // comment 는 실제 만들어지고 parentComment 로 실제 매핑되어 생성되기 때문에, 이렇게 넣어주면 됨
         when(postCommentRepository.findById(any())).thenReturn(Optional.of(parentComment));
-
 
         // when
         postCommentService.createComment(requestDto, member);

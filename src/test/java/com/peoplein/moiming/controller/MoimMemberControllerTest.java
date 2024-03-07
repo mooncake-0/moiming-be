@@ -2,6 +2,7 @@ package com.peoplein.moiming.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.enums.RoleType;
@@ -258,6 +259,12 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         assertThat(testMoimMember.get().getMemberState()).isEqualTo(ACTIVE); // 가입이 된다
         assertThat(testMoimMember.get().getMoim().getCurMemberCount()).isEqualTo(3);
 
+        // then - 알림 생성 확인 필요 - 모임 생성자
+        Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", testMoim1.getCreatorId())
+                .getSingleResult();
+        assertNotNull(notification);
+
     }
 
 
@@ -291,6 +298,11 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         assertThat(testMoimMember.get().getMemberState()).isEqualTo(ACTIVE); // 가입이 된다
         assertThat(testMoimMember.get().getMoim().getCurMemberCount()).isEqualTo(3);
 
+        // then - 알림 생성 확인 필요 - 모임 생성자
+        Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", testMoim1.getCreatorId())
+                .getSingleResult();
+        assertNotNull(notification);
     }
 
 
@@ -449,6 +461,11 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         assertThat(moimMemberOp.get().getMemberState()).isEqualTo(IBW);
         assertThat(moimMemberOp.get().getMoim().getCurMemberCount()).isEqualTo(1);
 
+        // then - 알림 생성 확인 필요 - 모임 생성자
+        Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", testMoim1.getCreatorId())
+                .getSingleResult();
+        assertNotNull(notification);
     }
 
 
@@ -471,6 +488,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isNotFound());
         resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
+
 
     }
 
@@ -562,6 +580,18 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         assertThat(moimMemberOp.get().getMemberState()).isEqualTo(IBF);
         assertThat(moimMemberOp.get().getInactiveReason()).isEqualTo(inactiveReason);
         assertThat(moimMemberOp.get().getMoim().getCurMemberCount()).isEqualTo(1);
+
+        // then - 알림 생성 확인 필요 - 모임 생성자는 아무 알림이 오지 않았다
+        List<Notification> notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", testMoim1.getCreatorId())
+                .getResultList();
+        assertTrue(notification.isEmpty());
+
+        // then - 강퇴 당한 사람은 알림이 발생하였다
+        Notification notification2 = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", testMember2.getId())
+                .getSingleResult();
+        assertNotNull(notification2);
 
     }
 

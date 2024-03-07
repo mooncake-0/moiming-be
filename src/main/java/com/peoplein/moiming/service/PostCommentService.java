@@ -15,8 +15,8 @@ import com.peoplein.moiming.repository.PostCommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,7 +32,6 @@ import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 public class PostCommentService {
 
     private final MoimPostRepository moimPostRepository;
-    private final MoimMemberService moimMemberService;
     private final PostCommentRepository postCommentRepository;
     private final MoimMemberRepository moimMemberRepository;
     private final NotificationService notificationService;
@@ -55,18 +54,26 @@ public class PostCommentService {
 
         // Comment 종류에 따른 알림 생성
         NotificationSubCategory subCategory = NotificationSubCategory.COMMENT_CREATE;
-        Long receiverId = moimPost.getMember().getId();
+        Member notificationReceiver = moimPost.getMember();
         String notiBody = moimPost.getPostTitle() + "에 새로운 댓글이 등록되었습니다";
         if (comment.getDepth() == 1) {
             subCategory = NotificationSubCategory.CHILD_COMMENT_CREATE;
-            receiverId = comment.getParent().getMember().getId();
+            notificationReceiver = comment.getParent().getMember();
             notiBody = moimPost.getPostTitle() + "에 남긴 댓글에 새로운 답글이 등록되었습니다";
         }
 
-        notificationService.createNotification(NotificationTopCategory.MOIM, subCategory, NotificationType.INFORM
-                , receiverId, "", notiBody, moimPost.getMoim().getId(), moimPost.getId());
-
         postCommentRepository.save(comment);
+
+        // ACTIVE 한 구성원일시 알림을 전달한다
+        MoimMember receiverStatus = moimMemberRepository.findByMemberAndMoimId(notificationReceiver.getId(), moimPost.getMoim().getId()).orElseThrow(() -> {
+                    log.error("{}, createComment :: {}", this.getClass().getName(), "알림 대상자의 모임 이력을 찾을 수 없음, 발생하지 않는 상황 : C999");
+                    return new MoimingApiException(COMMON_INVALID_SITUATION);
+        });
+
+        if (receiverStatus.hasActivePermission()) { // 현재 활동중인 모임원 아니면 알림 안보냄
+            notificationService.createNotification(NotificationTopCategory.MOIM, subCategory, NotificationType.INFORM
+                    , notificationReceiver.getId(), "", notiBody, moimPost.getMoim().getId(), moimPost.getId());
+        }
 
         return comment;
     }
