@@ -10,6 +10,7 @@ public enum ExceptionValue {
     COMMON_INVALID_REQUEST_PARAM(HttpStatus.BAD_REQUEST.value(), "C002", "필수 QueryParameter 가 누락 혹은 잘못되었습니다"),
     COMMON_FORBIDDEN_WORDS_FOUND(HttpStatus.BAD_REQUEST.value(), "C003", "허용되지 않은 용어가 포함되어 있습니다"),
     COMMON_UPDATE_REQUEST_FAILED(HttpStatus.BAD_REQUEST.value(), "C004", "데이터 수정 요청에서 아무 데이터가 수정되지 않았습니다"),
+    COMMON_MAPPABLE_ENUM_VALUE(HttpStatus.BAD_REQUEST.value(), "C005", "인 앱에서 활용중인 고정값을 매핑할 수 없습니다"),
     COMMON_INVALID_SITUATION(HttpStatus.UNPROCESSABLE_ENTITY.value(), "C999", "잘못된 상황이 발생했습니다. 로그를 확인하세요"),
 
     // SEARCH DOMAIN

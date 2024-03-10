@@ -4,7 +4,7 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.exception.MoimingApiException;
-import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
+import com.peoplein.moiming.model.dto.inner.AppCategoryDto;
 import com.peoplein.moiming.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
-import static com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto.*;
 
 @Slf4j
 @Service
@@ -24,7 +23,6 @@ import static com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto.*;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-
 
 
     // String Category Value --> Category 로 최종적으로 반환해준다
@@ -44,7 +42,6 @@ public class CategoryService {
 
 
     public AppCategoryDto getAllCategories() {
-
 
         List<Category> parentCategories = new ArrayList<>();
         Map<Long, List<Category>> childCategoryMap = new HashMap<>();

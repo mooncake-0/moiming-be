@@ -143,7 +143,7 @@ public class NotificationControllerTest extends TestObjectCreator {
 
     // 실패 - topCategory Query Param 잘못됨
     @Test
-    void getMemberNotification_shouldReturn422WithResponse_whenTopCategoryNotTransferred_byMoimingApiException() throws Exception {
+    void getMemberNotification_shouldReturn400WithResponse_whenTopCategoryNotTransferred_byMoimingApiException() throws Exception {
 
         // given
         dataSu();
@@ -156,8 +156,8 @@ public class NotificationControllerTest extends TestObjectCreator {
                 .param("limit", "20"));
 
         // then
-        resultAction.andExpect(status().isUnprocessableEntity());
-        resultAction.andExpect(jsonPath("$.code").value(COMMON_INVALID_SITUATION.getErrCode()));
+        resultAction.andExpect(status().isBadRequest());
+        resultAction.andExpect(jsonPath("$.code").value(COMMON_INVALID_REQUEST_PARAM.getErrCode()));
 
     }
 

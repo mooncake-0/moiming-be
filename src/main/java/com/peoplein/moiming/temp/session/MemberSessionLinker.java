@@ -2,7 +2,7 @@
 //
 //
 //import com.peoplein.moiming.domain.member.Member;
-//import com.peoplein.moiming.domain.enums.MemberSessionState;
+//import com.peoplein.moiming.temp.MemberSessionState;
 //import com.peoplein.moiming.domain.enums.SessionCategoryType;
 //import lombok.AccessLevel;
 //import lombok.Getter;

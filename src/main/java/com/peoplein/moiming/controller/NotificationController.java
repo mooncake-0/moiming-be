@@ -54,7 +54,7 @@ public class NotificationController {
             throw new MoimingApiException(ExceptionValue.COMMON_INVALID_REQUEST_PARAM);
         }
 
-        NotificationTopCategory category = NotificationTopCategory.fromValue(topCategory);
+        NotificationTopCategory category = NotificationTopCategory.fromQueryParam(topCategory);
         List<Notification> memberNotifications = notificationService.getMemberNotification(principal.getMember(), category, moimType, lastNotificationId, limit);
         List<MemberNotificationRespDto> responseBody = memberNotifications.stream().map(MemberNotificationRespDto::new).collect(Collectors.toList());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "알림 일반 조회 성공", responseBody));
@@ -74,7 +74,7 @@ public class NotificationController {
     public ResponseEntity<?> deleteNotification(@PathVariable Long notificationId
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
         notificationService.deleteNotification(principal.getMember(), notificationId);
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "알림 일반 조회 성공", null));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "알림 삭제 성공", null));
     }
 
 

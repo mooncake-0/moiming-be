@@ -1,16 +1,15 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.MoimCategoryLinker;
+import com.peoplein.moiming.domain.enums.AreaValue;
+import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.domain.moim.MoimMonthlyCount;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.MoimCategoryMapperDto;
-import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
-import com.peoplein.moiming.model.dto.response.SearchRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimService;
 import io.swagger.annotations.*;
@@ -25,9 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -171,25 +167,6 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 고정 정보 조회 (지역 / 카테고리) - 앱 기동중에는 변하지 않을 정보 - 매번 요청보다 저장 후 사용 권장")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "모임 고정 정보 조회 성공"),
-            @ApiResponse(code = 400, message = "모임 고정 정보 조회 실패")
-    })
-    @GetMapping(PATH_MOIM_FIXED_VALUES)
-    public ResponseEntity<?> getFixedInfo() {
-
-        MoimFixedValInnerDto fixedValues = moimService.getFixedInfo();
-
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 지역 / 카테고리 정보 조회 성공",
-                new MoimFixedInfoRespDto(fixedValues.getAreaStates(), fixedValues.getCategoryDto().getParentCategories(), fixedValues.getCategoryDto().getChildCategoriesMap())
-        ));
-    }
-
-
     @ApiOperation("모임 추천 검색 - 이번 달 기준 조회수 가장 많은 모임들 (offset=0 필수, limit 은 원하는 갯수 (Top 20 이면 20 지정))")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
@@ -211,7 +188,17 @@ public class MoimController {
             throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM); // 필수 parameter 누락,
         }
 
-        MoimCategoryMapperDto mapper = moimService.getSuggestedMoim(areaFilter, categoryFilter, offset, limit);
+        AreaValue areaFilterVal = null;
+        if (StringUtils.hasText(areaFilter)) { // 뭐라고 들어왔으면 필터가 걸린 것
+            areaFilterVal = AreaValue.fromQueryParam(areaFilter);
+        }
+
+        CategoryName categoryFilterVal = null;
+        if (StringUtils.hasText(categoryFilter)) {
+            categoryFilterVal = CategoryName.fromQueryParam(categoryFilter);
+        }
+
+        MoimCategoryMapperDto mapper = moimService.getSuggestedMoim(areaFilterVal, categoryFilterVal, offset, limit);
 
         List<Moim> targetMoims = mapper.getTargetMoims();
         Map<Long, List<MoimCategoryLinker>> categoryLinkersMap = mapper.getCategoryLinkersMap();

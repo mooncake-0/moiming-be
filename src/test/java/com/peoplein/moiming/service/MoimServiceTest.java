@@ -441,7 +441,7 @@ public class MoimServiceTest {
         // given
         // given - stub
         // when
-        moimService.getSuggestedMoim("", "", 0, 0);
+        moimService.getSuggestedMoim(null, null, 0, 0);
 
         // then
         verify(moimCountRepository, times(1)).findMonthlyBySuggestedCondition(any(), any(), any(), anyInt(), anyInt());

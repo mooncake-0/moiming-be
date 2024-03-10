@@ -71,7 +71,7 @@ public abstract class AppUrlPath {
     public final static String PATM_MOIM_JOIN_RULE_UPDATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/joinRule";
     // DELETE - /api/v0/moim/{moimId}
     public final static String PATH_MOIM_DELETE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
-    public final static String PATH_MOIM_FIXED_VALUES = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/fixed";
+
     public final static String PATH_MOIM_SUGGESTED = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/main" + "/suggest";
 
 
@@ -123,6 +123,14 @@ public abstract class AppUrlPath {
     public final static String PATH_MEMBER_CHANGE_PASSWORD = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
     public final static String PATH_MEMBER_NOTIFICATIONS = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notification";
     public final static String PATH_MEMBER_NOTIFICATION_DELETE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notification" + "/{notificationId}";
+
+
+    // 애매한 것들
+    public final static String PATH_CREATE_REPORT = API_SERVER + "/v0" + "/report";
+
+    public final static String PATH_FIXED_VALUES = API_SERVER + "/v0"  + "/fixed";
+
+
 
 
     // 이하로는 점검되지 않은 URL

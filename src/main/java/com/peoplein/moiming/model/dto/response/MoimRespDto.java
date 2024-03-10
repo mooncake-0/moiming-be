@@ -260,51 +260,6 @@ public class MoimRespDto {
     }
 
 
-    @ApiModel(value = "Moim API - 응답 - 모임 고정 정보 조회 (지역 / 카테고리)")
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class MoimFixedInfoRespDto {
-
-        @JsonProperty("moimAreas")
-        private List<MoimAreaDto> moimAreaDto;
-
-        @JsonProperty("moimCategories")
-        private List<MoimCategoryDto> moimCategoryDto;
-
-        @JsonProperty("moimPostCategories")
-        private List<String> moimPostCategories;
-
-        public MoimFixedInfoRespDto(List<AreaValue> areaState, List<Category> parentCategories, Map<Long, List<Category>> childCategoriesMap) {
-
-            this.moimAreaDto = areaState.stream().map(MoimAreaDto::new).collect(Collectors.toList());
-            this.moimCategoryDto = parentCategories.stream().map(parent -> new MoimCategoryDto(parent, childCategoriesMap.get(parent.getId()))).collect(Collectors.toList());
-            this.moimPostCategories = new ArrayList<>();
-            for (MoimPostCategory mpc : MoimPostCategory.values()) {
-                moimPostCategories.add(mpc.getValue());
-            }
-        }
-
-        public static class MoimAreaDto {
-            public String state;
-            public List<String> cities;
-            public MoimAreaDto(AreaValue areaState) {
-                this.state = areaState.getName();
-                this.cities = areaState.getStateCities().stream().map(AreaValue::getName).collect(Collectors.toList());
-            }
-        }
-
-        public static class MoimCategoryDto {
-            public String parentCategory;
-            public List<String> childCategories;
-            public MoimCategoryDto(Category parent, List<Category> categories) {
-                this.parentCategory = parent.getCategoryName().getValue();
-                this.childCategories = categories.stream().map(category -> category.getCategoryName().getValue()).collect(Collectors.toList());
-            }
-        }
-    }
-
-
     @ApiModel(value = "Moim API - 응답 - 추천 모임 (이번 달 조회수가 가장 높은 모임들)")
     @Getter
     @Setter

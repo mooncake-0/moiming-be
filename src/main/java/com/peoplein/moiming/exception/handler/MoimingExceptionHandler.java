@@ -12,6 +12,7 @@ import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -77,6 +78,22 @@ public class MoimingExceptionHandler {
         return new ResponseEntity<>(responseBody, status);
 
     }
+
+
+    // Body 를 읽지 못할 때 요청 잘못됨 (내가 만들었는데 잡지 못함)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<?> springHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+        log.error("Spring Http Message Not Readable EXCEPTION : {}", exception.getMessage());
+
+        HttpStatus status = HttpStatus.resolve(HttpStatus.BAD_REQUEST.value());
+        ResponseBodyDto<Object> responseBody = ResponseBodyDto.createResponse("SYS000", exception.getMessage(), null);
+
+        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return new ResponseEntity<>(responseBody, status);
+    }
+
+
 
     // Repository Exception
     @ExceptionHandler(InvalidQueryParameterException.class)

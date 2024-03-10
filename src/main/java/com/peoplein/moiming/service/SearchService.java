@@ -32,24 +32,24 @@ public class SearchService {
     private final MoimCategoryLinkerRepository categoryRepository;
 
     @Transactional
-    public MoimCategoryMapperDto searchMoim(String keyword, String sortBy, String areaFilterVal, String categoryFilterVal, Long lastMoimId, int limit) {
+    public MoimCategoryMapperDto searchMoim(String keyword, String sortBy, AreaValue areaFilterVal, CategoryName categoryFilterVal, Long lastMoimId, int limit) {
 
         OrderBy orderBy = OrderBy.findOrderBy(sortBy);
         MoimSearchType moimSearchType = NO_FILTER;
 
         List<AreaValue> areaFilters;
-        if (Objects.equals(areaFilterVal, "")) { // 필터가 안걸렸음 -> keyword 중에 지역이 존재하는지 확인
+        if (areaFilterVal == null) { // 필터가 안걸렸음 -> keyword 중에 지역이 존재하는지 확인
             areaFilters = AreaValue.consistsInArea(keyword);
         } else { // 필터가 걸려있음 // 이게 최우선 지역 조건
-            areaFilters = new ArrayList<>(List.of(AreaValue.fromName(areaFilterVal)));
+            areaFilters = new ArrayList<>(List.of(areaFilterVal));
             moimSearchType = AREA_FILTER_ON;
         }
 
         List<CategoryName> categoryFilters;
-        if (Objects.equals(categoryFilterVal, "")) { // 필터가 안걸렸음
+        if (categoryFilterVal == null) { // 필터가 안걸렸음
             categoryFilters = CategoryName.consistsInCategoryName(keyword);
         } else { // 필터가 걸려있음
-            categoryFilters = new ArrayList<>(List.of(CategoryName.fromValue(categoryFilterVal)));
+            categoryFilters = new ArrayList<>(List.of(categoryFilterVal));
             if (moimSearchType.equals(AREA_FILTER_ON)) {
                 moimSearchType = BOTH_FILTER_ON;
             } else {

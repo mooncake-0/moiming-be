@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 
 @Slf4j
 @Getter
@@ -69,8 +69,19 @@ public enum AreaValue {
                 return areaVal;
             }
         }
-        log.error("{}, {}", "존재하지 않는 지역 전환 시도, [" + name + "], C999", COMMON_INVALID_SITUATION.getErrMsg());
-        throw new MoimingApiException(COMMON_INVALID_SITUATION);
+        log.error("{}, fromName :: {}", "AreaValue", "[" + name + "] 에 해당하는 객체를 찾을 수 없습니다");
+        throw new MoimingApiException(COMMON_MAPPABLE_ENUM_VALUE);
+    }
+
+
+    public static AreaValue fromQueryParam(String name) {
+        for (AreaValue aName : AreaValue.values()) {
+            if (aName.getName().equals(name)) {
+                return aName;
+            }
+        }
+        log.error("{}, fromQueryParam :: {}", "AreaValue",  "존재하지 않는 지역으로 필터링 시도, [" + name + "]");
+        throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM);
     }
 
 

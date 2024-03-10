@@ -22,4 +22,6 @@ public interface MoimCountRepository {
     Optional<MoimMonthlyCount> findMonthlyByMemberIdAndMoimIdAndCurrentDate(Long moimId);
 
     List<QueryMoimSuggestMapDto> findMonthlyBySuggestedCondition(AreaValue areaFilter, CategoryName categoryFilter, List<LocalDate> givenDates, int offset, int limit);
+
+    void removeAllByMoimId(Long moimId);
 }

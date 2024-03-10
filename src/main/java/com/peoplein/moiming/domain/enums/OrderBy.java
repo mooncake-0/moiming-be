@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
+import static com.peoplein.moiming.exception.ExceptionValue.COMMON_MAPPABLE_ENUM_VALUE;
 
 @Slf4j
 @Getter
@@ -20,8 +21,7 @@ public enum OrderBy {
             }
         }
         // Order By 필터가 지원되지 않습니다
-        log.error("{}, {}", "존재하지 않는 정렬 기준 (Order By) 전환 시도, [" + value + "], C999", COMMON_INVALID_SITUATION.getErrMsg());
-        throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
+        log.error("{}, findOrderBy :: {}", "OrderBy", "[" + value + "] 에 해당하는 정렬이 지원되지 않습니다");
+        throw new MoimingApiException(COMMON_MAPPABLE_ENUM_VALUE);
     }
-
 }
