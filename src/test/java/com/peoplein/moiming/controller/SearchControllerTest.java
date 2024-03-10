@@ -86,7 +86,6 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "    ")
-                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
 
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
@@ -94,6 +93,54 @@ public class SearchControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.SEARCH_KEYWORD_LENGTH_INVALID.getErrCode()));
+
+    }
+
+
+    // 지역 필터값이 이상해서 Filter Enum 과 매핑 실패
+    @Test
+    void searchMoim_shouldReturn400_whenAreaFilterMapFail_byMoimingApiException() throws Exception {
+
+        // given
+        suData();
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
+                .param("keyword", "오류날겁니다")
+                .param("offset", "0")
+                .param("areaFilter", "이상한지역")
+                .header(HEADER, PREFIX + accessToken));
+
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_INVALID_REQUEST_PARAM.getErrCode()));
+
+    }
+
+
+    // 카테고리 필터값이 이상해서 Filter Enum 과 매핑 실패
+    @Test
+    void searchMoim_shouldReturn400_whenCategoryFilterMapFail_byMoimingApiException() throws Exception {
+
+        // given
+        suData();
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
+                .param("keyword", "오류날겁니다")
+                .param("offset", "0")
+                .param("categoryFilter", "이상한카테고리")
+                .header(HEADER, PREFIX + accessToken));
+
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_INVALID_REQUEST_PARAM.getErrCode()));
 
     }
 

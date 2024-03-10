@@ -131,6 +131,56 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
     }
 
 
+    // 지역 필터값이 이상해서 Filter Enum 과 매핑 실패
+    @Test
+    void getSuggestedMoim_shouldReturn400_whenAreaFilterMapFail_byMoimingApiException() throws Exception {
+
+        // given
+        Role role = makeTestRole(RoleType.USER);
+        em.persist(role);
+
+        member1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
+        em.persist(member1);
+
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .param("areaFilter", "잘못된카테고리")
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_REQUEST_PARAM.getErrCode()));
+
+    }
+
+
+    // 카테고리 필터값이 이상해서 Filter Enum 과 매핑 실패
+    @Test
+    void getSuggestedMoim_shouldReturn400_whenCategoryFilterMapFail_byMoimingApiException() throws Exception {
+
+        // given
+        Role role = makeTestRole(RoleType.USER);
+        em.persist(role);
+
+        member1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
+        em.persist(member1);
+
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .param("categoryFilter", "잘못된카테고리")
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_REQUEST_PARAM.getErrCode()));
+
+    }
+
+
     // 성공 - 인기순을 불러온다 - Top 5 를 불러온다 - moim1, moim2, moim4, moim3, moim6
     @Test
     void getSuggestedMoim_shouldReturn200WithData_whenNoLastMonthCountReqTop5() throws Exception {

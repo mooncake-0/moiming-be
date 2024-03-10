@@ -207,8 +207,19 @@ public enum CategoryName {
                 return cName;
             }
         }
-        log.error("{}, {}", "존재하지 않는 카테고리 전환 시도, [" + value + "], C999", COMMON_INVALID_SITUATION.getErrMsg());
-        throw new MoimingApiException(COMMON_INVALID_SITUATION);
+        log.error("{}, fromValue :: {}", "CategoryName", "[" + value + "] 에 해당하는 객체를 찾을 수 없습니다");
+        throw new MoimingApiException(COMMON_MAPPABLE_ENUM_VALUE);
+    }
+
+
+    public static CategoryName fromQueryParam(String value) {
+        for (CategoryName cName : CategoryName.values()) {
+            if (cName.getValue().equals(value)) {
+                return cName;
+            }
+        }
+        log.error("{}, fromQueryParam :: {}", "CategoryName",  "존재하지 않는 모임 종류로 필터링 시도, [" + value + "]");
+        throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM);
     }
 
 
@@ -217,7 +228,7 @@ public enum CategoryName {
         List<CategoryName> consistingCategoryName = new ArrayList<>();
         for (CategoryName cName : CategoryName.values()) {
             if (cName.getValue().contains(keyword)) {
-                if(cName.depth == 1) {
+                if (cName.depth == 1) {
                     consistingCategoryName.add(cName);
                 }
             }

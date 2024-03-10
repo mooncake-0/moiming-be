@@ -137,7 +137,28 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isNotFound());
         resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.MOIM_POST_NOT_FOUND.getErrCode()));
+    }
 
+
+    // 실패 - 요청 Category Filter 가 Mapping 에 실패함
+    @Test
+    void getMoimPosts_shouldReturn400_whenPostCategoryMapFail_byMoimingApiException() throws Exception {
+
+        // given
+        dataSu();
+        String accessToken = createTestJwtToken(moimMember, 2000);
+        String[] params = {"moimId"};
+        String[] vals = {moim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
+                .param("lastPostId", "1234")
+                .param("category", "잘못된카테고리")
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_INVALID_REQUEST_PARAM.getErrCode()));
     }
 
 

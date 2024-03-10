@@ -127,6 +127,25 @@ public class MoimCountJpaRepository implements MoimCountRepository {
         return convertToQueryDto(resultList);
     }
 
+
+    public void removeAllByMoimId(Long moimId) {
+
+        em.createQuery(
+                        "DELETE FROM MoimDailyCount dc " +
+                                "WHERE dc.moim.id = :moimId"
+                ).setParameter("moimId", moimId)
+                .executeUpdate();
+
+        em.createQuery(
+                        "DELETE FROM MoimMonthlyCount mc " +
+                                "WHERE mc.moim.id = :moimId"
+                ).setParameter("moimId", moimId)
+                .executeUpdate();
+
+    }
+
+
+
     private List<QueryMoimSuggestMapDto> convertToQueryDto(List<Object[]> rawList) {
         List<QueryMoimSuggestMapDto> queryDtoList = new ArrayList<>();
         for (Object[] rawObj : rawList) { // 결과가 없으면 LOOP 를 돌지 않는다

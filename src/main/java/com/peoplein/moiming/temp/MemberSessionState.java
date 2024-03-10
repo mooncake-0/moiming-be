@@ -1,4 +1,4 @@
-package com.peoplein.moiming.domain.enums;
+package com.peoplein.moiming.temp;
 
 public enum MemberSessionState {
 

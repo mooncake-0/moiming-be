@@ -2,6 +2,8 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
+import com.peoplein.moiming.domain.enums.AreaValue;
+import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
@@ -67,7 +69,17 @@ public class SearchController {
             throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM); // 필수 parameter 누락,
         }
 
-        MoimCategoryMapperDto mapper = searchService.searchMoim(keyword, sortBy, areaFilter, categoryFilter, lastMoimId, limit);
+        AreaValue areaFilterVal = null;
+        if (StringUtils.hasText(areaFilter)) { // 뭐라고 들어왔으면 필터가 걸린 것
+            areaFilterVal = AreaValue.fromQueryParam(areaFilter);
+        }
+
+        CategoryName categoryFilterVal = null;
+        if (StringUtils.hasText(categoryFilter)) {
+            categoryFilterVal = CategoryName.fromQueryParam(categoryFilter);
+        }
+
+        MoimCategoryMapperDto mapper = searchService.searchMoim(keyword, sortBy, areaFilterVal, categoryFilterVal, lastMoimId, limit);
 
         List<Moim> targetMoims = mapper.getTargetMoims();
         Map<Long, List<MoimCategoryLinker>> categoryLinkersMap = mapper.getCategoryLinkersMap();

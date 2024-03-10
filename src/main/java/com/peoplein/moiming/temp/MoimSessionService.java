@@ -1,7 +1,7 @@
 //package com.peoplein.moiming.temp;
 //
 //import com.peoplein.moiming.domain.member.Member;
-//import com.peoplein.moiming.domain.enums.MemberSessionState;
+//import com.peoplein.moiming.temp.MemberSessionState;
 //import com.peoplein.moiming.domain.enums.DomainRequestType;
 //import com.peoplein.moiming.domain.enums.SessionCategoryType;
 //import com.peoplein.moiming.temp.session.MemberSessionCategoryLinker;

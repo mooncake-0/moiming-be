@@ -10,7 +10,6 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.moim.*;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.inner.MoimCategoryMapperDto;
-import com.peoplein.moiming.model.dto.inner.MoimFixedValInnerDto;
 import com.peoplein.moiming.model.query.QueryMoimSuggestMapDto;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.repository.jpa.MoimJoinRuleJpaRepository;
@@ -229,6 +228,10 @@ public class MoimService {
         // 4) MoimCategoryLinker 삭제
         moimCategoryLinkerRepository.removeAllByMoimId(moim.getId());
 
+        // TODO :: 제대로된 정책 필요 (FK 연관 정책 필요)
+        moimCountRepository.removeAllByMoimId(moim.getId());
+
+
         // 5) Moim 삭제
         moimRepository.remove(moim.getId());
 
@@ -239,53 +242,18 @@ public class MoimService {
     }
 
 
-    // Fixed Value 를 반환해준다 - App 단에서 캐싱되면 좋을 듯
-    public MoimFixedValInnerDto getFixedInfo() {
-
-        // 지역 조회
-        List<AreaValue> areaState = getAreaStates();
-
-        // Category All 조회
-        MoimFixedValInnerDto.AppCategoryDto allCategories = categoryService.getAllCategories();
-
-        return new MoimFixedValInnerDto(allCategories, areaState);
-
-    }
-
-
-    private List<AreaValue>  getAreaStates() {
-
-        List<AreaValue> areaState = new ArrayList<>();
-
-        for (AreaValue areaValue : AreaValue.values()) {
-            if (areaValue.getState() == null) { // 부모일 경우
-                areaState.add(areaValue);
-            }
-        }
-
-        return areaState;
-    }
-
-
     // Entity 에 DTO 누수하지 않기 위함
     private MoimJoinRule generateJoinRule(JoinRuleCreateReqDto ruleDto) {
         return MoimJoinRule.createMoimJoinRule(ruleDto.getHasAgeRule(), ruleDto.getAgeMax(), ruleDto.getAgeMin(), ruleDto.getMemberGender());
     }
 
 
-    public MoimCategoryMapperDto getSuggestedMoim(String areaFilter, String categoryFilter, int offset, int limit) {
+    public MoimCategoryMapperDto getSuggestedMoim(AreaValue areaFilter, CategoryName categoryFilter, int offset, int limit) {
 
-        // 지역 필터가 있으면, 지역 넘겨주면 됨 - AND 조건 걸림
-        AreaValue areaValue = null;
-        if (StringUtils.hasText(areaFilter)) {
-            areaValue = AreaValue.fromName(areaFilter);
-        }
-
-        // 카테고리 필터가 있으면, 카테고리 가져오면 됨 - AND 조건 걸림
-        CategoryName categoryName = null;
-        if (StringUtils.hasText(categoryFilter)) {
-            categoryName = CategoryName.fromValue(categoryFilter);
-            if (categoryName.getDepth() == 0) { // 1 차 카테고리 필터는 금지되어 있다
+        // 지역 필터가 있으면, 지역 넘겨주면 됨 - AND 조건 걸림, 없으면 NULL 로 전달됨
+        // 카테고리 필터가 있으면, 카테고리 가져오면 됨 - AND 조건 걸림, 없으면 NULL 로 전달됨
+        if (categoryFilter != null) {
+            if (categoryFilter.getDepth() == 0) { // 1 차 카테고리 필터는 금지되어 있다
                 log.info("{}, getSuggestedMoim :: {}", this.getClass().getName(), "1차 카테고리는 검색 필터가 될 수 없습니다");
                 throw new MoimingApiException(COMMON_INVALID_SITUATION);
             }
@@ -295,7 +263,7 @@ public class MoimService {
         conditionThisMonth = conditionThisMonth.withDayOfMonth(1);
         LocalDate conditionLastMonth = conditionThisMonth.minusMonths(1);
 
-        List<QueryMoimSuggestMapDto> suggestedMoimDto = moimCountRepository.findMonthlyBySuggestedCondition(areaValue, categoryName, List.of(conditionLastMonth, conditionThisMonth), offset, limit);
+        List<QueryMoimSuggestMapDto> suggestedMoimDto = moimCountRepository.findMonthlyBySuggestedCondition(areaFilter, categoryFilter, List.of(conditionLastMonth, conditionThisMonth), offset, limit);
         List<Moim> targetMoims = new ArrayList<>();
         List<Long> moimIds = new ArrayList<>();
 
@@ -311,6 +279,5 @@ public class MoimService {
         return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
 
     }
-
 
 }

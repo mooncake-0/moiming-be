@@ -1356,7 +1356,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
         // given
         // when
-        ResultActions resultActions = mvc.perform(get(PATH_MOIM_FIXED_VALUES));
+        ResultActions resultActions = mvc.perform(get(PATH_FIXED_VALUES));
 
         // then
         resultActions.andExpect(status().isOk());
