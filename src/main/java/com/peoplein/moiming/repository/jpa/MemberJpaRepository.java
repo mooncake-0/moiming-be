@@ -41,6 +41,21 @@ public class MemberJpaRepository implements MemberRepository {
     }
 
 
+    @Override
+    public Optional<Member> findWithMemberInfoById(Long memberId) {
+
+        /*
+        Query : select * from member m
+                where m.member_id = {id};
+         */
+
+        return Optional.ofNullable(queryFactory.selectFrom(member)
+                .join(member.memberInfo, memberInfo).fetchJoin()
+                .where(member.id.eq(memberId))
+                .fetchOne());
+    }
+
+
     /*
      member info 활용을 위해 join 추가
      */
@@ -88,7 +103,7 @@ public class MemberJpaRepository implements MemberRepository {
                 .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(member.memberEmail.eq(memberEmail)
                         .or(member.memberInfo.memberPhone.eq(memberPhone)))
-                        .fetch();
+                .fetch();
     }
 
     @Override

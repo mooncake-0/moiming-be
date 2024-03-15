@@ -32,6 +32,7 @@ import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
+import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.MoimPostViewRespDto.*;
 
 @Api(tags = "모임 게시물 관련")
 @RestController
@@ -64,7 +65,7 @@ public class MoimPostController {
          */
         MoimPost moimPost = moimPostService.createMoimPost(requestDto, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 게시물 생성 성공"
-                , new MoimPostCreateRespDto(moimPost, true)));
+                , new MoimPostCreateRespDto(moimPost, principal.getMember())));
 
     }
 
@@ -149,7 +150,7 @@ public class MoimPostController {
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         MoimPost moimPost = moimPostService.updateMoimPost(requestDto, principal.getMember());
-        // TODO :: 응답에 Comment 필요한가... 일단 갈아끼우는거만 전달하는걸로
+
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "게시물 수정 성공", new MoimPostUpdateRespDto(moimPost)));
     }
 

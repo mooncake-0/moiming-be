@@ -2,6 +2,7 @@ package com.peoplein.moiming.domain.member;
 
 import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.domain.file.File;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public class MemberInfo extends BaseEntity {
     @Column(name = "member_phone")
     private String memberPhone;
 
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private MemberGender memberGender;
@@ -35,6 +37,9 @@ public class MemberInfo extends BaseEntity {
 
     private boolean dormant;
 
+    private Long pfImgFileId;
+
+    private String pfImgUrl;
 
     @OneToOne(mappedBy = "memberInfo", fetch = FetchType.LAZY)
     private Member member;
@@ -57,5 +62,14 @@ public class MemberInfo extends BaseEntity {
         this.dormant = dormant;
     }
 
+    public void changePfImg(File file) {
+        this.pfImgFileId = file.getId();
+        this.pfImgUrl = file.getFileUrl();
+    }
+
+    public void deletePfImg() {
+        this.pfImgFileId = null;
+        this.pfImgUrl = null;
+    }
 
 }

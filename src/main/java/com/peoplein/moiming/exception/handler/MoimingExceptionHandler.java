@@ -10,6 +10,7 @@ import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -85,14 +86,24 @@ public class MoimingExceptionHandler {
     public ResponseEntity<?> springHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
         log.error("Spring Http Message Not Readable EXCEPTION : {}", exception.getMessage());
 
-        HttpStatus status = HttpStatus.resolve(HttpStatus.BAD_REQUEST.value());
+        HttpStatus status = HttpStatus.BAD_REQUEST;
         ResponseBodyDto<Object> responseBody = ResponseBodyDto.createResponse("SYS000", exception.getMessage(), null);
-
-        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
 
         return new ResponseEntity<>(responseBody, status);
     }
 
+
+    // 5GB 이상의 파일 업로드 시도
+    @ExceptionHandler(FileSizeLimitExceededException.class)
+    public ResponseEntity<?> springMultipartSizeLimitExceedException(FileSizeLimitExceededException exception) {
+
+        log.error("springMultipartSizeLimitExceedException : {}", exception.getMessage());
+
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ResponseBodyDto<Object> responseBody = ResponseBodyDto.createResponse("F002", exception.getMessage(), null);
+
+        return new ResponseEntity<>(responseBody, status);
+    }
 
 
     // Repository Exception

@@ -81,6 +81,9 @@ dependencies {
     // Test Static Mocker
     testImplementation 'org.mockito:mockito-inline:3.11.2'
 
+    // Java AWS SDK
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
     // Thymeleaf for NICE
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 

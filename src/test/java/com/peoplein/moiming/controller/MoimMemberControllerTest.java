@@ -134,7 +134,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
-    // 모임원이 아닌 유저가 요청해도 잘 된다 TODO :: 이건 현재 요구사항 확정 필요
+    // 모임원이 아닌 유저가 요청해도 잘 된다
     @Test
     void getActiveMoimMembers_shouldReturn200_whenNotMoimMemberRequests() throws Exception {
 
@@ -186,8 +186,9 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
 
     // CASE2 잘못된 moim Id 전달
+    //       그냥 한방 쿼리로 응답하기 때문에, 별다른 오류가 전달될 필요가 없음 (그냥 단순히 조회 실패만 함)
     @Test
-    void getActiveMoimMember_shouldReturn404_whenMoimNotFound_byMoimingApiException() throws Exception {
+    void getActiveMoimMember_shouldReturn200_whenMoimNotFound() throws Exception {
 
         // given
         Long moimId = 1000L;
@@ -202,8 +203,8 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
-        resultActions.andExpect(status().isNotFound());
-        resultActions.andExpect(jsonPath("$.code").value(MOIM_NOT_FOUND.getErrCode()));
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isEmpty());
     }
 
 

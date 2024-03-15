@@ -171,7 +171,7 @@ public class MoimPostServiceTest {
         moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
         // then
-        verify(moimPostRepository, times(1)).findWithMemberByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+        verify(moimPostRepository, times(1)).findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
         verify(moimMemberService, times(1)).getMoimMemberStates(any(), any());
 
     }
@@ -195,7 +195,7 @@ public class MoimPostServiceTest {
         moimPostService.getMoimPosts(1L, null, null, 0, member); // 검증시에는 Matchers 사용하지 않으므로, null 로 아무 상관 없음을 지칭
 
         // then
-        verify(moimPostRepository, times(1)).findWithMemberByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
+        verify(moimPostRepository, times(1)).findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(any(), any(), any(), anyInt(), anyBoolean());
         verify(moimMemberService, times(1)).getMoimMemberStates(any(), any());
 
     }
@@ -260,7 +260,7 @@ public class MoimPostServiceTest {
         PostCommentDetailsDto commentsInnerDto = mock(PostCommentDetailsDto.class);
 
         // given - stub
-        when(moimPostRepository.findWithMemberById(any())).thenReturn(Optional.of(post));
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.of(post));
         when(post.getMoim()).thenReturn(moim);
         when(postCommentService.getSortedPostComments(any())).thenReturn(commentsInnerDto);
         when(post.getMember()).thenReturn(postCreator);
@@ -286,7 +286,7 @@ public class MoimPostServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
-        when(moimPostRepository.findWithMemberById(any())).thenReturn(Optional.empty());
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.empty());
 
         // when
         // then
@@ -307,7 +307,7 @@ public class MoimPostServiceTest {
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimPostRepository.findWithMemberById(any())).thenReturn(Optional.of(post));
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.of(post));
         when(post.getMoim()).thenReturn(moim);
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasActivePermission()).thenReturn(true); // 활동중인 모임원이어야 함
@@ -332,7 +332,7 @@ public class MoimPostServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
-        when(moimPostRepository.findWithMemberById(any())).thenReturn(Optional.empty());
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.empty());
 
         // when
         // then
@@ -352,7 +352,7 @@ public class MoimPostServiceTest {
         MoimPost post = mock(MoimPost.class);
 
         // given - stub
-        when(moimPostRepository.findWithMemberById(any())).thenReturn(Optional.of(post));
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.of(post));
         when(post.getMoim()).thenReturn(moim);
 
         // when
@@ -374,7 +374,7 @@ public class MoimPostServiceTest {
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimPostRepository.findWithMemberById(any())).thenReturn(Optional.of(post));
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.of(post));
         when(post.getMoim()).thenReturn(moim);
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasActivePermission()).thenReturn(false);
@@ -399,7 +399,7 @@ public class MoimPostServiceTest {
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimPostRepository.findWithMemberById(any())).thenReturn(Optional.of(post));
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.of(post));
         when(post.getMoim()).thenReturn(moim);
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasActivePermission()).thenReturn(true);

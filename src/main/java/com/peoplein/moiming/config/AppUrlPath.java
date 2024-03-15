@@ -11,13 +11,15 @@ public abstract class AppUrlPath {
     public final static String API_DOMAIN_AUTH = "/auth";
     public final static String API_DOMAIN_MOIM = "/moim";
     public final static String API_DOMAIN_MEMBER = "/member";
-
+    public final static String API_MEMBER_INFO = "/info";
 
     public final static String API_AUTH_VER = "/v0";
 
 
     public final static String API_MOIM_VER = "/v0";
     public final static String API_MOIM_MEMBER = "/member";
+
+
     public final static String API_MOIM_POST = "/post";
     public final static String API_POST_COMMENT = "/comment";
 
@@ -61,7 +63,7 @@ public abstract class AppUrlPath {
     // Moim 관련 API
     // POST - /api/v0/moim
     public final static String PATH_MOIM_CREATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM;
-    // GET - /api/v0/moim // TODO :: PAGING 정보 추가 필요
+    // GET - /api/v0/moim
     public final static String PATH_MOIM_GET_VIEW = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM;
     // GET - /api/v0/moim/{moimId}
     public final static String PATH_MOIM_GET_DETAIL = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
@@ -116,14 +118,15 @@ public abstract class AppUrlPath {
     // POST - /api/v0/member/logout
     public final static String PATH_MEMBER_LOGOUT = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/logout";
     public final static String PATH_MEMBER_DELETE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/delete";
-    public final static String PATH_MEMBER_GET_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/{memberId}";
+    public final static String PATH_MEMBER_GET_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER;
     public final static String PATH_MEMBER_CONFIRM_PW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
     public final static String PATH_MEMBER_GET_DETAIL_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/{memberId}" + "/detail";
     public final static String PATH_MEMBER_CHANGE_NICKNAME = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/nickname";
     public final static String PATH_MEMBER_CHANGE_PASSWORD = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
     public final static String PATH_MEMBER_NOTIFICATIONS = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notification";
     public final static String PATH_MEMBER_NOTIFICATION_DELETE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notification" + "/{notificationId}";
-
+    public final static String PATH_MEMBER_CHANGE_PF_IMG = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO + "/image";
+    public final static String PATH_MEMBER_DELETE_PF_IMG = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO + "/image";
 
     // 애매한 것들
     public final static String PATH_CREATE_REPORT = API_SERVER + "/v0" + "/report";

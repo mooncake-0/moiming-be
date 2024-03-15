@@ -15,5 +15,6 @@ public class MoimingApiException extends RuntimeException{
     public MoimingApiException(ExceptionValue ev, Throwable exception) {
         super(ev.getErrMsg(), exception);
         this.ev = ev;
+        exception.printStackTrace();
     }
 }

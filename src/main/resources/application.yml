@@ -3,6 +3,10 @@ spring:
     active:
       - ${PROFILE}
 
+  servlet:
+    multipart:
+      max-file-size: 5000MB
+
 open_api:
   cool_sms_api_key: ${COOL_SMS_API_KEY}
   cool_sms_secret_key: ${COOL_SMS_SECRET_KEY}
@@ -10,6 +14,20 @@ open_api:
 #  nice_api_client_secret: ${NICE_API_CLIENT_SECRET}
 #  nice_api_agency_token: ${NICE_API_AGENCY_TOKEN}
 #  nice_api_agency_product_id: ${NICE_API_AGENCY_PRODUCT_ID}
+
+cloud:
+  aws:
+    s3:
+      bucket-name: ${AWS_DEV_S3_BUCKET_NAME}
+    credentials:
+      access-key: ${AWS_IAM_ACCESS_KEY}
+      secret-key: ${AWS_IAM_SECRET_ACCESS_KEY}
+    region:
+      static: ap-northeast-2
+      auto: false
+    stack:
+      auto: false
+
 
 open_api_keys:
   naver_sens_sms: NOT_USING

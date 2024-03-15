@@ -7,15 +7,19 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static com.peoplein.moiming.model.dto.request.MoimMemberReqDto.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -36,41 +40,39 @@ public class MoimMemberServiceTest {
     private NotificationService notificationService;
 
     // getMoimMembers Test
-    // 1. 모임 못찾음
+    // 1. 모임원 반환
     @Test
-    void getMoimMembers_shouldThrowException_whenMoimNotFound_byMoimingApiException() {
+    void getActiveMoimMembers_shouldPass_whenMoimMemberFound() {
 
         // given
         // Wrapper 외 Test 객체에는 다 Mock 객체 필요함
-        Member member = mock(Member.class);
+        Long moimId = 1L;
+        MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
-        when(moimRepository.findWithMoimMemberAndMemberById(any())).thenReturn(Optional.empty());
+        when(moimMemberRepository.findActiveWithMemberAndInfoByMoimId(any())).thenReturn(List.of(moimMember));
 
         // when
         // then
-        assertThatThrownBy(() -> moimMemberService.getActiveMoimMembers(any(), member)).isInstanceOf(MoimingApiException.class);
-
+        assertDoesNotThrow(()->moimMemberService.getActiveMoimMembers(moimId, any()));
     }
 
 
-    // 2. getMoimMembers 호출성 확인 (moimId, curMember NN 보장 -> Validation / Security)
-    @Test
-    void getMoimMembers_shouldCallGetMethod_whenRightInfoPassed() {
-
-        // given
-        Member member = mock(Member.class);
-        Moim moim = mock(Moim.class);
-
-        // given - stub
-        when(moimRepository.findWithMoimMemberAndMemberById(any())).thenReturn(Optional.ofNullable(moim));
-
-        // when
-        moimMemberService.getActiveMoimMembers(any(), member);
-
-        // then
-        verify(moim, times(1)).getMoimMembers();
-    }
+    // 2. moimMember 를 아무도 찾지 못할 수가 없음
+    //    moim 자체가 있는지의 CASE 와 구분이 안됨 - 일단 그냥 에러 보내지 않는걸로 한다
+//    @Test
+//    void getMoimMembers_shouldThrowException_whenNoMemberFound_byMoimingApiException() {
+//
+//        // given
+//        Long moimId = 1L;
+//
+//        // given - stub
+//        when(moimMemberRepository.findActiveWithMemberAndInfoByMoimId(any())).thenReturn(new ArrayList<>());
+//
+//        // when
+//        // then
+//        assertThatThrownBy(() -> moimMemberService.getActiveMoimMembers(moimId, any())).isInstanceOf(MoimingApiException.class);
+//    }
 
 
     // joinMoim Test
