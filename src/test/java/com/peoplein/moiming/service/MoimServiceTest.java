@@ -294,7 +294,7 @@ public class MoimServiceTest {
 
         // given - stub
         when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.of(moim));
-        when(moimMemberRepository.findWithMemberByMemberAndMoimId(any(), any())).thenReturn(Optional.of(creator));
+        when(moimMemberRepository.findWithMemberAndInfoByMemberAndMoimId(any(), any())).thenReturn(Optional.of(creator));
 
 
         // when

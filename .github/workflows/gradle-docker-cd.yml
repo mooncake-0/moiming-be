@@ -37,6 +37,9 @@ jobs:
             --build-arg DEV_DB_PASSWORD=${{ secrets.DEV_DB_PASSWORD }} \
             --build-arg COOL_SMS_API_KEY=${{ secrets.COOL_SMS_API_KEY }} \
             --build-arg COOL_SMS_SECRET_KEY=${{ secrets.COOL_SMS_SECRET_KEY }} \
+            --build-arg AWS_DEV_S3_BUCKET_NAME=${{ secrets.AWS_DEV_S3_BUCKET_NAME }} \
+            --build-arg AWS_IAM_ACCESS_KEY=${{ secrets.AWS_IAM_ACCESS_KEY }} \
+            --build-arg AWS_IAM_SECRET_ACCESS_KEY=${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }} \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }} .
 
       - name: Docker Login

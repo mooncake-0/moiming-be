@@ -1,6 +1,7 @@
 package com.peoplein.moiming.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.peoplein.moiming.config.AppParams;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.MemberGender;
@@ -14,6 +15,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +38,14 @@ public class MoimRespDto {
         private int maxMember;
         private String areaCity;
         private String areaState;
+        @JsonProperty("creatorInfo")
+        private MoimCreatorInfoDto creatorInfoDto;
         @JsonProperty("joinRule")
         private JoinRuleCreateRespDto joinRuleDto;
         @JsonProperty("categories")
         private List<String> categoryNameValues;
 
-        public MoimCreateRespDto(Moim moim){
+        public MoimCreateRespDto(Moim moim, Member creator){
             this.moimId = moim.getId();
             this.moimName = moim.getMoimName();
             this.moimInfo = moim.getMoimInfo();
@@ -49,6 +53,7 @@ public class MoimRespDto {
             this.maxMember = moim.getMaxMember();
             this.areaCity = moim.getMoimArea().getCity();
             this.areaState = moim.getMoimArea().getState();
+            this.creatorInfoDto = new MoimCreatorInfoDto(creator);
             if (moim.getMoimJoinRule() != null) {
                 this.joinRuleDto = new JoinRuleCreateRespDto(moim.getMoimJoinRule());
             }
@@ -192,26 +197,11 @@ public class MoimRespDto {
                 this.memberGender = moimJoinRule.getMemberGender();
             }
         }
-
-        @Getter
-        @Setter
-        @NoArgsConstructor
-        public static class MoimCreatorInfoDto {
-
-            // TODO :: 프로필 이미지
-
-            private Long memberId;
-
-            private String nickname;
-
-            public MoimCreatorInfoDto(Member member) {
-                this.memberId = member.getId();
-                this.nickname = member.getNickname();
-            }
-        }
     }
 
 
+    // MEMO :: 모임 수정은 요구사항 상 이미지 변경, 가입조건 변경과 따로 이루어져 있기 때문에, 응답 DTO 를 다 따로 준비한다
+    //         요구사항 상 모임장 정보도 필요는 없음
     // 4. 모임 수정 후 정보 전달
     @ApiModel(value = "Moim API - 응답 - 모임 수정")
     @Getter
@@ -310,7 +300,27 @@ public class MoimRespDto {
                 this.memberGender = moimJoinRule.getMemberGender();
             }
         }
+    }
 
+
+    @Getter
+    @Setter
+    public static class MoimCreatorInfoDto {
+
+        private Long memberId;
+
+        private String nickname;
+
+        private String memberPfImgUrl;
+
+        public MoimCreatorInfoDto(Member member) {
+            this.memberId = member.getId();
+            this.nickname = member.getNickname();
+            this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
+            if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
+                this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
+            }
+        }
     }
 
 }

@@ -35,16 +35,17 @@ public class MoimMemberService {
     private final NotificationService notificationService;
 
 
-    // TODO :: 모임원일 경우, 모임원이 아닐경우에 대한 구분
-    //         모임원이 아니여도 모임페이지에 어느정도 노출은 있는데 그 구분이 확인되어야 한다
+    // TODO :: curMember 의 권한에 따른 분리는 Client 단에서 구분?
+    @Transactional(readOnly = true)
     public List<MoimMember> getActiveMoimMembers(Long moimId, Member curMember) {
 
-        Moim moimOp = moimRepository.findWithMoimMemberAndMemberById(moimId).orElseThrow(
-                () -> new MoimingApiException(MOIM_NOT_FOUND)
-        );
+        if (moimId == null) { // 당장은 Member 가 사용되지 않음
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
 
-        return moimOp.getMoimMembers().stream().filter(moimMember -> moimMember.getMemberState().equals(ACTIVE))
-                .collect(Collectors.toList());
+        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberAndInfoByMoimId(moimId);
+
+        return moimMembers;
     }
 
 

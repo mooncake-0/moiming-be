@@ -10,7 +10,9 @@ public interface MemberRepository {
 
     void save(Member member);
 
-    Optional<Member> findById(Long id);
+    Optional<Member> findById(Long memberId);
+
+    Optional<Member> findWithMemberInfoById(Long memberId);
 
     Optional<Member> findByEmail(String memberEmail);
 

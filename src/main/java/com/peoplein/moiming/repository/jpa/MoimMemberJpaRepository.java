@@ -74,13 +74,23 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
 
     @Override
-    public Optional<MoimMember> findWithMemberByMemberAndMoimId(Long memberId, Long moimId) {
+    public Optional<MoimMember> findWithMemberAndInfoByMemberAndMoimId(Long memberId, Long moimId) {
         checkIllegalQueryParams(memberId, moimId);
         return Optional.ofNullable(queryFactory.selectFrom(moimMember)
                 .join(moimMember.member, member).fetchJoin()
+                .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(moimMember.member.id.eq(memberId),
                         moimMember.moim.id.eq(moimId))
                 .fetchOne());
+    }
+
+    @Override
+    public List<MoimMember> findActiveWithMemberAndInfoByMoimId(Long moimId) {
+        return queryFactory.selectFrom(moimMember)
+                .join(moimMember.member, member).fetchJoin()
+                .join(member.memberInfo, memberInfo).fetchJoin()
+                .where(moimMember.moim.id.eq(moimId))
+                .fetch();
     }
 
 

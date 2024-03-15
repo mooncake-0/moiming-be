@@ -117,7 +117,7 @@ public class MoimService {
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
-        MoimMember creatorMember = moimMemberRepository.findWithMemberByMemberAndMoimId(moim.getCreatorId(), moim.getId()).orElseThrow(()->{
+        MoimMember creatorMember = moimMemberRepository.findWithMemberAndInfoByMemberAndMoimId(moim.getCreatorId(), moim.getId()).orElseThrow(()->{
             log.error("{}, {}", "모임 생성자 정보를 찾을 수 없음, C999", COMMON_INVALID_SITUATION.getErrMsg());
             return new MoimingApiException(COMMON_INVALID_SITUATION);
         });

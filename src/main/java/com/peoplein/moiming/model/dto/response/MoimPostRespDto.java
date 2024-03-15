@@ -1,14 +1,23 @@
 package com.peoplein.moiming.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.peoplein.moiming.config.AppParams;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.exception.MoimingApiException;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
+import java.util.Objects;
+
+import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
+
+@Slf4j
 public class MoimPostRespDto {
 
     @ApiModel(value = "Moim Post API - 응답 - 게시물 생성")
@@ -29,7 +38,7 @@ public class MoimPostRespDto {
         @JsonProperty("memberInfo")
         private PostMemberDto postMemberDto;
 
-        public MoimPostCreateRespDto(MoimPost moimPost, boolean creator) {
+        public MoimPostCreateRespDto(MoimPost moimPost, Member postCreator) {
             this.moimPostId = moimPost.getId();
             this.postTitle = moimPost.getPostTitle();
             this.postContent = moimPost.getPostContent();
@@ -38,7 +47,11 @@ public class MoimPostRespDto {
             this.hasPrivateVisibility = moimPost.isHasPrivateVisibility();
             this.hasFiles = moimPost.isHasFiles();
             this.createdAt = moimPost.getCreatedAt() + "";
-            this.postMemberDto = new PostMemberDto(moimPost.getMember(), creator);
+            if (moimPost.getMoim() == null) {
+                log.warn("{}, MoimPostCreateRespDto Creator :: {}", this.getClass().getName(), "Moim 이 연관관계되어 있지 않음");
+                throw new MoimingApiException(COMMON_INVALID_SITUATION);
+            }
+            this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCreatorId(), postCreator);
         }
 
         @Getter
@@ -46,13 +59,19 @@ public class MoimPostRespDto {
         public static class PostMemberDto {
             private Long memberId;
             private String nickname;
+            private String memberPfImgUrl;
             private boolean creator;
 
-            // TODO :: PF IMG 관련
-            public PostMemberDto(Member member, boolean creator) {
+            public PostMemberDto(Long moimCreatorId, Member member) {
                 this.memberId = member.getId();
                 this.nickname = member.getNickname();
-                this.creator = creator;
+                this.creator = Objects.equals(moimCreatorId, member.getId());
+                this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
+                if (member.getMemberInfo() != null) { // NULL 인 경우는 발생할 수가 없다
+                    if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
+                        this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
+                    }
+                }
             }
         }
     }
@@ -95,62 +114,82 @@ public class MoimPostRespDto {
         public static class PostMemberDto {
             private Long memberId;
             private String nickname;
+            private String memberPfImgUrl;
             private boolean creator;
 
-            // TODO :: PF IMG 관련
             public PostMemberDto(Member member, boolean creator) {
                 this.memberId = member.getId();
                 this.nickname = member.getNickname();
                 this.creator = creator;
+                this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
+                if (member.getMemberInfo() != null) { // NULL 인 경우는  DORMANT 혹은 DELETED
+                    if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
+                        this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
+                    }
+                }
+
             }
         }
-    }
 
 
-    @ApiModel(value = "Moim Post API - 응답 - 게시물 수정")
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class MoimPostUpdateRespDto {
-
-        private Long moimPostId;
-        private String postTitle;
-        private String postContent;
-        private String moimPostCategory;
-        private boolean hasPrivateVisibility;
-        private boolean hasFiles;
-        private int commentCnt;
-        private String createdAt;
-        private String updatedAt;
-
-        @JsonProperty("memberInfo")
-        private PostMemberDto postMemberDto;
-
-        public MoimPostUpdateRespDto(MoimPost moimPost) {
-
-            this.moimPostId = moimPost.getId();
-            this.postTitle = moimPost.getPostTitle();
-            this.postContent = moimPost.getPostContent();
-            this.moimPostCategory = moimPost.getMoimPostCategory().getValue();
-            this.commentCnt = moimPost.getCommentCnt();
-            this.hasPrivateVisibility = moimPost.isHasPrivateVisibility();
-            this.hasFiles = moimPost.isHasFiles();
-            this.createdAt = moimPost.getCreatedAt() + "";
-            this.updatedAt = moimPost.getUpdatedAt() + "";
-            this.postMemberDto = new PostMemberDto(moimPost.getMember());
-        }
-
+        @ApiModel(value = "Moim Post API - 응답 - 게시물 수정")
         @Getter
         @Setter
-        public static class PostMemberDto {
-            private Long memberId;
-            private String nickname;
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class MoimPostUpdateRespDto {
 
-            // TODO :: PF IMG 관련
-            public PostMemberDto(Member member) {
-                this.memberId = member.getId();
-                this.nickname = member.getNickname();
+            private Long moimPostId;
+            private String postTitle;
+            private String postContent;
+            private String moimPostCategory;
+            private boolean hasPrivateVisibility;
+            private boolean hasFiles;
+            private int commentCnt;
+            private String createdAt;
+            private String updatedAt;
+
+            @JsonProperty("memberInfo")
+            private PostMemberDto postMemberDto;
+
+            public MoimPostUpdateRespDto(MoimPost moimPost) {
+
+                this.moimPostId = moimPost.getId();
+                this.postTitle = moimPost.getPostTitle();
+                this.postContent = moimPost.getPostContent();
+                this.moimPostCategory = moimPost.getMoimPostCategory().getValue();
+                this.commentCnt = moimPost.getCommentCnt();
+                this.hasPrivateVisibility = moimPost.isHasPrivateVisibility();
+                this.hasFiles = moimPost.isHasFiles();
+                this.createdAt = moimPost.getCreatedAt() + "";
+                this.updatedAt = moimPost.getUpdatedAt() + "";
+                if (moimPost.getMoim() == null) {
+                    log.warn("{}, MoimPostCreateRespDto Creator :: {}", this.getClass().getName(), "Moim 이 연관관계되어 있지 않음");
+                    throw new MoimingApiException(COMMON_INVALID_SITUATION);
+                }
+                this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCreatorId(), moimPost.getMember());
+            }
+
+            @Getter
+            @Setter
+            public static class PostMemberDto {
+                private Long memberId;
+                private String nickname;
+                private String memberPfImgUrl;
+                private boolean creator;
+
+
+                public PostMemberDto(Long moimCreatorId, Member member) {
+                    this.memberId = member.getId();
+                    this.nickname = member.getNickname();
+                    this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
+                    this.creator = Objects.equals(moimCreatorId, member.getId());
+                    if (member.getMemberInfo() != null) { // NULL 인 경우 DELETE 혹은 DORMANT
+                        if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
+                            this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
+                        }
+                    }
+                }
             }
         }
     }

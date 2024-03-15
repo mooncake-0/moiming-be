@@ -88,6 +88,7 @@ public class MoimPostService {
     }
 
 
+    // MEMO :: 아쉬운 부분 : 오직 모임장 ID 와의 일치 정보를 위해 Moim 을 Fetch Join 해야 함
     // 모임의 모든 Post 전달 (필요 정보는 사실상 File 빼고 전부 다)
     @Transactional(readOnly = true)
     public StateMapperDto<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
@@ -111,7 +112,7 @@ public class MoimPostService {
         }
 
         // Sort 됨, 중요!
-        List<MoimPost> moimPosts = moimPostRepository.findWithMemberByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
+        List<MoimPost> moimPosts = moimPostRepository.findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
 
         // Post 들의 작성자들 상태
         Set<Long> postCreatorIds = moimPosts.stream().map(moimPost -> moimPost.getMember().getId()).collect(Collectors.toSet());
@@ -131,7 +132,7 @@ public class MoimPostService {
         }
 
         // post 존재성 확인
-        MoimPost moimPost = moimPostRepository.findWithMemberById(postId).orElseThrow(() ->
+        MoimPost moimPost = moimPostRepository.findWithMoimAndMemberAndInfoById(postId).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
@@ -159,7 +160,7 @@ public class MoimPostService {
 
         // post 존재성 확인
         // 게시물 생성자도 같이 보내줘야 하기 때문에 fetch join 해놓는다
-        MoimPost moimPost = moimPostRepository.findWithMemberById(requestDto.getMoimPostId()).orElseThrow(() ->
+        MoimPost moimPost = moimPostRepository.findWithMoimAndMemberAndInfoById(requestDto.getMoimPostId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
@@ -172,7 +173,7 @@ public class MoimPostService {
 
         // MoimMember 권한 확인 (활동중이여야 하며, 작성자여야 한다)
         if (!moimMember.hasActivePermission() || !moimPost.getMember().getId().equals(member.getId())) {
-            log.error("{}, updateMoimPost :: {}", this.getClass().getName(), "요청한 유저는 모임을 수정할 권한이 없습니다");
+            log.error("{}, updateMoimPost :: {}", this.getClass().getName(), "요청한 유저는 모임 게시물을 수정할 권한이 없습니다");
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 

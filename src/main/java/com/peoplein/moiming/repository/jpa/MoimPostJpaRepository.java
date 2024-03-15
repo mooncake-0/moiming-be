@@ -3,9 +3,7 @@ package com.peoplein.moiming.repository.jpa;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.repository.MoimPostRepository;
-import com.peoplein.moiming.repository.PostFileRepository;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -17,8 +15,8 @@ import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QMoimPost.*;
 import static com.peoplein.moiming.domain.member.QMember.*;
-import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
+import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -68,23 +66,15 @@ public class MoimPostJpaRepository implements MoimPostRepository {
                         .fetchOne());
     }
 
-    @Override
-    public Optional<MoimPost> findWithMemberById(Long moimPostId) {
-        return Optional.ofNullable(
-                queryFactory.selectFrom(moimPost)
-                        .join(moimPost.member, member).fetchJoin()
-                        .where(moimPost.id.eq(moimPostId))
-                        .fetchOne());
-    }
-
 
     @Override
-    public Optional<MoimPost> findWithMoimAndMemberById(Long moimPostId) {
+    public Optional<MoimPost> findWithMoimAndMemberAndInfoById(Long moimPostId) {
 
         return Optional.ofNullable(
                 queryFactory.selectFrom(moimPost)
                         .join(moimPost.moim, moim).fetchJoin()
                         .join(moimPost.member, member).fetchJoin()
+                        .join(member.memberInfo, memberInfo).fetchJoin()
                         .where(moimPost.id.eq(moimPostId))
                         .fetchOne());
 
@@ -114,7 +104,7 @@ public class MoimPostJpaRepository implements MoimPostRepository {
      */
 
     @Override
-    public List<MoimPost> findWithMemberByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost lastPost,
+    public List<MoimPost> findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost lastPost,
                                                                    MoimPostCategory category, int limit,
                                                                    boolean moimMemberRequest) {
 
@@ -140,6 +130,7 @@ public class MoimPostJpaRepository implements MoimPostRepository {
         return queryFactory.selectFrom(moimPost)
                 .join(moimPost.moim, moim).fetchJoin()
                 .join(moimPost.member, member).fetchJoin()
+                .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(moimPost.moim.id.eq(moimId), dynamicBuilder)
                 .orderBy(moimPost.createdAt.desc(), moimPost.id.desc()) // 기본적으로 1차 소팅은 날짜 순, 같을 경우 2차 소팅은 ID로
                 .limit(limit)

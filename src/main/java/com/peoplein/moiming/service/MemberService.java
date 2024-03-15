@@ -13,9 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import javax.transaction.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -34,6 +33,21 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final MoimingTokenProvider moimingTokenProvider;
     private final LogoutTokenManager logoutTokenManager;
+
+
+    @Transactional(readOnly = true)
+    public Member getCurrentMember(Member member) {
+
+        if (member == null) {
+            log.info("{}, getCurrentMember ::{}", this.getClass().getName(), "인증 후 Member Null 감지");
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
+        }
+        member = memberRepository.findWithMemberInfoById(member.getId()).orElseThrow(()->{
+            log.info("{}, getCurrentMember :: {}", this.getClass().getName(), " Member 찾을 수 없습니다");
+            return new MoimingApiException(MEMBER_NOT_FOUND);
+        });
+        return member;
+    }
 
 
     @Transactional
