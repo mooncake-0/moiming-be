@@ -18,6 +18,7 @@ import static com.peoplein.moiming.domain.QPostComment.*;
 import static com.peoplein.moiming.domain.QMoimPost.*;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.member.QMember.*;
+import static com.peoplein.moiming.domain.member.QMemberInfo.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -131,7 +132,7 @@ public class PostCommentJpaRepository implements PostCommentRepository {
 
 
     @Override
-    public List<PostComment> findWithMemberByMoimPostInDepthAndCreatedOrder(Long moimPostId) {
+    public List<PostComment> findWithMemberAndInfoByMoimPostInDepthAndCreatedOrder(Long moimPostId) {
 
         checkIllegalQueryParams(moimPostId);
 
@@ -139,6 +140,7 @@ public class PostCommentJpaRepository implements PostCommentRepository {
         //  이 때, Member 까지 Join 해서 회원 정보도 전달할 수 있도록 한다
         return queryFactory.selectFrom(postComment)
                 .join(postComment.member, member).fetchJoin()
+                .join(member.memberInfo, memberInfo).fetchJoin()
                 .where(postComment.moimPost.id.eq(moimPostId))
                 .orderBy(postComment.depth.asc(), postComment.createdAt.asc()) // 먼저 단 댓글이 먼저 보여진다 // 최근게 나중으로
                 .fetch();
