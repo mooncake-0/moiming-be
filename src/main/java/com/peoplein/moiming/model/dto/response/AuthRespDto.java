@@ -1,6 +1,7 @@
 package com.peoplein.moiming.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.peoplein.moiming.config.AppParams;
 import com.peoplein.moiming.domain.SmsVerification;
 import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.member.Member;
@@ -10,9 +11,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+
+import static com.peoplein.moiming.config.AppParams.*;
 
 public class AuthRespDto {
 
@@ -53,12 +57,14 @@ public class AuthRespDto {
             private String memberPhone;
             private String memberGender;
             private String memberBirth;
+            private String memberPfImgUrl;
 
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
                 this.memberPhone = memberInfo.getMemberPhone();
                 this.memberGender = memberInfo.getMemberGender() + "";
                 this.memberBirth = memberInfo.getMemberBirth() + "";
+                this.memberPfImgUrl = DEFAULT_MEMBER_PF_IMG_PATH; // 회원가입시는 DEFAULT
             }
         }
     }
@@ -98,12 +104,17 @@ public class AuthRespDto {
             private String memberPhone;
             private String memberGender;
             private String memberBirth;
+            private String memberPfImgUrl;
 
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
                 this.memberPhone = memberInfo.getMemberPhone();
                 this.memberGender = memberInfo.getMemberGender() + "";
                 this.memberBirth = memberInfo.getMemberBirth() + "";
+                this.memberPfImgUrl = DEFAULT_MEMBER_PF_IMG_PATH;
+                if (StringUtils.hasText(memberInfo.getPfImgUrl())) {
+                    this.memberPfImgUrl = memberInfo.getPfImgUrl();
+                }
             }
         }
     }

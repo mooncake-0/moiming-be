@@ -669,13 +669,13 @@ public class PostCommentServiceTest extends TestMockCreator {
 
         // given - stub
         // ANY 와 같은 빈 List
-        when(postCommentRepository.findWithMemberByMoimPostInDepthAndCreatedOrder(postId)).thenReturn(postComments);
+        when(postCommentRepository.findWithMemberAndInfoByMoimPostInDepthAndCreatedOrder(postId)).thenReturn(postComments);
 
         // when
         postCommentService.getSortedPostComments(postId);
 
         // then
-        verify(postCommentRepository, times(1)).findWithMemberByMoimPostInDepthAndCreatedOrder(any());
+        verify(postCommentRepository, times(1)).findWithMemberAndInfoByMoimPostInDepthAndCreatedOrder(any());
 
     }
 

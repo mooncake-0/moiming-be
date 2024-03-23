@@ -119,7 +119,7 @@ public class PostCommentService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        List<PostComment> postComments = postCommentRepository.findWithMemberByMoimPostInDepthAndCreatedOrder(postId);
+        List<PostComment> postComments = postCommentRepository.findWithMemberAndInfoByMoimPostInDepthAndCreatedOrder(postId);
         List<PostComment> parentComments = new ArrayList<>();
         Map<Long, List<PostComment>> childCommentsMap = new HashMap<>();
 
