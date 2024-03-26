@@ -92,14 +92,14 @@ public class TestObjectCreator {
 
     protected MoimCreateReqDto makeMoimReqDtoNoJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
         return new MoimCreateReqDto(
-                mName, moimInfo, state, city, mMember, false, null, List.of(category1, category2)
+                mName, moimInfo, state, city, mMember, false, null, null, List.of(category1, category2)
         );
     }
 
     protected MoimCreateReqDto makeMoimReqDtoWithJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
         JoinRuleCreateReqDto joinRuleCreateDto = new JoinRuleCreateReqDto(true, 40, 20, MemberGender.M);
         return new MoimCreateReqDto(
-                mName, moimInfo, state, city, mMember, true, joinRuleCreateDto, List.of(category1, category2)
+                mName, moimInfo, state, city, mMember, true, joinRuleCreateDto, null, List.of(category1, category2)
         );
     }
 

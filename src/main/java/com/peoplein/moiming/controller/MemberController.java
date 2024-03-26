@@ -166,8 +166,7 @@ public class MemberController {
             @ApiResponse(code = 400, message = "프로필 사진 변경 실패, ERR MSG 확인")
     })
     @PostMapping(PATH_MEMBER_CHANGE_PF_IMG)
-    public ResponseEntity<?> changePfImg(
-            MultipartFile imgFile
+    public ResponseEntity<?> changePfImg(MultipartFile imgFile
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
         String url = storageService.uploadMemberPfImg(imgFile, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "프로필 사진 변경 성공", new MemberChangePfImgRespDto(url)));

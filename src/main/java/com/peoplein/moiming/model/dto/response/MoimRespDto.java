@@ -6,12 +6,14 @@ import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,7 +31,7 @@ public class MoimRespDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class MoimCreateRespDto{
+    public static class MoimCreateRespDto {
 
         private Long moimId;
         private String moimName;
@@ -38,6 +40,7 @@ public class MoimRespDto {
         private int maxMember;
         private String areaCity;
         private String areaState;
+        private String imgUrl;
         @JsonProperty("creatorInfo")
         private MoimCreatorInfoDto creatorInfoDto;
         @JsonProperty("joinRule")
@@ -45,12 +48,13 @@ public class MoimRespDto {
         @JsonProperty("categories")
         private List<String> categoryNameValues;
 
-        public MoimCreateRespDto(Moim moim, Member creator){
+        public MoimCreateRespDto(Moim moim, Member creator) {
             this.moimId = moim.getId();
             this.moimName = moim.getMoimName();
             this.moimInfo = moim.getMoimInfo();
             this.curMemberCount = moim.getCurMemberCount();
             this.maxMember = moim.getMaxMember();
+            this.imgUrl = moim.getImgUrl();
             this.areaCity = moim.getMoimArea().getCity();
             this.areaState = moim.getMoimArea().getState();
             this.creatorInfoDto = new MoimCreatorInfoDto(creator);
@@ -83,7 +87,7 @@ public class MoimRespDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class MoimViewRespDto{
+    public static class MoimViewRespDto {
 
         private Long moimId;
         private String moimName;
@@ -138,7 +142,7 @@ public class MoimRespDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class MoimDetailViewRespDto{
+    public static class MoimDetailViewRespDto {
 
         private Long moimId;
         private String moimName;
@@ -234,7 +238,7 @@ public class MoimRespDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class MoimJoinRuleUpdateRespDto{
+    public static class MoimJoinRuleUpdateRespDto {
 
         private boolean hasAgeRule;
         private int ageMax;
@@ -323,4 +327,34 @@ public class MoimRespDto {
         }
     }
 
+
+    @ApiModel(value = "Moim API - 응답 - 모임 사진 설정")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MoimChangeImgRespDto {
+
+        private Long fileId;
+        private String imgUrl;
+
+        public MoimChangeImgRespDto(File file) {
+            this.fileId = file.getId();
+            this.imgUrl = file.getFileUrl();
+        }
+
+    }
+
+    @ApiModel(value = "Moim API - 응답 - 모임 사진 삭제")
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class MoimDeleteImgRespDto {
+
+        private String defaultImgUrl;
+
+        public MoimDeleteImgRespDto() {
+            this.defaultImgUrl = AppParams.DEFAULT_MOIM_IMG_PATH;
+        }
+    }
 }

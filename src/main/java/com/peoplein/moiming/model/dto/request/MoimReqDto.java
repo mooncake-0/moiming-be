@@ -46,6 +46,8 @@ public class MoimReqDto {
         @JsonProperty("joinRule")
         private JoinRuleCreateReqDto joinRuleDto;
 
+        private Long imgFileId;
+
         @NotEmpty
         @Size(min = 2, max = 2)
         @JsonProperty("categories")
