@@ -3,6 +3,7 @@ package com.peoplein.moiming.controller;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.CategoryName;
+import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
@@ -10,6 +11,7 @@ import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.MoimCategoryMapperDto;
+import com.peoplein.moiming.model.dto.response.MemberRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimService;
 import io.swagger.annotations.*;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
+import static com.peoplein.moiming.model.dto.response.MemberRespDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimRespDto.*;
 
 @Slf4j
@@ -42,7 +45,43 @@ public class MoimController {
 
     private final MoimService moimService;
 
-    @ApiOperation("모임 생성")
+    @ApiOperation("모임 프로필 사진 지정 (생성, 수정), (file key {imgFile} 이름으로 전달 필요)")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 이미지 지정 성공", response = MoimChangeImgRespDto.class),
+            @ApiResponse(code = 400, message = "모임 이미지 지정 실패, ERR MSG 확인")
+    })
+    @PostMapping(PATH_MOIM_CHANGE_PF_IMG)
+    public ResponseEntity<?> updateImg(MultipartFile imgFile
+            , @RequestParam(required = false) Long moimId
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+        File imgFileInfo = moimService.updateImg(imgFile, moimId, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "프로필 사진 변경 성공", new MoimChangeImgRespDto(imgFileInfo)));
+    }
+
+
+    @ApiOperation("모임 프로필 사진 삭제")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 이미지 삭제 성공", response = MoimDeleteImgRespDto.class),
+            @ApiResponse(code = 400, message = "모임 이미지 삭제 실패, ERR MSG 확인")
+    })
+    @DeleteMapping(PATH_MOIM_DELETE_PF_IMG)
+    public ResponseEntity<?> deleteImg(@PathVariable Long moimId
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+        if (moimId == null) {
+            throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM);
+        }
+        moimService.deleteImg(moimId, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "프로필 사진 변경 성공", new MoimDeleteImgRespDto()));
+    }
+
+
+    @ApiOperation("모임 생성 (이미지 없으면 imgFileId 비우기), (요구사항 변경으로 모임 가입조건은 항상 존재, hasJoinRule=true 로 하시면 됩니다, 성별은 M/F/N)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -53,7 +92,6 @@ public class MoimController {
     @PostMapping(PATH_MOIM_CREATE)
     public ResponseEntity<?> createMoim(@RequestBody @Valid MoimCreateReqDto requestDto
             , BindingResult br
-//            , @RequestPart MultipartFile file
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         Moim moimOut = moimService.createMoim(requestDto, principal.getMember());
@@ -99,7 +137,7 @@ public class MoimController {
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "모임 세부 조회 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 200, message = "모임 세부 조회 성공", response = MoimDetailViewRespDto.class),
             @ApiResponse(code = 400, message = "모임 세부 조회 실패, ERR MSG 확인")
     })
     @GetMapping(PATH_MOIM_GET_DETAIL)
@@ -113,7 +151,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 정보 수정")
+    @ApiOperation("모임 정보 수정 - 수정된 필드만 보낸다 (요청 UI가 분리되어 있음)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -133,7 +171,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 가입 조건 수정")
+    @ApiOperation("모임 가입 조건 수정 - 모임 허용 인원 (maxMember 는 UI 상 이 요청에서 처리, maxMember 제외하고 수정 상관없이 현재 필드 모두 보낸다, hasAgeRule 이 false 면 ageMin/Max -1 로 전달)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -146,8 +184,10 @@ public class MoimController {
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        MoimJoinRule joinRule = moimService.updateMoimJoinRule(requestDto, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 가입 조건 수정 성공", new MoimJoinRuleUpdateRespDto(joinRule)));
+        Moim moim = moimService.updateMoimJoinRule(requestDto, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 가입 조건 수정 성공", new MoimJoinRuleUpdateRespDto(
+                moim.getMaxMember(), moim.getMoimJoinRule()
+        )));
 
     }
 

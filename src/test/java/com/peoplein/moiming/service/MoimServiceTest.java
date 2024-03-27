@@ -8,6 +8,7 @@ import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.*;
+import com.peoplein.moiming.repository.jpa.FileJpaRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +47,190 @@ public class MoimServiceTest {
     @Mock
     private MoimCountRepository moimCountRepository;
 
+    @Mock
+    private StorageService storageService;
+
+    @Mock
+    private FileJpaRepository fileJpaRepository;
+
+
+    // updateImg 성공 - 모임 생성이라 moimId 없음
+    @Test
+    void updateImg_shouldPass_whenMoimIdNotPassedForNewMoim() {
+
+        // given
+        Member member = mock(Member.class);
+
+        // when
+        moimService.updateImg(null, null, member);
+
+        // then
+        verify(storageService, times(1)).uploadMoimImg(any());
+
+    }
+
+
+    // updateImg 성공 - 모임 생성이라 moimId 없음
+    @Test
+    void updateImg_shouldPass_whenMoimIdPassedForUpdate() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
+        when(member.getId()).thenReturn(2L);
+        when(moim.getCreatorId()).thenReturn(2L);
+
+        // when
+        moimService.updateImg(null, moimId, member);
+
+        // then
+        verify(storageService, times(1)).uploadMoimImg(any());
+        verify(storageService, times(1)).deleteMoimImg(any());
+        verify(moim, times(1)).deleteImg();
+        verify(moim, times(1)).changeImg(any());
+
+    }
+
+
+    // updateImg - 실패 - Moim Not Found
+    @Test
+    void updateImg_shouldThrowException_whenUpdateMoimNotFound_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(moimRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        assertThatThrownBy(() -> moimService.updateImg(null, moimId, member)).isInstanceOf(MoimingApiException.class);
+
+        // then
+        verify(storageService, times(1)).uploadMoimImg(any());
+        verify(storageService, times(0)).deleteMoimImg(any());
+
+    }
+
+
+    // updateImg - 실패 - Request Not Moim Creator
+    @Test
+    void updateImg_shouldThrowException_whenReqByNotMoimCreator_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
+        when(member.getId()).thenReturn(2L);
+        when(moim.getCreatorId()).thenReturn(3L); // 둘이 다름 적용
+
+        // when
+        assertThatThrownBy(() -> moimService.updateImg(null, moimId, member)).isInstanceOf(MoimingApiException.class);
+
+        // then
+        verify(storageService, times(1)).uploadMoimImg(any());
+        verify(storageService, times(0)).deleteMoimImg(any());
+
+    }
+
+
+    // delete Img - 성공
+    @Test
+    void deleteImg_shouldPass_whenRightInfoPassed() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
+        when(member.getId()).thenReturn(1L);
+        when(moim.getCreatorId()).thenReturn(1L); // 모임 운영자의 요청임
+        when(moim.getImgFileId()).thenReturn(1L); // 모임에는 사진이 있음
+
+        // when
+        moimService.deleteImg(moimId, member);
+
+        // then
+        verify(storageService, times(1)).deleteMoimImg(any());
+        verify(moim, times(1)).deleteImg();
+
+    }
+
+
+    // delete Img - 실패 : Moim 없음
+    @Test
+    void deleteImg_shouldThrowException_whenMoimNotFound_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(moimRepository.findById(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.deleteImg(moimId, member)).isInstanceOf(MoimingApiException.class);
+        verify(storageService, times(0)).deleteMoimImg(any());
+    }
+
+
+    // delete Img - 실패 : 운영자 아님
+    @Test
+    void deleteImg_shouldThrowException_whenReqByNotMoimCreator_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
+        when(member.getId()).thenReturn(1L);
+        when(moim.getCreatorId()).thenReturn(2L); // 모임 운영자의 요청임
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.deleteImg(moimId, member)).isInstanceOf(MoimingApiException.class);
+        verify(storageService, times(0)).deleteMoimImg(any());
+        verify(moim, times(0)).deleteImg();
+
+    }
+
+
+    // delete Img - 실패 : 이미 사진 없는 모임
+    @Test
+    void deleteImg_shouldThrowException_whenMoimImgEmpty_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
+        when(member.getId()).thenReturn(1L);
+        when(moim.getCreatorId()).thenReturn(1L); // 모임 운영자의 요청임
+        when(moim.getImgFileId()).thenReturn(null); // Mock 객체는 Long 은 get 했을 때 0 이 반환되는듯? null 이라고 명시해야함
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimService.deleteImg(moimId, member)).isInstanceOf(MoimingApiException.class);
+        verify(storageService, times(0)).deleteMoimImg(any());
+        verify(moim, times(0)).deleteImg();
+
+    }
+
+
     // 성공
     @Test
     void getMemberMoims_shouldProcess_whenRightInfoWithNotNullMoimIdPassed() {
@@ -60,7 +244,7 @@ public class MoimServiceTest {
         when(moimRepository.findById(lastMoimId)).thenReturn(Optional.of(lastMoim));
 
         // when
-        moimService.getMemberMoims(lastMoimId,  false, 0, member); // ANY VALUE
+        moimService.getMemberMoims(lastMoimId, false, 0, member); // ANY VALUE
 
         // then
         verify(moimMemberRepository, times(1)).findMemberMoimsWithCursorConditions(any(), anyBoolean(), anyBoolean(), any(), anyInt());
@@ -77,7 +261,7 @@ public class MoimServiceTest {
         Long lastMoimId = null; // Not Null
 
         // when
-        moimService.getMemberMoims(lastMoimId,  false, 0, member); // ANY VALUE
+        moimService.getMemberMoims(lastMoimId, false, 0, member); // ANY VALUE
 
         // then
         verify(moimMemberRepository, times(1)).findMemberMoimsWithCursorConditions(any(), anyBoolean(), anyBoolean(), any(), anyInt());
@@ -92,7 +276,7 @@ public class MoimServiceTest {
         // given
         // when
         // then
-        assertThatThrownBy(() -> moimService.getMemberMoims(null,  false, 0, null)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimService.getMemberMoims(null, false, 0, null)).isInstanceOf(MoimingApiException.class);
 
     }
 

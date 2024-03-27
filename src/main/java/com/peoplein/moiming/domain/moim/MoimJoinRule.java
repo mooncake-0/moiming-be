@@ -49,16 +49,14 @@ public class MoimJoinRule extends BaseEntity {
             ageMin = -1;
         }
 
-        if (ageMin > ageMax) {
-            log.error("{}, {}", "나이 관계가 잘못 매핑되었습니다, 최소 나이가 더 큼, C999", COMMON_INVALID_SITUATION.getErrMsg());
-            throw new MoimingApiException(COMMON_INVALID_SITUATION);
-        }
-
+        // static 함수이므로 validateAge 는 생성자에서
         return new MoimJoinRule(hasAgeRule, ageMax, ageMin, memberGender);
     }
 
 
     private MoimJoinRule(boolean hasAgeRule, int ageMax, int ageMin, MemberGender memberGender) {
+        validateAge(hasAgeRule, ageMin, ageMax);
+
         this.hasAgeRule = hasAgeRule;
         this.ageMax = ageMax;
         this.ageMin = ageMin;
@@ -88,16 +86,22 @@ public class MoimJoinRule extends BaseEntity {
             ageMin = -1;
         }
 
-        if (ageMin > ageMax) {
-            log.error("{}, {}", "나이 관계가 잘못 매핑되었습니다, 최소 나이가 더 큼, C999", COMMON_INVALID_SITUATION.getErrMsg());
-            throw new MoimingApiException(COMMON_INVALID_SITUATION);
-        }
+        validateAge(hasAgeRule, ageMin, ageMax);
+
         this.hasAgeRule = hasAgeRule;
         this.ageMax = ageMax;
         this.ageMin = ageMin;
         this.memberGender = memberGender;
     }
 
+    private void validateAge(boolean hasAgeRule, int ageMin, int ageMax) {
+        // ageMin = -1 이면 없다는 뜻이므로, 통과할 수 있음 -> -1 이 아니면서 15 이하면 에러
+        // ageMax= -1 이면 없다는 뜻이므로, 통과할 수 있음 -> 100을 넘기만 하면 에러
+        if (ageMin > ageMax || (hasAgeRule && ageMin < 15) || (hasAgeRule && ageMax > 100)) {
+            log.info("{}, validateAge :: {}", this.getClass().getName(), "최소 연령이 더 큰 값 or 최소 나이 15 미만이나 최대 나이 100 초과로 입력");
+            throw new MoimingApiException(MOIM_RULE_AGE_NOT_VALID);
+        }
+    }
 
     // WARN: ID 변경은 MOCK 용: 호출된 곳이 test Pckg 인지 확인
     public void changeMockObjectIdForTest(Long mockObjectId, URL classUrl) {

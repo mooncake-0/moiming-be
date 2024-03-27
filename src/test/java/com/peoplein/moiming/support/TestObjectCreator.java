@@ -92,21 +92,22 @@ public class TestObjectCreator {
 
     protected MoimCreateReqDto makeMoimReqDtoNoJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
         return new MoimCreateReqDto(
-                mName, moimInfo, state, city, mMember, false, null, List.of(category1, category2)
+                mName, moimInfo, state, city, mMember, false, null, null, List.of(category1, category2)
         );
     }
 
     protected MoimCreateReqDto makeMoimReqDtoWithJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
         JoinRuleCreateReqDto joinRuleCreateDto = new JoinRuleCreateReqDto(true, 40, 20, MemberGender.M);
         return new MoimCreateReqDto(
-                mName, moimInfo, state, city, mMember, true, joinRuleCreateDto, List.of(category1, category2)
+                mName, moimInfo, state, city, mMember, true, joinRuleCreateDto, null, List.of(category1, category2)
         );
     }
 
 
     // moimInfo, moimAreaCity 는 변경하지 않는다고 가정
-    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state, String category1, String category2) {
-        return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
+    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state,  String category1, String category2) {
+//        return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
+        return new MoimUpdateReqDto(moimId, mName, null, state, null, List.of(category1, category2));
     }
 
 

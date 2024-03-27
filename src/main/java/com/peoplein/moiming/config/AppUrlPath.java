@@ -74,6 +74,10 @@ public abstract class AppUrlPath {
     // DELETE - /api/v0/moim/{moimId}
     public final static String PATH_MOIM_DELETE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}";
 
+    public final static String PATH_MOIM_CHANGE_PF_IMG = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/image";
+    public final static String PATH_MOIM_DELETE_PF_IMG = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}" + "/image";
+
+
     public final static String PATH_MOIM_SUGGESTED = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/main" + "/suggest";
 
 
@@ -131,9 +135,7 @@ public abstract class AppUrlPath {
     // 애매한 것들
     public final static String PATH_CREATE_REPORT = API_SERVER + "/v0" + "/report";
 
-    public final static String PATH_FIXED_VALUES = API_SERVER + "/v0"  + "/fixed";
-
-
+    public final static String PATH_FIXED_VALUES = API_SERVER + "/v0" + "/fixed";
 
 
     // 이하로는 점검되지 않은 URL

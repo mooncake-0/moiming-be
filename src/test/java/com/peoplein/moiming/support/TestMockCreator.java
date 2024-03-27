@@ -46,17 +46,15 @@ public class TestMockCreator {
         JoinRuleCreateReqDto ruleRequestDto = null;
         if (hasJoinRule) ruleRequestDto = new JoinRuleCreateReqDto(isAgeRule, maxAge, minAge, memberGender);
         return new MoimCreateReqDto(mName, moimInfo, moimArea.getCity(), moimArea.getState()
-                , maxMember, hasJoinRule, ruleRequestDto, List.of(category1, category2));
+                , maxMember, hasJoinRule, ruleRequestDto, null, List.of(category1, category2));
 
     }
-
 
 
     // Category 는 Mocking 할 때 어차피 따로 stubbing 해줘야 함
     protected MoimUpdateReqDto mockMoimUpdateReqDto(Long moimId, String moimName, Integer maxMember, String areaState, String areaCity) {
-        return new MoimUpdateReqDto(moimId, moimName, null, maxMember, areaState, areaCity, null);
+        return new MoimUpdateReqDto(moimId, moimName, null, areaState, areaCity, null);
     }
-
 
 
     protected Member mockMember(Long id, String email, String name, String phone, String ci, Role role) {
@@ -71,7 +69,6 @@ public class TestMockCreator {
     }
 
 
-
     protected Moim mockMoimWithoutRuleJoin(Long id, String mName, int maxMember, String category1, String category2, Member curMember) {
 
         Category mockCategory1 = mockCategory(1L, CategoryName.fromValue(category1), 1, null);
@@ -82,7 +79,6 @@ public class TestMockCreator {
 
         return moim;
     }
-
 
 
     protected Moim mockMoimWithRuleJoin(Long id, String mName, int maxMember, boolean isAgeRule, int maxAge, int minAge, MemberGender memberGender
@@ -104,7 +100,6 @@ public class TestMockCreator {
         moimMember.changeMockObjectIdForTest(id, getClassUrl());
         return moimMember;
     }
-
 
 
     protected MoimJoinRule mockMoimJoinRule(boolean isAgeRule, int maxAge, int minAge, MemberGender memberGender) {

@@ -4,6 +4,7 @@ import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.CategoryName;
+import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
@@ -12,12 +13,14 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.inner.MoimCategoryMapperDto;
 import com.peoplein.moiming.model.query.QueryMoimSuggestMapDto;
 import com.peoplein.moiming.repository.*;
+import com.peoplein.moiming.repository.jpa.FileJpaRepository;
 import com.peoplein.moiming.repository.jpa.MoimJoinRuleJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -33,6 +36,9 @@ import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto
 @RequiredArgsConstructor
 public class MoimService {
 
+    private final StorageService storageService;
+    private final FileJpaRepository fileJpaRepository;
+
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
     private final CategoryService categoryService;
@@ -44,6 +50,60 @@ public class MoimService {
     private final MoimJoinRuleJpaRepository moimJoinRuleRepository;
     private final MoimCountRepository moimCountRepository;
     private final MoimCountService moimCountService;
+
+
+    public File updateImg(MultipartFile imgFile, Long moimId, Member member) {
+
+        if (member == null) { // 자신이 활용하는 건에 대해서만 책임
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        File file = storageService.uploadMoimImg(imgFile);
+
+        // moimId 가 있을시 - 1) 모임 존재성 확인 2) member 의 모임장 여부 확인 3) 수정이므로 기존을 삭제하기 위한 storage 요청
+        if (moimId != null) {
+            Moim moim = moimRepository.findById(moimId).orElseThrow(() ->
+                    new MoimingApiException(MOIM_NOT_FOUND)
+            );
+
+            if (!member.getId().equals(moim.getCreatorId())) {
+                log.warn("{}, updateImg :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 [" + moim.getId() + "] 이미지 변경 시도, 모임장 아님");
+                throw new MoimingApiException(MEMBER_NOT_AUTHORIZED);
+            }
+
+            storageService.deleteMoimImg(moim.getImgFileId());
+            moim.deleteImg();
+            moim.changeImg(file);
+        }
+
+        return file;
+    }
+
+
+    public void deleteImg(Long moimId, Member member) {
+
+        if (moimId == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        Moim moim = moimRepository.findById(moimId).orElseThrow(() ->
+                new MoimingApiException(MOIM_NOT_FOUND)
+        );
+
+        if (!member.getId().equals(moim.getCreatorId())) {
+            log.warn("{}, deleteImg :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 [" + moim.getId() + "] 이미지 삭제 시도, 모임장 아님");
+            throw new MoimingApiException(MEMBER_NOT_AUTHORIZED);
+        }
+
+        if (moim.getImgFileId() == null) {
+            log.info("{}, deleteImg :: {}", this.getClass().getName(), "[" + moim.getId() + "] 는 이미 모임 사진이 없음");
+            throw new MoimingApiException(STORAGE_FILE_NOT_FOUND);
+        }
+
+        storageService.deleteMoimImg(moim.getImgFileId());
+        moim.deleteImg();
+
+    }
 
 
     // 모임 생성
@@ -62,10 +122,18 @@ public class MoimService {
         Moim moim = Moim.createMoim(requestDto.getMoimName(), requestDto.getMoimInfo(), requestDto.getMaxMember()
                 , new Area(requestDto.getAreaState(), requestDto.getAreaCity()), categories, curMember);
 
-
         // 가입조건 있을시 SU
         if (requestDto.getHasJoinRule()) {
             moim.setMoimJoinRule(generateJoinRule(requestDto.getJoinRuleDto()));
+        }
+
+        // 프로필 사진이 있을시 SU
+        if (requestDto.getImgFileId() != null) {
+            File file = fileJpaRepository.findById(requestDto.getImgFileId()).orElseThrow(() -> {
+                log.error("{}, createMoim :: {}", this.getClass().getName(), "id: [" + requestDto.getImgFileId() + "] 의 파일을 찾을 수 없습니다");
+                return new MoimingApiException(STORAGE_FILE_NOT_FOUND);
+            });
+            moim.changeImg(file);
         }
 
         // 카테고리 SU
@@ -98,7 +166,7 @@ public class MoimService {
         }
 
         List<MoimCategoryLinker> categoryLinkers = new ArrayList<>();
-        if(!moimIds.isEmpty()) {
+        if (!moimIds.isEmpty()) {
             categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
         }
 
@@ -117,7 +185,7 @@ public class MoimService {
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
-        MoimMember creatorMember = moimMemberRepository.findWithMemberAndInfoByMemberAndMoimId(moim.getCreatorId(), moim.getId()).orElseThrow(()->{
+        MoimMember creatorMember = moimMemberRepository.findWithMemberAndInfoByMemberAndMoimId(moim.getCreatorId(), moim.getId()).orElseThrow(() -> {
             log.error("{}, {}", "모임 생성자 정보를 찾을 수 없음, C999", COMMON_INVALID_SITUATION.getErrMsg());
             return new MoimingApiException(COMMON_INVALID_SITUATION);
         });
@@ -150,7 +218,7 @@ public class MoimService {
 
 
     // 가입 조건 수정
-    public MoimJoinRule updateMoimJoinRule(MoimJoinRuleUpdateReqDto requestDto, Member member) {
+    public Moim updateMoimJoinRule(MoimJoinRuleUpdateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
@@ -171,17 +239,19 @@ public class MoimService {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
-        MoimJoinRule joinRule;
-        if (moim.getMoimJoinRule() == null) {
-            joinRule = MoimJoinRule.createMoimJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
-            moim.setMoimJoinRule(joinRule);
-        } else {
-            joinRule = moim.getMoimJoinRule();
-            joinRule.changeJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+        // 모임 허용 인원 수 수정이 있다면 수정한다
+        if (requestDto.getMaxMember() != null) {
+            moim.updateMaxMember(requestDto.getMaxMember(), member.getId());
         }
 
-        return joinRule;
+        if (moim.getMoimJoinRule() == null) {
+            MoimJoinRule joinRule = MoimJoinRule.createMoimJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+            moim.setMoimJoinRule(joinRule);
+        } else {
+            moim.getMoimJoinRule().changeJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+        }
 
+        return moim;
     }
 
 
@@ -273,8 +343,8 @@ public class MoimService {
         }
 
         List<MoimCategoryLinker> categoryLinkers = new ArrayList<>();
-        if(!moimIds.isEmpty()) {
-             categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
+        if (!moimIds.isEmpty()) {
+            categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
         }
         return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
 
