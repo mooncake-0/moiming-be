@@ -105,8 +105,9 @@ public class TestObjectCreator {
 
 
     // moimInfo, moimAreaCity 는 변경하지 않는다고 가정
-    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state, String category1, String category2) {
-        return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
+    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state,  String category1, String category2) {
+//        return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
+        return new MoimUpdateReqDto(moimId, mName, null, state, null, List.of(category1, category2));
     }
 
 

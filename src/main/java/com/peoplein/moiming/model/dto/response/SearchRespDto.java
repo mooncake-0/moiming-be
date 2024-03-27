@@ -1,6 +1,7 @@
 package com.peoplein.moiming.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.peoplein.moiming.config.AppParams;
 import com.peoplein.moiming.domain.MoimCategoryLinker;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.moim.Moim;
@@ -11,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -30,6 +32,7 @@ public class SearchRespDto {
         private int maxMember;
         private String areaCity;
         private String areaState;
+        private String imgUrl;
         private String createdAt;
         private String updatedAt;
         @JsonProperty("joinRule")
@@ -43,6 +46,10 @@ public class SearchRespDto {
             this.maxMember = moim.getMaxMember();
             this.areaCity = moim.getMoimArea().getCity();
             this.areaState = moim.getMoimArea().getState();
+            this.imgUrl = moim.getImgUrl();
+            if (!StringUtils.hasText(moim.getImgUrl())) {
+                this.imgUrl = AppParams.DEFAULT_MOIM_IMG_PATH;
+            }
             this.createdAt = moim.getCreatedAt() + "";
             this.updatedAt = moim.getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);

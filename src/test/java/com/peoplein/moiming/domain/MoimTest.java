@@ -130,29 +130,29 @@ public class MoimTest extends TestMockCreator {
     }
 
 
-
-    @Test
-    void updateMoim_shouldUpdateMoimMaxMember_whenRightInfoPassed() {
-
-        // given
-        Member changeReqMember = mock(Member.class);
-        doReturn(2L).when(changeReqMember).getId();
-
-        // given - 기존 모임이 있음
-        Moim mockMoim = mockMoimWithoutRuleJoin(1L, moimName, maxMember, depth1SampleCategory, depth2SampleCategory, mockMember);
-
-        // given - 수정에 대해 요청함 (수정 안할 필드는 Null)
-        MoimUpdateReqDto reqDto = mockMoimUpdateReqDto(mockMoim.getId(), null, maxMember2, null, null);
-
-        // when
-        mockMoim.updateMoim(reqDto, new ArrayList<>(), changeReqMember.getId()); // 카테고리 변경사항 없으면 빈 Array 들어감
-
-        // then
-        assertThat(mockMoim.getMoimName()).isEqualTo(moimName);
-        assertThat(mockMoim.getMoimInfo()).isEqualTo(moimInfo);
-        assertThat(mockMoim.getMaxMember()).isEqualTo(maxMember2);
-        assertThat(mockMoim.getMoimArea().getState()).isEqualTo(moimArea.getState());
-    }
+// maxMember 변경은 가입조건 수정 요청에 포함시킨다
+//    @Test
+//    void updateMoim_shouldUpdateMoimMaxMember_whenRightInfoPassed() {
+//
+//        // given
+//        Member changeReqMember = mock(Member.class);
+//        doReturn(2L).when(changeReqMember).getId();
+//
+//        // given - 기존 모임이 있음
+//        Moim mockMoim = mockMoimWithoutRuleJoin(1L, moimName, maxMember, depth1SampleCategory, depth2SampleCategory, mockMember);
+//
+//        // given - 수정에 대해 요청함 (수정 안할 필드는 Null)
+//        MoimUpdateReqDto reqDto = mockMoimUpdateReqDto(mockMoim.getId(), null, maxMember2, null, null);
+//
+//        // when
+//        mockMoim.updateMoim(reqDto, new ArrayList<>(), changeReqMember.getId()); // 카테고리 변경사항 없으면 빈 Array 들어감
+//
+//        // then
+//        assertThat(mockMoim.getMoimName()).isEqualTo(moimName);
+//        assertThat(mockMoim.getMoimInfo()).isEqualTo(moimInfo);
+//        assertThat(mockMoim.getMaxMember()).isEqualTo(maxMember2);
+//        assertThat(mockMoim.getMoimArea().getState()).isEqualTo(moimArea.getState());
+//    }
 
 
 
@@ -176,7 +176,7 @@ public class MoimTest extends TestMockCreator {
         // then
         assertThat(mockMoim.getMoimName()).isEqualTo(moimName2);
         assertThat(mockMoim.getMoimInfo()).isEqualTo(moimInfo);
-        assertThat(mockMoim.getMaxMember()).isEqualTo(maxMember2);
+        assertThat(mockMoim.getMaxMember()).isEqualTo(maxMember); // Moim 수정으로는 바뀌지 않는다 (가입조건 수정요청으로 처리되기 때문에, 해당 함수로 바뀌지 않음)
         assertThat(mockMoim.getMoimArea().getCity()).isEqualTo(moimArea2.getCity());
 
     }

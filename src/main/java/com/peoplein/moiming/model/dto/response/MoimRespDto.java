@@ -96,6 +96,7 @@ public class MoimRespDto {
         private String areaCity;
         private String areaState;
         private String createdAt;
+        private String imgUrl;
         private String updatedAt;
         @JsonProperty("joinRule")
         private MoimJoinRuleDto moimJoinRuleDto;
@@ -108,6 +109,10 @@ public class MoimRespDto {
             this.maxMember = moim.getMaxMember();
             this.areaCity = moim.getMoimArea().getCity();
             this.areaState = moim.getMoimArea().getState();
+            this.imgUrl = moim.getImgUrl();
+            if (!StringUtils.hasText(moim.getImgUrl())) {
+                this.imgUrl = AppParams.DEFAULT_MOIM_IMG_PATH;
+            }
             this.createdAt = moim.getCreatedAt() + "";
             this.updatedAt = moim.getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);
@@ -151,6 +156,7 @@ public class MoimRespDto {
         private int maxMember;
         private String areaCity;
         private String areaState;
+        private String imgUrl;
         private String createdAt;
         private String updatedAt;
 
@@ -172,9 +178,12 @@ public class MoimRespDto {
             this.maxMember = moimMember.getMoim().getMaxMember();
             this.areaCity = moimMember.getMoim().getMoimArea().getCity();
             this.areaState = moimMember.getMoim().getMoimArea().getState();
+            this.imgUrl = moimMember.getMoim().getImgUrl();
+            if (!StringUtils.hasText(moimMember.getMoim().getImgUrl())) {
+                this.imgUrl = AppParams.DEFAULT_MOIM_IMG_PATH;
+            }
             this.createdAt = moimMember.getMoim().getCreatedAt() + "";
             this.updatedAt = moimMember.getMoim().getUpdatedAt() + "";
-
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(moimMember.getMoim().getMoimCategoryLinkers());
             this.creatorInfoDto = new MoimCreatorInfoDto(moimMember.getMember());
             if (moimMember.getMoim().getMoimJoinRule() != null) {
@@ -240,12 +249,14 @@ public class MoimRespDto {
     @NoArgsConstructor
     public static class MoimJoinRuleUpdateRespDto {
 
+        private int maxMember;
         private boolean hasAgeRule;
         private int ageMax;
         private int ageMin;
         private MemberGender memberGender;
 
-        public MoimJoinRuleUpdateRespDto(MoimJoinRule moimJoinRule) {
+        public MoimJoinRuleUpdateRespDto(int maxMember, MoimJoinRule moimJoinRule) {
+            this.maxMember = maxMember;
             this.hasAgeRule = moimJoinRule.isHasAgeRule();
             this.ageMax = moimJoinRule.getAgeMax();
             this.ageMin = moimJoinRule.getAgeMin();
@@ -265,6 +276,7 @@ public class MoimRespDto {
         private int maxMember;
         private String areaCity;
         private String areaState;
+        private String imgUrl;
         private String createdAt;
         private String updatedAt;
         @JsonProperty("joinRule")
@@ -278,6 +290,10 @@ public class MoimRespDto {
             this.maxMember = moim.getMaxMember();
             this.areaCity = moim.getMoimArea().getCity();
             this.areaState = moim.getMoimArea().getState();
+            this.imgUrl = moim.getImgUrl();
+            if (!StringUtils.hasText(moim.getImgUrl())) {
+                this.imgUrl = AppParams.DEFAULT_MOIM_IMG_PATH;
+            }
             this.createdAt = moim.getCreatedAt() + "";
             this.updatedAt = moim.getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);

@@ -18,7 +18,7 @@ public class FileJpaRepository {
     }
 
     public Optional<File> findById(Long fileId) {
-        return Optional.of(em.find(File.class, fileId));
+        return Optional.ofNullable(em.find(File.class, fileId));
     }
 
 

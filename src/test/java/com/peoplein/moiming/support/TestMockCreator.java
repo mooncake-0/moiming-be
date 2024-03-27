@@ -53,7 +53,7 @@ public class TestMockCreator {
 
     // Category 는 Mocking 할 때 어차피 따로 stubbing 해줘야 함
     protected MoimUpdateReqDto mockMoimUpdateReqDto(Long moimId, String moimName, Integer maxMember, String areaState, String areaCity) {
-        return new MoimUpdateReqDto(moimId, moimName, null, maxMember, areaState, areaCity, null);
+        return new MoimUpdateReqDto(moimId, moimName, null, areaState, areaCity, null);
     }
 
 

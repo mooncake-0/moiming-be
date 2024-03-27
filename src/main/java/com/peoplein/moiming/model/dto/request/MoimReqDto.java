@@ -63,11 +63,11 @@ public class MoimReqDto {
             @NotNull
             private Boolean hasAgeRule;
 
-            @Max(100)
-            private int ageMax;
+            @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
+            private Integer ageMax;
 
-            @Min(15)
-            private int ageMin;
+            @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
+            private Integer ageMin;
 
             @NotNull
             private MemberGender memberGender;
@@ -95,9 +95,9 @@ public class MoimReqDto {
         @Size(min = 10, max = 5000)
         private String moimInfo;
 
-        @Min(3)
-        @Max(100)
-        private Integer maxMember;
+//        @Min(3)
+//        @Max(100)
+//        private Integer maxMember;
 
         private String areaState;
 
@@ -123,14 +123,18 @@ public class MoimReqDto {
         @NotNull
         private Long moimId;
 
+        @Min(3)
+        @Max(100)
+        private Integer maxMember;
+
         @NotNull
         private Boolean hasAgeRule;
 
-        @Max(100)
-        private int ageMax;
+        @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
+        private Integer ageMax;
 
-        @Min(15)
-        private int ageMin;
+        @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
+        private Integer ageMin;
 
         @NotNull
         private MemberGender memberGender;

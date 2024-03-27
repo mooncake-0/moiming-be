@@ -81,7 +81,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 생성")
+    @ApiOperation("모임 생성 (이미지 없으면 imgFileId 비우기), (요구사항 변경으로 모임 가입조건은 항상 존재, hasJoinRule=true 로 하시면 됩니다, 성별은 M/F/N)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -137,7 +137,7 @@ public class MoimController {
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "모임 세부 조회 성공", response = MoimViewRespDto.class),
+            @ApiResponse(code = 200, message = "모임 세부 조회 성공", response = MoimDetailViewRespDto.class),
             @ApiResponse(code = 400, message = "모임 세부 조회 실패, ERR MSG 확인")
     })
     @GetMapping(PATH_MOIM_GET_DETAIL)
@@ -151,7 +151,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 정보 수정")
+    @ApiOperation("모임 정보 수정 - 수정된 필드만 보낸다 (요청 UI가 분리되어 있음)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -171,7 +171,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 가입 조건 수정")
+    @ApiOperation("모임 가입 조건 수정 - 모임 허용 인원 (maxMember 는 UI 상 이 요청에서 처리, maxMember 제외하고 수정 상관없이 현재 필드 모두 보낸다, hasAgeRule 이 false 면 ageMin/Max -1 로 전달)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -184,8 +184,10 @@ public class MoimController {
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        MoimJoinRule joinRule = moimService.updateMoimJoinRule(requestDto, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 가입 조건 수정 성공", new MoimJoinRuleUpdateRespDto(joinRule)));
+        Moim moim = moimService.updateMoimJoinRule(requestDto, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 가입 조건 수정 성공", new MoimJoinRuleUpdateRespDto(
+                moim.getMaxMember(), moim.getMoimJoinRule()
+        )));
 
     }
 

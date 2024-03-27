@@ -1,4 +1,5 @@
 package com.peoplein.moiming.exception;
+import com.google.api.Http;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -17,6 +18,8 @@ public enum ExceptionValue {
     SEARCH_KEYWORD_INVALID(HttpStatus.BAD_REQUEST.value(), "SM000", "잘못된 키워드의 검색입니다"),
     SEARCH_KEYWORD_LENGTH_INVALID(HttpStatus.BAD_REQUEST.value(), "SM001", "키워드 길이는 2 이상 20 이하 입니다"),
 
+    // JOIN RULE DOMAIN
+    MOIM_RULE_AGE_NOT_VALID(HttpStatus.BAD_REQUEST.value(), "MJ000", "최소 연령은 15, 최대 연령은 100이며, 최소 연령이 더 클 수 없습니다"),
 
     // MOIM DOMAIN
     MOIM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "M000", "해당 모임을 찾을 수 없습니다"),

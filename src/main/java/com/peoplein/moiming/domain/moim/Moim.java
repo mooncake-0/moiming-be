@@ -141,13 +141,13 @@ public class Moim extends BaseEntity {
             this.setMoimInfo(requestDto.getMoimInfo());
         }
 
-        if (requestDto.getMaxMember() != null) {
-            if (requestDto.getMaxMember() < curMemberCount) { // 현존하는 회원 수보다 적게 수정하려 시도
-                throw new MoimingApiException(ExceptionValue.MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER);
-            }
-            isChanged = true;
-            this.setMaxMember(requestDto.getMaxMember());
-        }
+//        if (requestDto.getMaxMember() != null) {
+//            if (requestDto.getMaxMember() < curMemberCount) { // 현존하는 회원 수보다 적게 수정하려 시도
+//                throw new MoimingApiException(ExceptionValue.MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER);
+//            }
+//            isChanged = true;
+//            this.setMaxMember(requestDto.getMaxMember());
+//        }
 
         if (requestDto.getAreaState() != null || requestDto.getAreaCity() != null) {
             // 둘 중 적어도 하나는 바뀌므로, 새 Area 필요
@@ -174,6 +174,15 @@ public class Moim extends BaseEntity {
         }
     }
 
+
+    // MEMO :: Max Member 정보만 가입 조건 UI 에 있어서, 해당 플로우에서 요청이 날라오기 때문에 다로 빼줌
+    public void updateMaxMember(int maxMember, Long updaterId) {
+        if (maxMember < this.curMemberCount) { // 현존하는 회원 수보다 적게 수정하려 시도
+            throw new MoimingApiException(ExceptionValue.MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER);
+        }
+        this.setMaxMember(maxMember);
+        this.updaterId = updaterId;
+    }
 
     /*
      private 하게 바꿀 수 있도록 해서, update 함수 외에는 실행할 수 없게 한다

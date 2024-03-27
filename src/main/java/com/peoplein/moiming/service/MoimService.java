@@ -218,7 +218,7 @@ public class MoimService {
 
 
     // 가입 조건 수정
-    public MoimJoinRule updateMoimJoinRule(MoimJoinRuleUpdateReqDto requestDto, Member member) {
+    public Moim updateMoimJoinRule(MoimJoinRuleUpdateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
@@ -239,17 +239,19 @@ public class MoimService {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
-        MoimJoinRule joinRule;
-        if (moim.getMoimJoinRule() == null) {
-            joinRule = MoimJoinRule.createMoimJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
-            moim.setMoimJoinRule(joinRule);
-        } else {
-            joinRule = moim.getMoimJoinRule();
-            joinRule.changeJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+        // 모임 허용 인원 수 수정이 있다면 수정한다
+        if (requestDto.getMaxMember() != null) {
+            moim.updateMaxMember(requestDto.getMaxMember(), member.getId());
         }
 
-        return joinRule;
+        if (moim.getMoimJoinRule() == null) {
+            MoimJoinRule joinRule = MoimJoinRule.createMoimJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+            moim.setMoimJoinRule(joinRule);
+        } else {
+            moim.getMoimJoinRule().changeJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+        }
 
+        return moim;
     }
 
 

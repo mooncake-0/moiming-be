@@ -135,7 +135,7 @@ public class MoimPostController {
     }
 
 
-    @ApiOperation("게시물 수정")
+    @ApiOperation("게시물 수정 - 수정 데이터만 전달")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
