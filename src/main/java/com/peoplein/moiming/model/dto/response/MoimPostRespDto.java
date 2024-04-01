@@ -2,6 +2,7 @@ package com.peoplein.moiming.model.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.config.AppParams;
+import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.exception.MoimingApiException;
@@ -13,7 +14,9 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
 
@@ -190,6 +193,32 @@ public class MoimPostRespDto {
                         }
                     }
                 }
+            }
+        }
+    }
+
+
+    @ApiModel(value = "Moim Post API - 응답 - 게시물 사진 설정")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class MoimPostChangeImgRespDto {
+
+        private List<FileDto> files;
+
+        public MoimPostChangeImgRespDto(List<File> savedFiles) {
+            this.files = savedFiles.stream().map(FileDto::new).collect(Collectors.toList());
+        }
+
+        @Getter
+        @Setter
+        public static class FileDto {
+            private Long fileId;
+            private String imgUrl;
+
+            public FileDto(File file) {
+                this.fileId = file.getId();
+                this.imgUrl = file.getFileUrl();
             }
         }
     }

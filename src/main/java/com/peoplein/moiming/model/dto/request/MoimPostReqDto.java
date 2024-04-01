@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 public class MoimPostReqDto {
 
@@ -38,6 +39,8 @@ public class MoimPostReqDto {
 
         @NotNull
         private Boolean hasPrivateVisibility;
+
+        private List<Long> imgFileIds;
 
     }
 

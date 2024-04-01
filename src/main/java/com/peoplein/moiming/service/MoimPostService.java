@@ -2,6 +2,7 @@ package com.peoplein.moiming.service;
 
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
+import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.moim.Moim;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,6 +43,7 @@ import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 @RequiredArgsConstructor
 public class MoimPostService {
 
+    private final StorageService storageService;
     private final NotificationService notificationService;
     private final PostCommentService postCommentService;
     private final MoimMemberService moimMemberService;
@@ -48,6 +51,41 @@ public class MoimPostService {
     private final MoimPostRepository moimPostRepository;
     private final MoimRepository moimRepository;
     private final PostCommentRepository postCommentRepository;
+
+
+    @Transactional
+    public List<File> updateImgs(List<MultipartFile> imgFiles, Long moimId, Long moimPostId, Member member) {
+
+        if (moimId == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimId).orElseThrow(() -> {
+                    log.error("{}, updateMoimPost :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 유저는 [" + moimId + "]의 모임원이 아닙니다");
+                    return new MoimingApiException(MOIM_MEMBER_NOT_FOUND);
+                }
+        );
+
+        if (!moimMember.hasActivePermission()) {
+            log.error("{}, updateMoimPost :: {}", this.getClass().getName(), "요청한 유저는 모임 게시물을 수정할 권한이 없습니다");
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
+        }
+
+        List<File> files = storageService.updateMoimPostImgs(imgFiles, member);
+
+        // 최종 생서은 MOIM POST CREATE 에서 진행된다
+
+        if (moimPostId != null) {
+            // 수정 Variation
+            // moimPost 의 존재성 확인
+            // moimMember 가 update 권한이 있는지 확인
+            // 새로운 이미지들에 대해서 fileId 생성을 요청
+            // List<File> 로 반환 >> 최종 수정 요처은 MOIMPOST update 요청에서 진행된다
+        }
+
+        return files;
+    }
+
 
     @Transactional
     public MoimPost createMoimPost(MoimPostCreateReqDto requestDto, Member member) {

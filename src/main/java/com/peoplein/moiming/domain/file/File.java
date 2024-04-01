@@ -29,7 +29,9 @@ public class File {
 
     private LocalDateTime createdAt;
 
-    public File(FileDomain fileDomain, String fileName, String fileUrl, String contentType) {
+    private Long creatorId;
+
+    public File(FileDomain fileDomain, String fileName, String fileUrl, String contentType, Long creatorId) {
 
         this.fileDomain = fileDomain;
         this.fileName = fileName;
@@ -38,5 +40,6 @@ public class File {
 
         // 초기화
         this.createdAt = LocalDateTime.now();
+        this.creatorId = creatorId;
     }
 }

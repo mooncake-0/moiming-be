@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.file.FileDomain;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
@@ -12,6 +13,7 @@ import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.jpa.FileJpaRepository;
+import com.peoplein.moiming.repository.jpa.RelatedFileJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,18 +22,22 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
+import static com.peoplein.moiming.domain.file.FileDomain.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class StorageService {
+public class  StorageService {
 
     private final AmazonS3Client amazonS3Client;
 
     private final FileJpaRepository fileRepository;
+    private final RelatedFileJpaRepository relatedFileRepository;
     private final MemberRepository memberRepository;
 
 
@@ -75,7 +81,7 @@ public class StorageService {
             amazonS3Client.putObject(bucketName, fileName, imgFile.getInputStream(), metadata);
             String resourceUrl = amazonS3Client.getResourceUrl(bucketName, fileName);
 
-            File file = new File(FileDomain.USER, fileName, resourceUrl, imgFile.getContentType());
+            File file = new File(USER, fileName, resourceUrl, imgFile.getContentType(), member.getId());
             fileRepository.save(file);
             memberInfo.changePfImg(file);
 
@@ -117,7 +123,7 @@ public class StorageService {
 
     // 새로운 이미지 생성에 대한 역할만 수행한다
     @Transactional
-    public File uploadMoimImg(MultipartFile imgFile) {
+    public File uploadMoimImg(MultipartFile imgFile, Member member) {
 
         if (imgFile == null || imgFile.isEmpty()) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
@@ -133,7 +139,7 @@ public class StorageService {
             amazonS3Client.putObject(bucketName, fileName, imgFile.getInputStream(), metadata);
             String resourceUrl = amazonS3Client.getResourceUrl(bucketName, fileName);
 
-            File file = new File(FileDomain.MOIM, fileName, resourceUrl, imgFile.getContentType());
+            File file = new File(MOIM, fileName, resourceUrl, imgFile.getContentType(), member.getId());
             fileRepository.save(file);
 
             return file;
@@ -162,4 +168,43 @@ public class StorageService {
         fileRepository.remove(originalFile);
     }
 
+
+    // 순서는 정의하지 않고, File 들만 저장한다
+    @Transactional
+    public List<File> updateMoimPostImgs(List<MultipartFile> imgFiles, Member member) {
+
+        if (imgFiles == null || member == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        List<File> files = new ArrayList<>();
+
+        for (MultipartFile imgFile : imgFiles) {
+
+            String fileName = "moimPost/" + UUID.randomUUID().toString();
+
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(imgFile.getContentType());
+            metadata.setContentLength(imgFile.getSize());
+
+            try {
+
+                amazonS3Client.putObject(bucketName, fileName, imgFile.getInputStream(), metadata);
+                String resourceUrl = amazonS3Client.getResourceUrl(bucketName, fileName);
+
+                File file = new File(POST, fileName, resourceUrl, imgFile.getContentType(), member.getId());
+                fileRepository.save(file);
+
+                files.add(file);
+
+            } catch (IOException exception) {
+
+                log.error("{}, updateMoimPostImgs :: {}", this.getClass().getName(), "InputStream 으로 파일을 읽는 중 에러 발생");
+                throw new MoimingApiException(STORAGE_FILE_INPUT_STREAM_ERROR, exception);
+            }
+
+        }
+
+        return files;
+    }
 }
