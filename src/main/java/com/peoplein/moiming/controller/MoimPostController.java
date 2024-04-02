@@ -48,7 +48,7 @@ public class MoimPostController {
     private final MoimPostService moimPostService;
 
 
-    @ApiOperation("게시물 사진 저장 / 수정 - file key {imgFiles} 이름으로 이미지들 전달 필요, moimId 필수 전달, moimPostId 수정시에만 전달")
+    @ApiOperation("게시물 사진 저장 / 수정 - file key {imgFiles} 이름으로 이미지들 전달 필요, moimId 필수 전달, moimPostId 수정시에만 전달, 수정 요청 전에 새로 생성되는 사진들만 저장 요청")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -156,7 +156,7 @@ public class MoimPostController {
     }
 
 
-    @ApiOperation("게시물 수정 - 수정 데이터만 전달")
+    @ApiOperation("게시물 수정 - 수정 데이터만 전달 (fileChanged 속성 필수) / 이미지 수정시 현재 유저가 설정한 순서대로 FileId 전달, 수정되지 않은 File Id 도 전달 필요")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })

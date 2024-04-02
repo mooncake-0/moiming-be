@@ -68,7 +68,7 @@ public class MoimPost extends BaseEntity {
         this.postContent = postContent;
         this.moimPostCategory = moimPostCategory;
         this.hasPrivateVisibility = hasPrivateVisibility;
-        this.hasFiles = hasFiles;w
+        this.hasFiles = hasFiles;
 
         // 연관관계
         this.moim = moim;

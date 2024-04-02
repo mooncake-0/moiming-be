@@ -42,4 +42,8 @@ public class RelatedFile {
         this.fileDomain = file.getFileDomain();
         this.fileUrl = file.getFileUrl();
     }
+
+    public void changeIndex(int index) {
+        this.index = index;
+    }
 }

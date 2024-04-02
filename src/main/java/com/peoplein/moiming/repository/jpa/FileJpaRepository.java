@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,6 +23,15 @@ public class FileJpaRepository {
         return Optional.ofNullable(em.find(File.class, fileId));
     }
 
+    // 최초에 유저가 저장한 순서가 createdAt 대로 저장되고, 같다면 id 순서
+    public List<File> findByIds(List<Long> fileIds) {
+        return em.createQuery("SELECT f FROM File f " +
+                        "WHERE f.id IN :fileIds " +
+                        "ORDER BY f.createdAt, f.id")
+                .setParameter("fileIds", fileIds)
+                .getResultList();
+
+    }
 
     public void remove(File file) {
         em.remove(file);

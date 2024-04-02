@@ -24,6 +24,7 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static com.peoplein.moiming.domain.file.FileDomain.*;
@@ -37,7 +38,6 @@ public class  StorageService {
     private final AmazonS3Client amazonS3Client;
 
     private final FileJpaRepository fileRepository;
-    private final RelatedFileJpaRepository relatedFileRepository;
     private final MemberRepository memberRepository;
 
 
@@ -206,5 +206,12 @@ public class  StorageService {
         }
 
         return files;
+    }
+
+
+    public void deleteMoimPostImgs(List<String> rmFileNames) {
+        for (String rmFileName : rmFileNames) {
+            amazonS3Client.deleteObject(bucketName, rmFileName); // 현재 삭제 안됨
+        }
     }
 }

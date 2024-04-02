@@ -29,6 +29,7 @@ public class MoimPostRespDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MoimPostCreateRespDto {
+
         private Long moimPostId;
         private String postTitle;
         private String postContent;

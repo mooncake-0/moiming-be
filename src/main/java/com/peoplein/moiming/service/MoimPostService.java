@@ -3,6 +3,7 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.file.File;
+import com.peoplein.moiming.domain.file.FileDomain;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.moim.Moim;
@@ -44,6 +45,7 @@ import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 public class MoimPostService {
 
     private final StorageService storageService;
+    private final RelatedFileService relatedFileService;
     private final NotificationService notificationService;
     private final PostCommentService postCommentService;
     private final MoimMemberService moimMemberService;
@@ -61,27 +63,35 @@ public class MoimPostService {
         }
 
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimId).orElseThrow(() -> {
-                    log.error("{}, updateMoimPost :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 유저는 [" + moimId + "]의 모임원이 아닙니다");
+                    log.warn("{}, updateImgs :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 유저는 [" + moimId + "]의 모임원이 아닙니다");
                     return new MoimingApiException(MOIM_MEMBER_NOT_FOUND);
                 }
         );
 
         if (!moimMember.hasActivePermission()) {
-            log.error("{}, updateMoimPost :: {}", this.getClass().getName(), "요청한 유저는 모임 게시물을 수정할 권한이 없습니다");
+            log.warn("{}, updateImgs :: {}", this.getClass().getName(), "[" + member.getId() + "] 요청한 유저는 활동중인 유저가 아닙니다");
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
-        List<File> files = storageService.updateMoimPostImgs(imgFiles, member);
-
-        // 최종 생서은 MOIM POST CREATE 에서 진행된다
 
         if (moimPostId != null) {
             // 수정 Variation
             // moimPost 의 존재성 확인
-            // moimMember 가 update 권한이 있는지 확인
-            // 새로운 이미지들에 대해서 fileId 생성을 요청
-            // List<File> 로 반환 >> 최종 수정 요처은 MOIMPOST update 요청에서 진행된다
+            MoimPost moimPost = moimPostRepository.findById(moimPostId).orElseThrow(() -> {
+                        log.warn("{}, updateImgs :: {}", this.getClass().getName(), "[" + moimPostId + "] 의 게시물은 존재하지 않습니다");
+                        return new MoimingApiException(MOIM_POST_NOT_FOUND);
+                    }
+            );
+
+            // moimMember 가 update 권한이 있는지 확인 (작성자가 아니면 안됨)
+            if (!moimPost.getMember().getId().equals(member.getId())) {
+                log.warn("{}, updateImgs :: {}", this.getClass().getName(), "[" + member.getId() + "] 요청한 유저는 해당 게시물을 수정할 권한이 없습니다");
+                throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
+            }
+
         }
+
+        List<File> files = storageService.updateMoimPostImgs(imgFiles, member);
 
         return files;
     }
@@ -112,6 +122,10 @@ public class MoimPostService {
                 , moim, member);
 
         moimPostRepository.save(post); // 영속화 후 Id 받은 상태 필요
+        checkFileReqStatus(requestDto.getHasFiles(), requestDto.getImgFileIds().isEmpty());
+        if (requestDto.getHasFiles()) { // 존재할 경우 저장
+            relatedFileService.saveRelatedFiles(post.getId(), requestDto.getImgFileIds());
+        }
 
         List<MoimMember> moimMembers = moim.getMoimMembers();
         List<Member> receivers = moimMembers.stream()
@@ -215,8 +229,17 @@ public class MoimPostService {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
+        // 설정은 다 넣어주고, 변화를 요청한 애들에 한해서 최신화를 해줌
         moimPost.changeMoimPostInfo(requestDto.getPostTitle(), requestDto.getPostContent(), MoimPostCategory.fromValue(requestDto.getMoimPostCategory())
                 , requestDto.getHasFiles(), requestDto.getHasPrivateVisibility(), member.getId());
+
+        // TODO ::  파일변경이 발생하는 경우를 선별해야 한다
+        if (requestDto.getFileChanged()) {
+            checkFileReqStatus(requestDto.getHasFiles(), requestDto.getImgFileIds().isEmpty());
+            // 다 삭제든, 추가든, 수정이든 다 해당 로직으로 처리된다
+            List<String> removalFileNames = relatedFileService.updateDomainRelatedFilesAndReturnRemovalNames(FileDomain.POST, moimPost.getId(), requestDto.getImgFileIds());
+            storageService.deleteMoimPostImgs(removalFileNames);
+        }
 
         return moimPost;
     }
@@ -255,6 +278,18 @@ public class MoimPostService {
         moimPostRepository.remove(moimPost);
 
         // TODO:: 파일 삭제 진행
+    }
+
+    private void checkFileReqStatus(boolean hasFiles, boolean isEmpty) {
+        if (hasFiles) { // 있다고 했는데 파일 없음
+            if (isEmpty) {
+                throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
+            }
+        } else {// 없다고 했는데 파일 있음
+            if (!isEmpty) {
+                throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
+            }
+        }
     }
 
 }

@@ -35,6 +35,7 @@ public enum ExceptionValue {
     MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER(HttpStatus.CONFLICT.value(), "M008", "수정하려는 최대 모임원 수가 현재 모임원 수보다 적습니다"),
 
     MOIM_POST_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MP000", "해당 게시물을 찾을 수 없습니다"),
+    MOIM_POST_IMG_STATE_NOT_VALID(HttpStatus.BAD_REQUEST.value(), "MP001", "생성 / 수정 요청시 hasFile 상태와 File Id List 상태 불일치"),
 
     MOIM_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MM000", "모임의 모임원이 아닙니다"),
     MOIM_MEMBER_NOT_ACTIVE(HttpStatus.FORBIDDEN.value(), "MM001", "활동중인 모임원이 아닙니다"),
