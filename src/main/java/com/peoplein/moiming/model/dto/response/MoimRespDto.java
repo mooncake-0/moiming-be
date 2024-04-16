@@ -328,9 +328,7 @@ public class MoimRespDto {
     public static class MoimCreatorInfoDto {
 
         private Long memberId;
-
         private String nickname;
-
         private String memberPfImgUrl;
 
         public MoimCreatorInfoDto(Member member) {

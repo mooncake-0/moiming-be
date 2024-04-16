@@ -506,7 +506,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
     // 수정하려는 필드가 없을 경우
     @Test
-    void updateMoim_shouldReturn400_whenNoValuesEdited() throws Exception {
+    void updateMoim_shouldReturn200_whenNoValuesEdited() throws Exception {
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, null, null, depth1SampleCategory2, depth1SampleCategory2);
@@ -519,8 +519,7 @@ public class MoimControllerTest extends TestObjectCreator {
         System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(COMMON_UPDATE_REQUEST_FAILED.getErrCode()));
+        resultActions.andExpect(status().isOk());
 
     }
 

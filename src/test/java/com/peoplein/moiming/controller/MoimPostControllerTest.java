@@ -4,6 +4,9 @@ package com.peoplein.moiming.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.peoplein.moiming.domain.Notification;
+import com.peoplein.moiming.domain.file.File;
+import com.peoplein.moiming.domain.file.FileDomain;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.*;
@@ -32,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.MoimPostCategory.*;
+import static com.peoplein.moiming.domain.file.FileDomain.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
 import static org.assertj.core.api.Assertions.*;
@@ -101,7 +105,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), normalPostTitle, normalPostcontent, REVIEW.getValue(), false, true
+                testMoim.getId(), normalPostTitle, normalPostcontent, REVIEW.getValue(), false, true, null
         );
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -144,7 +148,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                null, normalPostTitle, normalPostcontent, REVIEW.getValue(), false, true
+                null, normalPostTitle, normalPostcontent, REVIEW.getValue(), false, true, null
         );
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -166,7 +170,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), null, normalPostcontent, REVIEW.getValue(), false, true
+                testMoim.getId(), null, normalPostcontent, REVIEW.getValue(), false, true, null
         );
 
         String requestBody = om.writeValueAsString(requestDto);
@@ -191,7 +195,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), normalPostTitle, "내용은최소10자", REVIEW.getValue(), false, true
+                testMoim.getId(), normalPostTitle, "내용은최소10자", REVIEW.getValue(), false, true, null
         );
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -215,7 +219,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), normalPostTitle, normalPostcontent, null, false, true
+                testMoim.getId(), normalPostTitle, normalPostcontent, null, false, true, null
         );
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -239,7 +243,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
         MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
-                testMoim.getId(), normalPostTitle, normalPostcontent, REVIEW.getValue(), false, null
+                testMoim.getId(), normalPostTitle, normalPostcontent, REVIEW.getValue(), false, null, null
         );
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -257,6 +261,111 @@ public class MoimPostControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
 
+    }
+
+
+    // 240411 - TODO :: imgFileIds 변수 추가 - 세부적인 Test 필요 - 현재 Test 들은 고려되어 있지 않기 때문에 해당 필드 다 Null 처리
+    // 오류 - hasFiles - true, imgFileIds null
+    @Test
+    void createPost_shouldReturn400_whenFileExistsAndIdValidationFails_byMoimingApiException() throws Exception {
+
+        // given
+        String testToken = createTestJwtToken(moimMember, 2000);
+        MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
+                testMoim.getId(), normalPostTitle, normalPostcontent, REVIEW.getValue(), true, true
+                , null
+        );
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
+        );
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.MOIM_POST_IMG_STATE_NOT_VALID.getErrCode()));
+
+    }
+
+
+    // 오류 - hasFiles - false, imgFileIds 존재
+    @Test
+    void createPost_shouldReturn400_whenFileNotExistsAndIdValidationFails_byMoimingApiException() throws Exception {
+
+        // given
+        String testToken = createTestJwtToken(moimMember, 2000);
+        MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
+                testMoim.getId(), normalPostTitle, normalPostcontent, REVIEW.getValue(), false, true
+                , List.of(1L, 2L) // 안생성해도 Validation 발생 함
+        );
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
+        );
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.MOIM_POST_IMG_STATE_NOT_VALID.getErrCode()));
+
+    }
+
+
+    // File 객체를 생성해놓은 채로 테스트 진행
+    @Test
+    void createPost_shouldReturn200_whenFilesPassed() throws Exception {
+
+        // given - save Files
+        File file1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File file2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(file1);
+        em.persist(file2);
+        em.flush();
+        em.clear();
+
+        // given
+        String testToken = createTestJwtToken(moimMember, 2000);
+        MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
+                testMoim.getId(), normalPostTitle, normalPostcontent, REVIEW.getValue(), true, true
+                , List.of(file2.getId(), file1.getId())
+        );
+
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
+        );
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.code").value(1));
+        resultActions.andExpect(jsonPath("$.data.moimPostId").exists());
+        resultActions.andExpect(jsonPath("$.data.postTitle").value(normalPostTitle));
+        resultActions.andExpect(jsonPath("$.data.postContent").value(normalPostcontent));
+        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(REVIEW.getValue()));
+        resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(true));
+        resultActions.andExpect(jsonPath("$.data.hasFiles").value(true));
+        resultActions.andExpect(jsonPath("$.data.commentCnt").value(0));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+
+
+        // then - db verify files
+        List<RelatedFile> relatedFiles = em.createQuery("SELECT rf FROM RelatedFile rf " +
+                                "WHERE rf.fileDomain = :fileDomain " + // 현재 저장된건 이 테스트 결과일 뿐
+                                "ORDER BY rf.sequence" // 보낸 순서대로 저장되었어야 한다
+                        , RelatedFile.class)
+                .setParameter("fileDomain", POST)
+                .getResultList();
+
+        assertThat(relatedFiles.size()).isEqualTo(2);
+        assertThat(relatedFiles.get(0).getFile().getId()).isEqualTo(file2.getId()); // 2 를 먼저보냈으므로 2가 앞선 sequence 로 저장된다
+        assertThat(relatedFiles.get(1).getFile().getId()).isEqualTo(file1.getId());
     }
 
 

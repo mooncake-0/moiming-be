@@ -58,7 +58,7 @@ public class MoimService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        File file = storageService.uploadMoimImg(imgFile);
+        File file = storageService.uploadMoimImg(imgFile, member);
 
         // moimId 가 있을시 - 1) 모임 존재성 확인 2) member 의 모임장 여부 확인 3) 수정이므로 기존을 삭제하기 위한 storage 요청
         if (moimId != null) {

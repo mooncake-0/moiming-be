@@ -22,7 +22,6 @@ import java.util.List;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.ACTIVE;
 import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
-import static com.peoplein.moiming.exception.ExceptionValue.COMMON_UPDATE_REQUEST_FAILED;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 
 @Slf4j
@@ -168,9 +167,6 @@ public class Moim extends BaseEntity {
 
         if (isChanged) {
             this.updaterId = updaterId; // validate 통과이므로 call 되면 수정되는 것
-        } else {
-            log.info("{}, updateMoim :: {}", this.getClass().getName(), "모임 수정 요청 중 아무 수정이 발생하지 않았습니다");
-            throw new MoimingApiException(COMMON_UPDATE_REQUEST_FAILED);
         }
     }
 

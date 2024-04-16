@@ -1,6 +1,7 @@
 package com.peoplein.moiming.domain;
 
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
@@ -17,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.peoplein.moiming.exception.ExceptionValue.COMMON_UPDATE_REQUEST_FAILED;
 import static com.peoplein.moiming.exception.ExceptionValue.MOIM_ACT_NOT_AUTHORIZED;
 
 @Entity
@@ -39,7 +39,7 @@ public class MoimPost extends BaseEntity {
     private boolean hasPrivateVisibility;
     private boolean hasFiles;
     private int commentCnt;
-    private Long updatedMemberId;
+    private Long updaterId;
 
     /*
      연관관계
@@ -54,6 +54,7 @@ public class MoimPost extends BaseEntity {
 
     @OneToMany(mappedBy = "moimPost", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private final List<PostComment> postComments = new ArrayList<>();
+
 
     public static MoimPost createMoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean hasPrivateVisibility, boolean hasFiles, Moim moim, Member member) {
         return new MoimPost(postTitle, postContent, moimPostCategory, hasPrivateVisibility, hasFiles, moim, member);
@@ -76,7 +77,6 @@ public class MoimPost extends BaseEntity {
 
         // 초기화.
         this.commentCnt = 0;
-        this.updatedMemberId = member.getId();
     }
 
     public void addPostComment(PostComment postComment) {
@@ -84,7 +84,7 @@ public class MoimPost extends BaseEntity {
     }
 
     // TODO:: 구체적인 DB 요구사항에 맞춰 checking 값 변경 필요
-    public void changeMoimPostInfo(String postTitle, String postContent, MoimPostCategory postCategory, Boolean hasFiles, Boolean hasPrivateVisibility, Long memberId) {
+    public void changeMoimPostInfo(String postTitle, String postContent, MoimPostCategory postCategory , Boolean hasPrivateVisibility, Long memberId) {
 
         boolean isChanged = false;
 
@@ -103,23 +103,21 @@ public class MoimPost extends BaseEntity {
             changePostCategory(postCategory);
         }
 
-        if (hasFiles != null) {
-            isChanged = true;
-            this.hasFiles = hasFiles;
-        }
-
         if (hasPrivateVisibility != null) {
             isChanged = true;
             this.hasPrivateVisibility = hasPrivateVisibility;
         }
 
         if (isChanged) {
-            this.updatedMemberId = memberId;
-        }else {
-            log.info("{}, changeMoimPostInfo :: {}", this.getClass().getName(), "게시물 수정 요청 중 아무 수정이 발생하지 않았습니다");
-            throw new MoimingApiException(COMMON_UPDATE_REQUEST_FAILED);
+            this.updaterId = memberId;
         }
+    }
 
+    public void changeHasFiles(Boolean hasFiles, Long updaterId) {
+        if (hasFiles != null) {
+            this.hasFiles = hasFiles;
+            this.updaterId = updaterId;
+        }
     }
 
 

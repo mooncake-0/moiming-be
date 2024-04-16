@@ -17,7 +17,7 @@ public class PostDetailsInnerDto {
     @AllArgsConstructor
     public static class PostDetailsDto {
 
-        private MoimPost moimPost;
+        private MoimPostWithFileDto moimPostWithFiles;
         private Map<Long, MoimMemberState> memberStates;
         private List<PostComment> parentComments;
         private Map<Long, List<PostComment>> childCommentsMap;

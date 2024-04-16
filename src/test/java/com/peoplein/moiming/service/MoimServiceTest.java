@@ -65,7 +65,7 @@ public class MoimServiceTest {
         moimService.updateImg(null, null, member);
 
         // then
-        verify(storageService, times(1)).uploadMoimImg(any());
+        verify(storageService, times(1)).uploadMoimImg(any(), any());
 
     }
 
@@ -88,7 +88,7 @@ public class MoimServiceTest {
         moimService.updateImg(null, moimId, member);
 
         // then
-        verify(storageService, times(1)).uploadMoimImg(any());
+        verify(storageService, times(1)).uploadMoimImg(any(), any());
         verify(storageService, times(1)).deleteMoimImg(any());
         verify(moim, times(1)).deleteImg();
         verify(moim, times(1)).changeImg(any());
@@ -111,7 +111,7 @@ public class MoimServiceTest {
         assertThatThrownBy(() -> moimService.updateImg(null, moimId, member)).isInstanceOf(MoimingApiException.class);
 
         // then
-        verify(storageService, times(1)).uploadMoimImg(any());
+        verify(storageService, times(1)).uploadMoimImg(any(), any());
         verify(storageService, times(0)).deleteMoimImg(any());
 
     }
@@ -135,7 +135,7 @@ public class MoimServiceTest {
         assertThatThrownBy(() -> moimService.updateImg(null, moimId, member)).isInstanceOf(MoimingApiException.class);
 
         // then
-        verify(storageService, times(1)).uploadMoimImg(any());
+        verify(storageService, times(1)).uploadMoimImg(any(), any());
         verify(storageService, times(0)).deleteMoimImg(any());
 
     }

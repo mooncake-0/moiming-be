@@ -4,12 +4,17 @@ import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
+import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.member.DeletedMember;
 import com.peoplein.moiming.domain.member.DormantMember;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.exception.ExceptionValue;
+import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.inner.MoimPostWithFileDto;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.model.dto.response.MoimPostDetailViewRespDto;
+import com.peoplein.moiming.model.dto.response.MoimRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimPostService;
 import io.swagger.annotations.*;
@@ -29,6 +34,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
@@ -43,7 +49,30 @@ public class MoimPostController {
     private final MoimPostService moimPostService;
 
 
-    @ApiOperation("모임 게시물 생성")
+    @ApiOperation("게시물 사진 저장 / 수정 - file key {imgFiles} 이름으로 이미지들 전달 필요, moimId 필수 전달, moimPostId 수정시에만 전달, 수정 요청 전에 새로 생성되는 사진들만 저장 요청")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "게시물 이미지 저장 성공", response = MoimPostChangeImgRespDto.class),
+            @ApiResponse(code = 400, message = "게시물 이미지 저장 실패, ERR MSG 확인")
+    })
+    @PostMapping(PATH_MOIM_POST_CHANGE_IMGS)
+    public ResponseEntity<?> updateImgs(List<MultipartFile> imgFiles
+            , @RequestParam(required = false) Long moimId
+            , @RequestParam(required = false) Long moimPostId
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        if (moimId == null) {
+            throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM);
+        }
+
+        List<File> files = moimPostService.updateImgs(imgFiles, moimId, moimPostId, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "게시물 사진 등록 성공", new MoimPostChangeImgRespDto(files)));
+    }
+
+
+    @ApiOperation("모임 게시물 생성 - imgFileIds 같은 경우 순서가 저장됨, hasFiles 와 Validation 존재")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -54,18 +83,12 @@ public class MoimPostController {
     @PostMapping(PATH_MOIM_POST_CREATE)
     public ResponseEntity<?> createPost(@RequestBody @Valid MoimPostCreateReqDto requestDto
             , BindingResult br
-            , List<MultipartFile> file
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        /*
-         TODO : 전송받는 이미지들은 List<MultipartFile> 에 담겨져 올 것이다.
-                해당 파일들을 S3 에 저장하는 작업을 진행 후 URL 을 받아오고, 그 과정 이후
-                MultipartFile 을 다시 사용 + 받아온 url 을 통해서 PostFile Entity 를 만든다
-                그리고 게시물과의 연관관계를 매핑해준다
-         */
-        MoimPost moimPost = moimPostService.createMoimPost(requestDto, principal.getMember());
+//        MoimPost moimPost = moimPostService.createMoimPost(requestDto, principal.getMember());
+        MoimPostWithFileDto postWithFiles = moimPostService.createMoimPost(requestDto, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 게시물 생성 성공"
-                , new MoimPostCreateRespDto(moimPost, principal.getMember())));
+                , new MoimPostCreateRespDto(postWithFiles, principal.getMember())));
 
     }
 
@@ -118,7 +141,7 @@ public class MoimPostController {
         Map<Long, MoimMemberState> memberStates = moimPostDetail.getMemberStates();
 
         // Post Creator 의 것 먼저 확인
-        MoimPost post = moimPostDetail.getMoimPost();
+        MoimPost post = moimPostDetail.getMoimPostWithFiles().getMoimPost();
         checkToChangePostCreatorInfo(List.of(post), memberStates);
 
         // PostComment 쭉 확인
@@ -130,12 +153,12 @@ public class MoimPostController {
             checkToChangeCommentCreatorInfo(comments, memberStates);
         }
 
-        MoimPostDetailViewRespDto responseData = new MoimPostDetailViewRespDto(post, parents, childsMap);
+        MoimPostDetailViewRespDto responseData = new MoimPostDetailViewRespDto(moimPostDetail.getMoimPostWithFiles(), parents, childsMap);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 세부 조회 성공", responseData));
     }
 
 
-    @ApiOperation("게시물 수정 - 수정 데이터만 전달")
+    @ApiOperation("게시물 수정 - 수정 데이터만 전달 (fileChanged 속성 필수) / 이미지 수정시 현재 유저가 설정한 순서대로 FileId 전달, 수정되지 않은 File Id 도 전달 필요")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -149,9 +172,9 @@ public class MoimPostController {
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        MoimPost moimPost = moimPostService.updateMoimPost(requestDto, principal.getMember());
-
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "게시물 수정 성공", new MoimPostUpdateRespDto(moimPost)));
+//        MoimPost moimPost = moimPostService.updateMoimPost(requestDto, principal.getMember());
+        MoimPostWithFileDto postWithFiles = moimPostService.updateMoimPost(requestDto, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "게시물 수정 성공", new MoimPostUpdateRespDto(postWithFiles)));
     }
 
 

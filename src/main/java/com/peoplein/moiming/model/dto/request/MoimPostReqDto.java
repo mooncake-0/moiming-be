@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 public class MoimPostReqDto {
 
@@ -39,6 +40,8 @@ public class MoimPostReqDto {
         @NotNull
         private Boolean hasPrivateVisibility;
 
+        private List<Long> imgFileIds;
+
     }
 
 
@@ -52,6 +55,9 @@ public class MoimPostReqDto {
         @NotNull
         private Long moimPostId;
 
+        @NotNull
+        private Boolean fileChanged;
+
         @Size(min = 5)
         private String postTitle;
 
@@ -60,9 +66,12 @@ public class MoimPostReqDto {
 
         private String moimPostCategory;
 
+
         private Boolean hasFiles;
 
         private Boolean hasPrivateVisibility;
+
+        private List<Long> imgFileIds;
 
     }
 }

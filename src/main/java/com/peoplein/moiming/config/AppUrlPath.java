@@ -102,7 +102,7 @@ public abstract class AppUrlPath {
     public final static String PATH_MOIM_POST_UPDATE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + API_MOIM_POST;
     // DELETE - /api/v0/moim/{moimId}/post/{moimPostId}
     public final static String PATH_MOIM_POST_DELETE = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}" + API_MOIM_POST + "/{moimPostId}";
-
+    public final static String PATH_MOIM_POST_CHANGE_IMGS = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + API_MOIM_POST + "/image";
 
     // MOIM POST COMMENT 관련 API
     // POST - /api/v0/moim/post/comment

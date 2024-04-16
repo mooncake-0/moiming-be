@@ -57,6 +57,13 @@ public class MoimPostServiceTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private StorageService storageService;
+
+    @Mock
+    private RelatedFileService relatedFileService;
+
+
     @Test
     void createMoimPost_shouldPass_whenRightInfoPassed() {
 
@@ -90,6 +97,38 @@ public class MoimPostServiceTest {
         }
     }
 
+    // 생성시 requestDto 에서 파일 Validation 이 실패할 경우 - 하나만 함
+    @Test
+    void createMoimPost_shouldThrowException_whenFileExistsValidationFails_byMoimingApiException() {
+
+        try (MockedStatic<MoimPost> mocker = mockStatic(MoimPost.class)) {
+
+            // given
+            Member member = mock(Member.class);
+            MoimMember moimMember = mock(MoimMember.class); // 게시물 작성자
+            MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
+            Moim moim = mock(Moim.class);
+            MoimPost createdPost = mock(MoimPost.class);
+
+            // given - stub
+            when(moimMember.getMemberState()).thenReturn(MoimMemberState.ACTIVE);
+            when(moimRepository.findWithActiveMoimMembersById(any())).thenReturn(Optional.of(moim));
+            when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+            when(member.getId()).thenReturn(1L);
+            mocker.when(() -> MoimPost.createMoimPost(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
+                    .thenReturn(createdPost); // 목 객체를 생성만 한다
+            when(requestDto.getImgFileIds()).thenReturn(List.of(1L)); // false 이지만 존재하는 DTO 를 보낸다
+
+            // when
+            // then
+            assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+            verify(moimPostRepository, times(1)).save(any());
+            verify(notificationService, times(0)).createManyNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
+        }
+    }
+
 
     @Test
     void createMoimPost_shouldThrowException_whenRequestDtoNull_byMoimingApiException() {
@@ -97,7 +136,6 @@ public class MoimPostServiceTest {
         // given
         Member member = mock(Member.class);
         MoimPostCreateReqDto requestDto = null;
-
 
         // when
         // then
@@ -318,7 +356,7 @@ public class MoimPostServiceTest {
         moimPostService.updateMoimPost(requestDto, member);
 
         // then
-        verify(post, times(1)).changeMoimPostInfo(any(), any(), any(), any(), any(), any());
+        verify(post, times(1)).changeMoimPostInfo(any(), any(), any(), any(), any());
 
     }
 
@@ -567,6 +605,276 @@ public class MoimPostServiceTest {
         // when
         // then
         assertThatThrownBy(() -> moimPostService.deleteMoimPost(postId, otherMember)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 사진 업데이트 updateImgs
+    // moimId, member 없음
+    @Test
+    void updateImgs_shouldThrowException_whenParamNull_byMoimingApiException() {
+
+        // given
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.updateImgs(null, null, null, null)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // moimMember 못찾음
+    @Test
+    void updateImgs_shouldThrowException_whenMoimMemberNotFound_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.updateImgs(null, moimId, null, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // moimMember 가 moim 활동 권한이 없음
+    @Test
+    void updateImgs_shouldThrowException_whenMoimMemberNotActive_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(false);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.updateImgs(null, moimId, null, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // - 수정이 아님 - 성공
+    @Test
+    void updateImgs_shouldPass_whenNotUpdatingPost() {
+
+        // given
+        Long moimId = 1L;
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+
+        // when
+        moimPostService.updateImgs(null, moimId, null, member);
+
+        // then
+        verify(storageService, times(1)).updateMoimPostImgs(any(), any());
+
+    }
+
+
+    // - 수정임 - moimPost 없음
+    @Test
+    void updateImgs_shouldThrowException_whenUpdatingPostButPostNotFound_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Long moimPostId = 1L;
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.updateImgs(null, moimId, moimPostId, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // - 수정임 - 수정 권한 없음
+    @Test
+    void updateImgs_shouldThrowException_whenUpdatingPostButNotAuthorized_byMoimingApiException() {
+
+        // given
+        Long moimId = 1L;
+        Long moimPostId = 1L;
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        Member postCreator = mock(Member.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(moimPostRepository.findById(moimPostId)).thenReturn(Optional.of(moimPost));
+        when(member.getId()).thenReturn(1000L);
+        when(postCreator.getId()).thenReturn(2000L); // 생성자가 아님
+        when(moimPost.getMember()).thenReturn(postCreator);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.updateImgs(null, moimId, moimPostId, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // - 수정임 - 성공
+    @Test
+    void updateImgs_shouldPass_whenUpdatingPost() {
+
+        // given
+        Long moimId = 1L;
+        Long moimPostId = 1L;
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        Member postCreator = mock(Member.class);
+
+        // given - stub
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(moimPostRepository.findById(moimPostId)).thenReturn(Optional.of(moimPost));
+        when(member.getId()).thenReturn(1000L);
+        when(postCreator.getId()).thenReturn(1000L); // 생성자임
+        when(moimPost.getMember()).thenReturn(postCreator);
+
+        // when
+        moimPostService.updateImgs(null, moimId, moimPostId, member);
+
+        // then
+        verify(storageService, times(1)).updateMoimPostImgs(any(), any());
+
+    }
+
+
+    // 이미지가 있는데 Validation 이 안맞는 경우
+    // 1) FileChanged == null (Validation 단에서 에러 먼저나긴 함)
+    @Test
+    void updateMoimPost_shouldThrowException_whenFileChangedNull_byMoimingApiException() {
+
+        // given
+        MoimPostUpdateReqDto reqDto = mock(MoimPostUpdateReqDto.class);
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(reqDto.getFileChanged()).thenReturn(null);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.updateMoimPost(reqDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 2) FileChanged = true 인데 hasFiles = null 이 들어옴
+    @Test
+    void updateMoimPost_shouldThrowException_whenFileChangedTrueButHasFilesNull_byMoimingApiException() {
+
+        // given
+        MoimPostUpdateReqDto reqDto = mock(MoimPostUpdateReqDto.class);
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(reqDto.getFileChanged()).thenReturn(true);
+        when(reqDto.getHasFiles()).thenReturn(null);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.updateMoimPost(reqDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    //    FileChanged = true 인데 list 가 Null, 변경이 없으면 안됨
+    @Test
+    void updateMoimPost_shouldThrowException_whenFileChangedTrueButListNull_byMoimingApiException() {
+
+        // given
+        MoimPostUpdateReqDto reqDto = mock(MoimPostUpdateReqDto.class);
+        Member member = mock(Member.class);
+
+        // given - stub
+        when(reqDto.getFileChanged()).thenReturn(true);
+        when(reqDto.getHasFiles()).thenReturn(true);
+        when(reqDto.getImgFileIds()).thenReturn(null);
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimPostService.updateMoimPost(reqDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    //    FileChanged = false 라서 통과함 (두 필드가 모두 NULL)
+    @Test
+    void updateMoimPost_shouldPass_whenFileChangedFalse() {
+
+        // given
+        MoimPostUpdateReqDto reqDto = mock(MoimPostUpdateReqDto.class);
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        Member postCreator = mock(Member.class);
+
+        // given - stub
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.of(moimPost));
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(member.getId()).thenReturn(1L);
+        when(postCreator.getId()).thenReturn(1L); // 생성자와 수정자는 같음
+        when(moimPost.getMember()).thenReturn(postCreator);
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+
+        // when
+        moimPostService.updateMoimPost(reqDto, member);
+
+        // then
+        verify(moimPost, times(1)).changeMoimPostInfo(any(), any(), any(), any(), any());
+
+    }
+
+    //    FileChanged = true 이고, 정상적인 변경 수행 시도 성공
+    @Test
+    void updateMoimPost_shouldPass_whenFileChangedTrue() {
+
+        // given
+        MoimPostUpdateReqDto reqDto = mock(MoimPostUpdateReqDto.class);
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        Member postCreator = mock(Member.class);
+
+        // given - stub
+        when(moimPostRepository.findWithMoimAndMemberAndInfoById(any())).thenReturn(Optional.of(moimPost));
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(member.getId()).thenReturn(1L);
+        when(postCreator.getId()).thenReturn(1L); // 생성자와 수정자는 같음
+        when(moimPost.getMember()).thenReturn(postCreator);
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(reqDto.getFileChanged()).thenReturn(true);
+        when(reqDto.getHasFiles()).thenReturn(true);
+        when(reqDto.getImgFileIds()).thenReturn(List.of(1L, 2L)); // 수정된 File Id 들이 전달됨
+
+        // when
+        moimPostService.updateMoimPost(reqDto, member);
+
+        // then
+        verify(moimPost, times(1)).changeMoimPostInfo(any(), any(), any(), any(), any());
+        verify(moimPost, times(1)).changeHasFiles(any(), any());
+        verify(relatedFileService, times(1)).updateDomainRelatedFilesAndReturnRemovalNames(any(), any(), any(), any());
+        verify(storageService, times(1)).deleteMoimPostImgs(any());
 
     }
 

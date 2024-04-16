@@ -7,6 +7,7 @@ import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.MoimPostWithFileDto;
 import io.swagger.annotations.ApiModel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,11 +39,13 @@ public class MoimPostDetailViewRespDto {
     private int commentCnt;
     private String createdAt;
     private String updatedAt;
+    private Long updaterId;
     private MemberInfoDto postCreator;
     private List<ParentCommentDto> postComments;
+    private List<FileDto> files;
+    public MoimPostDetailViewRespDto(MoimPostWithFileDto postWithFiles, List<PostComment> parentComments, Map<Long, List<PostComment>> inputMap) {
 
-    public MoimPostDetailViewRespDto(MoimPost moimPost, List<PostComment> parentComments, Map<Long, List<PostComment>> inputMap) {
-
+        MoimPost moimPost = postWithFiles.getMoimPost();
         this.moimPostId = moimPost.getId();
         this.postTitle = moimPost.getPostTitle();
         this.postContent = moimPost.getPostContent();
@@ -52,6 +55,7 @@ public class MoimPostDetailViewRespDto {
         this.commentCnt = moimPost.getCommentCnt();
         this.createdAt = moimPost.getCreatedAt() + "";
         this.updatedAt = moimPost.getUpdatedAt() + "";
+        this.updaterId = moimPost.getUpdaterId();
 
         Moim moim = moimPost.getMoim();
         if (moim == null) {
@@ -60,7 +64,9 @@ public class MoimPostDetailViewRespDto {
         }
         this.postCreator = new MemberInfoDto(moim.getCreatorId(), moimPost.getMember());
         this.postComments = parentComments.stream().map(parent -> new ParentCommentDto(moim.getCreatorId(), parent, inputMap.get(parent.getId()))).collect(Collectors.toList());
-
+        if (postWithFiles.getRelatedFiles() != null) {
+            this.files = postWithFiles.getRelatedFiles().stream().map(rf -> new FileDto(rf.getFile().getId(), rf.getFileUrl())).collect(Collectors.toList());
+        }
     }
 
 
@@ -85,6 +91,19 @@ public class MoimPostDetailViewRespDto {
             }
         }
     }
+
+    @Getter
+    @Setter
+    public static class FileDto {
+        private Long fileId;
+        private String imgUrl;
+
+        public FileDto(Long fileId, String imgUrl) {
+            this.fileId = fileId;
+            this.imgUrl = imgUrl;
+        }
+    }
+
 
     @Getter
     @Setter
