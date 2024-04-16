@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 /*
  Report 와 Post 처럼, 여러개의 파일을 가지고 있는 Entity 들을 위함
@@ -12,7 +13,7 @@ import javax.persistence.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "file")
+@Table(name = "related_file")
 public class RelatedFile {
 
     @Id
@@ -20,30 +21,41 @@ public class RelatedFile {
     @GeneratedValue
     private Long id;
 
-    private int index;
+    private int sequence;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "file_id")
     private File file;
 
+    // MEMO :: INDEX 필요
     private Long domainId;
 
+    @Enumerated(EnumType.STRING)
     private FileDomain fileDomain;
 
     private String fileUrl;
 
+    private LocalDateTime createdAt;
+    private Long creatorId;
 
-    public RelatedFile(int index, File file, Long domainId) {
+    private LocalDateTime updatedAt;
+    private Long updaterId;
 
-        this.index = index;
+    public RelatedFile(int sequence, File file, Long domainId, Long creatorId) {
+
+        this.sequence = sequence;
         this.file = file;
         this.domainId = domainId;
 
         this.fileDomain = file.getFileDomain();
         this.fileUrl = file.getFileUrl();
+        this.createdAt = LocalDateTime.now();
+        this.creatorId = creatorId;
     }
 
-    public void changeIndex(int index) {
-        this.index = index;
+    public void changeSequence(int sequence, Long updaterId) {
+        this.sequence = sequence;
+        this.updatedAt = LocalDateTime.now();
+        this.updaterId = updaterId;
     }
 }

@@ -4,11 +4,13 @@ import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.file.FileDomain;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.MoimPostWithFileDto;
 import com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
@@ -24,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.peoplein.moiming.domain.file.FileDomain.POST;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
@@ -98,7 +101,7 @@ public class MoimPostService {
 
 
     @Transactional
-    public MoimPost createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
+    public MoimPostWithFileDto createMoimPost(MoimPostCreateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
@@ -122,11 +125,18 @@ public class MoimPostService {
                 , moim, member);
 
         moimPostRepository.save(post); // 영속화 후 Id 받은 상태 필요
-        checkFileReqStatus(requestDto.getHasFiles(), requestDto.getImgFileIds().isEmpty());
-        if (requestDto.getHasFiles()) { // 존재할 경우 저장
-            relatedFileService.saveRelatedFiles(post.getId(), requestDto.getImgFileIds());
+
+        if(requestDto.getHasFiles() != null) {
+            checkFileReqStatus(requestDto.getHasFiles(), requestDto.getImgFileIds());
+            if (requestDto.getHasFiles()) { // 존재할 경우 저장
+                relatedFileService.saveRelatedFiles(post.getId(), requestDto.getImgFileIds(), member.getId());
+            }
+        }else{
+            // 여기서 발생할 리는 없음, Validation 존재
+            throw new MoimingApiException(COMMON_REQUEST_VALIDATION);
         }
 
+        // 게시글 생성자를 제외하고 전달시킨다
         List<MoimMember> moimMembers = moim.getMoimMembers();
         List<Member> receivers = moimMembers.stream()
                 .map(MoimMember::getMember)
@@ -136,7 +146,8 @@ public class MoimPostService {
         notificationService.createManyNotification(NotificationTopCategory.MOIM, NotificationSubCategory.POST_CREATE, NotificationType.INFORM
                 , receivers, "", moim.getMoimName() + "에 새로운 게시글이 등록되었습니다", requestDto.getMoimId(), post.getId());
 
-        return post;
+        List<RelatedFile> relatedFiles = relatedFileService.getRelatedFilesBySeq(POST, post.getId());
+        return new MoimPostWithFileDto(post, relatedFiles);
     }
 
 
@@ -198,17 +209,23 @@ public class MoimPostService {
         // moimMemberService 한테 이 MoimMember 들에 대한 상태를 조회한다 - 단, Member 는 이시점에서 Join 되지 않는다, PostComment 객체에서 다 fetchJoin 되었기 때문에 Controller 에선 이걸 사용한다
         Map<Long, MoimMemberState> memberStates = moimMemberService.getMoimMemberStates(moimPost.getMoim().getId(), commentsDto.getCommentCreatorIds());
 
-        return new PostDetailsDto(moimPost, memberStates, commentsDto.getParentComments(), commentsDto.getChildCommentsMap());
+        List<RelatedFile> files = new ArrayList<>();
+        if (moimPost.isHasFiles()) {
+            files = relatedFileService.getRelatedFilesBySeq(POST, moimPost.getId());
+        }
+        return new PostDetailsDto(new MoimPostWithFileDto(moimPost, files), memberStates, commentsDto.getParentComments(), commentsDto.getChildCommentsMap());
 
     }
 
 
     @Transactional
-    public MoimPost updateMoimPost(MoimPostUpdateReqDto requestDto, Member member) {
+    public MoimPostWithFileDto updateMoimPost(MoimPostUpdateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
+
+        checkFileUpdateStatus(requestDto);
 
         // post 존재성 확인
         // 게시물 생성자도 같이 보내줘야 하기 때문에 fetch join 해놓는다
@@ -231,22 +248,26 @@ public class MoimPostService {
 
         // 설정은 다 넣어주고, 변화를 요청한 애들에 한해서 최신화를 해줌
         moimPost.changeMoimPostInfo(requestDto.getPostTitle(), requestDto.getPostContent(), MoimPostCategory.fromValue(requestDto.getMoimPostCategory())
-                , requestDto.getHasFiles(), requestDto.getHasPrivateVisibility(), member.getId());
+                , requestDto.getHasPrivateVisibility(), member.getId());
 
-        // TODO ::  파일변경이 발생하는 경우를 선별해야 한다
-        if (requestDto.getFileChanged()) {
-            checkFileReqStatus(requestDto.getHasFiles(), requestDto.getImgFileIds().isEmpty());
+        if (requestDto.getFileChanged()) { // 차피 파일이 있다가 없어도, 없다가 있어도 HasFiles 는 변해야 함, 그래서 이 분기 안에서 처리한다
+            checkFileReqStatus(requestDto.getHasFiles(), requestDto.getImgFileIds());
+            moimPost.changeHasFiles(requestDto.getHasFiles(), member.getId());
             // 다 삭제든, 추가든, 수정이든 다 해당 로직으로 처리된다
-            List<String> removalFileNames = relatedFileService.updateDomainRelatedFilesAndReturnRemovalNames(FileDomain.POST, moimPost.getId(), requestDto.getImgFileIds());
+            List<String> removalFileNames = relatedFileService.updateDomainRelatedFilesAndReturnRemovalNames(POST, moimPost.getId(), requestDto.getImgFileIds(), member.getId());
             storageService.deleteMoimPostImgs(removalFileNames);
         }
 
-        return moimPost;
+        List<RelatedFile> files = new ArrayList<>();
+        if (moimPost.isHasFiles()) {
+            files = relatedFileService.getRelatedFilesBySeq(POST, moimPost.getId());
+        }
+
+        return new MoimPostWithFileDto(moimPost, files);
     }
 
 
     // Post 삭제 (댓글 / 답글에 대한 로직 처리 후 최종 진행)
-
     @Transactional
     public void deleteMoimPost(Long postId, Member member) {
 
@@ -280,16 +301,32 @@ public class MoimPostService {
         // TODO:: 파일 삭제 진행
     }
 
-    private void checkFileReqStatus(boolean hasFiles, boolean isEmpty) {
+    private void checkFileReqStatus(boolean hasFiles, List<Long> fileIds) {
         if (hasFiles) { // 있다고 했는데 파일 없음
-            if (isEmpty) {
+            if (fileIds == null || fileIds.isEmpty()) {
                 throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
             }
         } else {// 없다고 했는데 파일 있음
-            if (!isEmpty) {
+            if (fileIds != null && !fileIds.isEmpty()) {
                 throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
             }
         }
+    }
+
+    private void checkFileUpdateStatus(MoimPostUpdateReqDto requestDto) {
+
+        if (requestDto.getFileChanged() == null) {
+            throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
+        }
+
+        if (requestDto.getFileChanged()) { // TRUE 인데
+            // 변경 사항에 대한 정보들이 들어오지 않을 경우
+            // ImgFileId 가 더 이상 없어도 (삭제되어도) 빈 리스트를 담아야 함
+            if (requestDto.getHasFiles() == null || requestDto.getImgFileIds() == null) {
+                throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
+            }
+        }
+
     }
 
 }

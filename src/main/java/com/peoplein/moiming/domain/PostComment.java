@@ -108,9 +108,6 @@ public class PostComment extends BaseEntity{
 
         if (StringUtils.hasText(requestDto.getContent())) {
             this.changeContent(requestDto.getContent());
-        } else {
-            log.info("{}, updateComment :: {}", this.getClass().getName(), "게시물 댓글 수정 요청 중 아무 수정이 발생하지 않았습니다");
-            throw new MoimingApiException(COMMON_UPDATE_REQUEST_FAILED);
         }
 
         this.updaterId = updaterId;

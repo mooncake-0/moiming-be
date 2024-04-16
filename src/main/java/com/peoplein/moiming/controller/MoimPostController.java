@@ -11,6 +11,7 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.inner.MoimPostWithFileDto;
 import com.peoplein.moiming.model.dto.inner.StateMapperDto;
 import com.peoplein.moiming.model.dto.response.MoimPostDetailViewRespDto;
 import com.peoplein.moiming.model.dto.response.MoimRespDto;
@@ -63,7 +64,7 @@ public class MoimPostController {
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         if (moimId == null) {
-            throw new MoimingApiException(COMMON_REQUEST_VALIDATION);
+            throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM);
         }
 
         List<File> files = moimPostService.updateImgs(imgFiles, moimId, moimPostId, principal.getMember());
@@ -84,9 +85,10 @@ public class MoimPostController {
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        MoimPost moimPost = moimPostService.createMoimPost(requestDto, principal.getMember());
+//        MoimPost moimPost = moimPostService.createMoimPost(requestDto, principal.getMember());
+        MoimPostWithFileDto postWithFiles = moimPostService.createMoimPost(requestDto, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 게시물 생성 성공"
-                , new MoimPostCreateRespDto(moimPost, principal.getMember())));
+                , new MoimPostCreateRespDto(postWithFiles, principal.getMember())));
 
     }
 
@@ -139,7 +141,7 @@ public class MoimPostController {
         Map<Long, MoimMemberState> memberStates = moimPostDetail.getMemberStates();
 
         // Post Creator 의 것 먼저 확인
-        MoimPost post = moimPostDetail.getMoimPost();
+        MoimPost post = moimPostDetail.getMoimPostWithFiles().getMoimPost();
         checkToChangePostCreatorInfo(List.of(post), memberStates);
 
         // PostComment 쭉 확인
@@ -151,7 +153,7 @@ public class MoimPostController {
             checkToChangeCommentCreatorInfo(comments, memberStates);
         }
 
-        MoimPostDetailViewRespDto responseData = new MoimPostDetailViewRespDto(post, parents, childsMap);
+        MoimPostDetailViewRespDto responseData = new MoimPostDetailViewRespDto(moimPostDetail.getMoimPostWithFiles(), parents, childsMap);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 세부 조회 성공", responseData));
     }
 
@@ -170,9 +172,9 @@ public class MoimPostController {
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        MoimPost moimPost = moimPostService.updateMoimPost(requestDto, principal.getMember());
-
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "게시물 수정 성공", new MoimPostUpdateRespDto(moimPost)));
+//        MoimPost moimPost = moimPostService.updateMoimPost(requestDto, principal.getMember());
+        MoimPostWithFileDto postWithFiles = moimPostService.updateMoimPost(requestDto, principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "게시물 수정 성공", new MoimPostUpdateRespDto(postWithFiles)));
     }
 
 

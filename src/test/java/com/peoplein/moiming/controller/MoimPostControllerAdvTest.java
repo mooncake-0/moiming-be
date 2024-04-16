@@ -5,16 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
+import com.peoplein.moiming.domain.file.File;
+import com.peoplein.moiming.domain.file.FileDomain;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.service.StorageService;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -22,10 +27,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.RoleType.*;
+import static com.peoplein.moiming.domain.file.FileDomain.POST;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
 import static com.peoplein.moiming.support.TestModelParams.*;
@@ -36,6 +43,7 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.*;
 
 
 @AutoConfigureMockMvc
@@ -56,6 +64,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
     private MoimPost creatorPost, moimMemberPost, ibfMemberPost, ibwMemberPost, dormantMemberPost, deleteMemberPost;
 
     private PostComment deleteParentComment, deleteMemberComment, dormantParentComment, dormantMemberComment;
+
+    @MockBean
+    private StorageService storageService; // MEMO :: 전체 로직 내 특정 역할은 진행하지 않도록 한다
 
     // 특정 모임을 만든다
     // 모임원 2명 (운영자 포함) , 비모임원 1 명, 강퇴 인원 1명, 나간 인원 1명, 휴면 인원 1명, 계정 삭제 인원 1명
@@ -337,12 +348,13 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     // 수정 VERIFY 필요
     // updatePost - 성공 : 원하는 것만 들어 있을 때 성공
+
     @Test
     void updatePost_shouldReturn200_whenOnlyNeededParamPassed() throws Exception {
 
         // given
         prepareMoimActivity();
-        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null);
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(moimMember, 2000);
 
@@ -374,18 +386,18 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         assertThat(moimPost.getPostTitle()).isEqualTo("새로운 제목");
         assertThat(moimPost.getPostContent()).isEqualTo(moimMemberPost.getPostContent());
         assertThat(moimPost.getMoimPostCategory()).isEqualTo(MoimPostCategory.REVIEW);
-        assertThat(moimPost.getUpdatedMemberId()).isEqualTo(moimMember.getId());
+        assertThat(moimPost.getUpdaterId()).isEqualTo(moimMember.getId());
 
     }
 
 
     // updatePost - 성공 : 모두 다 NULL 만 들어왔을 때 - update 해주진 않음
     @Test
-    void updatePost_shouldReturn400_whenOnlyNullParamPassed_byMoimingApiException() throws Exception {
+    void updatePost_shouldReturn200_whenOnlyNullParamPassed() throws Exception {
 
         // given
         prepareMoimActivity();
-        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), null, null, null, null, null);
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), false, null, null, null, null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(moimMember, 2000);
 
@@ -396,8 +408,8 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
                 .contentType(MediaType.APPLICATION_JSON));
 
         // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(COMMON_UPDATE_REQUEST_FAILED.getErrCode()));
+        resultActions.andExpect(status().isOk());
+//        resultActions.andExpect(jsonPath("$.code").value(COMMON_UPDATE_REQUEST_FAILED.getErrCode()));
 
 
         // then - db verify
@@ -418,7 +430,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(null, null, null, null, null, null);
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(null, false, null, null, null, null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(moimMember, 2000);
 
@@ -431,6 +443,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
 
     }
 
@@ -441,7 +454,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null);
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(moimCreator, 2000);
 
@@ -464,7 +477,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null);
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(notMoimMember, 2000);
 
@@ -486,7 +499,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
     void updatePost_shouldReturn403_whenIBWReqToOwnIBWMoimPost_byMoimingApiException() throws Exception {
         // given
         prepareMoimActivity();
-        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(ibwMemberPost.getId(), "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null);
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(ibwMemberPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(ibwMember, 2000);
 
@@ -507,7 +520,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
     void updatePost_shouldReturn404_whenReqToNotExistingPost_byMoimingApiException() throws Exception {
         // given
         prepareMoimActivity();
-        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(12345L, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null);
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(12345L, false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(moimMember, 2000);
 
@@ -520,6 +533,359 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isNotFound());
         resultActions.andExpect(jsonPath("$.code").value(MOIM_POST_NOT_FOUND.getErrCode()));
+
+    }
+
+
+    // 240411 Update - fileChanged 필드와 img update 로직 등장 -> 현재 모든 Update 관련 TC 들은 고려되고 있지 않기 때문에, filechanged = false 와 나머지 값들은 null 처리
+    //      TODO :: - 파일 수정 관련해서 세부적 테스트 필요 (File 관련이 아니므로 AWS 에 날라갈 요청은 없음)
+    // ReqDto Validation Fails (PostId Null, fileChangedNull, PostTitle 5 이하, PostContent 10 이하)
+    @Test
+    void updatePost_shouldReturn400_whenValidationFails_byMoimingValidationApiException() throws Exception{
+
+        // given
+        prepareMoimActivity();
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(null, null, "새로운", "내용", null, null, null, null);
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(4)));
+
+    }
+
+
+    // fileChanged = true 인데 hasFiles 가 Null
+    @Test
+    void updatePost_shouldReturn400_whenFileChangedButHasFileNull_byMoimingApiException() throws Exception{
+
+        // given
+        prepareMoimActivity();
+        File file1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File file2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(file1);
+        em.persist(file2);
+
+        RelatedFile relatedFile1 = new RelatedFile(0, file1, moimMemberPost.getId(), moimMember.getId());
+        RelatedFile relatedFile2 = new RelatedFile(1, file2, moimMemberPost.getId(), moimMember.getId());
+        em.persist(relatedFile1);
+        em.persist(relatedFile2);
+
+        File newFile1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File newFile2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(newFile1);
+        em.persist(newFile2);
+        em.flush();
+        em.clear();
+
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), true, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, List.of(newFile1.getId(), newFile2.getId()));
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_POST_IMG_STATE_NOT_VALID.getErrCode()));
+
+    }
+
+
+    // fileChanged = true 인데 List 가 Null - 삭제면 빈리스트 전달
+    @Test
+    void updatePost_shouldReturn400_whenFileChangedButFileIdsNull_byMoimingApiException() throws Exception{
+
+        // given
+        prepareMoimActivity();
+        File file1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File file2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(file1);
+        em.persist(file2);
+
+        RelatedFile relatedFile1 = new RelatedFile(0, file1, moimMemberPost.getId(), moimMember.getId());
+        RelatedFile relatedFile2 = new RelatedFile(1, file2, moimMemberPost.getId(), moimMember.getId());
+        em.persist(relatedFile1);
+        em.persist(relatedFile2);
+
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), true, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), false, null, null);
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_POST_IMG_STATE_NOT_VALID.getErrCode()));
+
+    }
+
+
+    // fileChanged = true 이며 hasFiles / List 서로 안맞음
+    @Test
+    void updatePost_shouldReturn400_whenFileChangedButHasFilesAndListStateWrong_byMoimingApiException() throws Exception{
+
+        // given
+        prepareMoimActivity();
+        File file1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File file2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(file1);
+        em.persist(file2);
+
+        RelatedFile relatedFile1 = new RelatedFile(0, file1, moimMemberPost.getId(), moimMember.getId());
+        RelatedFile relatedFile2 = new RelatedFile(1, file2, moimMemberPost.getId(), moimMember.getId());
+        em.persist(relatedFile1);
+        em.persist(relatedFile2);
+
+        File newFile1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File newFile2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(newFile1);
+        em.persist(newFile2);
+        em.flush();
+        em.clear();
+
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), true, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), false, null, List.of(newFile1.getId(), newFile2.getId()));
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_POST_IMG_STATE_NOT_VALID.getErrCode()));
+
+    }
+
+
+    // fileChanged = true 이며 hasFiles = N / List 가 빈 리스트 - 모든 연관 파일 삭제됨
+    @Test
+    void updatePost_shouldReturn200_whenFileChangedTrueAndDeleteAllImgs() throws Exception{
+
+        // given data + files
+        prepareMoimActivity();
+        File file1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File file2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(file1);
+        em.persist(file2);
+
+        RelatedFile relatedFile1 = new RelatedFile(0, file1, moimMemberPost.getId(), moimMember.getId());
+        RelatedFile relatedFile2 = new RelatedFile(1, file2, moimMemberPost.getId(), moimMember.getId());
+        em.persist(relatedFile1);
+        em.persist(relatedFile2);
+
+        File newFile1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File newFile2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(newFile1);
+        em.persist(newFile2);
+        em.flush();
+        em.clear();
+
+        // given
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), true, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), false, null, new ArrayList<>());
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.moimPostId").value(moimMemberPost.getId()));
+        resultActions.andExpect(jsonPath("$.data.postTitle").value("새로운 제목"));
+        resultActions.andExpect(jsonPath("$.data.postContent").value(moimMemberPost.getPostContent()));
+        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(MoimPostCategory.REVIEW.getValue()));
+        resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(moimMemberPost.isHasPrivateVisibility()));
+        resultActions.andExpect(jsonPath("$.data.hasFiles").value(false)); // 삭제되었으므로
+        resultActions.andExpect(jsonPath("$.data.commentCnt").value(moimMemberPost.getCommentCnt()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        MoimPost moimPost = em.find(MoimPost.class, moimMemberPost.getId());
+        assertThat(moimPost.getPostTitle()).isEqualTo("새로운 제목");
+        assertThat(moimPost.getPostContent()).isEqualTo(moimMemberPost.getPostContent());
+        assertThat(moimPost.getMoimPostCategory()).isEqualTo(MoimPostCategory.REVIEW);
+        assertThat(moimPost.getUpdaterId()).isEqualTo(moimMember.getId());
+
+        // 성공적으로 삭제됨
+        List<RelatedFile> files = em.createQuery("SELECT rf FROM RelatedFile rf WHERE rf.fileDomain = :fileDomain", RelatedFile.class) // 현재 저장된건 테스트 중인 애들 밖에 없으므로
+                .setParameter("fileDomain", POST)
+                .getResultList();
+        assertTrue(files.isEmpty());
+    }
+
+
+    // fileChanged = true 이며 hasFiles = Y / List 가 추가된 것 삭제된 것 존재
+    // Design : 1, 2 파일 있었음, 2 삭제되고 nf1, nf2 추가됨, 최종 모습 1, nf1, nf2
+    @Test
+    void updatePost_shouldReturn200_whenAttemptToAddAndRemovePostImgs() throws Exception{
+
+        // given data + files
+        prepareMoimActivity();
+        File file1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File file2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(file1);
+        em.persist(file2);
+
+        RelatedFile relatedFile1 = new RelatedFile(0, file1, moimMemberPost.getId(), moimMember.getId());
+        RelatedFile relatedFile2 = new RelatedFile(1, file2, moimMemberPost.getId(), moimMember.getId());
+        em.persist(relatedFile1);
+        em.persist(relatedFile2);
+
+        File newFile1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File newFile2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(newFile1);
+        em.persist(newFile2);
+        em.flush();
+        em.clear();
+
+        // given
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), true, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), true, null
+                , List.of(file1.getId(), newFile1.getId(), newFile2.getId()));
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.moimPostId").value(moimMemberPost.getId()));
+        resultActions.andExpect(jsonPath("$.data.postTitle").value("새로운 제목"));
+        resultActions.andExpect(jsonPath("$.data.postContent").value(moimMemberPost.getPostContent()));
+        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(MoimPostCategory.REVIEW.getValue()));
+        resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(moimMemberPost.isHasPrivateVisibility()));
+        resultActions.andExpect(jsonPath("$.data.hasFiles").value(true));
+        resultActions.andExpect(jsonPath("$.data.commentCnt").value(moimMemberPost.getCommentCnt()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        MoimPost moimPost = em.find(MoimPost.class, moimMemberPost.getId());
+        assertThat(moimPost.getPostTitle()).isEqualTo("새로운 제목");
+        assertThat(moimPost.getPostContent()).isEqualTo(moimMemberPost.getPostContent());
+        assertThat(moimPost.getMoimPostCategory()).isEqualTo(MoimPostCategory.REVIEW);
+        assertThat(moimPost.getUpdaterId()).isEqualTo(moimMember.getId());
+
+        // 성공적으로 삭제됨
+        List<RelatedFile> files = em.createQuery("SELECT rf FROM RelatedFile rf " +
+                        "WHERE rf.fileDomain = :fileDomain " +
+                        "ORDER BY rf.sequence", RelatedFile.class) // 현재 저장된건 테스트 중인 애들 밖에 없으므로
+                .setParameter("fileDomain", POST)
+                .getResultList();
+        assertThat(files.size()).isEqualTo(3);
+        assertThat(files.get(0).getFile().getId()).isEqualTo(file1.getId());
+        assertThat(files.get(1).getFile().getId()).isEqualTo(newFile1.getId());
+        assertThat(files.get(2).getFile().getId()).isEqualTo(newFile2.getId());
+
+    }
+
+
+    // fileChanged = true 이며 hasFiles = Y / List 가 순서 변경된 것 추가된 것 삭제된 것 존재
+    // Design - newFile2, file2, newFile1 으로 변경
+    @Test
+    void updatePost_shouldReturn200_whenAttemptToAddAndRemoveAndReorderPostImgs() throws Exception{
+
+        // given data + files
+        prepareMoimActivity();
+        File file1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File file2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(file1);
+        em.persist(file2);
+
+        RelatedFile relatedFile1 = new RelatedFile(0, file1, moimMemberPost.getId(), moimMember.getId());
+        RelatedFile relatedFile2 = new RelatedFile(1, file2, moimMemberPost.getId(), moimMember.getId());
+        em.persist(relatedFile1);
+        em.persist(relatedFile2);
+
+        File newFile1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        File newFile2 = new File(POST, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(newFile1);
+        em.persist(newFile2);
+        em.flush();
+        em.clear();
+
+        // given
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), true, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), true, null
+                , List.of(newFile2.getId(), file2.getId(), newFile1.getId()));
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.moimPostId").value(moimMemberPost.getId()));
+        resultActions.andExpect(jsonPath("$.data.postTitle").value("새로운 제목"));
+        resultActions.andExpect(jsonPath("$.data.postContent").value(moimMemberPost.getPostContent()));
+        resultActions.andExpect(jsonPath("$.data.moimPostCategory").value(MoimPostCategory.REVIEW.getValue()));
+        resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(moimMemberPost.isHasPrivateVisibility()));
+        resultActions.andExpect(jsonPath("$.data.hasFiles").value(true));
+        resultActions.andExpect(jsonPath("$.data.commentCnt").value(moimMemberPost.getCommentCnt()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
+        resultActions.andExpect(jsonPath("$.data.memberInfo.memberId").value(moimMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        MoimPost moimPost = em.find(MoimPost.class, moimMemberPost.getId());
+        assertThat(moimPost.getPostTitle()).isEqualTo("새로운 제목");
+        assertThat(moimPost.getPostContent()).isEqualTo(moimMemberPost.getPostContent());
+        assertThat(moimPost.getMoimPostCategory()).isEqualTo(MoimPostCategory.REVIEW);
+        assertThat(moimPost.getUpdaterId()).isEqualTo(moimMember.getId());
+
+        // 성공적으로 삭제됨
+        List<RelatedFile> files = em.createQuery("SELECT rf FROM RelatedFile rf " +
+                        "WHERE rf.fileDomain = :fileDomain " +
+                        "ORDER BY rf.sequence", RelatedFile.class) // 현재 저장된건 테스트 중인 애들 밖에 없으므로
+                .setParameter("fileDomain", POST)
+                .getResultList();
+        assertThat(files.size()).isEqualTo(3);
+        assertThat(files.get(0).getFile().getId()).isEqualTo(newFile2.getId());
+        assertThat(files.get(1).getFile().getId()).isEqualTo(file2.getId());
+        assertThat(files.get(2).getFile().getId()).isEqualTo(newFile1.getId());
 
     }
 

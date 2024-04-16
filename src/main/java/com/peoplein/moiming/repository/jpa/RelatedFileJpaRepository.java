@@ -30,6 +30,18 @@ public class RelatedFileJpaRepository {
                 .getResultList();
     }
 
+    public List<RelatedFile> findWithFileByDomainIdOrderBySeq(Long domainId, FileDomain fileDomain) {
+        return em.createQuery("SELECT rf FROM RelatedFile rf " +
+                        "JOIN FETCH rf.file " +
+                        "WHERE rf.domainId = :domainId " +
+                        "AND rf.fileDomain = :fileDomain " +
+                        "ORDER BY rf.sequence")
+                .setParameter("domainId", domainId)
+                .setParameter("fileDomain", fileDomain)
+                .getResultList();
+    }
+
+
     public void removeByFileIds(Set<Long> fileIds) {
 
         em.createQuery("DELETE FROM RelatedFile rf WHERE rf.file.id IN :fileIds")

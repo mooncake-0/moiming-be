@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.model.dto.inner.MoimPostWithFileDto;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,11 +39,13 @@ public class MoimPostRespDto {
         private boolean hasFiles;
         private int commentCnt;
         private String createdAt;
-
         @JsonProperty("memberInfo")
         private PostMemberDto postMemberDto;
+        private List<FileDto> files;
 
-        public MoimPostCreateRespDto(MoimPost moimPost, Member postCreator) {
+
+        public MoimPostCreateRespDto(MoimPostWithFileDto postWithFiles, Member postCreator) {
+            MoimPost moimPost = postWithFiles.getMoimPost();
             this.moimPostId = moimPost.getId();
             this.postTitle = moimPost.getPostTitle();
             this.postContent = moimPost.getPostContent();
@@ -56,6 +59,9 @@ public class MoimPostRespDto {
                 throw new MoimingApiException(COMMON_INVALID_SITUATION);
             }
             this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCreatorId(), postCreator);
+            if (postWithFiles.getRelatedFiles() != null) {
+                this.files = postWithFiles.getRelatedFiles().stream().map(rf -> new FileDto(rf.getFile().getId(), rf.getFileUrl())).collect(Collectors.toList());
+            }
         }
 
         @Getter
@@ -76,6 +82,18 @@ public class MoimPostRespDto {
                         this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
                     }
                 }
+            }
+        }
+
+        @Getter
+        @Setter
+        public static class FileDto {
+            private Long fileId;
+            private String imgUrl;
+
+            public FileDto(Long fileId, String imgUrl) {
+                this.fileId = fileId;
+                this.imgUrl = imgUrl;
             }
         }
     }
@@ -152,12 +170,14 @@ public class MoimPostRespDto {
             private int commentCnt;
             private String createdAt;
             private String updatedAt;
+            private Long updaterId;
 
             @JsonProperty("memberInfo")
             private PostMemberDto postMemberDto;
+            private List<FileDto> files;
 
-            public MoimPostUpdateRespDto(MoimPost moimPost) {
-
+            public MoimPostUpdateRespDto(MoimPostWithFileDto postWithFiles) {
+                MoimPost moimPost = postWithFiles.getMoimPost();
                 this.moimPostId = moimPost.getId();
                 this.postTitle = moimPost.getPostTitle();
                 this.postContent = moimPost.getPostContent();
@@ -167,11 +187,15 @@ public class MoimPostRespDto {
                 this.hasFiles = moimPost.isHasFiles();
                 this.createdAt = moimPost.getCreatedAt() + "";
                 this.updatedAt = moimPost.getUpdatedAt() + "";
+                this.updaterId = moimPost.getUpdaterId();
                 if (moimPost.getMoim() == null) {
                     log.warn("{}, MoimPostCreateRespDto Creator :: {}", this.getClass().getName(), "Moim 이 연관관계되어 있지 않음");
                     throw new MoimingApiException(COMMON_INVALID_SITUATION);
                 }
                 this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCreatorId(), moimPost.getMember());
+                if (postWithFiles.getRelatedFiles() != null) {
+                    this.files = postWithFiles.getRelatedFiles().stream().map(rf -> new FileDto(rf.getFile().getId(), rf.getFileUrl())).collect(Collectors.toList());
+                }
             }
 
             @Getter
@@ -194,6 +218,18 @@ public class MoimPostRespDto {
                         }
                     }
                 }
+            }
+        }
+
+        @Getter
+        @Setter
+        public static class FileDto {
+            private Long fileId;
+            private String imgUrl;
+
+            public FileDto(Long fileId, String imgUrl) {
+                this.fileId = fileId;
+                this.imgUrl = imgUrl;
             }
         }
     }

@@ -10,8 +10,7 @@ public enum ExceptionValue {
     COMMON_REQUEST_VALIDATION(HttpStatus.BAD_REQUEST.value(), "C001", "잘못된 Dto Value 확인, Response Body 를 확인하세요"),
     COMMON_INVALID_REQUEST_PARAM(HttpStatus.BAD_REQUEST.value(), "C002", "필수 QueryParameter 가 누락 혹은 잘못되었습니다"),
     COMMON_FORBIDDEN_WORDS_FOUND(HttpStatus.BAD_REQUEST.value(), "C003", "허용되지 않은 용어가 포함되어 있습니다"),
-    COMMON_UPDATE_REQUEST_FAILED(HttpStatus.BAD_REQUEST.value(), "C004", "데이터 수정 요청에서 아무 데이터가 수정되지 않았습니다"),
-    COMMON_MAPPABLE_ENUM_VALUE(HttpStatus.BAD_REQUEST.value(), "C005", "인 앱에서 활용중인 고정값을 매핑할 수 없습니다"),
+    COMMON_MAPPABLE_ENUM_VALUE(HttpStatus.BAD_REQUEST.value(), "C004", "인 앱에서 활용중인 고정값을 매핑할 수 없습니다"),
     COMMON_INVALID_SITUATION(HttpStatus.UNPROCESSABLE_ENTITY.value(), "C999", "잘못된 상황이 발생했습니다. 로그를 확인하세요"),
 
     // SEARCH DOMAIN
@@ -63,8 +62,9 @@ public enum ExceptionValue {
 
     // AWS Storage & File
     STORAGE_FILE_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "F000", "해당 파일을 찾을 수 없습니다"),
-    STORAGE_FILE_INPUT_STREAM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "F001", "파일을 읽는 도중 예기치 못한 오류 발생"),
-    STORAGE_FILE_EXCEED_LIMIT(HttpStatus.BAD_REQUEST.value(), "F002", "5GB 넘는 파일을 업로드 할 수 없습니다");
+    STORAGE_FILE_NOT_FOUND_EXIST(HttpStatus.NOT_FOUND.value(), "F001", "조회하려는 파일 들 중 존재하지 않는 파일 발견, 로그 확인 필요, 요청 재확인"),
+    STORAGE_FILE_INPUT_STREAM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "F002", "파일을 읽는 도중 예기치 못한 오류 발생"),
+    STORAGE_FILE_EXCEED_LIMIT(HttpStatus.BAD_REQUEST.value(), "F003", "5GB 넘는 파일을 업로드 할 수 없습니다");
 
 
     private int status;
