@@ -33,7 +33,7 @@ import static com.peoplein.moiming.exception.ExceptionValue.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class  StorageService {
+public class StorageService {
 
     private final AmazonS3Client amazonS3Client;
 
@@ -171,7 +171,7 @@ public class  StorageService {
 
     // 순서는 정의하지 않고, File 들만 저장한다
     @Transactional
-    public List<File> updateMoimPostImgs(List<MultipartFile> imgFiles, Member member) {
+    public List<File> updateMultipleImgs(FileDomain fileDomain, List<MultipartFile> imgFiles, Member member) {
 
         if (imgFiles == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
@@ -181,7 +181,7 @@ public class  StorageService {
 
         for (MultipartFile imgFile : imgFiles) {
 
-            String fileName = "moimPost/" + UUID.randomUUID().toString();
+            String fileName = fileDomain.getPathName() + "/" + UUID.randomUUID().toString();
 
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentType(imgFile.getContentType());
@@ -192,14 +192,14 @@ public class  StorageService {
                 amazonS3Client.putObject(bucketName, fileName, imgFile.getInputStream(), metadata);
                 String resourceUrl = amazonS3Client.getResourceUrl(bucketName, fileName);
 
-                File file = new File(POST, fileName, resourceUrl, imgFile.getContentType(), member.getId());
+                File file = new File(fileDomain, fileName, resourceUrl, imgFile.getContentType(), member.getId());
                 fileRepository.save(file);
 
                 files.add(file);
 
             } catch (IOException exception) {
 
-                log.error("{}, updateMoimPostImgs :: {}", this.getClass().getName(), "InputStream 으로 파일을 읽는 중 에러 발생");
+                log.error("{}, updateMultipleImgs :: {}", this.getClass().getName(), "InputStream 으로 파일을 읽는 중 에러 발생");
                 throw new MoimingApiException(STORAGE_FILE_INPUT_STREAM_ERROR, exception);
             }
 

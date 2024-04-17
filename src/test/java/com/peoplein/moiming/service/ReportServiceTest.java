@@ -26,6 +26,8 @@ public class ReportServiceTest {
     private ReportJpaRepository reportRepository;
 
 
+    // createReportImg 간단하므로 생략
+
     @Test
     void createReport_shouldPass_whenRightInfoPassed(){
 

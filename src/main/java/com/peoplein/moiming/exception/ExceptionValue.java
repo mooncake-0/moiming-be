@@ -34,7 +34,6 @@ public enum ExceptionValue {
     MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER(HttpStatus.CONFLICT.value(), "M008", "수정하려는 최대 모임원 수가 현재 모임원 수보다 적습니다"),
 
     MOIM_POST_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MP000", "해당 게시물을 찾을 수 없습니다"),
-    MOIM_POST_IMG_STATE_NOT_VALID(HttpStatus.BAD_REQUEST.value(), "MP001", "생성 / 수정 요청시 hasFile 상태와 File Id List 상태 불일치"),
 
     MOIM_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MM000", "모임의 모임원이 아닙니다"),
     MOIM_MEMBER_NOT_ACTIVE(HttpStatus.FORBIDDEN.value(), "MM001", "활동중인 모임원이 아닙니다"),
@@ -64,8 +63,10 @@ public enum ExceptionValue {
     STORAGE_FILE_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "F000", "해당 파일을 찾을 수 없습니다"),
     STORAGE_FILE_NOT_FOUND_EXIST(HttpStatus.NOT_FOUND.value(), "F001", "조회하려는 파일 들 중 존재하지 않는 파일 발견, 로그 확인 필요, 요청 재확인"),
     STORAGE_FILE_INPUT_STREAM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "F002", "파일을 읽는 도중 예기치 못한 오류 발생"),
-    STORAGE_FILE_EXCEED_LIMIT(HttpStatus.BAD_REQUEST.value(), "F003", "5GB 넘는 파일을 업로드 할 수 없습니다");
+    STORAGE_FILE_EXCEED_LIMIT(HttpStatus.BAD_REQUEST.value(), "F003", "5GB 넘는 파일을 업로드 할 수 없습니다"),
 
+    // IMG 전달 관련
+    IMG_STATE_NOT_VALID(HttpStatus.BAD_REQUEST.value(), "IMG000", "생성 / 수정 요청시 hasFile 상태와 File Id List 상태 불일치, 변경 여부 불일치");
 
     private int status;
     private String errCode;

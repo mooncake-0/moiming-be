@@ -30,8 +30,6 @@ public class Report{
 
     private boolean hasFiles;
 
-    // TODO 사진 관련 추가
-
     private LocalDateTime createdAt;
 
     public Report(ReportTarget target, Long reporterId, Long targetId, String reason, boolean hasFiles) {

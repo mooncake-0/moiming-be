@@ -674,7 +674,7 @@ public class MoimPostServiceTest {
         moimPostService.updateImgs(null, moimId, null, member);
 
         // then
-        verify(storageService, times(1)).updateMoimPostImgs(any(), any());
+        verify(storageService, times(1)).updateMultipleImgs(any(), any(), any());
 
     }
 
@@ -751,7 +751,7 @@ public class MoimPostServiceTest {
         moimPostService.updateImgs(null, moimId, moimPostId, member);
 
         // then
-        verify(storageService, times(1)).updateMoimPostImgs(any(), any());
+        verify(storageService, times(1)).updateMultipleImgs(any(), any(), any());
 
     }
 

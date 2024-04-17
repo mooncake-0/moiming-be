@@ -133,6 +133,8 @@ public abstract class AppUrlPath {
     public final static String PATH_MEMBER_DELETE_PF_IMG = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO + "/image";
 
     // 애매한 것들
+    public final static String PATH_REPORT_CREATE_IMG = API_SERVER + "/v0" + "/report" + "/image";
+
     public final static String PATH_CREATE_REPORT = API_SERVER + "/v0" + "/report";
 
     public final static String PATH_FIXED_VALUES = API_SERVER + "/v0" + "/fixed";
