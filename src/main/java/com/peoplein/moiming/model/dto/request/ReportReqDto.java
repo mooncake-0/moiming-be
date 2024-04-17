@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 public class ReportReqDto {
 
@@ -26,5 +27,8 @@ public class ReportReqDto {
         private Integer reasonIndex;
         @NotNull
         private Boolean hasFiles;
+
+        private List<Long> imgFileIds;
+
     }
 }

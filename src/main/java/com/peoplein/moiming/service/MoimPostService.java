@@ -94,7 +94,7 @@ public class MoimPostService {
 
         }
 
-        List<File> files = storageService.updateMoimPostImgs(imgFiles, member);
+        List<File> files = storageService.updateMultipleImgs(POST, imgFiles, member);
 
         return files;
     }
@@ -301,29 +301,31 @@ public class MoimPostService {
         // TODO:: 파일 삭제 진행
     }
 
+
     private void checkFileReqStatus(boolean hasFiles, List<Long> fileIds) {
         if (hasFiles) { // 있다고 했는데 파일 없음
             if (fileIds == null || fileIds.isEmpty()) {
-                throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
+                throw new MoimingApiException(IMG_STATE_NOT_VALID);
             }
         } else {// 없다고 했는데 파일 있음
             if (fileIds != null && !fileIds.isEmpty()) {
-                throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
+                throw new MoimingApiException(IMG_STATE_NOT_VALID);
             }
         }
     }
 
+
     private void checkFileUpdateStatus(MoimPostUpdateReqDto requestDto) {
 
         if (requestDto.getFileChanged() == null) {
-            throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
+            throw new MoimingApiException(IMG_STATE_NOT_VALID);
         }
 
         if (requestDto.getFileChanged()) { // TRUE 인데
             // 변경 사항에 대한 정보들이 들어오지 않을 경우
             // ImgFileId 가 더 이상 없어도 (삭제되어도) 빈 리스트를 담아야 함
             if (requestDto.getHasFiles() == null || requestDto.getImgFileIds() == null) {
-                throw new MoimingApiException(MOIM_POST_IMG_STATE_NOT_VALID);
+                throw new MoimingApiException(IMG_STATE_NOT_VALID);
             }
         }
 

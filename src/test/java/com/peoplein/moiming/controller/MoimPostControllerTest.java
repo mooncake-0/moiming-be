@@ -285,7 +285,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.MOIM_POST_IMG_STATE_NOT_VALID.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.IMG_STATE_NOT_VALID.getErrCode()));
 
     }
 
@@ -310,7 +310,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.MOIM_POST_IMG_STATE_NOT_VALID.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.IMG_STATE_NOT_VALID.getErrCode()));
 
     }
 

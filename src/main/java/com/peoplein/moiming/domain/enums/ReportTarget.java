@@ -7,5 +7,6 @@ import lombok.Getter;
 public enum ReportTarget {
     USER,
     MOIM,
-    POST
+    POST,
+    COMMENT;
 }

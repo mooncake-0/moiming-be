@@ -5,6 +5,9 @@ import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.Report;
 import com.peoplein.moiming.domain.enums.*;
+import com.peoplein.moiming.domain.file.File;
+import com.peoplein.moiming.domain.file.FileDomain;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
@@ -95,7 +98,7 @@ public class ReportControllerTest extends TestObjectCreator {
         // given
         dataSu();
         ReportReason targetReason = ReportReason.ABUSE;
-        ReportCreateReqDto requestDto = new ReportCreateReqDto(USER, member2.getId(), targetReason.getIndex(), false);
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(USER, member2.getId(), targetReason.getIndex(), false, null);
         String accessToken = createTestJwtToken(member, 2000);
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -130,7 +133,7 @@ public class ReportControllerTest extends TestObjectCreator {
         // given
         dataSu();
         ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
-        ReportCreateReqDto requestDto = new ReportCreateReqDto(MOIM, moim.getId(), targetReason.getIndex(), false);
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(MOIM, moim.getId(), targetReason.getIndex(), false, null);
         String accessToken = createTestJwtToken(member, 2000);
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -165,7 +168,7 @@ public class ReportControllerTest extends TestObjectCreator {
         // given
         dataSu();
         ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
-        ReportCreateReqDto requestDto = new ReportCreateReqDto(POST, moimPost.getId(), targetReason.getIndex(), false);
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(POST, moimPost.getId(), targetReason.getIndex(), false, null);
         String accessToken = createTestJwtToken(member, 2000);
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -200,7 +203,7 @@ public class ReportControllerTest extends TestObjectCreator {
         // given
         dataSu();
         ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
-        ReportCreateReqDto requestDto = new ReportCreateReqDto(null, null, null, null);
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(null, null, null, null, null);
         String accessToken = createTestJwtToken(member, 2000);
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -224,7 +227,7 @@ public class ReportControllerTest extends TestObjectCreator {
 
         // given
         dataSu();
-        ReportCreateReqDto requestDto = new ReportCreateReqDto(POST, moimPost.getId(), 100, false);
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(POST, moimPost.getId(), 100, false, null);
         String accessToken = createTestJwtToken(member, 2000);
         String requestBody = om.writeValueAsString(requestDto);
 
@@ -248,4 +251,109 @@ public class ReportControllerTest extends TestObjectCreator {
         assertTrue(report.isEmpty());
 
     }
+
+
+    // 사진 시도
+    // 실패 - 사진 Validation 안맞음
+    @Test
+    void report_shouldReturn400_whenHasFileTrueButFileNotExists_byMoimingApiException() throws Exception {
+
+        // given
+        dataSu();
+        ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(POST, moimPost.getId(), targetReason.getIndex(), true, null);
+        String accessToken = createTestJwtToken(member, 2000);
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_CREATE_REPORT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(IMG_STATE_NOT_VALID.getErrCode()));
+
+    }
+
+
+    // 실패 - 사진 Validation 안맞음 (반대로 False But Exists)
+    @Test
+    void report_shouldReturn400_whenHasFileFalseButFileExists_byMoimingApiException() throws Exception {
+
+        // given
+        dataSu();
+        ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(POST, moimPost.getId(), targetReason.getIndex(), false, List.of(1L, 2L));
+        String accessToken = createTestJwtToken(member, 2000);
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_CREATE_REPORT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(IMG_STATE_NOT_VALID.getErrCode()));
+
+    }
+
+
+    // 사진과 함께 신고 성공
+    @Test
+    void report_shouldReturn201_whenMemberReportsPostWithSavedFiles() throws Exception {
+
+        // given - save Files
+        File file1 = new File(FileDomain.REPORT, "fileName", "fileUrl", "contentType", 1L);
+        File file2 = new File(FileDomain.REPORT, "fileName", "fileUrl", "contentType", 1L);
+        em.persist(file1);
+        em.persist(file2);
+        em.flush();
+        em.clear();
+
+
+        // given
+        dataSu();
+        ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(POST, moimPost.getId(), targetReason.getIndex(), true, List.of(file2.getId(), file1.getId()));
+        String accessToken = createTestJwtToken(member, 2000);
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_CREATE_REPORT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isCreated());
+
+        // then - db verify (그냥 저장됐는지만 확인하면 됨)
+        em.flush();
+        em.clear();
+
+        Report report = em.createQuery("SELECT r FROM Report r WHERE r.reporterId = :memberId", Report.class)
+                .setParameter("memberId", member.getId())
+                .getSingleResult();
+        assertThat(report.getTarget()).isEqualTo(POST);
+        assertThat(report.getReporterId()).isEqualTo(member.getId());
+        assertThat(report.getTargetId()).isEqualTo(moimPost.getId());
+        assertThat(report.getReason()).isEqualTo(targetReason.getInfo());
+
+        // then - db verify files
+        List<RelatedFile> relatedFiles = em.createQuery("SELECT rf FROM RelatedFile rf " +
+                                "WHERE rf.fileDomain = :fileDomain " + // 현재 저장된건 이 테스트 결과일 뿐
+                                "ORDER BY rf.sequence" // 보낸 순서대로 저장되었어야 한다
+                        , RelatedFile.class)
+                .setParameter("fileDomain", FileDomain.REPORT)
+                .getResultList();
+
+        assertThat(relatedFiles.size()).isEqualTo(2);
+        assertThat(relatedFiles.get(0).getFile().getId()).isEqualTo(file2.getId()); // 2 를 먼저보냈으므로 2가 앞선 sequence 로 저장된다
+        assertThat(relatedFiles.get(1).getFile().getId()).isEqualTo(file1.getId());
+    }
+
 }
