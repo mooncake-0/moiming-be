@@ -20,54 +20,37 @@ import static com.peoplein.moiming.config.AppParams.*;
 
 public class AuthRespDto {
 
+
     /*
-     회원가입 응답 정보 전달
-     */
+     v1.1 회원가입 응답 정보 전달
+    */
     @ApiModel(value = "Auth API - 응답 - 회원가입")
     @Getter
     @Setter
-    public static class AuthSignInRespDto {
+    public static class AuthSignUpRespDto {
 
         private Long memberId;
-        private String memberEmail;
-        private String nickname; // TODO :: 생성해줄 예정
+        private boolean hasMemberInfo;
+        private String memberPhone;
+        private String nickname;
         private String fcmToken;
         private String createdAt;
         private TokenRespDto tokenInfo;
-        private MemberInfoDto memberInfo;
 
-        public AuthSignInRespDto(Member member, TokenRespDto tokenRespDto) {
+        public AuthSignUpRespDto(Member member, TokenRespDto tokenRespDto) {
             this.memberId = member.getId();
-            this.memberEmail = member.getMemberEmail();
+            this.hasMemberInfo = false;
+            if (member.getMemberInfo() != null) {
+                this.hasMemberInfo = true;
+            }
+            this.memberPhone = member.getMemberPhone();
             this.nickname = member.getNickname();
             this.fcmToken = member.getFcmToken();
             this.createdAt = member.getCreatedAt() + "";
             this.tokenInfo = tokenRespDto;
-            this.memberInfo = new MemberInfoDto(member.getMemberInfo());
-        }
-
-        /*
-         포함 정보도 같을지라도 항상 DTO 분할 - 요청별로 묶음을 따로한다
-         */
-        @Getter
-        @Setter
-        public static class MemberInfoDto {
-
-            private String memberName;
-            private String memberPhone;
-            private String memberGender;
-            private String memberBirth;
-            private String memberPfImgUrl;
-
-            public MemberInfoDto(MemberInfo memberInfo) {
-                this.memberName = memberInfo.getMemberName();
-                this.memberPhone = memberInfo.getMemberPhone();
-                this.memberGender = memberInfo.getMemberGender() + "";
-                this.memberBirth = memberInfo.getMemberBirth() + "";
-                this.memberPfImgUrl = DEFAULT_MEMBER_PF_IMG_PATH; // 회원가입시는 DEFAULT
-            }
         }
     }
+
 
     /*
      요청별로 DTO 를 분할 - 훨씬 깔끔한듯
@@ -78,44 +61,25 @@ public class AuthRespDto {
     public static class AuthLoginRespDto {
 
         private Long memberId;
-        private String memberEmail;
+        private boolean hasMemberInfo;
+        private String memberPhone;
         private String nickname;
         private String fcmToken;
         private String createdAt;
         private TokenRespDto tokenInfo;
-        private MemberInfoDto memberInfo;
 
         public AuthLoginRespDto(Member member, TokenRespDto tokenRespDto) {
             this.memberId = member.getId();
-            this.memberEmail = member.getMemberEmail();
+            this.hasMemberInfo = false;
+            if (member.getMemberInfo() != null) {
+                this.hasMemberInfo = true;
+            }
+            this.memberPhone = member.getMemberPhone();
             this.nickname = member.getNickname();
             this.fcmToken = member.getFcmToken();
             this.createdAt = member.getCreatedAt() + "";
             this.tokenInfo = tokenRespDto;
-            this.memberInfo = new MemberInfoDto(member.getMemberInfo());
 
-        }
-
-        @Getter
-        @Setter
-        public static class MemberInfoDto {
-
-            private String memberName;
-            private String memberPhone;
-            private String memberGender;
-            private String memberBirth;
-            private String memberPfImgUrl;
-
-            public MemberInfoDto(MemberInfo memberInfo) {
-                this.memberName = memberInfo.getMemberName();
-                this.memberPhone = memberInfo.getMemberPhone();
-                this.memberGender = memberInfo.getMemberGender() + "";
-                this.memberBirth = memberInfo.getMemberBirth() + "";
-                this.memberPfImgUrl = DEFAULT_MEMBER_PF_IMG_PATH;
-                if (StringUtils.hasText(memberInfo.getPfImgUrl())) {
-                    this.memberPfImgUrl = memberInfo.getPfImgUrl();
-                }
-            }
         }
     }
 

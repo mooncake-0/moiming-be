@@ -6,10 +6,14 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.SmsVerificationRepository;
 import com.peoplein.moiming.service.external.ExternalReqSender;
+import com.peoplein.moiming.service.util.sms.CoolSmsRequestBuilder;
 import com.peoplein.moiming.service.util.sms.NaverSmsRequestBuilder;
+import com.peoplein.moiming.service.util.sms.SmsRequestBuilder;
+import okhttp3.Request;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,137 +40,92 @@ public class SmsVerificationServiceTest {
     private SmsVerificationRepository smsRepository;
 
     @Mock
-    private NaverSmsRequestBuilder smsRequestBuilder;
+    private SmsRequestBuilder smsRequestBuilder;
 
     @Mock
     private ExternalReqSender externalReqSender;
 
 
-    // 성공 - FIND ID
+    // processSmsVerification
+    // 실패 :: RequestDto Null
     @Test
-    void processSmsVerification_shouldPass_whenFindingId() {
-
-        // given
-        AuthSmsReqDto requestDto = mock(AuthSmsReqDto.class);
-        Member member = mock(Member.class);
-        MemberInfo memberInfo = mock(MemberInfo.class);
-
-        // given - stub, situational stub
-        when(memberRepository.findWithMemberInfoByPhoneNumber(any())).thenReturn(Optional.of(member));
-        when(requestDto.getVerifyType()).thenReturn(VerificationType.FIND_ID);
-        when(memberInfo.getMemberName()).thenReturn("ANY_NAME");
-        when(member.getMemberInfo()).thenReturn(memberInfo);
-        when(requestDto.getMemberName()).thenReturn("ANY_NAME");
-
-        // when
-        smsService.processSmsVerification(requestDto);
-
-        // then
-        verify(smsRequestBuilder, times(1)).getHttpRequest(any());
-        verify(externalReqSender, times(1)).sendAsynchronousMessage(any());
-        verify(smsRepository, times(1)).save(any());
-
-    }
-
-
-    // 성공 - FIND PW
-    @Test
-    void processSmsVerification_shouldPass_whenFindingPw() {
-
-        // given
-        AuthSmsReqDto requestDto = mock(AuthSmsReqDto.class);
-        Member member = mock(Member.class);
-        MemberInfo memberInfo = mock(MemberInfo.class);
-
-        // given - stub, situational stub
-        when(memberRepository.findWithMemberInfoByPhoneNumber(any())).thenReturn(Optional.of(member));
-        when(requestDto.getVerifyType()).thenReturn(VerificationType.FIND_PW);
-        when(member.getMemberInfo()).thenReturn(memberInfo);
-        when(member.getMemberEmail()).thenReturn("ANY_EMAIL");
-        when(requestDto.getMemberEmail()).thenReturn("ANY_EMAIL");
-
-        // when
-        smsService.processSmsVerification(requestDto);
-
-        // then
-        verify(smsRequestBuilder, times(1)).getHttpRequest(any());
-        verify(externalReqSender, times(1)).sendAsynchronousMessage(any());
-        verify(smsRepository, times(1)).save(any());
-
-    }
-
-
-    // 실패 NULL
-    @Test
-    void processSmsVerification_shouldThrowException_whenParamsNull_byMoimingApiException() {
+    void processSmsVerification_shouldThrowException_whenRequestDtoNull_byMoimingApiException() {
 
         // given
         // when
         // then
         assertThatThrownBy(() -> smsService.processSmsVerification(null)).isInstanceOf(MoimingApiException.class);
+        verify(smsRequestBuilder, times(0)).getHttpRequest(any());
+        verify(externalReqSender, times(0)).sendAsynchronousMessage(any());
+        verify(smsRepository, times(0)).save(any());
 
     }
 
 
-    // 실패 - Member 없음
+    // 성공 :: SIGN_UP
     @Test
-    void processSmsVerification_shouldThrowException_whenMemberNotFound_byMoimingApiException() {
+    void processSmsVerification_shouldPass_whenSignUpReqNormal() {
 
         // given
-        AuthSmsReqDto requestDto = mock(AuthSmsReqDto.class);
+        AuthSmsReqDto reqDto = mock(AuthSmsReqDto.class);
 
         // given - stub
-        when(memberRepository.findWithMemberInfoByPhoneNumber(any())).thenReturn(Optional.empty());
+        when(reqDto.getVerifyType()).thenReturn(VerificationType.SIGN_UP);
 
         // when
+        smsService.processSmsVerification(reqDto);
+
         // then
-        assertThatThrownBy(() -> smsService.processSmsVerification(requestDto)).isInstanceOf(MoimingApiException.class);
+        verify(smsRequestBuilder, times(1)).getHttpRequest(any());
+        verify(externalReqSender, times(1)).sendAsynchronousMessage(any());
+        verify(smsRepository, times(1)).save(any());
 
     }
 
 
-    // 실패 - 시도한 Member 와 전달받은 Member 가 일치하지 않음
+    // 실패 :: FIND_PW - 핸드폰 번호의 유저를 찾을 수 없음
     @Test
-    void processSmsVerification_shouldThrowException_whenMemberNameNotMatch_byMoimingApiException() {
+    void processSmsVerification_shouldThrowException_whenPhoneNotFoundDuringFindPw_byMoimingApiException() {
 
         // given
-        AuthSmsReqDto requestDto = mock(AuthSmsReqDto.class);
-        Member member = mock(Member.class);
-        MemberInfo memberInfo = mock(MemberInfo.class);
+        AuthSmsReqDto reqDto = mock(AuthSmsReqDto.class);
 
-        // given - stub, situational stub
-        when(memberRepository.findWithMemberInfoByPhoneNumber(any())).thenReturn(Optional.of(member));
-        when(requestDto.getVerifyType()).thenReturn(VerificationType.FIND_ID);
-        when(memberInfo.getMemberName()).thenReturn("ANY_NAME");
-        when(member.getMemberInfo()).thenReturn(memberInfo);
-        when(requestDto.getMemberName()).thenReturn("NOT_MATCHING_NAME");
+        // given - stub
+        when(reqDto.getVerifyType()).thenReturn(VerificationType.FIND_PW);
+        when(memberRepository.findByMemberPhone(any())).thenReturn(Optional.empty());
 
         // when
         // then
-        assertThatThrownBy(() -> smsService.processSmsVerification(requestDto)).isInstanceOf(MoimingAuthApiException.class);
+        assertThatThrownBy(() -> smsService.processSmsVerification(reqDto)).isInstanceOf(MoimingApiException.class);
+        verify(smsRequestBuilder, times(0)).getHttpRequest(any());
+        verify(externalReqSender, times(0)).sendAsynchronousMessage(any());
+        verify(smsRepository, times(0)).save(any());
 
     }
 
 
-    // 실패 - 시도한 Member Email 과 전달받은 Member Email 이 일치하지 않음
-    @Test
-    void processSmsVerification_shouldThrowException_whenMemberEmailNotMatchFindingPw_byMoimingApiException() {
+    // 실패 :: 알 수 없는 Type 이 들어옴 (NULL)
+    // NULL 로는 발생할 리 없음. 잘못된 타입 변환은 일찍 잡힘
+//    @Test
+//    void processSmsVerification_shouldThrowException_whenInvalidVerifyType_byMoimingApiException() {
+//
+//         given
+//        AuthSmsReqDto reqDto = mock(AuthSmsReqDto.class);
+//
+//         given - stub
+//        when(reqDto.getVerifyType()).thenReturn(null); // INVALID 한 값
+//
+//         when
+//         then
+//        assertThatThrownBy(() -> smsService.processSmsVerification(reqDto)).isInstanceOf(MoimingApiException.class);
+//        verify(smsRequestBuilder, times(0)).getHttpRequest(any());
+//        verify(externalReqSender, times(0)).sendAsynchronousMessage(any());
+//        verify(smsRepository, times(0)).save(any());
+//
+//    }
 
-        // given
-        AuthSmsReqDto requestDto = mock(AuthSmsReqDto.class);
-        Member member = mock(Member.class);
 
-        // given - stub, situational stub
-        when(memberRepository.findWithMemberInfoByPhoneNumber(any())).thenReturn(Optional.of(member));
-        when(requestDto.getVerifyType()).thenReturn(VerificationType.FIND_PW);
-        when(member.getMemberEmail()).thenReturn("ANY_EMAIL");
-        when(requestDto.getMemberEmail()).thenReturn("NOT_MATCHING_EMAIL");
-
-        // when
-        // then
-        assertThatThrownBy(() -> smsService.processSmsVerification(requestDto)).isInstanceOf(MoimingAuthApiException.class);
-
-    }
+    // 성공 :: FIND_PW - 성공
 
 
     @Test

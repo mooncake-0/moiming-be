@@ -8,13 +8,9 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.PolicyType;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import com.peoplein.moiming.security.exception.AuthExceptionValue;
-import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,21 +22,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
-import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignUpReqDto.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
-import static com.peoplein.moiming.support.TestDto.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -79,7 +74,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void dataSu() {
 
         Role testRole = makeTestRole(RoleType.USER);
-        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        testMember = makeTestMember(memberPhone, nickname, ci, testRole);
         savedToken = createTestJwtToken(testMember, 2000);
         testMember.changeRefreshToken(savedToken); // reissue 단 test 를 위해 Test token 을 주입해둔다
 
@@ -91,68 +86,10 @@ public class AuthControllerTest extends TestObjectCreator {
 
     }
 
-
     private List<PolicyAgreeDto> provideNormalPolicyDtos() {
         boolean[] hasAgreeds = {true, true, true, true, false};
         PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
         return makePolicyReqDtoList(hasAgreeds, policyTypes);
-    }
-
-
-    @Test
-    void checkEmailAvailable_shouldReturn200_whenEmailAvailable() throws Exception {
-
-        // given
-        String availableEmail = memberEmail2;
-        String[] params = {"email"};
-        String[] vals = {availableEmail};
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
-
-        // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(1));
-
-    }
-
-
-    @Test
-    void checkEmailAvailable_shouldReturn200_whenEmailUnavailable() throws Exception {
-
-        // given
-        String unavailableEmail = memberEmail;
-        String[] params = {"email"};
-        String[] vals = {unavailableEmail};
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-
-
-        // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.code").value(-1));
-
-    }
-
-
-    @Test
-    void checkEmailAvailable_shouldReturn404_whenNoEmailPassed() throws Exception {
-
-        // given
-        String noEmail = "";
-        String[] params = {"email"};
-        String[] vals = {noEmail};
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_AUTH_EMAIL_AVAILABLE, params, vals)));
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        System.out.println("responseBody = " + responseBody);
-
-        // then
-        resultActions.andExpect(status().isNotFound());
-
     }
 
 
@@ -165,7 +102,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(smsVerification.getId(), memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -175,49 +112,22 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isCreated());
-        resultActions.andExpect(jsonPath("$.data.memberId").exists());
-        resultActions.andExpect(jsonPath("$.data.nickname").exists());
+        resultActions.andExpect(jsonPath("$.data.hasMemberInfo").value(false));
+        resultActions.andExpect(jsonPath("$.data.memberPhone").value(memberPhone2));
         resultActions.andExpect(jsonPath("$.data.fcmToken").value(fcmToken));
         resultActions.andExpect(jsonPath("$.data.createdAt").exists());
-        resultActions.andExpect(jsonPath("$.data.tokenInfo.accessToken").exists());
-        resultActions.andExpect(jsonPath("$.data.tokenInfo.accessTokenExp").exists());
-        resultActions.andExpect(jsonPath("$.data.tokenInfo.refreshToken").exists());
-        resultActions.andExpect(jsonPath("$.data.tokenInfo.refreshTokenExp").exists());
+        resultActions.andExpect(jsonPath("$.data.tokenInfo").exists());
 
-        resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail2));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberName").value(memberName2));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberPhone").value(memberPhone2));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberBirth").value(memberBirthStringFormat));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender.toString()));
+        // then - db verify
+        Optional<Member> findMember = memberRepository.findByMemberPhone(memberPhone2);
+        assertTrue(findMember.isPresent());
+        resultActions.andExpect(jsonPath("$.data.memberId").value(findMember.get().getId()));
+        resultActions.andExpect(jsonPath("$.data.nickname").value(findMember.get().getNickname()));
 
     }
 
 
-    // 중복 EMAIL 유저
-    @Test
-    void signUp_shouldReturn409_whenEmailDuplicates_byMoimingApiException() throws Exception {
-
-        // given
-        SmsVerification smsVerification = makeTestSmsVerification(true, null, memberPhone2, VerificationType.SIGN_UP);
-        em.persist(smsVerification);
-        em.flush();
-        em.clear();
-
-        String unavailableEmail = memberEmail;
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(smsVerification.getId(), unavailableEmail, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
-        String requestString = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_UP).content(requestString).contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isConflict());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_SIGN_IN_DUPLICATE_COLUMN.getErrCode()));
-
-    }
-
-
-    // 중복 핸드폰 유저
+    // 중복 핸드폰 유저 (중복된 ID 사용)
     @Test
     void signUp_shouldReturn409_whenPhoneDuplicates_byMoimingApiException() throws Exception {
 
@@ -228,7 +138,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(smsVerification.getId(), memberEmail2, password, memberName2, unavailablePhone, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), unavailablePhone, password, fcmToken, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -236,7 +146,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isConflict());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_SIGN_IN_DUPLICATE_COLUMN.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_SIGN_UP_PHONE_DUPLICATE.getErrCode()));
     }
 
 
@@ -263,7 +173,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signUp_shouldReturn400_whenRequestDtoValidationFails_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(null, memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(null, null, null, null, null);
         reqDto.setFcmToken(""); // 빈값 치환
         String requestString = om.writeValueAsString(reqDto);
 
@@ -274,40 +184,23 @@ public class AuthControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2))); // SMS 없음, FCM 없음
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(5))); // SMS 없음, FCM 없음
 
     }
 
 
-    // 이메일 형식 오류
-    @Test
-    void signUp_shouldReturn400_whenEmailFormatWrong_byMoimingValidationException() throws Exception {
-
-        // given
-        String wrongEmailFormat = "hellonaver.com";
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(null, wrongEmailFormat, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
-        String requestString = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_SIGN_UP).content(requestString).contentType(MediaType.APPLICATION_JSON));
-        String errResponse = resultActions.andReturn().getResponse().getContentAsString();
-
-        // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2))); // SMS 없음, 이메일 형식 오류
-    }
-
-
-    // TODO :: 이메일 길이로 인한 형식 오류 및 비밀번호 형식 DTO 에 제대로 명시 후 Test
+    // TODO :: 비밀번호 형식 DTO 에 제대로 명시 후 Test
     // 비밀번호 형식 오류 TODO : 비밀번호 조건 제대로 설정 후 재 Test 필요
-
-
     @Test
     void signUp_shouldReturn400_whenPasswordConditionFails_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(null, memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
+        SmsVerification smsVerification = makeTestSmsVerification(true, null, memberPhone2, VerificationType.SIGN_UP);
+        em.persist(smsVerification);
+        em.flush();
+        em.clear();
+
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, provideNormalPolicyDtos());
         reqDto.setPassword("123");
         String requestString = om.writeValueAsString(reqDto);
 
@@ -319,7 +212,7 @@ public class AuthControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2))); // SMS 없음, 비밀번호 형식 오류
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1))); // 비밀번호 형식 오류
 
     }
 
@@ -329,7 +222,12 @@ public class AuthControllerTest extends TestObjectCreator {
     void signUp_shouldReturn400_whenPolicyListNull_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(null, memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, null);
+        SmsVerification smsVerification = makeTestSmsVerification(true, null, memberPhone2, VerificationType.SIGN_UP);
+        em.persist(smsVerification);
+        em.flush();
+        em.clear();
+
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, null);
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -340,7 +238,7 @@ public class AuthControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2))); // SMS 없음, Policy 필드가 없음
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1))); // Policy 필드가 없음
 
 
     }
@@ -351,7 +249,12 @@ public class AuthControllerTest extends TestObjectCreator {
     void signUp_shouldReturn400_whenPolicyListEmpty_byMoimingValidationException() throws Exception {
 
         // given
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(null, memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, new ArrayList<>());
+        SmsVerification smsVerification = makeTestSmsVerification(true, null, memberPhone2, VerificationType.SIGN_UP);
+        em.persist(smsVerification);
+        em.flush();
+        em.clear();
+
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, new ArrayList<>());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -363,8 +266,7 @@ public class AuthControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2))); // SMS 없음, Policy 는 5개의 필드가 필요하다
-
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1))); // Policy 는 5개의 필드가 필요하다
 
     }
 
@@ -381,7 +283,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         boolean[] isAgreeds = {true, true, false, true, false};
         PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(smsVerification.getId(), memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, makePolicyReqDtoList(isAgreeds, policyTypes));
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, makePolicyReqDtoList(isAgreeds, policyTypes));
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -409,7 +311,7 @@ public class AuthControllerTest extends TestObjectCreator {
 
         boolean[] isAgreeds = {true, true, true, true};
         PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_EMAIL};
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(smsVerification.getId(), memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, makePolicyReqDtoList(isAgreeds, policyTypes));
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, makePolicyReqDtoList(isAgreeds, policyTypes));
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -436,7 +338,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(smsVerification.getId(), memberEmail2, password, memberName2, memberPhone3, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone3, password, fcmToken, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -461,7 +363,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(smsVerification.getId(), memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -481,7 +383,7 @@ public class AuthControllerTest extends TestObjectCreator {
     void signUp_shouldReturn404_whenSmsVerificationNotFound_byMoimingAuthApiException() throws Exception {
 
         // given
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(1L, memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(1L, memberPhone2, password, fcmToken, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -506,7 +408,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        TestMemberRequestDto reqDto = new TestMemberRequestDto(smsVerification.getId(), memberEmail2, password, memberName2, memberPhone2, memberGender, memberBirthStringFormat, fcmToken, provideNormalPolicyDtos());
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, provideNormalPolicyDtos());
         String requestString = om.writeValueAsString(reqDto);
 
         // when
@@ -599,159 +501,6 @@ public class AuthControllerTest extends TestObjectCreator {
     // 3분 지나서 만료되는거 확인 - 테스트 필요
 
 
-    // 이메일 확인 요청 - 특정 멤버로 SMS 생성후 테스트
-    // 성공 - 응답 확인
-    @Test
-    void findMemberEmail_shouldReturn200WithMaskedEmail_whenRightInfoPassed() throws Exception {
-
-        // given
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_ID);
-        String verificationNumber = smsVerification.getVerificationNumber();
-        em.persist(smsVerification);
-        em.clear();
-        em.flush();
-
-        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(smsVerification.getId(), memberPhone, verificationNumber);
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isOk());
-        String maskedEmail = testMember.getMaskedEmail();
-        resultActions.andExpect(jsonPath("$.data.maskedEmail").value(maskedEmail));
-
-    }
-
-
-    // 실패 - Validation 오류
-    @Test
-    void findMemberEmail_shouldReturn400_whenRequestWrong_byMoimingValidationException() throws Exception {
-
-        // given
-        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(null, "", "");
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(3)));
-
-    }
-
-
-    // 실패 - Verification 숫자 오류
-    @Test
-    void findMemberEmail_shouldReturn422_whenSmsVerificationNumberNotMatch_byMoimingAuthApiException() throws Exception {
-
-        // given
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_ID);
-        String verificationNumber = smsVerification.getVerificationNumber();
-        em.persist(smsVerification);
-        em.clear();
-        em.flush();
-
-        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(smsVerification.getId(), memberPhone, "00000");
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isUnprocessableEntity());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH.getErrCode()));
-
-    }
-
-
-    // 실패 - SMS 못찾음 오류
-    @Test
-    void findMemberEmail_shouldReturn400_whenSmsNotFound_byMoimingAuthApiException() throws Exception {
-
-        // given
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_ID);
-        String verificationNumber = smsVerification.getVerificationNumber();
-        em.persist(smsVerification);
-        em.clear();
-        em.flush();
-
-        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(1234L, memberPhone, verificationNumber);
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isNotFound());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_NOT_FOUND.getErrCode()));
-
-    }
-
-
-    // 실패 - Phone 번호가 다른 오류
-    @Test
-    void findMemberEmail_shouldReturn422_whenSmsNumberNotMatchRequestNumber_byMoimingAuthApiException() throws Exception {
-
-        // given
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_ID);
-        String verificationNumber = smsVerification.getVerificationNumber();
-        em.persist(smsVerification);
-        em.clear();
-        em.flush();
-
-        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(smsVerification.getId(), memberPhone2, verificationNumber);
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isUnprocessableEntity());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_REQUEST_INFO_NOT_MATCH_REQUESTING_INFO.getErrCode()));
-
-    }
-
-
-    // 실패 - Type 이 다른 경우
-    @Test
-    void findMemberEmail_shouldReturn409_whenSmsTypeNotMatch_byMoimingAuthApiException() throws Exception {
-
-        // given
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW); // PW 용 Type 으로 만들어졌었다고 가정
-        String verificationNumber = smsVerification.getVerificationNumber();
-        em.persist(smsVerification);
-        em.clear();
-        em.flush();
-
-        AuthFindIdReqDto reqDto = new AuthFindIdReqDto(smsVerification.getId(), memberPhone, verificationNumber);
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_FIND_MEMBER_EMAIL)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isConflict());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH.getErrCode()));
-
-    }
-
-
     // 비밀번호 재설정 인증 요청 - SMS 생성후 테스트
     // 성공
     @Test
@@ -768,7 +517,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW_CONFIRM)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -788,7 +537,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW_CONFIRM)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -815,7 +564,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW_CONFIRM)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -841,7 +590,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW_CONFIRM)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 
@@ -867,7 +616,7 @@ public class AuthControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
-        ResultActions resultActions = mvc.perform(post(PATH_AUTH_RESET_PW_CONFIRM)
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW_CONFIRM)
                 .content(requestBody)
                 .contentType(MediaType.APPLICATION_JSON));
 

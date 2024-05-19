@@ -17,6 +17,8 @@ import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignUpReqDto.*;
+
 public class AuthReqDto {
 
     @ApiModel(value = "Login API - 요청 - 로그인")
@@ -27,7 +29,7 @@ public class AuthReqDto {
     public static class AuthLoginReqDto {
 
         @NotEmpty
-        private String memberEmail;
+        private String memberPhone;
 
         @NotEmpty
         private String password;
@@ -40,51 +42,27 @@ public class AuthReqDto {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class AuthSignInReqDto{
+    public static class AuthSignUpReqDto{
+
 
         @NotNull
         private Long smsVerificationId; // 인증된 상태인 SMS Verification ID 를 같이 전달
 
         @NotEmpty
-        @Pattern(regexp = "^[a-zA-Z0-9]{1,30}@[a-z]{1,20}\\.[a-z]{1,10}$", message = "{1~30자리 영문 + 숫자}@{1~20자리 영문(소문자)}.{1~10자리 영문(소문자)}")
-        private String memberEmail;
+        @Size(max = 20, message = "번호는 최대 20자입니다")
+        private String memberPhone;
 
         @NotEmpty
         @Size(min = 4, max = 20, message = "4자~20자 (조건 Prod 시 추가 예정)")
         private String password;
 
-        /*
-         TODO :: 부가적 조건들 추가 예정
-         */
-        @NotEmpty
-        @Size(max = 30, message = "이름은 최대 30자입니다")
-        private String memberName;
-
-        @NotEmpty
-        @Size(max = 20, message = "번호는 최대 20자입니다")
-        private String memberPhone;
-
-
-        @NotNull
-        private MemberGender memberGender;
-
-
-        @NotNull
-        @JsonFormat(pattern = "yyyy-MM-dd")
-        private LocalDate memberBirth;
-
         @NotEmpty
         private String fcmToken;
-
-//        @Size(max = 90, message = "CI 값은 88 byte 의 문자열입니다")
-//        private String ci; // ALL NULL 예정
-
 
         @NotEmpty // 안에 값이 들어있고, Null 이 아닌지도 체크
         @Size(min = 5, max = 5, message = "필요 항목은 5개입니다")
         @JsonProperty("policies")
         private List<PolicyAgreeDto> policyDtos;
-
 
         @Getter
         @Setter
@@ -106,46 +84,24 @@ public class AuthReqDto {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class DevAuthSignInReqDto{
+    public static class DevAuthSignUnReqDto{
 
-        @NotEmpty
-        @Pattern(regexp = "^[a-zA-Z0-9]{1,30}@[a-z]{1,20}\\.[a-z]{1,10}$", message = "{1~30자리 영문 + 숫자}@{1~20자리 영문(소문자)}.{1~10자리 영문(소문자)}")
-        private String memberEmail;
-
-        @NotEmpty
-        @Size(min = 4, max = 20, message = "4자~20자 (조건 Prod 시 추가 예정)")
-        private String password;
-
-        /*
-         TODO :: 부가적 조건들 추가 예정
-         */
-        @NotEmpty
-        @Size(max = 30, message = "이름은 최대 30자입니다")
-        private String memberName;
 
         @NotEmpty
         @Size(max = 20, message = "번호는 최대 20자입니다")
         private String memberPhone;
 
-
-        @NotNull
-        private MemberGender memberGender;
-
-
-        @NotNull
-        @JsonFormat(pattern = "yyyy-MM-dd")
-        private LocalDate memberBirth;
+        @NotEmpty
+        @Size(min = 4, max = 20, message = "4자~20자 (조건 Prod 시 추가 예정)")
+        private String password;
 
         @NotEmpty
         private String fcmToken;
 
-
         @NotEmpty // 안에 값이 들어있고, Null 이 아닌지도 체크
         @Size(min = 5, max = 5, message = "필요 항목은 5개입니다")
         @JsonProperty("policies")
-        private List<AuthSignInReqDto.PolicyAgreeDto> policyDtos;
-
-
+        private List<PolicyAgreeDto> policyDtos;
 
     }
 
@@ -213,7 +169,6 @@ public class AuthReqDto {
     @ApiModel(value = "Auth API - 요청 - 비밀번호 재설정 요청 (SMS Id 필요)")
     @Getter
     @Setter
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class AuthResetPwReqDto {
         @NotNull
@@ -223,18 +178,14 @@ public class AuthReqDto {
     }
 
 
-
     @ApiModel(value = "Auth SMS API - 요청 - SMS 인증번호 보내기")
     @Getter
     @Setter
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class AuthSmsReqDto {
 
         @NotNull
         private VerificationType verifyType;
-        private String memberName;
-        private String memberEmail;
         @NotEmpty
         private String memberPhone;
     }

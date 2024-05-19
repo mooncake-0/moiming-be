@@ -52,6 +52,8 @@ public class MoimMemberService {
     // 2. 가입 요청
     public void joinMoim(MoimMemberJoinReqDto requestDto, Member curMember) {
 
+        curMember.isMemberInfoRegistered();
+
         // 해당 모임이 있는지 확인한다
         Moim moimPs = moimRepository.findWithJoinRuleById(requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException(MOIM_NOT_FOUND)
@@ -70,6 +72,8 @@ public class MoimMemberService {
 
     // 3. 모임 나가기 - IBW 전환
     public void leaveMoim(MoimMemberLeaveReqDto requestDto, Member curMember) {
+
+        curMember.isMemberInfoRegistered();
 
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
@@ -97,6 +101,8 @@ public class MoimMemberService {
             log.error("{}, {}", "스스로를 강퇴하려 합니다, C999", COMMON_INVALID_SITUATION.getErrMsg());
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
+
+        curMember.isMemberInfoRegistered();
 
         MoimMember requestMoimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException(MOIM_MEMBER_NOT_FOUND)

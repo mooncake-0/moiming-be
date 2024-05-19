@@ -9,14 +9,12 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMonthlyCount;
-import com.peoplein.moiming.model.query.QueryMoimSuggestMapDto;
 import com.peoplein.moiming.repository.MoimCountRepository;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +29,7 @@ import static com.peoplein.moiming.domain.enums.AreaValue.*;
 import static com.peoplein.moiming.domain.enums.CategoryName.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 
 
 import static org.hamcrest.Matchers.hasSize;
@@ -89,7 +87,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         Role role = makeTestRole(RoleType.USER);
         em.persist(role);
 
-        member1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
+        member1 = makeTestMember(memberPhone, nickname, ci, role);
         em.persist(member1);
 
         String accessToken = createTestJwtToken(member1, 2000);
@@ -114,7 +112,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         Role role = makeTestRole(RoleType.USER);
         em.persist(role);
 
-        member1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
+        member1 = makeTestMember(memberPhone, nickname, ci, role);
         em.persist(member1);
 
         String accessToken = createTestJwtToken(member1, 2000);
@@ -139,7 +137,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         Role role = makeTestRole(RoleType.USER);
         em.persist(role);
 
-        member1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
+        member1 = makeTestMember(memberPhone, nickname, ci, role);
         em.persist(member1);
 
         String accessToken = createTestJwtToken(member1, 2000);
@@ -164,7 +162,7 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         Role role = makeTestRole(RoleType.USER);
         em.persist(role);
 
-        member1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
+        member1 = makeTestMember(memberPhone, nickname, ci, role);
         em.persist(member1);
 
         String accessToken = createTestJwtToken(member1, 2000);
@@ -597,9 +595,9 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
                 .header(HEADER, PREFIX + accessToken)
-                        .param("areaFilter", "강남구")
-                        .param("categoryFilter", "라틴댄스")
-                );
+                .param("areaFilter", "강남구")
+                .param("categoryFilter", "라틴댄스")
+        );
 
         String response = resultActions.andReturn().getResponse().getContentAsString();
         System.out.println(response);
@@ -695,11 +693,11 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         Role role = makeTestRole(RoleType.USER);
         em.persist(role);
 
-        member1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
-        member2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, role);
-        member3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, role);
-        member4 = makeTestMember(memberEmail4, memberPhone4, memberName4, nickname4, ci4, role);
-        member5 = makeTestMember(memberEmail5, memberPhone5, memberName5, nickname5, ci5, role);
+        member1 = makeTestMember(memberPhone, nickname, ci, role);
+        member2 = makeTestMember(memberPhone2, nickname2, ci2, role);
+        member3 = makeTestMember(memberPhone3, nickname3, ci3, role);
+        member4 = makeTestMember(memberPhone4, nickname4, ci4, role);
+        member5 = makeTestMember(memberPhone5, nickname5, ci5, role);
         em.persist(member1);
         em.persist(member2);
         em.persist(member3);

@@ -10,36 +10,41 @@ import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.security.token.JwtParams;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import javax.persistence.EntityManager;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
-import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignUpReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
-import static com.peoplein.moiming.support.TestDto.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 
 public class TestObjectCreator {
 
-    protected Member makeTestMember(String email, String phone, String name, String nickname, String ci, Role role) {
+    protected Member makeTestMember(String phone, String nickname, String ci, Role role) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encoded = encoder.encode(password);
 
-        Member testMember = Member.createMember(email, encoded, name, phone, memberGender, memberBirth, fcmToken, ci, role);
+        Member testMember = Member.createMember(phone, encoded, fcmToken, ci, role);
         testMember.changeNickname(nickname);
 
         return testMember;
     }
+
+
+    protected MemberInfo makeMemberInfo(Member member, MemberGender gender, LocalDate memberBirth) {
+        return MemberInfo.saveMemberInfo(member, "", memberGender, memberBirth);
+    }
+
 
     protected SmsVerification makeTestSmsVerification(boolean verified, Long memberId, String memberPhoneNumber, VerificationType type) {
         SmsVerification verification = SmsVerification.createSmsVerification(memberId, memberPhoneNumber, type);
@@ -67,7 +72,6 @@ public class TestObjectCreator {
     /*
      DTO Creator
      */
-
     protected List<PolicyAgreeDto> makePolicyReqDtoList(boolean[] hasAgreeds, PolicyType[] types) {
         List<PolicyAgreeDto> policyDtos = new ArrayList<>();
 
@@ -105,7 +109,7 @@ public class TestObjectCreator {
 
 
     // moimInfo, moimAreaCity 는 변경하지 않는다고 가정
-    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state,  String category1, String category2) {
+    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state, String category1, String category2) {
 //        return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
         return new MoimUpdateReqDto(moimId, mName, null, state, null, List.of(category1, category2));
     }
@@ -134,7 +138,7 @@ public class TestObjectCreator {
         return JWT.create()
                 .withSubject(JwtParams.TEST_JWT_SUBJECT)
                 .withExpiresAt(new Date(expiresAt))
-                .withClaim(JwtParams.CLAIM_KEY_MEMBER_EMAIL, testMember.getMemberEmail())
+                .withClaim(JwtParams.CLAIM_KEY_MEMBER_ID_KEY, testMember.getMemberPhone())
                 .sign(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET));
     }
 

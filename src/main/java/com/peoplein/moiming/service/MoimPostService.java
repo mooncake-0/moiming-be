@@ -1,9 +1,7 @@
 package com.peoplein.moiming.service;
 
-import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.file.File;
-import com.peoplein.moiming.domain.file.FileDomain;
 import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
@@ -11,8 +9,7 @@ import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.dto.inner.MoimPostWithFileDto;
-import com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto;
-import com.peoplein.moiming.model.dto.inner.StateMapperDto;
+import com.peoplein.moiming.model.dto.inner.MoimPostViewDto;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.MoimRepository;
@@ -65,6 +62,8 @@ public class MoimPostService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        member.isMemberInfoRegistered();
+
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimId).orElseThrow(() -> {
                     log.warn("{}, updateImgs :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 유저는 [" + moimId + "]의 모임원이 아닙니다");
                     return new MoimingApiException(MOIM_MEMBER_NOT_FOUND);
@@ -107,6 +106,8 @@ public class MoimPostService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        member.isMemberInfoRegistered();
+
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), requestDto.getMoimId())
                 .orElseThrow(() -> new MoimingApiException(MOIM_MEMBER_NOT_FOUND));
 
@@ -126,12 +127,12 @@ public class MoimPostService {
 
         moimPostRepository.save(post); // 영속화 후 Id 받은 상태 필요
 
-        if(requestDto.getHasFiles() != null) {
+        if (requestDto.getHasFiles() != null) {
             checkFileReqStatus(requestDto.getHasFiles(), requestDto.getImgFileIds());
             if (requestDto.getHasFiles()) { // 존재할 경우 저장
                 relatedFileService.saveRelatedFiles(post.getId(), requestDto.getImgFileIds(), member.getId());
             }
-        }else{
+        } else {
             // 여기서 발생할 리는 없음, Validation 존재
             throw new MoimingApiException(COMMON_REQUEST_VALIDATION);
         }
@@ -154,7 +155,7 @@ public class MoimPostService {
     // MEMO :: 아쉬운 부분 : 오직 모임장 ID 와의 일치 정보를 위해 Moim 을 Fetch Join 해야 함
     // 모임의 모든 Post 전달 (필요 정보는 사실상 File 빼고 전부 다)
     @Transactional(readOnly = true)
-    public StateMapperDto<MoimPost> getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
+    public MoimPostViewDto getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
 
         if (moimId == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
@@ -177,11 +178,23 @@ public class MoimPostService {
         // Sort 됨, 중요!
         List<MoimPost> moimPosts = moimPostRepository.findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(moimId, lastPost, category, limit, moimMemberRequest);
 
+        // 추후 자료에 필요한 input 준비
+        Set<Long> postCreatorIds = new HashSet<>();
+        List<Long> postIds = new ArrayList<>();
+
+        for (MoimPost moimPost : moimPosts) {
+            postCreatorIds.add(moimPost.getMember().getId());
+            postIds.add(moimPost.getId());
+        }
+
         // Post 들의 작성자들 상태
-        Set<Long> postCreatorIds = moimPosts.stream().map(moimPost -> moimPost.getMember().getId()).collect(Collectors.toSet());
         Map<Long, MoimMemberState> postCreatorStates = moimMemberService.getMoimMemberStates(moimId, postCreatorIds);
 
-        return new StateMapperDto<>(moimPosts, postCreatorStates);
+        // 결과 Id 들에 대해서, RelatedFile 썸네일을 준비
+        Map<Long, RelatedFile> thumbnailFiles = relatedFileService.getThumbnailFileByDomainIds(POST, postIds);
+
+        return new MoimPostViewDto(moimPosts, postCreatorStates, thumbnailFiles);
+
     }
 
 
@@ -225,6 +238,7 @@ public class MoimPostService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        member.isMemberInfoRegistered();
         checkFileUpdateStatus(requestDto);
 
         // post 존재성 확인
@@ -274,6 +288,8 @@ public class MoimPostService {
         if (postId == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
+
+        member.isMemberInfoRegistered();
 
         // post 존재성 확인
         MoimPost moimPost = moimPostRepository.findById(postId).orElseThrow(() ->

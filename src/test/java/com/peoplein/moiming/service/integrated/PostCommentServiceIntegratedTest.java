@@ -7,6 +7,7 @@ import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
@@ -20,10 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 
 // Service 예외 상황은 단위 테스트에서 다 진행
@@ -45,12 +47,25 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
     private Moim testMoim;
     private MoimPost testMoimPost;
 
+    void insertTestMemberInfo(Member member, MemberGender memberGender, LocalDate memberBirth) {
+        // given - 개인정보 기입완료
+        MemberInfo curMemberInfo = makeMemberInfo(member, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+        em.flush();
+        em.clear();
+    }
 
     @Test
-    void createComment_shouldCreateNormalComment_whenMoimMemberRequest(){
+    void createComment_shouldCreateNormalComment_whenMoimMemberRequest() {
+
+        // given - 환경 SU
+        su();
+
+        // given - 요청자 개인 정보 입력
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
-        su();
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
 
         // when
@@ -71,15 +86,20 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
 
     // 답글 생성 Test
     @Test
-    void createComment_shouldCreateReplyComment_whenMoimMemberRequest(){
+    void createComment_shouldCreateReplyComment_whenMoimMemberRequest() {
 
-        // given
+        // given - 환경 SU
         su();
         PostComment parentComment = makePostComment(moimMember, testMoimPost, 0, null);
         em.persist(parentComment);
         em.flush();
         em.clear();
 
+        // given - 요청자 개인 정보 입력
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // given
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), parentComment.getId(), 1);
 
         // when
@@ -109,7 +129,7 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
 
 
     @Test
-    void createComment_shouldThrowException_whenNotMoimMemberRequest_byMoimingApiException(){
+    void createComment_shouldThrowException_whenNotMoimMemberRequest_byMoimingApiException() {
 
         // given
         su();
@@ -121,16 +141,14 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
     }
 
 
-
-
     private void su() {
 
         // Member moimMember, moimCreator
         Role testRole = makeTestRole(RoleType.USER);
-        moimCreator =makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
-        moimMember = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
+        moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
 
-        notMoimMember = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
+        notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         em.persist(testRole);
         em.persist(moimCreator);
         em.persist(moimMember);

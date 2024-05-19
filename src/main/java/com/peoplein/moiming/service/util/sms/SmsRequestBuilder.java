@@ -4,5 +4,5 @@ import com.peoplein.moiming.domain.SmsVerification;
 import okhttp3.Request;
 
 public interface SmsRequestBuilder {
-    public Request getHttpRequest(SmsVerification verification);
+    Request getHttpRequest(SmsVerification verification);
 }

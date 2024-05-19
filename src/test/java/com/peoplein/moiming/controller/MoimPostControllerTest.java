@@ -2,22 +2,20 @@ package com.peoplein.moiming.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.file.File;
-import com.peoplein.moiming.domain.file.FileDomain;
 import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +28,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.MoimPostCategory.*;
 import static com.peoplein.moiming.domain.file.FileDomain.*;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,14 +67,13 @@ public class MoimPostControllerTest extends TestObjectCreator {
     private Member notMoimMember;
     private Moim testMoim;
 
-
     @BeforeEach
     void be() {
 
         Role testRole = makeTestRole(RoleType.USER);
-        moimCreator = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
-        moimMember = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
-        notMoimMember = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
+        moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
+        moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         em.persist(testRole);
         em.persist(moimCreator);
         em.persist(moimMember);
@@ -97,10 +95,21 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
     }
 
+    void insertTestMemberInfo(Member member, MemberGender memberGender, LocalDate memberBirth) {
+        // given - 개인정보 기입완료
+        MemberInfo curMemberInfo = makeMemberInfo(member, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+        em.flush();
+        em.clear();
+    }
 
     // 1번 createPost() - 생성 성공 확인
     @Test
     void createPost_shouldReturn200_whenRightInfoPassed() throws Exception {
+
+        // given - 요청자 개인 정보 입력
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
@@ -138,6 +147,30 @@ public class MoimPostControllerTest extends TestObjectCreator {
                 .setParameter("receiverId", moimMember.getId())
                 .getResultList();
         assertTrue(notification2.isEmpty());
+
+    }
+
+
+    // 실패 - createPost : 개인 정보 등록 안된 회원의 요청
+    @Test
+    void createPost_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
+
+        // given
+        String testToken = createTestJwtToken(moimMember, 2000);
+        MoimPostCreateReqDto requestDto = new MoimPostCreateReqDto(
+                testMoim.getId(), normalPostTitle, normalPostcontent, REVIEW.getValue(), false, true, null
+        );
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_POST_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken)
+        );
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
     }
 
 
@@ -159,7 +192,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
     }
 
 
@@ -182,7 +215,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.postTitle").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
     }
@@ -206,7 +239,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.postContent").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
     }
@@ -230,7 +263,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.moimPostCategory").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
     }
@@ -257,7 +290,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").exists());
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
 
@@ -268,6 +301,10 @@ public class MoimPostControllerTest extends TestObjectCreator {
     // 오류 - hasFiles - true, imgFileIds null
     @Test
     void createPost_shouldReturn400_whenFileExistsAndIdValidationFails_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 입력
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
@@ -285,7 +322,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.IMG_STATE_NOT_VALID.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(IMG_STATE_NOT_VALID.getErrCode()));
 
     }
 
@@ -293,6 +330,10 @@ public class MoimPostControllerTest extends TestObjectCreator {
     // 오류 - hasFiles - false, imgFileIds 존재
     @Test
     void createPost_shouldReturn400_whenFileNotExistsAndIdValidationFails_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 입력
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
         String testToken = createTestJwtToken(moimMember, 2000);
@@ -310,7 +351,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.IMG_STATE_NOT_VALID.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(IMG_STATE_NOT_VALID.getErrCode()));
 
     }
 
@@ -318,6 +359,10 @@ public class MoimPostControllerTest extends TestObjectCreator {
     // File 객체를 생성해놓은 채로 테스트 진행
     @Test
     void createPost_shouldReturn200_whenFilesPassed() throws Exception {
+
+        // given - 요청자 개인 정보 입력
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given - save Files
         File file1 = new File(POST, "fileName", "fileUrl", "contentType", 1L);

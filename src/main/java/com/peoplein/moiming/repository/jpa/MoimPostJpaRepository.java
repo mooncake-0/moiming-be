@@ -33,7 +33,6 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     }
 
 
-
     // IN_USE----------
 
 
@@ -41,7 +40,6 @@ public class MoimPostJpaRepository implements MoimPostRepository {
     public void save(MoimPost moimPost) {
         em.persist(moimPost);
     }
-
 
 
     @Override
@@ -74,7 +72,7 @@ public class MoimPostJpaRepository implements MoimPostRepository {
                 queryFactory.selectFrom(moimPost)
                         .join(moimPost.moim, moim).fetchJoin()
                         .join(moimPost.member, member).fetchJoin()
-                        .join(member.memberInfo, memberInfo).fetchJoin()
+                        .leftJoin(member.memberInfo, memberInfo).fetchJoin()
                         .where(moimPost.id.eq(moimPostId))
                         .fetchOne());
 
@@ -105,8 +103,8 @@ public class MoimPostJpaRepository implements MoimPostRepository {
 
     @Override
     public List<MoimPost> findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost lastPost,
-                                                                   MoimPostCategory category, int limit,
-                                                                   boolean moimMemberRequest) {
+                                                                                    MoimPostCategory category, int limit,
+                                                                                    boolean moimMemberRequest) {
 
         BooleanBuilder dynamicBuilder = new BooleanBuilder();
 
@@ -130,7 +128,7 @@ public class MoimPostJpaRepository implements MoimPostRepository {
         return queryFactory.selectFrom(moimPost)
                 .join(moimPost.moim, moim).fetchJoin()
                 .join(moimPost.member, member).fetchJoin()
-                .join(member.memberInfo, memberInfo).fetchJoin()
+                .leftJoin(member.memberInfo, memberInfo).fetchJoin()
                 .where(moimPost.moim.id.eq(moimId), dynamicBuilder)
                 .orderBy(moimPost.createdAt.desc(), moimPost.id.desc()) // 기본적으로 1차 소팅은 날짜 순, 같을 경우 2차 소팅은 ID로
                 .limit(limit)

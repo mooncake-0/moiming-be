@@ -12,18 +12,13 @@ public interface MemberRepository {
 
     Optional<Member> findById(Long memberId);
 
-    Optional<Member> findWithMemberInfoById(Long memberId);
+    Optional<Member> findByMemberPhone(String memberPhone); // v0.1 - 회원 Id 조회
 
-    Optional<Member> findByEmail(String memberEmail);
+    Optional<Member> findWithMemberInfoById(Long memberId);
 
     Optional<Member> findByNickname(String nickname);
 
-    Optional<Member> findWithMemberInfoByPhoneNumber(String memberPhoneNumber);
-
-    List<Member> findMembersByIds(List<Long> memberIds);
-
-    List<Member> findMembersByEmailOrPhone(String memberEmail, String memberPhone);
-
-    void updateRefreshTokenById(Long id, String refreshToken);
+//    Optional<Member> findWithMemberInfoByPhoneNumber(String memberPhoneNumber);
+//    List<Member> findMembersByEmailOrPhone(String memberEmail, String memberPhone);
 
 }

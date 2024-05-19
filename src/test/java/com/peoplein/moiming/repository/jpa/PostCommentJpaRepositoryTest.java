@@ -24,7 +24,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.assertj.core.api.Assertions.*;
 
@@ -104,8 +104,8 @@ public class PostCommentJpaRepositoryTest extends TestObjectCreator {
         // Post2 - 2 comment
 
         Role testRole = makeTestRole(RoleType.USER);
-        Member creator = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
-        Member moimMember = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        Member creator = makeTestMember(memberPhone, nickname, ci, testRole);
+        Member moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         em.persist(testRole);
         em.persist(creator);
         em.persist(moimMember);

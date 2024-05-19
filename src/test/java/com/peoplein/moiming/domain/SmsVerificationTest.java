@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class SmsVerificationTest {
 
-
+    // VerificationType 값은 랜덤한 셀렉션이다
     // SmsVerification 생성
     @Test
     void createSmsVerification_shouldCreateSmsVerification_whenPassedInfo() {
@@ -19,7 +19,7 @@ public class SmsVerificationTest {
         // given
         Long memberId = 1L;
         String memberPhoneNumber = "01012345678";
-        VerificationType type = VerificationType.FIND_ID;
+        VerificationType type = VerificationType.FIND_PW;
 
         // when
         SmsVerification verification = SmsVerification.createSmsVerification(memberId, memberPhoneNumber, type);
@@ -38,13 +38,13 @@ public class SmsVerificationTest {
         // given
         Long memberId = 1L;
         String memberPhoneNumber = "01012345678";
-        VerificationType type = VerificationType.FIND_ID;
+        VerificationType type = VerificationType.FIND_PW;
         SmsVerification verification = SmsVerification.createSmsVerification(memberId, memberPhoneNumber, type);
         String number = verification.getVerificationNumber();
 
         // when
         // then
-        assertDoesNotThrow(() -> verification.confirmVerification(VerificationType.FIND_ID, number));
+        assertDoesNotThrow(() -> verification.confirmVerification(VerificationType.FIND_PW, number));
 
     }
 
@@ -56,14 +56,14 @@ public class SmsVerificationTest {
         // given
         Long memberId = 1L;
         String memberPhoneNumber = "01012345678";
-        VerificationType type = VerificationType.FIND_ID;
+        VerificationType type = VerificationType.FIND_PW;
         SmsVerification verification = SmsVerification.createSmsVerification(memberId, memberPhoneNumber, type);
         String number = verification.getVerificationNumber();
         String wrongInputNum = "000000";
 
         // when
         // then
-        assertThatThrownBy(() -> verification.confirmVerification(VerificationType.FIND_ID, wrongInputNum)).isInstanceOf(MoimingAuthApiException.class);
+        assertThatThrownBy(() -> verification.confirmVerification(VerificationType.FIND_PW, wrongInputNum)).isInstanceOf(MoimingAuthApiException.class);
 
     }
 
@@ -75,16 +75,16 @@ public class SmsVerificationTest {
         // given
         Long memberId = 1L;
         String memberPhoneNumber = "01012345678";
-        VerificationType type = VerificationType.FIND_ID;
+        VerificationType type = VerificationType.FIND_PW;
         SmsVerification verification = SmsVerification.createSmsVerification(memberId, memberPhoneNumber, type);
 
         // given - change status
         String number = verification.getVerificationNumber();
-        verification.confirmVerification(VerificationType.FIND_ID, number); // VALID 하게 만든다
+        verification.confirmVerification(VerificationType.FIND_PW, number); // VALID 하게 만든다
 
         // when
         // then
-        assertDoesNotThrow(() -> verification.isValidAndVerified(VerificationType.FIND_ID));
+        assertDoesNotThrow(() -> verification.isValidAndVerified(VerificationType.FIND_PW));
 
     }
 
@@ -96,17 +96,17 @@ public class SmsVerificationTest {
         // given
         Long memberId = 1L;
         String memberPhoneNumber = "01012345678";
-        VerificationType type = VerificationType.FIND_ID;
+        VerificationType type = VerificationType.FIND_PW;
         SmsVerification verification = SmsVerification.createSmsVerification(memberId, memberPhoneNumber, type);
 
         // when
         // then
-        assertThatThrownBy(()->verification.isValidAndVerified(VerificationType.FIND_ID)).isInstanceOf(MoimingAuthApiException.class);
+        assertThatThrownBy(()->verification.isValidAndVerified(VerificationType.FIND_PW)).isInstanceOf(MoimingAuthApiException.class);
 
     }
 
 
-    // isValidAndVerified 실패 - type not match
+    // isValidAndVerified 실패 - type not match - FIND_PW 생성 + 번호 인증 완료 - SIGNUP 으로 Valid 함 확인
     @Test
     void isValidAndVerified_shouldThrowException_whenSmsVerificationTypeNotMatch_byMoimingAuthApiException() {
 
@@ -122,7 +122,7 @@ public class SmsVerificationTest {
 
         // when
         // then
-        assertThatThrownBy(()->verification.isValidAndVerified(VerificationType.FIND_ID)).isInstanceOf(MoimingAuthApiException.class);
+        assertThatThrownBy(()->verification.isValidAndVerified(VerificationType.SIGN_UP)).isInstanceOf(MoimingAuthApiException.class);
 
     }
 

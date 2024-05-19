@@ -44,7 +44,7 @@ public class MemberController {
             @ApiResponse(code = 200, message = "로그아웃 성공"),
             @ApiResponse(code = 400, message = "로그아웃 실패, ERR MSG 확인")
     })
-    @PatchMapping(PATH_MEMBER_LOGOUT)
+    @PostMapping(PATH_MEMBER_LOGOUT)
     public ResponseEntity<?> logout(HttpServletRequest request,
                                     @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
@@ -78,12 +78,12 @@ public class MemberController {
             @ApiResponse(code = 400, message = "회원 기본 정보 조회 실패, ERR MSG 확인")
     })
     @GetMapping(PATH_MEMBER_GET_VIEW)
-    public ResponseEntity<?> getMember(
-                                       @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+    public ResponseEntity<?> getMember(@AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         Member memberPs = memberService.getCurrentMember(principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "멤버 조회 성공"
-                , new MemberViewRespDto(memberPs)));
+                , new MemberViewRespDto(memberPs))
+        );
     }
 
 
@@ -115,8 +115,6 @@ public class MemberController {
     @GetMapping(PATH_MEMBER_GET_DETAIL_VIEW)
     public ResponseEntity<?> getMemberDetail(@PathVariable Long memberId,
                                              @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-        // TODO :: 기본적으로 Security 단에서 MemberInfo 도 Fetch Join 한다 -> 별도 Tx 없이 바로 응답 가능
-        //         하지만 바람직한가?
         Member memberPs = memberService.getCurrentMember(principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "개인 정보 내역 확인 성공", new MemberDetailViewRespDto(memberPs)));
     }

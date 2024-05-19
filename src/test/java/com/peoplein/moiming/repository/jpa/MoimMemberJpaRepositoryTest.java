@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,7 +51,7 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
         Role testRole = makeTestRole(RoleType.USER);
 
         // Member 주입
-        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        testMember = makeTestMember(memberPhone, nickname, ci, testRole);
 
         // Category 주입
         Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
@@ -74,14 +74,12 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
     }
 
     void makeAnotherMember() {
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         em.persist(testMember2);
 
         em.flush();
         em.clear();
     }
-
-
 
 
     @Test
@@ -186,7 +184,7 @@ public class MoimMemberJpaRepositoryTest extends TestObjectCreator {
             System.out.println("moimMember.getMoim().getMoimName() = " + moimMember.getMoim().getMoimName());
             System.out.println("moimMember.getMoim().getCreatedAt() = " + moimMember.getMoim().getCreatedAt());
             String s = moimMember.getMoim().getMoimJoinRule() == null ? "없음" : "있음!";
-            System.out.println("Moim Has Join Rule :: " +  s);
+            System.out.println("Moim Has Join Rule :: " + s);
             List<MoimCategoryLinker> cLinker = moimMember.getMoim().getMoimCategoryLinkers();
             for (MoimCategoryLinker moimCategoryLinker : cLinker) {
                 System.out.println("moimCategoryLinker.getCategory() = " + moimCategoryLinker.getCategory().getCategoryName());

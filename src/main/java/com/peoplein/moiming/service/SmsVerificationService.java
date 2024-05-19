@@ -36,21 +36,34 @@ public class SmsVerificationService {
     private final ExternalReqSender externalReqSender;
 
 
+    /*
+     v0.1 - ID (당시 Email) 찾기와 PW 재설정에 대한 인증 문자를
+            외부 서버로 요청하는 요청
+     v0.2 - 위외 같이 계속 사용되나, 더이상 인앱에서 ID 찾기란 없고, memberName 이란 값도 없다
+     */
     public SmsVerification processSmsVerification(AuthSmsReqDto requestDto) {
 
         if (requestDto == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        // 핸드폰 번호로 유저를 찾고, 받아온 값들로 verification 을 우선 진행한다
-        Member curMember = memberRepository.findWithMemberInfoByPhoneNumber(requestDto.getMemberPhone()).orElseThrow(() -> {
-                    log.error("{}, {} :: 유저의 SMS 시도, 존재하지 않는 회원 예외 발생", requestDto.getMemberPhone(), requestDto.getMemberName());
-                    return new MoimingApiException(MEMBER_NOT_FOUND);
-                }
-        );
+        SmsVerification smsVerification = null;
 
-        checkRightMemberRequest(curMember, requestDto);
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberInfo().getMemberPhone(), requestDto.getVerifyType());
+        if (requestDto.getVerifyType().equals(SIGN_UP)) {
+            smsVerification = SmsVerification.createSmsVerification(null, requestDto.getMemberPhone(), SIGN_UP);
+        } else if (requestDto.getVerifyType().equals(FIND_PW)) {
+            // 핸드폰 번호로 유저를 찾고, 받아온 값들로 verification 을 우선 진행한다
+            Member curMember = memberRepository.findByMemberPhone(requestDto.getMemberPhone()).orElseThrow(() -> {
+                        log.error("{}, processSmsVerification :: {}", this.getClass().getName(), "[" + requestDto.getMemberPhone() + "] 유저의 SMS 시도, 존재하지 않는 회원 예외 발생");
+                        return new MoimingApiException(MEMBER_NOT_FOUND);
+                    }
+            );
+            smsVerification = SmsVerification.createSmsVerification(curMember.getId(), curMember.getMemberPhone(), FIND_PW);
+
+        } else { // 에러 방지
+            log.error("{}, processSmsVerification :: {}", this.getClass().getName(), "[" + requestDto.getVerifyType() + "] unexpected verification type");
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
+        }
 
         Request request = smsRequestBuilder.getHttpRequest(smsVerification);
         externalReqSender.sendAsynchronousMessage(request);
@@ -58,47 +71,6 @@ public class SmsVerificationService {
         smsVerificationRepository.save(smsVerification);
 
         return smsVerification;
-
-    }
-
-
-    public SmsVerification processSignUpSmsVerification(AuthSmsReqDto requestDto) {
-
-        if (requestDto == null || !requestDto.getVerifyType().equals(SIGN_UP)) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM);
-        }
-
-        // Member ID 가 없다. Member ID = NULL 인 경우로 저장
-        SmsVerification smsVerification = SmsVerification.createSmsVerification(null, requestDto.getMemberPhone(), requestDto.getVerifyType());
-
-        Request request = smsRequestBuilder.getHttpRequest(smsVerification);
-        externalReqSender.sendAsynchronousMessage(request);
-
-        smsVerificationRepository.save(smsVerification);
-
-        return smsVerification;
-
-    }
-
-
-    /*
-     핸드폰번호로 Member 를 조회하고, 상황에 맞게 부가 정보로 일치성 여부를 확인한다
-     */
-    private void checkRightMemberRequest(Member curMember, AuthSmsReqDto requestDto) {
-
-        if (requestDto.getVerifyType().equals(FIND_ID)) {
-            if (!curMember.getMemberInfo().getMemberName().equals(requestDto.getMemberName())) {
-                log.error("{}, 전달이름 {} :: 유저의 SMS ID 찾기 시도, 조회결과 전달받은 이름 불일치", requestDto.getMemberPhone(), requestDto.getMemberName());
-                throw new MoimingAuthApiException(AUTH_SMS_INVALID_NAME_WITH_PHONE);
-            }
-        }
-
-        if (requestDto.getVerifyType().equals(FIND_PW)) {
-            if (!curMember.getMemberEmail().equals(requestDto.getMemberEmail())) {
-                log.error("{}, 전달이메일 {} :: 유저의 SMS 비밀번호 변경 시도, 조회결과 전달받은 이메일 불일치", requestDto.getMemberPhone(), requestDto.getMemberEmail());
-                throw new MoimingAuthApiException(AUTH_SMS_INVALID_NAME_WITH_EMAIL);
-            }
-        }
 
     }
 

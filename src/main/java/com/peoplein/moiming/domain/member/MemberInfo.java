@@ -12,64 +12,63 @@ import java.time.LocalDate;
 
 @Entity
 @Getter
-@Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"member_phone"}, name = "unique_member_phone")})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MemberInfo extends BaseEntity {
 
+    // 식별관계를 위해 직접 memberId 받아온다 // GeneratedValue 를 사용하지 않음
     @Id
     @Column(name = "member_info_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(nullable = false)
     private String memberName;
 
-    @Column(name = "member_phone")
-    private String memberPhone;
-
-
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private MemberGender memberGender;
 
+    @Column(nullable = false)
     private LocalDate memberBirth;
-
-    private boolean dormant;
 
     private Long pfImgFileId;
 
     private String pfImgUrl;
 
-    @OneToOne(mappedBy = "memberInfo", fetch = FetchType.LAZY)
-    private Member member;
+
+    public static MemberInfo saveMemberInfo(Member member, String memberName, MemberGender memberGender, LocalDate memberBirth) {
+        return new MemberInfo(member, memberName, memberGender, memberBirth);
+    }
 
 
-    // 초기 Input 값을 통해 생성
-    public MemberInfo(String memberName, String memberPhone, MemberGender memberGender, LocalDate memberBirth) {
-
-        this.memberName = memberName;
-        this.memberPhone = memberPhone;
+    private MemberInfo(Member member, String memberName, MemberGender memberGender, LocalDate memberBirth) {
+        this.id = member.getId();
+        this.memberName = "";
         this.memberGender = memberGender;
         this.memberBirth = memberBirth;
 
-        // 초기화
-        this.dormant = false;
+        // 연관관계 편의
+        member.saveMemberInfo(this);
     }
 
-
-    void changeDormant(boolean dormant) {
-        this.dormant = dormant;
-    }
 
     public void changePfImg(File file) {
         this.pfImgFileId = file.getId();
         this.pfImgUrl = file.getFileUrl();
     }
 
+
     public void deletePfImg() {
         this.pfImgFileId = null;
         this.pfImgUrl = null;
+    }
+
+
+    // MemberInfo 정보긴 하지만, Member 도메인이 훨씬 Active 하기 떄문에
+    // 앱 내에서 [나이] 란, 이전 한국 나이를 말한다
+    public int getMemberAge() {
+        int birthYear = this.getMemberBirth().getYear();
+        int todayYear = LocalDate.now().getYear();
+        return todayYear - birthYear + 1;
     }
 
 }

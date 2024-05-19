@@ -56,7 +56,7 @@ public abstract class AppUrlPath {
     public final static String PATH_AUTH_REQ_SMS_VERIFY = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/sms" + "/send";
     public final static String PATH_AUTH_FIND_MEMBER_EMAIL = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/requestEmail";
     public final static String PATH_AUTH_RESET_PW_CONFIRM = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/confirmResetPw";
-    public final static String PATH_AUTH_SIGN_UP_CONFIRM = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/confirmSignUp";
+    public final static String PATH_AUTH_SIGN_UP_CONFIRM = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/confirmPhone";
     public final static String PATH_AUTH_RESET_PW = API_SERVER + API_AUTH_VER + API_DOMAIN_AUTH + "/resetPw";
 
 
@@ -129,6 +129,7 @@ public abstract class AppUrlPath {
     public final static String PATH_MEMBER_CHANGE_PASSWORD = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/pw";
     public final static String PATH_MEMBER_NOTIFICATIONS = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notification";
     public final static String PATH_MEMBER_NOTIFICATION_DELETE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notification" + "/{notificationId}";
+    public final static String PATH_MEMBER_CREATE_MEMBER_INFO = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO;
     public final static String PATH_MEMBER_CHANGE_PF_IMG = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO + "/image";
     public final static String PATH_MEMBER_DELETE_PF_IMG = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO + "/image";
 

@@ -23,11 +23,11 @@ public class SecurityMemberService implements UserDetailsService {
      */
     @Transactional(readOnly = true)
     @Override
-    public UserDetails loadUserByUsername(String memberEmail) throws LoginAttemptException {
+    public UserDetails loadUserByUsername(String memberPhone) throws LoginAttemptException {
 
-        Member memberPs = memberRepository.findByEmail(memberEmail).orElseThrow(() -> {
-                    log.error("[" + memberEmail + "]의 유저를 찾을 수 없습니다");
-                    return new LoginAttemptException(AuthExceptionValue.AUTH_LOGIN_EMAIL_NOT_FOUND);
+        Member memberPs = memberRepository.findByMemberPhone(memberPhone).orElseThrow(() -> {
+                    log.error("[" + memberPhone + "]의 유저를 찾을 수 없습니다");
+                    return new LoginAttemptException(AuthExceptionValue.AUTH_LOGIN_PHONE_NOT_FOUND);
                 }
         );
 

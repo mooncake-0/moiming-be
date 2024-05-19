@@ -5,16 +5,14 @@ import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.file.File;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.DeletedMember;
 import com.peoplein.moiming.domain.member.DormantMember;
-import com.peoplein.moiming.domain.member.Member;
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.MoimPostWithFileDto;
-import com.peoplein.moiming.model.dto.inner.StateMapperDto;
+import com.peoplein.moiming.model.dto.inner.MoimPostViewDto;
 import com.peoplein.moiming.model.dto.response.MoimPostDetailViewRespDto;
-import com.peoplein.moiming.model.dto.response.MoimRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.service.MoimPostService;
 import io.swagger.annotations.*;
@@ -38,7 +36,6 @@ import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.*;
-import static com.peoplein.moiming.model.dto.response.MoimPostRespDto.MoimPostViewRespDto.*;
 
 @Api(tags = "모임 게시물 관련")
 @RestController
@@ -112,12 +109,15 @@ public class MoimPostController {
         if (StringUtils.hasText(category)) {
             moimPostCategory = MoimPostCategory.fromQueryParam(category);
         }
-        StateMapperDto<MoimPost> stateMapper = moimPostService.getMoimPosts(moimId, lastPostId, moimPostCategory, limit, principal.getMember());
-        List<MoimPost> moimPosts = stateMapper.getEntities();
-        checkToChangePostCreatorInfo(moimPosts, stateMapper.getStateMapper());
+        MoimPostViewDto moimPostViews = moimPostService.getMoimPosts(moimId, lastPostId, moimPostCategory, limit, principal.getMember());
+        List<MoimPost> moimPosts = moimPostViews.getMoimPosts();
+        checkToChangePostCreatorInfo(moimPosts, moimPostViews.getPostCreatorStates());
+
+        Map<Long, RelatedFile> fileMapper = moimPostViews.getThumbnailFiles();
 
         List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(moimPost -> new MoimPostViewRespDto(moimPost
                 , Objects.equals(moimPost.getMember().getId(), moimPost.getMoim().getCreatorId()) // Moim 과 Member 모두 Fetch Join 되어 영속화된 상태
+                , fileMapper.get(moimPost.getId())
         )).collect(Collectors.toList());
 
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모든 게시물 일반 조회 성공", responseBody));

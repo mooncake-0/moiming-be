@@ -66,7 +66,11 @@ public enum ExceptionValue {
     STORAGE_FILE_EXCEED_LIMIT(HttpStatus.BAD_REQUEST.value(), "F003", "5GB 넘는 파일을 업로드 할 수 없습니다"),
 
     // IMG 전달 관련
-    IMG_STATE_NOT_VALID(HttpStatus.BAD_REQUEST.value(), "IMG000", "생성 / 수정 요청시 hasFile 상태와 File Id List 상태 불일치, 변경 여부 불일치");
+    IMG_STATE_NOT_VALID(HttpStatus.BAD_REQUEST.value(), "IMG000", "생성 / 수정 요청시 hasFile 상태와 File Id List 상태 불일치, 변경 여부 불일치"),
+
+
+    // 개인정보 미등록 에러
+    MEMBER_INFO_NOT_REGISTERED(HttpStatus.FORBIDDEN.value(), "MI000", "개인 정보를 등록하지 않은 유저입니다"),;
 
     private int status;
     private String errCode;

@@ -2,7 +2,6 @@ package com.peoplein.moiming.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.MoimPost;
-import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.Report;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.file.File;
@@ -12,9 +11,6 @@ import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
-import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.model.dto.request.ReportReqDto;
-import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +28,9 @@ import java.util.List;
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.domain.enums.ReportTarget.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
-import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.model.dto.request.ReportReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -66,8 +61,8 @@ public class ReportControllerTest extends TestObjectCreator {
     void dataSu() {
 
         Role role = makeTestRole(RoleType.USER);
-        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
-        member2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, role);
+        member = makeTestMember(memberPhone, nickname, ci, role);
+        member2 = makeTestMember(memberPhone2, nickname2, ci2, role);
         em.persist(role);
         em.persist(member);
         em.persist(member2);

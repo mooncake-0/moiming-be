@@ -32,7 +32,6 @@ import static com.peoplein.moiming.model.dto.request.MoimReqDto.MoimCreateReqDto
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class MoimService {
 
@@ -52,11 +51,14 @@ public class MoimService {
     private final MoimCountService moimCountService;
 
 
+    @Transactional
     public File updateImg(MultipartFile imgFile, Long moimId, Member member) {
 
         if (member == null) { // 자신이 활용하는 건에 대해서만 책임
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
+
+        member.isMemberInfoRegistered();
 
         File file = storageService.uploadMoimImg(imgFile, member);
 
@@ -80,11 +82,14 @@ public class MoimService {
     }
 
 
+    @Transactional
     public void deleteImg(Long moimId, Member member) {
 
         if (moimId == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
+
+        member.isMemberInfoRegistered();
 
         Moim moim = moimRepository.findById(moimId).orElseThrow(() ->
                 new MoimingApiException(MOIM_NOT_FOUND)
@@ -107,11 +112,14 @@ public class MoimService {
 
 
     // 모임 생성
+    @Transactional
     public Moim createMoim(MoimCreateReqDto requestDto, Member curMember) {
 
         if (requestDto == null || curMember == null || requestDto.getCategoryNameValues().size() != 2) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
+
+        curMember.isMemberInfoRegistered();
 
         // 생성 자격에 대해서 논할 필요는 없음
         // 1. 카테고리를 준비한다 (같이 생성 필요)
@@ -143,8 +151,10 @@ public class MoimService {
     }
 
 
+
     // 컨디션에 따른 해당 멤버의 모임 조회 결과 List<Moim> 으로 반환
     // 사용영역 > Home 화면 및 마이페이지 화면에서 사용될 예정
+    @Transactional(readOnly = true)
     public MoimCategoryMapperDto getMemberMoims(Long lastMoimId, boolean isManagerReq, int limit, Member curMember) {
 
         if (curMember == null) {
@@ -175,6 +185,7 @@ public class MoimService {
 
 
     // 모임 세부 조회 - 정보 , 가입조건, 지역 및 카테고리 ALL -- 누구나 요청 가능
+    @Transactional
     public MoimMember getMoimDetail(Long moimId, Member member) {
 
         if (moimId == null || member == null) {
@@ -198,7 +209,14 @@ public class MoimService {
 
 
     // 모임 수정하기
+    @Transactional
     public Moim updateMoim(MoimUpdateReqDto requestDto, Member curMember) {
+
+        if (requestDto == null || curMember == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        curMember.isMemberInfoRegistered();
 
         // 차피 Moim 존속 여부랑은 별개로, MoimMember 가 있으면 되는 것이니, MoimMember 로 그냥 join 해와버리자
         MoimMember moimMemberPs = moimMemberRepository.findWithMoimAndCategoriesByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(() ->
@@ -218,11 +236,14 @@ public class MoimService {
 
 
     // 가입 조건 수정
+    @Transactional
     public Moim updateMoimJoinRule(MoimJoinRuleUpdateReqDto requestDto, Member member) {
 
         if (requestDto == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
+
+        member.isMemberInfoRegistered();
 
         // 가입조건이 있든 없든 요청 들어온 조건을 만들어서 갈아 끼워준다
         Moim moim = moimRepository.findWithJoinRuleById(requestDto.getMoimId()).orElseThrow(() ->
@@ -259,11 +280,14 @@ public class MoimService {
     //         원래 데이터 삭제는 드문 일임을 알아두자
     //         MoimPost 를 제외하고는 모두 조회는 필요 없음
     // 모임 삭제 (MANAGER 권한)
+    @Transactional
     public void deleteMoim(Long moimId, Member member) {
 
         if (moimId == null || member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
+
+        member.isMemberInfoRegistered();
 
         // 모임 삭제를 위한 조회를 진행
         Moim moim = moimRepository.findWithJoinRuleAndCategoriesById(moimId).orElseThrow(() ->
@@ -318,6 +342,7 @@ public class MoimService {
     }
 
 
+    @Transactional
     public MoimCategoryMapperDto getSuggestedMoim(AreaValue areaFilter, CategoryName categoryFilter, int offset, int limit) {
 
         // 지역 필터가 있으면, 지역 넘겨주면 됨 - AND 조건 걸림, 없으면 NULL 로 전달됨
@@ -349,5 +374,4 @@ public class MoimService {
         return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
 
     }
-
 }

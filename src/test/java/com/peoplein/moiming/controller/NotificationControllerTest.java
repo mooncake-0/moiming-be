@@ -34,7 +34,7 @@ import static com.peoplein.moiming.domain.enums.NotificationTopCategory.*;
 import static com.peoplein.moiming.domain.enums.NotificationType.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,9 +68,9 @@ public class NotificationControllerTest extends TestObjectCreator {
     void dataSu() {
 
         Role role = makeTestRole(RoleType.USER);
-        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
-        member2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, role);
-        Member member3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, role);
+        member = makeTestMember( memberPhone,  nickname, ci, role);
+        member2 = makeTestMember( memberPhone2,  nickname2, ci2, role);
+        Member member3 = makeTestMember( memberPhone3,  nickname3, ci3, role);
         em.persist(role);
         em.persist(member);
         em.persist(member2);

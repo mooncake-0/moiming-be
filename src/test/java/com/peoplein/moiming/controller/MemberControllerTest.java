@@ -1,6 +1,5 @@
 package com.peoplein.moiming.controller;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
@@ -24,13 +23,12 @@ import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MemberReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.assertj.core.api.Assertions.*;
 
 @AutoConfigureMockMvc
 @Transactional // Test Data 저장을 위함
@@ -51,7 +49,7 @@ public class MemberControllerTest extends TestObjectCreator {
     void prepareMember() {
 
         Role testRole = makeTestRole(RoleType.USER);
-        preMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        preMember = makeTestMember(memberPhone, nickname, ci, testRole);
 
         em.persist(testRole);
         em.persist(preMember);
@@ -64,7 +62,7 @@ public class MemberControllerTest extends TestObjectCreator {
 
     void prepareMember2() {
 
-        preMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        preMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         em.persist(preMember2);
 
         em.flush();
@@ -91,11 +89,13 @@ public class MemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.code").value(1));
         resultActions.andExpect(jsonPath("$.data.memberId").value(preMember.getId()));
-        resultActions.andExpect(jsonPath("$.data.memberEmail").value(preMember.getMemberEmail()));
+        resultActions.andExpect(jsonPath("$.data.hasMemberInfo").value(false));
+        resultActions.andExpect(jsonPath("$.data.memberPhone").value(preMember.getMemberPhone()));
         resultActions.andExpect(jsonPath("$.data.nickname").value(preMember.getNickname()));
-        resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty()); // TODO :: 그냥 Date 는 Persist 시점에 따라 0.00002 초 차이가 있기도 하다 -> 차라리 나가는 Format 을 정해놓은 뒤 Assertion 해는게 좋을 듯
-        resultActions.andExpect(jsonPath("$.data.updatedAt").isNotEmpty()); //         그 전까진 그냥 존재 유무로 Test 한다
-        resultActions.andExpect(jsonPath("$.data.lastLoginAt").isNotEmpty());//          LastLoginAt 은 이번에 업데이트 됨. preMember 는 영컨에 관리되지 않으므로 업데이트 안됨
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists()); // TODO :: 그냥 Date 는 Persist 시점에 따라 0.00002 초 차이가 있기도 하다 -> 차라리 나가는 Format 을 정해놓은 뒤 Assertion 해는게 좋을 듯
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists()); //         그 전까진 그냥 존재 유무로 Test 한다
+        resultActions.andExpect(jsonPath("$.data.lastLoginAt").exists());//          LastLoginAt 은 이번에 업데이트 됨. preMember 는 영컨에 관리되지 않으므로 업데이트 안됨
+        resultActions.andExpect(jsonPath("$.data.pfImgUrl").exists());
 
     }
 
@@ -189,17 +189,15 @@ public class MemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.code").value(1));
         resultActions.andExpect(jsonPath("$.data.memberId").value(preMember.getId()));
-        resultActions.andExpect(jsonPath("$.data.memberEmail").value(preMember.getMemberEmail()));
+        resultActions.andExpect(jsonPath("$.data.hasMemberInfo").value(false));
+        resultActions.andExpect(jsonPath("$.data.memberPhone").value(preMember.getMemberPhone()));
         resultActions.andExpect(jsonPath("$.data.nickname").value(preMember.getNickname()));
-        resultActions.andExpect(jsonPath("$.data.createdAt").isNotEmpty());
-        resultActions.andExpect(jsonPath("$.data.updatedAt").isNotEmpty());
-        resultActions.andExpect(jsonPath("$.data.lastLoginAt").isNotEmpty());
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
+        resultActions.andExpect(jsonPath("$.data.lastLoginAt").exists());
 
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberName").value(preMemberInfo.getMemberName()));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberPhone").value(preMemberInfo.getMemberPhone()));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(preMemberInfo.getMemberGender().toString()));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberBirth").value(preMemberInfo.getMemberBirth() + ""));
-
+        // 현 시점에는 없기 때문
+        resultActions.andExpect(jsonPath("$.data.memberInfo").isEmpty());
 
     }
 
@@ -236,8 +234,7 @@ public class MemberControllerTest extends TestObjectCreator {
     }
 
 
-    // 실패 - 변화하지 않음까지 verify
-    // DTO 실패
+    // 실패 - 닉네임 변경 요청 DTO 잘못됨
     @Test
     void changeNickname_shouldReturn400_whenDtoWrong_byMoimingValidationException() throws Exception {
 

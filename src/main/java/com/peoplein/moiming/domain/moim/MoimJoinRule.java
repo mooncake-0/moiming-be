@@ -66,7 +66,7 @@ public class MoimJoinRule extends BaseEntity {
 
     public void judgeByRule(Member member) {
         if (this.hasAgeRule) {
-            int memberAge = member.getMemberAge();
+            int memberAge = member.getMemberInfo().getMemberAge();
             if (this.ageMin > memberAge || this.ageMax < memberAge) { // 최소 나이보다 작거나 최대 나이보다 많다면
                 throw new MoimingApiException(MOIM_JOIN_FAIL_BY_AGE_RULE);
             }

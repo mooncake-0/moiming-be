@@ -22,10 +22,8 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
-import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
-import static org.assertj.core.api.Assertions.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -64,9 +62,9 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
     private void dataSu() {
 
         Role testRole = makeTestRole(RoleType.USER);
-        moimCreator = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
-        moimMember = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
-        notMoimMember = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
+        moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
+        moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         em.persist(testRole);
         em.persist(moimCreator);
         em.persist(moimMember);
