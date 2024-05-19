@@ -19,8 +19,9 @@ public interface MoimingTokenProvider {
      Authentication 객체를 실어줄 것임
      - 차피 인앱에서 필요시 Query 때려야 하는건 똑같음
      */
-    String verifyMemberEmail(MoimingTokenType tokenType, String token);
+//    String verifyMemberEmail(MoimingTokenType tokenType, String token);
 
+    String verifyMemberId(MoimingTokenType tokenType, String token);
 
     Date verifyExpireAt(MoimingTokenType tokenType, String token);
 }

@@ -12,16 +12,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.util.StringUtils;
 
+import static com.peoplein.moiming.config.AppParams.*;
+
 public class MemberRespDto {
 
     @ApiModel(value = "Member API - 응답 - 기본 조회")
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class MemberViewRespDto{
+    public static class MemberViewRespDto {
 
         private Long memberId;
-        private String memberEmail;
+        private boolean hasMemberInfo;
+        private String memberPhone;
         private String nickname;
         private String createdAt;
         private String updatedAt;
@@ -30,14 +33,17 @@ public class MemberRespDto {
 
         public MemberViewRespDto(Member member) {
             this.memberId = member.getId();
-            this.memberEmail = member.getMemberEmail();
+            this.hasMemberInfo = false;
+            if (member.getMemberInfo() != null) {
+                this.hasMemberInfo = true;
+            }
+            this.memberPhone = member.getMemberPhone();
             this.nickname = member.getNickname();
             this.createdAt = member.getCreatedAt() + "";
             this.updatedAt = member.getUpdatedAt() + "";
             this.lastLoginAt = member.getLastLoginAt() + "";
-            this.pfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
-
-            if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
+            this.pfImgUrl = DEFAULT_MEMBER_PF_IMG_PATH;
+            if (member.getMemberInfo() != null && StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
                 this.pfImgUrl = member.getMemberInfo().getPfImgUrl();
             }
         }
@@ -49,10 +55,11 @@ public class MemberRespDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class MemberDetailViewRespDto{
+    public static class MemberDetailViewRespDto {
 
         private Long memberId;
-        private String memberEmail;
+        private boolean hasMemberInfo;
+        private String memberPhone;
         private String nickname;
         private String createdAt;
         private String updatedAt;
@@ -62,12 +69,16 @@ public class MemberRespDto {
 
         public MemberDetailViewRespDto(Member member) {
             this.memberId = member.getId();
-            this.memberEmail = member.getMemberEmail();
+            this.hasMemberInfo = false;
+            this.memberPhone = member.getMemberPhone();
             this.nickname = member.getNickname();
             this.createdAt = member.getCreatedAt() + "";
             this.updatedAt = member.getUpdatedAt() + "";
             this.lastLoginAt = member.getLastLoginAt() + "";
-            this.memberInfoDto = new MemberInfoDto(member.getMemberInfo());
+            if (member.getMemberInfo() != null) {
+                this.hasMemberInfo = true;
+                this.memberInfoDto = new MemberInfoDto(member.getMemberInfo());
+            }
         }
 
 
@@ -77,13 +88,11 @@ public class MemberRespDto {
         public static class MemberInfoDto {
 
             private String memberName;
-            private String memberPhone;
             private MemberGender memberGender;
             private String memberBirth;
 
             public MemberInfoDto(MemberInfo memberInfo) {
                 this.memberName = memberInfo.getMemberName();
-                this.memberPhone = memberInfo.getMemberPhone();
                 this.memberGender = memberInfo.getMemberGender();
                 this.memberBirth = memberInfo.getMemberBirth() + "";
             }
@@ -96,7 +105,7 @@ public class MemberRespDto {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberChangeNicknameRespDto{
+    public static class MemberChangeNicknameRespDto {
 
         private String nickname;
 
@@ -108,7 +117,7 @@ public class MemberRespDto {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberChangePfImgRespDto{
+    public static class MemberChangePfImgRespDto {
 
         private String pfImgUrl;
 
@@ -123,7 +132,7 @@ public class MemberRespDto {
         private String defaultPfImgUrl;
 
         public MemberDeletePfImgRespDto() {
-            this.defaultPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
+            this.defaultPfImgUrl = DEFAULT_MEMBER_PF_IMG_PATH;
         }
 
     }

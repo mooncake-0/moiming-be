@@ -38,23 +38,36 @@ public class JwtTokenProvider implements MoimingTokenProvider {
         String jwtToken = JWT.create()
                 .withSubject(JwtParams.TEST_JWT_SUBJECT)
                 .withExpiresAt(expDate)
-                .withClaim(JwtParams.CLAIM_KEY_MEMBER_EMAIL, member.getMemberEmail())
+                .withClaim(JwtParams.CLAIM_KEY_MEMBER_ID_KEY, member.getMemberPhone())
                 .sign(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET));
 
         return new TokenDto(jwtToken, expDate.getTime());
 
     }
 
+//    @Override
+//    public String verifyMemberEmail(MoimingTokenType tokenType, String token) {
+//
+//        DecodedJWT decoded = JWT.require(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET))
+//                .build()
+//                .verify(token);
+//
+//
+//        return decoded.getClaim(JwtParams.CLAIM_KEY_MEMBER_EMAIL).asString();
+//    }
+
+
     @Override
-    public String verifyMemberEmail(MoimingTokenType tokenType, String token) {
+    public String verifyMemberId(MoimingTokenType tokenType, String token) {
 
         DecodedJWT decoded = JWT.require(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET))
                 .build()
                 .verify(token);
 
 
-        return decoded.getClaim(JwtParams.CLAIM_KEY_MEMBER_EMAIL).asString();
+        return decoded.getClaim(JwtParams.CLAIM_KEY_MEMBER_ID_KEY).asString();
     }
+
 
     @Override
     public Date verifyExpireAt(MoimingTokenType tokenType, String token) {

@@ -8,10 +8,10 @@ import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.support.TestObjectCreator;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +24,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
-import static com.peoplein.moiming.support.TestModelParams.moimArea;
+import static com.peoplein.moiming.support.TestParams.*;
+import static com.peoplein.moiming.support.TestParams.moimArea;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.junit.jupiter.api.Assertions.*;
@@ -55,10 +56,21 @@ public class PostCommentControllerTest extends TestObjectCreator {
     private PostComment prePostComment;
     private String changedContent = "수정된 내용입니다";
 
+    void insertTestMemberInfo(Member member, MemberGender memberGender, LocalDate memberBirth) {
+        // given - 개인정보 기입완료
+        MemberInfo curMemberInfo = makeMemberInfo(member, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+        em.flush();
+        em.clear();
+    }
 
     // Post Comment 생성 요청 - Normal Comment
     @Test
     void createComment_shouldReturn200_whenNormalCommentByMoimMember() throws Exception {
+
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
@@ -89,9 +101,33 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
+    // Post Comment 생성 요청 실패 - 개인 정보 기입 안된 회원의 요청
+    @Test
+    void createComment_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
+
+        // given
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_POST_COMMENT_CREATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+
+    }
+
+
     // Post Comment 생성 요청 - Reply Comment
     @Test
     void createComment_shouldReturn200_whenReplyCommentByMoimMember() throws Exception {
+
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
         PostComment parentComment = makePostComment(moimCreator, testMoimPost, 0, null);
@@ -131,6 +167,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
     @Test
     void createComment_shouldReturn200_whenNormalCommentByMoimMemberButPostCreatorNotActive() throws Exception {
 
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
         // given
         MoimPost inactiveMemberPost = makeMoimPost(testMoim, inactiveMember, MoimPostCategory.NOTICE, false);
         em.persist(inactiveMemberPost);
@@ -165,9 +205,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
-    // Post Comment 생성 요청 - Reply Comment 인데 댓글 작성자가 활동중이 아님
+    // Post Comment 생성 요청 - Reply Comment 인데 댓글 작성자가 활동중이 아님, 알림은 안간다
     @Test
     void createComment_shouldReturn200_whenReplyCommentByMoimMemberButParentCommentCreatorNotActive() throws Exception {
+
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
         PostComment parentComment = makePostComment(inactiveMember, testMoimPost, 0, null); // INACTIVE 한 유저의 댓글
@@ -206,6 +250,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
     // Post Comment 중 답글 생성 요청인데, 부모라고 보낸 글이 댓글이 아니라 답글이였음 (2차 이상 답글 생성 시도)
     @Test
     void createComment_shouldReturn422_whenTrialToReplyOnChildComment_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
         PostComment parentComment = makePostComment(moimCreator, testMoimPost, 0, null);
@@ -283,6 +331,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
     @Test
     void createComment_shouldReturn404_whenNotMoimMemberRequest_byMoimingApiException() throws Exception {
 
+        // given - 요청자 개인 정보 기입
+        notMoimMember = em.find(Member.class, notMoimMember.getId());
+        insertTestMemberInfo(notMoimMember, memberGender3, memberBirth3);
+
         // given
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
         String requestBody = om.writeValueAsString(requestDto);
@@ -302,6 +354,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
     // Post Comment 생성 요청 오류 - Moim Member Not Active
     @Test
     void createComment_shouldReturn403_whenMoimMemberNotActiveRequest_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 기입
+        inactiveMember = em.find(Member.class, inactiveMember.getId());
+        insertTestMemberInfo(inactiveMember, memberGender4, memberBirth4);
 
         // given
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 0);
@@ -323,6 +379,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
     @Test
     void createComment_shouldReturn404_whenParentCommentNotFound_byMoimingApiException() throws Exception {
 
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
         // given
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), 1234L, 1);
         String requestBody = om.writeValueAsString(requestDto);
@@ -342,6 +402,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
     // Post Comment 생성 요청 오류 - Parent Comment Mapping Error 하나만
     @Test
     void createComment_shouldReturn422_whenParentCommentMappingWrong_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), null, 1);
@@ -371,6 +435,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
 
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
                 .header(HEADER, PREFIX + accessToken)
@@ -396,6 +464,29 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
+    // 댓글 수정 실패 - 개인 정보 없는 유저의 요청
+    @Test
+    void updateComment_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+        System.out.println("response = " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
+    }
+
+
     // 댓글 수정 실패 - 모임 생성자
     @Test
     void updateComment_shouldReturn403_whenRequestByMoimCreator_byMoimingApiException() throws Exception {
@@ -405,6 +496,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimCreator, 2000);
+
+        // given - 요청자 개인 정보 기입
+        moimCreator = em.find(Member.class, moimCreator.getId());
+        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
@@ -428,6 +523,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember2, 2000);
 
+        // given - 요청자 개인 정보 기입
+        moimMember2 = em.find(Member.class, moimMember2.getId());
+        insertTestMemberInfo(moimMember2, memberGender5, memberBirth5);
+
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
                 .header(HEADER, PREFIX + accessToken)
@@ -449,6 +548,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(notMoimMember, 2000);
+
+        // given - 요청자 개인 정보 기입
+        notMoimMember = em.find(Member.class, notMoimMember.getId());
+        insertTestMemberInfo(notMoimMember, memberGender3, memberBirth3);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
@@ -473,11 +576,14 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(inactiveMember, 2000);
 
+        // given - 요청자 개인 정보 기입
+        inactiveMember = em.find(Member.class, inactiveMember.getId());
+        insertTestMemberInfo(inactiveMember, memberGender4, memberBirth4);
+
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
                 .header(HEADER, PREFIX + accessToken)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON));
-
 
         // then
         resultActions.andExpect(status().isForbidden());
@@ -567,6 +673,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
 
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
                 .header(HEADER, PREFIX + accessToken)
@@ -590,6 +700,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
 
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
                 .header(HEADER, PREFIX + accessToken));
@@ -606,6 +720,27 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
+    // 댓글 삭제 실패 - 개인 정보 없는 사용자의 요청
+    @Test
+    void deleteComment_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
+
+        // given
+        createPostComment();
+        String accessToken = createTestJwtToken(moimMember, 2000);
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
+    }
+
+
     // 댓글 삭제 성공 - content 와 hasDeleted 검증 - 모임 생성자
     @Test
     void deleteComment_shouldReturn200_whenRequestByMoimCreator() throws Exception {
@@ -615,6 +750,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(moimCreator, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // given - 요청자 개인 정보 기입
+        moimCreator = em.find(Member.class, moimCreator.getId());
+        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -641,6 +780,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(moimMember2, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // given - 요청자 개인 정보 기입
+        moimMember2 = em.find(Member.class, moimMember2.getId());
+        insertTestMemberInfo(moimMember2, memberGender5, memberBirth5);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -669,6 +812,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
 
+        // given - 요청자 개인 정보 기입
+        notMoimMember = em.find(Member.class, notMoimMember.getId());
+        insertTestMemberInfo(notMoimMember, memberGender3, memberBirth3);
+
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
                 .header(HEADER, PREFIX + accessToken));
@@ -695,6 +842,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(inactiveMember, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+
+        // given - 요청자 개인 정보 기입
+        inactiveMember = em.find(Member.class, inactiveMember.getId());
+        insertTestMemberInfo(inactiveMember, memberGender4, memberBirth4);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -778,6 +929,9 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", 18384 + ""};
 
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -803,11 +957,11 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // Member moimMember, moimCreator
         Role testRole = makeTestRole(RoleType.USER);
-        moimCreator = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
-        moimMember = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
-        moimMember2 = makeTestMember(memberEmail5, memberPhone5, memberName5, nickname5, ci5, testRole);
-        notMoimMember = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
-        inactiveMember = makeTestMember(memberEmail4, memberPhone4, memberName4, nickname4, ci4, testRole);
+        moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
+        moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        moimMember2 = makeTestMember(memberPhone5, nickname5, ci5, testRole);
+        notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
+        inactiveMember = makeTestMember(memberPhone4, nickname4, ci4, testRole);
         em.persist(testRole);
         em.persist(moimCreator);
         em.persist(moimMember);

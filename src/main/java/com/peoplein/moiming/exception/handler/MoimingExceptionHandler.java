@@ -37,6 +37,7 @@ public class MoimingExceptionHandler {
 
     }
 
+
     @ExceptionHandler(MoimingValidationException.class)
     public ResponseEntity<?> moimingValidationException(MoimingValidationException exception) {
         log.error("VALIDATION EXCEPTION : {}", exception.getMessage());

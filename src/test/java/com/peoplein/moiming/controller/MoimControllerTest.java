@@ -9,9 +9,11 @@ import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
+import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +27,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +36,7 @@ import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 import static com.peoplein.moiming.security.token.JwtParams.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -85,7 +88,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
         // 1번 Member 형성
         testRole = makeTestRole(RoleType.USER);
-        curMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        curMember = makeTestMember(memberPhone, nickname, ci, testRole);
 
         roleRepository.save(testRole);
         memberRepository.save(curMember);
@@ -116,15 +119,21 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
-
     void makeAnotherMember() {
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         em.persist(testMember2);
 
         em.flush();
         em.clear();
     }
 
+    void makeTestMemberInfo(Member member, MemberGender memberGender, LocalDate memberBirth) {
+        // given - 개인정보 기입완료
+        MemberInfo curMemberInfo = makeMemberInfo(member, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+        em.flush();
+        em.clear();
+    }
 
     /*
      정렬을 잘 확인하기 위해서,
@@ -163,8 +172,13 @@ public class MoimControllerTest extends TestObjectCreator {
     }
 
 
+    // Join Rule 없는 모임에 모임 생성 시도
     @Test
     void createMoim_shouldReturn201_whenMoimReqNoJoinRulePassed() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimCreateReqDto reqDto = makeMoimReqDtoNoJoinRule(moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
@@ -183,13 +197,16 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.joinRule").isEmpty());
         resultActions.andExpect(jsonPath("$.data.curMemberCount").value(1));
 
-
     }
 
 
     // JoinRule 있을 때도 성공하는지
     @Test
     void createMoim_shouldReturn201_whenMoimReqWithJoinRulePassed() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimCreateReqDto reqDto = makeMoimReqDtoWithJoinRule(moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
@@ -208,10 +225,34 @@ public class MoimControllerTest extends TestObjectCreator {
     }
 
 
+    // 실패 - 개인 정보 미기입 회원의 모임 생성 시도
+    @Test
+    void createMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
+
+        // given
+        MoimCreateReqDto reqDto = makeMoimReqDtoNoJoinRule(moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_CREATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
+    }
+
+
     // validation 값 오류
     // moimName
     @Test
     void createMoim_shouldReturn400_whenNameFieldWrong_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimCreateReqDto reqDto = makeMoimReqDtoNoJoinRule("WRG", moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
@@ -232,6 +273,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void createMoim_shouldReturn400_whenCategoryMissing_byMoimingValidationException() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         MoimCreateReqDto reqDto = makeMoimReqDtoNoJoinRule(moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         reqDto.setCategoryNameValues(null); // 해당 필드 없애기
@@ -251,6 +296,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void createMoim_shouldReturn400_whenOnlyOneCategory_byMoimingValidationException() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         MoimCreateReqDto reqDto = makeMoimReqDtoNoJoinRule(moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         reqDto.setCategoryNameValues(List.of(depth1SampleCategory2)); // 한 개 있는 리스트 필드로 변경한다
@@ -269,6 +318,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // join rule Age Rule 정보 없음
     @Test
     void createMoim_shouldReturn400_whenJoinRuleFieldMissing_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimCreateReqDto reqDto = makeMoimReqDtoWithJoinRule("WRG", moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
@@ -310,6 +363,10 @@ public class MoimControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
+        // given - 개인정보 기입완료
+        testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
+
         // when - limit 과 isManagerReq 는 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
         ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
                 .header(HEADER, PREFIX + testAccessToken)
@@ -344,6 +401,10 @@ public class MoimControllerTest extends TestObjectCreator {
         buildOtherMoims(5, 5);
         em.flush();
         em.clear();
+
+        // given - 개인정보 기입완료
+        testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
 
         // when - limit 과 isManagerReq 는 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
         ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
@@ -394,6 +455,10 @@ public class MoimControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
+        // given - 개인정보 기입완료
+        testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
+
         // when - limit 과 isManagerReq 는 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
         ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
                 .header(HEADER, PREFIX + testAccessToken)
@@ -424,6 +489,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void updateMoim_shouldReturn200_whenRightInfoPassed() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
         String requestBody = om.writeValueAsString(reqDto);
@@ -445,9 +514,32 @@ public class MoimControllerTest extends TestObjectCreator {
     }
 
 
+    // 실패 - 개인 정보 미기입 회원의 수정 요청
+    @Test
+    void updateMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
+    }
+
+
     // moimId Validation
     @Test
     void updateMoim_shouldReturn400_whenMoimIdMissing_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(null, moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
@@ -468,6 +560,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // moimName Validation
     @Test
     void updateMoim_shouldReturn400_whenMoimNameWrong_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), "WRNG", null, null, depth1SampleCategory2, depth2SampleCategory2);
@@ -508,6 +604,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void updateMoim_shouldReturn200_whenNoValuesEdited() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, null, null, depth1SampleCategory2, depth1SampleCategory2);
         reqDto.setCategoryNameValues(null); // Category List 는 이렇게 필드 없음을 명시해야함 - null 통과시 List.of 함수 때문에 NULL 통과 불가
@@ -527,6 +627,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // Category Null Validation > 통과해야함 (수정하지 않겠다는 뜻)
     @Test
     void updateMoim_shouldReturn200_whenCategoryFieldNull() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
@@ -553,6 +657,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // Category Num Validation > 잘못됨
     @Test
     void updateMoim_shouldReturn400_whenCategoryWrong_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
@@ -583,6 +691,10 @@ public class MoimControllerTest extends TestObjectCreator {
         makeAnotherMember();
         String accessToken = createTestJwtToken(testMember2, 2000);
 
+        // given - 개인정보 기입완료
+        testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
+
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + accessToken));
@@ -612,6 +724,10 @@ public class MoimControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
+        // given - 개인정보 기입완료
+        testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
+
         // given
         MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, maxMember2, moimArea2.getState(), depth1SampleCategory2, depth2SampleCategory2);
         String requestBody = om.writeValueAsString(reqDto);
@@ -638,6 +754,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // updateMoimJoinRule - 성공 : JoinRule 없던 모임
     @Test
     void updateMoimJoinRule_shouldReturn200WithResp_whenNoJoinRuleMoim() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), maxMember2, hasAgeRule1, ageMax1, ageMin1, genderRule1);
@@ -675,6 +795,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void updateMoimJoinRule_shouldReturn200WithResp_whenNoJoinRuleMoimWithNoMaxMemberChangeReq() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), null, hasAgeRule1, ageMax1, ageMin1, genderRule1);
         String requestBody = om.writeValueAsString(reqDto);
@@ -710,6 +834,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // updateMoimJoinRule - 성공 : 이미 JoinRule 있는 모임
     @Test
     void updateMoimJoinRule_shouldReturn200WithResp_whenHasJoinRuleMoim() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given - join Rule
         createdMoim = em.find(Moim.class, createdMoim.getId());
@@ -751,9 +879,34 @@ public class MoimControllerTest extends TestObjectCreator {
     }
 
 
+    // updateMoimJoinRule - 실패 : 개인 정보 없는 회원의 요청
+    @Test
+    void updateMoimJoinRule_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), null, hasAgeRule1, ageMax1, ageMin1, genderRule1);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
+    }
+
+
     // updateMoimJoinRule - 성공 : 이미 JoinRule 있는 모임
     @Test
     void updateMoimJoinRule_shouldReturn200WithResp_whenChangingToNoAgeRuleAndNoGenderRule() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given - join Rule
         createdMoim = em.find(Moim.class, createdMoim.getId());
@@ -799,6 +952,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void updateMoimJoinRule_shouldReturn200WithResp_whenHasJoinRuleMoimWithNoMaxMemberAndGenderRuleChangeReq() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given - join Rule
         createdMoim = em.find(Moim.class, createdMoim.getId());
         MoimJoinRule joinRule = makeTestMoimJoinRule(hasAgeRule1, ageMax1, ageMin1, genderRule1);
@@ -842,6 +999,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void updateMoimJoinRule_shouldReturn400_whenRequestParamWrong_byMoimingValidationException() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(null, null, null, 102, 3, null);
         String requestBody = om.writeValueAsString(reqDto);
@@ -863,6 +1024,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // updateMoimJoinRule - 실패 : Validation 오류 400 (hasAgeRule False 라고 ageMax, Min 안보냄)
     @Test
     void updateMoimJoinRule_shouldReturn400_whenRequestParamWrongWithNoAgeCondition_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), null, false, null, null, genderRule2);
@@ -886,6 +1051,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void updateMoimJoinRule_shouldReturn400_whenAgeParamReversed_byMoimingApiException() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), null, true, ageMin2, ageMax2, genderRule2);
         String requestBody = om.writeValueAsString(reqDto);
@@ -906,6 +1075,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // updateMoimJoinRule - 실패 : 모임 없음 404
     @Test
     void updateMoimJoinRule_shouldReturn404_whenMoimNotFound_byMoimingApiException() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(1234L, null, hasAgeRule2, ageMax2, ageMin2, genderRule2);
@@ -934,6 +1107,10 @@ public class MoimControllerTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(reqDto);
         String accessToken = createTestJwtToken(testMember2, 2000);
 
+        // given - 개인정보 기입완료
+        testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
+
         // when
         ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
                 .header(HEADER, PREFIX + accessToken)
@@ -958,6 +1135,10 @@ public class MoimControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
+        // given - 개인정보 기입완료
+        testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
+
         // given
         MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), null, hasAgeRule2, ageMax2, ageMin2, genderRule2);
         String requestBody = om.writeValueAsString(reqDto);
@@ -979,6 +1160,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // getMoimDetail - 성공, 세부 조회
     @Test
     void getMoimDetail_shouldReturn200WithResponse_whenMoimWithRuleAndRightInfoPassed() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         createdMoim = em.find(Moim.class, createdMoim.getId());
@@ -1023,6 +1208,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void getMoimDetail_shouldReturn200WithResponse_whenMoimNoRuleAndRightInfoPassed() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         String[] beforeParam = {"moimId"};
         String[] afterParam = {createdMoim.getId() + ""};
@@ -1062,6 +1251,11 @@ public class MoimControllerTest extends TestObjectCreator {
         String[] afterParam = {createdMoim.getId() + ""};
         String accessToken2 = createTestJwtToken(testMember2, 2000);
 
+
+        // given - 개인정보 기입완료
+        testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
+
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_GET_DETAIL, beforeParam, afterParam))
                 .header(HEADER, PREFIX + accessToken2));
@@ -1091,6 +1285,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void getMoimDetail_shouldReturn404_whenRequestNonExistingMoim_byMoimingApiException() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         String[] beforeParam = {"moimId"};
         String[] afterParam = {12345L + ""};
@@ -1110,6 +1308,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void deleteMoim_shouldReturn200_whenSuccessfulWithOnlyMoim() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given
         String[] beforeParam = {"moimId"};
         String[] afterParam = {createdMoim.getId() + ""};
@@ -1127,12 +1329,36 @@ public class MoimControllerTest extends TestObjectCreator {
 
         Moim moim = em.find(Moim.class, createdMoim.getId());
         assertNull(moim);
+
+    }
+
+
+    // deleteMoim - 성공 : 모임만 있음
+    @Test
+    void deleteMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
+
+        // given
+        String[] beforeParam = {"moimId"};
+        String[] afterParam = {createdMoim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
     }
 
 
     // deleteMoim - 성공 : 모임만 있음 + 가입 조건 있음
     @Test
     void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRule() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given
         createdMoim = em.find(Moim.class, createdMoim.getId());
@@ -1165,6 +1391,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // deleteMoim - 성공 : 모임만 있음 + 가입 조건 있음 + 게시물 있음
     @Test
     void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRuleAndPost() throws Exception {
+
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given - join Rule
         createdMoim = em.find(Moim.class, createdMoim.getId());
@@ -1207,6 +1437,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRuleAndPostAndMembers() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given - join Rule
         createdMoim = em.find(Moim.class, createdMoim.getId());
         MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
@@ -1217,8 +1451,8 @@ public class MoimControllerTest extends TestObjectCreator {
         em.persist(post1);
 
         // given - MoimMembers
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
-        Member testMember3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
+        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
 
         MoimMember moimMember2 = MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         MoimMember moimMember3 = MoimMember.memberJoinMoim(testMember3, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
@@ -1264,6 +1498,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRuleAndPostsOfMembers() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given - join Rule
         createdMoim = em.find(Moim.class, createdMoim.getId());
         MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
@@ -1274,8 +1512,8 @@ public class MoimControllerTest extends TestObjectCreator {
         em.persist(post1);
 
         // given - MoimMembers
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
-        Member testMember3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
+        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
 
         MoimMember moimMember2 = MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         MoimMember moimMember3 = MoimMember.memberJoinMoim(testMember3, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
@@ -1320,6 +1558,10 @@ public class MoimControllerTest extends TestObjectCreator {
     @Test
     void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRuleAndPostsOfMembersAndComments() throws Exception {
 
+        // given - 개인정보 기입완료
+        curMember = em.find(Member.class, curMember.getId()); // 영속화
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
+
         // given - join Rule
         createdMoim = em.find(Moim.class, createdMoim.getId());
         MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
@@ -1330,8 +1572,8 @@ public class MoimControllerTest extends TestObjectCreator {
         em.persist(post1);
 
         // given - MoimMembers
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
-        Member testMember3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
+        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
 
         MoimMember moimMember2 = MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         MoimMember moimMember3 = MoimMember.memberJoinMoim(testMember3, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
@@ -1430,12 +1672,15 @@ public class MoimControllerTest extends TestObjectCreator {
         createdMoim.setMoimJoinRule(joinRule);
 
         // given - MoimMembers
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
-        Member testMember3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
+        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
 
         MoimMember moimMember2 = MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         em.persist(testMember2);
         em.persist(testMember3);
+
+        // 요청자 개인정보 기입
+        makeTestMemberInfo(testMember3, memberGender3, memberBirth3);
 
         em.flush();
         em.clear();
@@ -1471,9 +1716,12 @@ public class MoimControllerTest extends TestObjectCreator {
         createdMoim.setMoimJoinRule(joinRule);
 
         // given - MoimMembers
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
+        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         em.persist(testMember2);
+
+        // 요청자 개인정보 기입
+        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
 
         em.flush();
         em.clear();
@@ -1502,6 +1750,10 @@ public class MoimControllerTest extends TestObjectCreator {
     // 실패 : 모임을 찾을 수 없음
     @Test
     void deleteMoim_shouldReturn404_whenMoimNotFound_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인정보 기입
+        curMember = em.find(Member.class, curMember.getId());
+        makeTestMemberInfo(curMember, memberGender, memberBirth);
 
         // given start
         String[] beforeParam = {"moimId"};

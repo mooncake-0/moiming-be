@@ -8,11 +8,9 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import org.junit.jupiter.api.Test;
 
-import java.security.InvalidParameterException;
-
 import static com.peoplein.moiming.domain.enums.MoimMemberRoleType.*;
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;

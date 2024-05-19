@@ -21,13 +21,12 @@ import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
 import java.util.List;
-import java.util.Map;
 
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
-import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignUpReqDto.*;
 import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -59,23 +58,19 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         List<PolicyAgreeDto> policies = makePolicyReqDtoList(hasAgreeds, policyTypes);
 
         // given
-        AuthSignInReqDto reqDto = new AuthSignInReqDto(smsVerification.getId()
-                , memberEmail, password, memberName, memberPhone, memberGender
-                , memberBirth, fcmToken, policies
+        AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId()
+                , memberPhone, password, fcmToken, policies
         );
 
         // when
-        AuthSignInRespDto responseDto = authService.signUp(reqDto);
+        AuthSignUpRespDto responseDto = authService.signUp(reqDto);
 
 
         // then - Return Val Confirm
         assertThat(responseDto.getMemberId()).isNotNull();
-        assertThat(responseDto.getMemberEmail()).isEqualTo(memberEmail);
+        assertThat(responseDto.isHasMemberInfo()).isEqualTo(false);
+        assertThat(responseDto.getMemberPhone()).isEqualTo(memberPhone);
         assertThat(responseDto.getFcmToken()).isEqualTo(fcmToken);
-        assertThat(responseDto.getMemberInfo().getMemberName()).isEqualTo(memberName);
-        assertThat(responseDto.getMemberInfo().getMemberGender()).isEqualTo(memberGender.toString());
-        assertThat(responseDto.getMemberInfo().getMemberPhone()).isEqualTo(memberPhone);
-        assertThat(responseDto.getMemberInfo().getMemberBirth()).isEqualTo(memberBirth + "");
         assertTrue(StringUtils.hasText(responseDto.getNickname()));
         assertTrue(StringUtils.hasText(responseDto.getTokenInfo().getAccessToken()));
         assertTrue(StringUtils.hasText(responseDto.getTokenInfo().getRefreshToken()));
@@ -86,7 +81,6 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         assertThat(savedMember.getFcmToken()).isEqualTo(fcmToken);
         assertThat(savedMember.getNickname()).isEqualTo(responseDto.getNickname());
         assertThat(savedMember.getRefreshToken()).isEqualTo(responseDto.getTokenInfo().getRefreshToken());
-        assertThat(savedMember.getMemberInfo().getMemberPhone()).isEqualTo(memberPhone);
 
 
         List<PolicyAgree> policyAgrees = policyAgreeRepository.findByMemberId(id);
@@ -115,7 +109,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
         // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
         Role testRole = makeTestRole(RoleType.USER);
-        Member testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);// 저장할 Member 를 만든다.
+        Member testMember = makeTestMember(memberPhone, nickname, ci, testRole);// 저장할 Member 를 만든다.
         String preRefreshToken = createTestJwtToken(testMember, 2000);// 해당 멤버에 Refresh Token 을 저장해준다
         testMember.changeRefreshToken(preRefreshToken);
         em.persist(testRole);
@@ -148,7 +142,7 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
         // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
         Role testRole = makeTestRole(RoleType.USER);
-        Member testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);// 저장할 Member 를 만든다.
+        Member testMember = makeTestMember(memberPhone, nickname, ci, testRole);// 저장할 Member 를 만든다.
         String preRefreshToken = createTestJwtToken(testMember, 2000);// 해당 멤버에 Refresh Token 을 저장해준다
         testMember.changeRefreshToken("WRONG_REFRESH_TOKEN");
         em.persist(testRole);

@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Profile;
 import java.time.LocalDate;
 
 @Profile("test")
-public abstract class TestModelParams {
+public abstract class TestParams {
 
     // Member Test 공통
     public static String password = "1234";
@@ -17,7 +17,7 @@ public abstract class TestModelParams {
     public static String memberBirthStringFormat = "1995-12-18";
 
     // 1번 Member
-    public static String memberEmail = "a@moiming.io";
+//    public static String memberEmail = "a@moiming.io";
     public static String memberName = "강우석";
     public static String nickname = "NICKNAME1";
     public static String memberPhone = "01012345678";
@@ -25,47 +25,52 @@ public abstract class TestModelParams {
 
 
     // 2번 Member
-    public static String memberEmail2 = "b@moiming.io";
-    public static String memberName2 = "이현주";
+//    public static String memberEmail2 = "b@moiming.io";
+    public static String memberName2 = "이정민";
     public static String nickname2 = "NICKNAME2";
     public static String memberPhone2 = "01023456789";
     public static String ci2 = "9a8B7C6D5E4F3G2H1I0J9K8L=M6N5O4P3Q2R1S0T9U8V7W6X5Y4Z6A7B8C9D+0E1F2G3H4I5J6K7L9M0N1O2P3";
-
+    public static MemberGender memberGender2 = MemberGender.F;
+    public static LocalDate memberBirth2 = LocalDate.of(1994, 6, 1);
 
     // 3번 Member
-    public static String memberEmail3 = "c@moiming.io";
+//    public static String memberEmail3 = "c@moiming.io";
     public static String memberName3 = "김우진";
     public static String nickname3 = "NICKNAME3";
     public static String memberPhone3 = "01098765432";
     public static String ci3 = "Q7R8S9T0U1V2W3X4Y5Z6a7b8c9d+0e1f2g3h4i5j6k7lM9n0o1p2A!2B=C3D+4E5F6G7H8I9J0K1L=M3N4O5";
-
+    public static MemberGender memberGender3 = MemberGender.M;
+    public static LocalDate memberBirth3 = LocalDate.of(1999, 6, 1);
 
     // 4번 Member
-    public static String memberEmail4 = "d@moiming.io";
+//    public static String memberEmail4 = "d@moiming.io";
     public static String memberName4 = "서주연";
     public static String nickname4 = "NICKNAME4";
     public static String memberPhone4 = "01087654321";
     public static String ci4 = "0P6Q7R8S9T0U1V2W3X4Y5Z6a7b8c9d+0e1f2g3h4i5j6k7lM9n0o1p2A!2B=C3D+4E5F6G7H8I9J0K1L=M3N4";
-
+    public static MemberGender memberGender4 = MemberGender.F;
+    public static LocalDate memberBirth4 = LocalDate.of(1997,6, 1);
 
     // 5번 Member
-    public static String memberEmail5 = "q@moiming.io";
+//    public static String memberEmail5 = "q@moiming.io";
     public static String memberName5 = "황찬규";
     public static String nickname5 = "NICKNAME5";
     public static String memberPhone5 = "01037838432";
     public static String ci5 = "0P6Q7R8S9Q7R8S2W3X4Y5Z6a7b8c9d+0e1f2g3h4i5j6k7lM9n0o1p2A!2B=C3D+4E5F6G7H8I9J0K1L=M3N4";
-
+    public static MemberGender memberGender5 = MemberGender.M;
+    public static LocalDate memberBirth5 = LocalDate.of(1994, 6, 1);
 
     // 6번 Member
-    public static String memberEmail6 = "t@moiming.io";
+//    public static String memberEmail6 = "t@moiming.io";
     public static String memberName6 = "이동근";
     public static String nickname6 = "NICKNAME6";
     public static String memberPhone6 = "01082931111";
     public static String ci6 = "12345R8S9T0U1ABCDE4Y987F7b8c9d+0e1f2g3h4i5j6k7lM9n0o1p2A!2B=C3D+4E5F65432I9J0K1FGhIJk";
-
+    public static MemberGender memberGender6 = MemberGender.M;
+    public static LocalDate memberBirth6 = LocalDate.of(1995, 6, 1);
 
     // 7번 Member
-    public static String memberEmail7 = "p@moiming.io";
+//    public static String memberEmail7 = "p@moiming.io";
     public static String memberName7 = "홍길동";
     public static String nickname7 = "NICKNAME7";
     public static String memberPhone7 = "01000998877";

@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -32,44 +33,49 @@ public class AuthController {
     private final AuthService authService;
 
 
-    @ApiOperation("이메일 중복 확인")
-    @GetMapping(PATH_AUTH_EMAIL_AVAILABLE)
-    public ResponseEntity<?> checkEmailAvailable(@PathVariable String email) {
-        if (authService.checkEmailAvailable(email)) {
-            return ResponseEntity.ok().body(ResponseBodyDto.createResponse("1", "사용 가능", null));
-        }
-        return ResponseEntity.ok().body(ResponseBodyDto.createResponse("-1", "사용 불가", null));
+    @ApiOperation("회원 가입 인증 완료 요청 - SMS 인증 번호 및 인증 요청한 휴대폰 번호 전달")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "회원 가입 인증 성공"),
+            @ApiResponse(code = 400, message = "회원 가입 인증 실패, ERR MSG 확인")
+    })
+    @PatchMapping(PATH_AUTH_SIGN_UP_CONFIRM)
+    public ResponseEntity<?> confirmSignUpSms(@RequestBody @Valid AuthSignUpSmsConfirmReqDto requestDto
+            , BindingResult br) {
+
+        authService.verifySmsVerification(requestDto.getSmsVerificationId(), SIGN_UP, requestDto.getMemberPhone(), requestDto.getVerificationNumber());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "회원 가입 인증 성공", null));
+
     }
 
 
-    @ApiOperation("최종 회원 가입 (실제 로직, 번호 인증 필요)")
+    @ApiOperation("회원 가입 v0.1")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "회원 가입 성공", response = AuthSignInRespDto.class,
+            @ApiResponse(code = 201, message = "회원 가입 성공", response = AuthSignUpRespDto.class,
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })
     @PostMapping(PATH_AUTH_SIGN_UP)
-    public ResponseEntity<?> signInMember(@RequestBody @Valid AuthSignInReqDto requestDto, BindingResult br
+    public ResponseEntity<?> signUp(@RequestBody @Valid AuthSignUpReqDto requestDto, BindingResult br
             , HttpServletResponse response) {
 
-        AuthSignInRespDto responseDto = authService.signUp(requestDto);
+        AuthSignUpRespDto responseDto = authService.signUp(requestDto);
         return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "회원 생성 성공", responseDto), HttpStatus.CREATED);
 
     }
 
 
     @Profile({"dev", "local"})
-    @ApiOperation("개발용 회원 가입 (인증만 불필요, 나머진 동일)")
+    @ApiOperation("개발용 회원 가입 (SMS 인증만 불필요, 나머진 동일)")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "회원 가입 성공", response = AuthSignInRespDto.class,
+            @ApiResponse(code = 201, message = "회원 가입 성공", response = AuthSignUpRespDto.class,
                     responseHeaders = {@ResponseHeader(name = "Authorization", description = "Bearer {JWT ACCESS TOKEN}", response = String.class)}),
             @ApiResponse(code = 400, message = "회원 가입 실패, ERR MSG 확인")
     })
     @PostMapping(PATH_AUTH_DEV_SIGN_UP)
-    public ResponseEntity<?> signUpMember(@RequestBody @Valid DevAuthSignInReqDto requestDto, BindingResult br
+    public ResponseEntity<?> devSignUp(@RequestBody @Valid DevAuthSignUnReqDto requestDto, BindingResult br
             , HttpServletResponse response) {
 
-        AuthSignInRespDto responseDto = authService.devSignUp(requestDto);
+        AuthSignUpRespDto responseDto = authService.devSignUp(requestDto);
         return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "회원 생성 성공", responseDto), HttpStatus.CREATED);
 
     }
@@ -93,47 +99,17 @@ public class AuthController {
     }
 
 
-    @ApiOperation("이메일 확인 요청 - SMS 인증 후 인증 번호 및 ID 전달 필요")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "이메일 확인 성공", response = AuthFindIdRespDto.class),
-            @ApiResponse(code = 400, message = "이메일 확인 실패, ERR MSG 확인")
-    })
-    @PostMapping(PATH_AUTH_FIND_MEMBER_EMAIL)
-    public ResponseEntity<?> findMemberEmail(@RequestBody @Valid AuthFindIdReqDto requestDto
-            , BindingResult br) {
-
-        String maskedEmail = authService.findMemberEmail(requestDto);
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "이메일 확인 성공", new AuthFindIdRespDto(maskedEmail)));
-
-    }
-
-
-    @ApiOperation("비밀번호 재설정 인증 요청 - SMS 인증 번호 및 ID 전달 필요")
+    @ApiOperation("비밀번호 재설정 인증 완료 요청 - SMS 인증 번호 및 ID 전달 필요")
     @ApiResponses({
             @ApiResponse(code = 200, message = "비밀번호 재설정 인증 성공"),
             @ApiResponse(code = 400, message = "비밀번호 재설정 인증 실패, ERR MSG 확인")
     })
-    @PostMapping(PATH_AUTH_RESET_PW_CONFIRM)
+    @PatchMapping(PATH_AUTH_RESET_PW_CONFIRM)
     public ResponseEntity<?> confirmResetPassword(@RequestBody @Valid AuthResetPwConfirmReqDto requestDto
             , BindingResult br) {
 
         authService.verifySmsVerification(requestDto.getSmsVerificationId(), FIND_PW, requestDto.getMemberPhone(), requestDto.getVerificationNumber());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "비밀번호 재설정 인증 성공", null));
-
-    }
-
-
-    @ApiOperation("회원 가입 인증 요청 - SMS 인증 번호 및 ID 전달 필요")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "회원 가입 인증 성공"),
-            @ApiResponse(code = 400, message = "회원 가입 인증 실패, ERR MSG 확인")
-    })
-    @PostMapping(PATH_AUTH_SIGN_UP_CONFIRM)
-    public ResponseEntity<?> confirmSignUpSms(@RequestBody @Valid AuthSignUpSmsConfirmReqDto requestDto
-            , BindingResult br) {
-
-        authService.verifySmsVerification(requestDto.getSmsVerificationId(), SIGN_UP, requestDto.getMemberPhone(), requestDto.getVerificationNumber());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "회원 가입 인증 성공", null));
 
     }
 
@@ -151,4 +127,36 @@ public class AuthController {
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "비밀번호 재설정 성공", null));
 
     }
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    // v0.0 - DEPRECATED (EMAIL / MEMBER NAME 사라짐)
+//    @ApiIgnore // v0.1 회원가입 플로우
+//    @ApiOperation("이메일(ID) 확인 요청 - SMS 인증 후 인증 번호 및 ID 전달 필요")
+//    @ApiResponses({
+//            @ApiResponse(code = 200, message = "이메일 확인 성공", response = AuthFindIdRespDto.class),
+//            @ApiResponse(code = 400, message = "이메일 확인 실패, ERR MSG 확인")
+//    })
+//    @PostMapping(PATH_AUTH_FIND_MEMBER_EMAIL)
+//    public ResponseEntity<?> findMemberEmail(@RequestBody @Valid AuthFindIdReqDto requestDto
+//            , BindingResult br) {
+//
+//        String maskedEmail = authService.findMemberEmail(requestDto);
+//        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "이메일 확인 성공", new AuthFindIdRespDto(maskedEmail)));
+//
+//    }
+
+
+    // v0.0 - DEPRECATED (EMAIL / MEMBER NAME 사라짐)
+//    @ApiIgnore // v0.0 회원가입 플로우
+//    @ApiOperation("이메일 중복 확인")
+//    @GetMapping(PATH_AUTH_EMAIL_AVAILABLE)
+//    public ResponseEntity<?> checkEmailAvailable(@PathVariable String email) {
+//        if (authService.checkEmailAvailable(email)) {
+//            return ResponseEntity.ok().body(ResponseBodyDto.createResponse("1", "사용 가능", null));
+//        }
+//        return ResponseEntity.ok().body(ResponseBodyDto.createResponse("-1", "사용 불가", null));
+//    }
 }

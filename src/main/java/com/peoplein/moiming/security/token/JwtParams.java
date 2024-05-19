@@ -9,8 +9,8 @@ public abstract class JwtParams {
 
 
     // CLAIM 정보
-    public static String CLAIM_KEY_MEMBER_EMAIL = "EMAIL";
-    public static String CLAIM_KEY_MEMBER_ID = "ID";
+//    public static String CLAIM_KEY_MEMBER_EMAIL = "EMAIL";
+    public static String CLAIM_KEY_MEMBER_ID_KEY = "ID";
     public static String CLAIM_KEY_MEMBER_ROLE = "ROLES";
 
     public static String HEADER = "Authorization";

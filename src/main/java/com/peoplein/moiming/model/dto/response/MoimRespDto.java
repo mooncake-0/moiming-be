@@ -335,7 +335,7 @@ public class MoimRespDto {
             this.memberId = member.getId();
             this.nickname = member.getNickname();
             this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
-            if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
+            if (member.getMemberInfo() != null && StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
                 this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
             }
         }

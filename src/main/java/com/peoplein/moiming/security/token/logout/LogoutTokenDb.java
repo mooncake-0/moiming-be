@@ -42,13 +42,14 @@ public class LogoutTokenDb implements LogoutTokenManager {
 
 
     @Scheduled(fixedRate = 60 * 1000 * 60 * 24) // 일단 하루에 한 번씩
+//    @Scheduled(fixedRate = 1000) // 1초에 한번씩 - 동작성 확인 완료, 30분 뒤에 삭제 로깅 찍힘
     public int deleteExpiredTokens() {
         log.info("{}", "만료된 로그아웃 관리 토큰 확인 중 .. ");
         int cnt = 0;
         for (String accessToken : logoutTokenDb.keySet()) {
             Date current = new Date();
             Date expireDate = logoutTokenDb.get(accessToken);
-            if (current.after(expireDate)) {
+            if (current.after(expireDate)) { // 만료시간이 지나야 어차피 사용을 못하므로
                 logoutTokenDb.remove(accessToken);
                 cnt++;
             }

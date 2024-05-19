@@ -42,10 +42,12 @@ public class MemberService {
             log.info("{}, getCurrentMember ::{}", this.getClass().getName(), "인증 후 Member Null 감지");
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
+
         member = memberRepository.findWithMemberInfoById(member.getId()).orElseThrow(()->{
             log.info("{}, getCurrentMember :: {}", this.getClass().getName(), " Member 찾을 수 없습니다");
             return new MoimingApiException(MEMBER_NOT_FOUND);
         });
+
         return member;
     }
 
@@ -63,28 +65,6 @@ public class MemberService {
         Date expireAt = moimingTokenProvider.verifyExpireAt(MoimingTokenType.JWT_AT, accessToken);
         logoutTokenManager.saveLogoutToken(accessToken, expireAt);
 
-    }
-
-
-    @Transactional
-    public void dormant(Long targetMemberId) {
-
-        // 스케줄링 되는게 아니라, 별도의 input 에 따른 ADMIN 단의 요청 따위일 것(ADMIN 권한으로 처리된다)
-        // TODO :: dormant 같은 경우 역시 ADMIN 단 ROLE 이 확인되는게 좋을듯? 추후 협의
-
-        // 휴면으로 전환시 member field dormant = true 로 변경
-        Member member = memberRepository.findById(targetMemberId).orElseThrow(() -> new MoimingApiException(
-                MEMBER_NOT_FOUND
-        ));
-
-        // 모임 내 활동 처리
-        // 모든 모임 > Inactive By Dormant 로 탈퇴 처리 (ACTIVE 감소)
-        List<MoimMember> memberMoims = moimMemberRepository.findWithMoimByMemberId(targetMemberId);
-        for (MoimMember memberMoim : memberMoims) {
-            memberMoim.changeMemberState(MoimMemberState.IBD);
-        }
-
-        member.makeDormant();
     }
 
 

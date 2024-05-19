@@ -37,6 +37,24 @@ public class RelatedFileService {
     }
 
 
+    // 해당 Domain 에 등록된 첫번째 사진을 반환한다
+    @Transactional(readOnly = true)
+    public Map<Long, RelatedFile> getThumbnailFileByDomainIds(FileDomain fileDomain, List<Long> domainIds) {
+
+        if (domainIds == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+        List<RelatedFile> relatedFiles = relatedFileRepository.findThumbnailFileByDomainIds(domainIds, fileDomain);
+        Map<Long, RelatedFile> fileMapper = new HashMap<>();
+        for (RelatedFile relatedFile : relatedFiles) {
+            fileMapper.put(relatedFile.getDomainId(), relatedFile);
+        }
+
+        return fileMapper;
+    }
+
+
     // MOIM POST 관련 저장 작업
     @Transactional
     public void saveRelatedFiles(Long domainId, List<Long> fileIds, Long memberId) {

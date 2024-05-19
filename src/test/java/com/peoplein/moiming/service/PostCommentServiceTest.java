@@ -9,7 +9,6 @@ import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.peoplein.moiming.repository.PostCommentRepository;
-import com.peoplein.moiming.support.TestMockCreator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PostCommentServiceTest extends TestMockCreator {
+public class PostCommentServiceTest {
 
     @InjectMocks
     private PostCommentService postCommentService;

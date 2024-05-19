@@ -3,6 +3,7 @@ package com.peoplein.moiming.model.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.peoplein.moiming.config.AppParams;
 import com.peoplein.moiming.domain.file.File;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.exception.MoimingApiException;
@@ -116,9 +117,10 @@ public class MoimPostRespDto {
         private String updatedAt;
         @JsonProperty("memberInfo")
         private PostMemberDto postMemberDto;
+        private FileDto file;
 
 
-        public MoimPostViewRespDto(MoimPost moimPost, boolean creator) {
+        public MoimPostViewRespDto(MoimPost moimPost, boolean creator, RelatedFile thumbnailFile) {
             this.moimPostId = moimPost.getId();
             this.postTitle = moimPost.getPostTitle();
             this.postContent = moimPost.getPostContent();
@@ -129,6 +131,9 @@ public class MoimPostRespDto {
             this.createdAt = moimPost.getCreatedAt() + "";
             this.updatedAt = moimPost.getUpdatedAt() + "";
             this.postMemberDto = new PostMemberDto(moimPost.getMember(), creator);
+            if (thumbnailFile != null) {
+                file = new FileDto(thumbnailFile.getFile().getId(), thumbnailFile.getFileUrl());
+            }
         }
 
         @Getter
@@ -149,73 +154,84 @@ public class MoimPostRespDto {
                         this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
                     }
                 }
-
             }
         }
 
-
-        @ApiModel(value = "Moim Post API - 응답 - 게시물 수정")
         @Getter
         @Setter
-        @NoArgsConstructor
-        @AllArgsConstructor
-        public static class MoimPostUpdateRespDto {
+        public static class FileDto {
+            private Long fileId;
+            private String imgUrl;
 
-            private Long moimPostId;
-            private String postTitle;
-            private String postContent;
-            private String moimPostCategory;
-            private boolean hasPrivateVisibility;
-            private boolean hasFiles;
-            private int commentCnt;
-            private String createdAt;
-            private String updatedAt;
-            private Long updaterId;
-
-            @JsonProperty("memberInfo")
-            private PostMemberDto postMemberDto;
-            private List<FileDto> files;
-
-            public MoimPostUpdateRespDto(MoimPostWithFileDto postWithFiles) {
-                MoimPost moimPost = postWithFiles.getMoimPost();
-                this.moimPostId = moimPost.getId();
-                this.postTitle = moimPost.getPostTitle();
-                this.postContent = moimPost.getPostContent();
-                this.moimPostCategory = moimPost.getMoimPostCategory().getValue();
-                this.commentCnt = moimPost.getCommentCnt();
-                this.hasPrivateVisibility = moimPost.isHasPrivateVisibility();
-                this.hasFiles = moimPost.isHasFiles();
-                this.createdAt = moimPost.getCreatedAt() + "";
-                this.updatedAt = moimPost.getUpdatedAt() + "";
-                this.updaterId = moimPost.getUpdaterId();
-                if (moimPost.getMoim() == null) {
-                    log.warn("{}, MoimPostCreateRespDto Creator :: {}", this.getClass().getName(), "Moim 이 연관관계되어 있지 않음");
-                    throw new MoimingApiException(COMMON_INVALID_SITUATION);
-                }
-                this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCreatorId(), moimPost.getMember());
-                if (postWithFiles.getRelatedFiles() != null) {
-                    this.files = postWithFiles.getRelatedFiles().stream().map(rf -> new FileDto(rf.getFile().getId(), rf.getFileUrl())).collect(Collectors.toList());
-                }
+            public FileDto(Long fileId, String imgUrl) {
+                this.fileId = fileId;
+                this.imgUrl = imgUrl;
             }
-
-            @Getter
-            @Setter
-            public static class PostMemberDto {
-                private Long memberId;
-                private String nickname;
-                private String memberPfImgUrl;
-                private boolean creator;
+        }
+    }
 
 
-                public PostMemberDto(Long moimCreatorId, Member member) {
-                    this.memberId = member.getId();
-                    this.nickname = member.getNickname();
-                    this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
-                    this.creator = Objects.equals(moimCreatorId, member.getId());
-                    if (member.getMemberInfo() != null) { // NULL 인 경우 DELETE 혹은 DORMANT
-                        if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
-                            this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
-                        }
+    @ApiModel(value = "Moim Post API - 응답 - 게시물 수정")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MoimPostUpdateRespDto {
+
+        private Long moimPostId;
+        private String postTitle;
+        private String postContent;
+        private String moimPostCategory;
+        private boolean hasPrivateVisibility;
+        private boolean hasFiles;
+        private int commentCnt;
+        private String createdAt;
+        private String updatedAt;
+        private Long updaterId;
+
+        @JsonProperty("memberInfo")
+        private PostMemberDto postMemberDto;
+        private List<FileDto> files;
+
+        public MoimPostUpdateRespDto(MoimPostWithFileDto postWithFiles) {
+            MoimPost moimPost = postWithFiles.getMoimPost();
+            this.moimPostId = moimPost.getId();
+            this.postTitle = moimPost.getPostTitle();
+            this.postContent = moimPost.getPostContent();
+            this.moimPostCategory = moimPost.getMoimPostCategory().getValue();
+            this.commentCnt = moimPost.getCommentCnt();
+            this.hasPrivateVisibility = moimPost.isHasPrivateVisibility();
+            this.hasFiles = moimPost.isHasFiles();
+            this.createdAt = moimPost.getCreatedAt() + "";
+            this.updatedAt = moimPost.getUpdatedAt() + "";
+            this.updaterId = moimPost.getUpdaterId();
+            if (moimPost.getMoim() == null) {
+                log.warn("{}, MoimPostCreateRespDto Creator :: {}", this.getClass().getName(), "Moim 이 연관관계되어 있지 않음");
+                throw new MoimingApiException(COMMON_INVALID_SITUATION);
+            }
+            this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCreatorId(), moimPost.getMember());
+            if (postWithFiles.getRelatedFiles() != null) {
+                this.files = postWithFiles.getRelatedFiles().stream().map(rf -> new FileDto(rf.getFile().getId(), rf.getFileUrl())).collect(Collectors.toList());
+            }
+        }
+
+        @Getter
+        @Setter
+        public static class PostMemberDto {
+            private Long memberId;
+            private String nickname;
+            private String memberPfImgUrl;
+            private boolean creator;
+
+
+            public PostMemberDto(Long moimCreatorId, Member member) {
+                this.memberId = member.getId();
+                this.nickname = member.getNickname();
+                this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
+                this.creator = Objects.equals(moimCreatorId, member.getId());
+                if (member.getMemberInfo() != null) { // NULL 인 경우 DELETE 혹은 DORMANT
+                    if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
+                        this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
                     }
                 }
             }

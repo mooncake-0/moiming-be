@@ -8,7 +8,6 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.repository.PolicyAgreeRepository;
-import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +29,7 @@ import static com.peoplein.moiming.domain.enums.PolicyType.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.PolicyAgreeUpdateReqDto.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -58,7 +57,7 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
     @BeforeEach
     void be() {
         Role testRole = makeTestRole(RoleType.USER);
-        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        testMember = makeTestMember(memberPhone, nickname, ci, testRole);
 
         em.persist(PolicyAgree.createPolicyAgree(testMember, SERVICE, true));
         em.persist(PolicyAgree.createPolicyAgree(testMember, PRIVACY, true));
@@ -265,7 +264,6 @@ public class PolicyAgreeControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(ExceptionValue.COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
-
 
 
     @Test

@@ -56,8 +56,8 @@ public class MoimingAuthenticationFilter extends BasicAuthenticationFilter {
                     throw new LogoutTokenTrialException(""); // 예외를 발생시킨다
                 }
 
-                String verifiedEmail = authService.verifyMemberEmail(MoimingTokenType.JWT_AT, accessToken);
-                SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(verifiedEmail);
+                String verifiedMemberId = authService.verifyMemberId(MoimingTokenType.JWT_AT, accessToken);
+                SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(verifiedMemberId);
                 authService.updateLoginAt(false, securityMember.getMember());
 
                 SecurityContextHolder.getContext().setAuthentication(

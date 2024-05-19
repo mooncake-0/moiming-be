@@ -20,8 +20,8 @@
 //import java.util.List;
 //
 //import static com.peoplein.moiming.model.dto.request.MoimPostReqDto.*;
-//import static com.peoplein.moiming.support.TestModelParams.*;
-//import static com.peoplein.moiming.support.TestModelParams.moimArea;
+//import static com.peoplein.moiming.support.TestParams.*;
+//import static com.peoplein.moiming.support.TestParams.moimArea;
 //import static org.assertj.core.api.Assertions.*;
 //
 //@SpringBootTest

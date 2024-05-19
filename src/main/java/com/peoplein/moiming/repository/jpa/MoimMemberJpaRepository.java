@@ -78,7 +78,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
         checkIllegalQueryParams(memberId, moimId);
         return Optional.ofNullable(queryFactory.selectFrom(moimMember)
                 .join(moimMember.member, member).fetchJoin()
-                .join(member.memberInfo, memberInfo).fetchJoin()
+                .leftJoin(member.memberInfo, memberInfo).fetchJoin()
                 .where(moimMember.member.id.eq(memberId),
                         moimMember.moim.id.eq(moimId))
                 .fetchOne());
@@ -88,7 +88,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     public List<MoimMember> findActiveWithMemberAndInfoByMoimId(Long moimId) {
         return queryFactory.selectFrom(moimMember)
                 .join(moimMember.member, member).fetchJoin()
-                .join(member.memberInfo, memberInfo).fetchJoin()
+                .leftJoin(member.memberInfo, memberInfo).fetchJoin()
                 .where(moimMember.moim.id.eq(moimId))
                 .fetch();
     }

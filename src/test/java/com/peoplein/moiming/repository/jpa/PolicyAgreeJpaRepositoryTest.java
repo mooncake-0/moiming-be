@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,7 +44,7 @@ public class PolicyAgreeJpaRepositoryTest extends TestObjectCreator {
     void be() {
         // Role 및 Member 저장
         Role testRole = makeTestRole(RoleType.USER);
-        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        testMember = makeTestMember(memberPhone, nickname, ci, testRole);
         em.persist(testRole);
         em.persist(testMember);
 

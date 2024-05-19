@@ -35,8 +35,19 @@ public class RelatedFileJpaRepository {
                         "JOIN FETCH rf.file " +
                         "WHERE rf.domainId = :domainId " +
                         "AND rf.fileDomain = :fileDomain " +
-                        "ORDER BY rf.sequence")
+                        "ORDER BY rf.sequence", RelatedFile.class)
                 .setParameter("domainId", domainId)
+                .setParameter("fileDomain", fileDomain)
+                .getResultList();
+    }
+
+
+    public List<RelatedFile> findThumbnailFileByDomainIds(List<Long> domainIds, FileDomain fileDomain) {
+        return em.createQuery("SELECT rf FROM RelatedFile  rf " +
+                        "WHERE rf.domainId IN :domainIds " +
+                        "AND rf.fileDomain = :fileDomain " +
+                        "AND rf.sequence = 0", RelatedFile.class)
+                .setParameter("domainIds", domainIds)
                 .setParameter("fileDomain", fileDomain)
                 .getResultList();
     }

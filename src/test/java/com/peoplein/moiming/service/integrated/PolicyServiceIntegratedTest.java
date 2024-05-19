@@ -19,9 +19,9 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
-import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignInReqDto.*;
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignUpReqDto.*;
 import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -48,7 +48,7 @@ public class PolicyServiceIntegratedTest extends TestObjectCreator {
         // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
         Role testRole = makeTestRole(RoleType.USER);
 
-        testMember = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);// 저장할 Member 를 만든다.
+        testMember = makeTestMember(memberPhone, nickname, ci, testRole);// 저장할 Member 를 만든다.
         String preRefreshToken = createTestJwtToken(testMember, 2000);// 해당 멤버에 Refresh Token 을 저장해준다
         testMember.changeRefreshToken(preRefreshToken);
 
@@ -92,7 +92,6 @@ public class PolicyServiceIntegratedTest extends TestObjectCreator {
             }
         }
     }
-
 
 
     // 잘 변하는지만 확인한다

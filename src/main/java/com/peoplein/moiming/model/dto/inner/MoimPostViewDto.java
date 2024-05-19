@@ -2,7 +2,7 @@ package com.peoplein.moiming.model.dto.inner;
 
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
-import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.file.RelatedFile;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,10 +11,10 @@ import java.util.Map;
 
 @Getter
 @AllArgsConstructor
-public class StateMapperDto<T> {
+public class MoimPostViewDto {
 
-    private List<T> entities;
-    private Map<Long, MoimMemberState> stateMapper;
-
+    private List<MoimPost> moimPosts;
+    private Map<Long, MoimMemberState> postCreatorStates;
+    private Map<Long, RelatedFile> thumbnailFiles;
 
 }

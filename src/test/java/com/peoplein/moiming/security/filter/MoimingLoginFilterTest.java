@@ -5,10 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Role;
-import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
-import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import javax.persistence.EntityManager;
 
@@ -29,13 +26,13 @@ import java.util.Map;
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.security.exception.AuthExceptionValue.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
+// TODO :: 멤버 인포 기입된 상태에서 Login / Sign Up 테스트 후 정보 전달 boolean 확인 해야 함
 @AutoConfigureMockMvc
 @Transactional
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -60,7 +57,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void be_input_user_db() {
 
         Role role = makeTestRole(RoleType.USER);
-        member = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, role);
+        member = makeTestMember(memberPhone, nickname, ci, role);
 
         roleRepository.save(role);
         memberRepository.save(member);
@@ -74,7 +71,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void filter_shouldLogin_whenRightInfoPassed() throws Exception {
 
         //given
-        AuthLoginReqDto loginReqDto = new AuthLoginReqDto(memberEmail, password);
+        AuthLoginReqDto loginReqDto = new AuthLoginReqDto(memberPhone, password);
         String requestDto = om.writeValueAsString(loginReqDto);
 
         //when
@@ -84,6 +81,8 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         resultActions.andExpect(status().isOk());
         // then
         resultActions.andExpect(jsonPath("$.data.memberId").exists());
+        resultActions.andExpect(jsonPath("$.data.hasMemberInfo").value(false));
+        resultActions.andExpect(jsonPath("$.data.memberPhone").value(memberPhone));
         resultActions.andExpect(jsonPath("$.data.nickname").exists());
         resultActions.andExpect(jsonPath("$.data.fcmToken").value(fcmToken));
         resultActions.andExpect(jsonPath("$.data.createdAt").exists());
@@ -91,12 +90,6 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.tokenInfo.accessTokenExp").exists());
         resultActions.andExpect(jsonPath("$.data.tokenInfo.refreshToken").exists());
         resultActions.andExpect(jsonPath("$.data.tokenInfo.refreshTokenExp").exists());
-
-        resultActions.andExpect(jsonPath("$.data.memberEmail").value(memberEmail));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberName").value(memberName));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberPhone").value(memberPhone));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberBirth").value(memberBirthStringFormat));
-        resultActions.andExpect(jsonPath("$.data.memberInfo.memberGender").value(memberGender.toString()));
     }
 
 
@@ -105,7 +98,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
         // given
         Map<String, String> wrongDto = new HashMap<>();
-        wrongDto.put("memberEmoll", memberEmail);
+        wrongDto.put("memberEmoll", memberPhone);
         wrongDto.put("password", password);
         String requestDto = om.writeValueAsString(wrongDto);
 
@@ -123,7 +116,7 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
     void filter_shouldReturn400_whenEmptyParamPassed_byLoginAttemptException() throws Exception {
 
         // given
-        AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberEmail, "");
+        AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberPhone, "");
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when
@@ -147,16 +140,15 @@ public class MoimingLoginFilterTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isNotFound());
-        resultActions.andExpect(jsonPath("$.code").value(AUTH_LOGIN_EMAIL_NOT_FOUND.getErrCode()));
+        resultActions.andExpect(jsonPath("$.code").value(AUTH_LOGIN_PHONE_NOT_FOUND.getErrCode()));
     }
-
 
 
     @Test
     void filter_shouldReturn401_whenPasswordWrong_byLoginAttemptException() throws Exception {
 
         // given
-        AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberEmail, password + "a");
+        AuthLoginReqDto wrongDto = new AuthLoginReqDto(memberPhone, password + "a");
         String requestDto = om.writeValueAsString(wrongDto);
 
         // when

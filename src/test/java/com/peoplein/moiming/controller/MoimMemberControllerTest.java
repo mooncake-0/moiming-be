@@ -3,14 +3,15 @@ package com.peoplein.moiming.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.Notification;
+import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.CategoryName;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
-import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.support.TestObjectCreator;
@@ -25,6 +26,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,8 +35,8 @@ import static com.peoplein.moiming.domain.enums.MoimMemberRoleType.*;
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimMemberReqDto.*;
-import static com.peoplein.moiming.support.TestModelParams.*;
-import static com.peoplein.moiming.support.TestModelParams.moimArea;
+import static com.peoplein.moiming.support.TestParams.*;
+import static com.peoplein.moiming.support.TestParams.moimArea;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,10 +75,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         Role testRole = makeTestRole(RoleType.USER);
         em.persist(testRole);
 
-        testMember1 = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
-        testMember2 = makeTestMember(memberEmail2, memberPhone2, memberName2, nickname2, ci2, testRole);
-        testMember3 = makeTestMember(memberEmail3, memberPhone3, memberName3, nickname3, ci3, testRole);
-        testMember = makeTestMember(memberEmail4, memberPhone4, memberName4, nickname4, ci4, testRole);
+        testMember1 = makeTestMember(memberPhone, nickname, ci, testRole);
+        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
+        testMember = makeTestMember(memberPhone4, nickname4, ci4, testRole);
         em.persist(testMember1);
         em.persist(testMember2);
         em.persist(testMember3);
@@ -99,7 +101,15 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         em.clear();
     }
 
-    // TEST 대상
+//    moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
+//    moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+    void insertTestMemberInfo(Member member, MemberGender memberGender, LocalDate memberBirth) {
+        // given - 개인정보 기입완료
+        MemberInfo curMemberInfo = makeMemberInfo(member, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+        em.flush();
+        em.clear();
+    }
 
 
     // getActiveMoimMembers() - 모임의 모든 회원 및 상태 조회
@@ -214,6 +224,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void joinMoim_shouldReturn200_whenFirstMemberJoinSuccessful() throws Exception { // Moim1 에 Member3 가 가입요청 진행
 
+        // given - 회원 개인 정보 입력 완료
+        testMember3 = em.find(Member.class, testMember3.getId());
+        insertTestMemberInfo(testMember3, memberGender3, memberBirth3);
+
         // given
         MoimMemberJoinReqDto requestDto = new MoimMemberJoinReqDto(testMoim1.getId());
         String requestBody = om.writeValueAsString(requestDto);
@@ -228,9 +242,32 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
+    @Test
+    void joinMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception { // Moim1 에 Member3 가 가입요청 진행
+
+        // given
+        MoimMemberJoinReqDto requestDto = new MoimMemberJoinReqDto(testMoim1.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(testMember3, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
+    }
+
+
     // 휴면복구 유저가 join 시도 (IBD 의 시도)
     @Test
     void joinMoim_shouldReturn200_whenIBDMemberJoinSuccessful() throws Exception {
+
+        // given - 회원 개인 정보 입력 완료
+        testMember = em.find(Member.class, testMember.getId());
+        insertTestMemberInfo(testMember, memberGender, memberBirth);
 
         // given - 추가 데이터 - 추가 데이터 제어시에는 항상 영속화 관계 주의하기
         // 주의 : moim 은 전역 함수로 되었고, 준영속 상태로 넘어가 있음
@@ -272,6 +309,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     // 스스로 나감이 join 시도 (IBW 의 시도)
     @Test
     void joinMoim_shouldReturn200_whenIBWMemberJoinSuccessful() throws Exception {
+
+        // given - 요청자 개인 정보 추가
+        testMember = em.find(Member.class, testMember.getId());
+        insertTestMemberInfo(testMember, memberGender, memberBirth);
 
         // given - 추가 데이터
         testMoim1 = em.find(Moim.class, testMoim1.getId());
@@ -352,6 +393,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void joinMoim_shouldReturn403_whenIBFMemberJoin_byMoimingApiException() throws Exception {
 
+        // given - 요청자 개인 정보 입력 완
+        testMember = em.find(Member.class, testMember.getId());
+        insertTestMemberInfo(testMember, memberGender, memberBirth);
+
         // given - 추가 데이터
         testMoim1 = em.find(Moim.class, testMoim1.getId()); // 재영속화
         MoimMember.memberJoinMoim(testMember, testMoim1, NORMAL, IBF); // 강퇴당한 유저이다
@@ -388,6 +433,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void joinMoim_shouldReturn403_whenMemberJoinFullMoim_byMoimingApiException() throws Exception {
 
+        // given - 요청자 개인 정보 입력 완
+        testMember = em.find(Member.class, testMember.getId());
+        insertTestMemberInfo(testMember, memberGender, memberBirth);
+
         // given - data su
         Moim testMoim = makeTestMoim(moimName2, 3, moimArea.getState(), moimArea.getCity(), testMoimCategories, testMember1);
         MoimMember.memberJoinMoim(testMember2, testMoim, NORMAL, ACTIVE);
@@ -417,6 +466,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void joinMoim_shouldReturn409_whenAlreadyMoimMember_byMoimingApiException() throws Exception {
 
+        // given - 요청자 개인 정보 입력 완
+        testMember2 = em.find(Member.class, testMember2.getId());
+        insertTestMemberInfo(testMember2, memberGender2, memberBirth2);
+
         // given
         MoimMemberJoinReqDto requestDto = new MoimMemberJoinReqDto(testMoim1.getId());
         String requestBody = om.writeValueAsString(requestDto);
@@ -426,7 +479,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
-        System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
         resultActions.andExpect(status().isConflict());
@@ -439,6 +491,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     // 성공 - 성공 후 DB 도 확인하면 좋을 듯
     @Test
     void leaveMoim_shouldReturn200_whenSuccessful() throws Exception { // testMember2 가 나가려고 한다
+
+        // given - 요청자 개인 정보 입력 완
+        testMember2 = em.find(Member.class, testMember2.getId());
+        insertTestMemberInfo(testMember2, memberGender2, memberBirth2);
 
         // given
         MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
@@ -469,11 +525,14 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         assertNotNull(notification);
     }
 
-
     // 실패 CASE 작성
     // 해당 모임에 있는 모임원을 찾지 못함 - Moim 혹은 Member 어느쪽이 잘못되었는지는 모름
     @Test
     void leaveMoim_shouldReturn404_whenMoimMemberNotFound_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 입력 완
+        testMember2 = em.find(Member.class, testMember2.getId());
+        insertTestMemberInfo(testMember2, memberGender2, memberBirth2);
 
         // given
         Long wrongMoimId = 1000L;
@@ -494,9 +553,34 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
+    // 실패 : 개인 정보 없는 회원의 탈퇴 요청
+    @Test
+    void leaveMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception { // testMember2 가 나가려고 한다
+
+        // given
+        MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(testMember2, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
+    }
+
+
     // MANAGER 가 나가려 한다 (운영자(생성자)는 나갈 수 없음)
     @Test
     void leaveMoim_shouldReturn403_whenManagerAttemptsLeave_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 입력 완
+        testMember1 = em.find(Member.class, testMember1.getId());
+        insertTestMemberInfo(testMember1, memberGender, memberBirth);
 
         // given
         MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
@@ -558,6 +642,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void expelMember_shouldReturn200_whenSuccessful() throws Exception { // testMember1 이 Member2 를 강퇴한다
 
+        // given - 요청자 개인 정보 개입 완
+        testMember1 = em.find(Member.class, testMember1.getId());
+        insertTestMemberInfo(testMember1, memberGender, memberBirth);
+
         // given
         String inactiveReason = "너가 모임을 못하는 이유는";
         MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember2.getId(), inactiveReason);
@@ -618,9 +706,35 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
+    // 성공 - 실패 - 요청자가 개인정보 기입을 안함
+    @Test
+    void expelMember_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception { // testMember1 이 Member2 를 강퇴한다
+
+        // given
+        String inactiveReason = "너가 모임을 못하는 이유는";
+        MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember2.getId(), inactiveReason);
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(testMember1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+
+    }
+
+
     // 비운영자가 강퇴를 시도함
     @Test
     void expelMember_shouldReturn403_whenAttemptByNoManager_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 개입 완
+        testMember3 = em.find(Member.class, testMember3.getId());
+        insertTestMemberInfo(testMember3, memberGender3, memberBirth3);
 
         // given - 추가 데이터 - 일반 유저가 일반 유저를 강퇴하려는 시도를 TEST 하는게 맞아 보임 - member3 가입시키자
         testMoim1 = em.find(Moim.class, testMoim1.getId());
@@ -649,6 +763,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void expelMember_shouldReturn422_whenAttemptToNoMoimMember_byMoimingApiException() throws Exception {
 
+        // given - 요청자 개인 정보 개입 완
+        testMember1 = em.find(Member.class, testMember1.getId());
+        insertTestMemberInfo(testMember1, memberGender, memberBirth);
+
         // given
         MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember3.getId(), ""); // 가입되어 있지 않은 유저
         String requestBody = om.writeValueAsString(requestDto);
@@ -666,9 +784,13 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
-    // 누군가를 강퇴하는 요청을 보낸 유저가 가입한적 없는 모임이다 // 이걸 먼저 판별하기 때문에 운영자에서 안걸러진다
+    // 누군가를 강퇴하는 요청을 보낸 유저가 가입한적 없는 모임이다 // 이걸 먼저 판별하기 때문에 운영자에서 안걸러진다 - 가입한적 없는 유저의 요청
     @Test
     void expelMember_shouldReturn422_whenAttemptByNoMoimMember_byMoimingApiException() throws Exception {
+
+        // given - 요청자 개인 정보 개입 완
+        testMember3 = em.find(Member.class, testMember3.getId());
+        insertTestMemberInfo(testMember3, memberGender3, memberBirth3);
 
         // given
         MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember2.getId(), "");

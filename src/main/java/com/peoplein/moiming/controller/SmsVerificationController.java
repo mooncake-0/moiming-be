@@ -51,29 +51,8 @@ public class SmsVerificationController {
     @PostMapping(PATH_AUTH_REQ_SMS_VERIFY)
     public ResponseEntity<?> processSmsVerification(@RequestBody @Valid AuthSmsReqDto requestDto
             , BindingResult br) {
-
-        checkValidReqDto(requestDto);
-        SmsVerification smsVerification;
-        if (requestDto.getVerifyType().equals(SIGN_UP)) {
-            smsVerification = smsVerificationService.processSignUpSmsVerification(requestDto);
-        }else{
-            smsVerification = smsVerificationService.processSmsVerification(requestDto);
-        }
+        SmsVerification smsVerification = smsVerificationService.processSmsVerification(requestDto);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "SMS 문자 송신 성공", new AuthSmsRespDto(smsVerification)));
-
-    }
-
-
-    private void checkValidReqDto(AuthSmsReqDto requestDto) {
-
-        if (requestDto == null || requestDto.getVerifyType() == null || (
-                requestDto.getVerifyType().equals(FIND_ID) && !StringUtils.hasText(requestDto.getMemberName()) // FIND_ID 이지만 이름이 비어있을 경우
-        ) || (
-                requestDto.getVerifyType().equals(FIND_PW) && !StringUtils.hasText(requestDto.getMemberEmail()) // FIND_PW 이지만 이메일이 비어있음
-        )) {
-            log.error("{}, checkValidReqDto :: {}", this.getClass().getName(), "ReqDto 문제 or FIND_ID 인데 이름이 없거나, FIND_PW 인데 이메일이 없음");
-            throw new MoimingApiException(COMMON_INVALID_PARAM);
-        }
 
     }
 

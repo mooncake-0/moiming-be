@@ -13,7 +13,7 @@ public enum AuthExceptionValue {
 
     AUTH_LOGIN_PASSWORD_INCORRECT(HttpStatus.UNAUTHORIZED.value(), "AL000", "비밀번호가 일치하지 않습니다"),
     AUTH_LOGIN_REQUEST_INVALID(HttpStatus.BAD_REQUEST.value(), "AL001", "요청을 읽을 수 없습니다"),
-    AUTH_LOGIN_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "AL002", "로그인 시도한 Email 을 찾을 수 없습니다"),
+    AUTH_LOGIN_PHONE_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "AL002", "로그인 시도한 휴대폰 번호를 찾을 수 없습니다"),
     AUTH_LOGIN_EXTRA(HttpStatus.UNAUTHORIZED.value(), "AL999", "알 수 없는 이유로 로그인에 실패하였습니다"),
 
 
@@ -31,7 +31,7 @@ public enum AuthExceptionValue {
 
 
     AUTH_SIGN_IN_NICKNAME_FAIL(HttpStatus.INTERNAL_SERVER_ERROR.value(), "AS000", "자동 닉네임 생성에 실패하였습니다. 요청을 다시 시도해주세요"),
-    AUTH_SIGN_IN_DUPLICATE_COLUMN(HttpStatus.CONFLICT.value(), "AS001", "중복되는 회원입니다 (이메일, 전화번호 중 중복 발생)"),
+    AUTH_SIGN_UP_PHONE_DUPLICATE(HttpStatus.CONFLICT.value(), "AS001", "중복되는 회원입니다 (전화번호 중복 발생)"),
 
 
     // AUTH_SMS

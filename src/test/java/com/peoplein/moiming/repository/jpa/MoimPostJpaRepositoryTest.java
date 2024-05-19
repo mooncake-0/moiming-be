@@ -22,7 +22,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Random;
 
-import static com.peoplein.moiming.support.TestModelParams.*;
+import static com.peoplein.moiming.support.TestParams.*;
 import static org.assertj.core.api.Assertions.*;
 
 @Import({RepositoryTestConfiguration.class, MoimPostJpaRepository.class})
@@ -43,7 +43,7 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
     void ba() throws InterruptedException {
 
         Role testRole = makeTestRole(RoleType.USER);
-        moimCreator = makeTestMember(memberEmail, memberPhone, memberName, nickname, ci, testRole);
+        moimCreator = makeTestMember( memberPhone,  nickname, ci, testRole);
         em.persist(testRole);
         em.persist(moimCreator);
 
@@ -104,7 +104,7 @@ public class MoimPostJpaRepositoryTest extends TestObjectCreator {
 
         // when
         List<MoimPost> firstReq = moimPostRepository.findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
-        int lastPostIndex = firstReq.size() == 0 ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
+        int lastPostIndex = firstReq.isEmpty() ? 0 : firstReq.size() - 1; // 마지막 녀석을 가져온다
         lastPost = firstReq.get(lastPostIndex);
         List<MoimPost> nextReq = moimPostRepository.findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(testMoim.getId(), lastPost, category, 10, moimMemberRequest);
 
