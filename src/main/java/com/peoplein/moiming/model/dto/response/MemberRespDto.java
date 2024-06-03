@@ -43,11 +43,10 @@ public class MemberRespDto {
             this.updatedAt = member.getUpdatedAt() + "";
             this.lastLoginAt = member.getLastLoginAt() + "";
             this.pfImgUrl = DEFAULT_MEMBER_PF_IMG_PATH;
-            if (member.getMemberInfo() != null && StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
-                this.pfImgUrl = member.getMemberInfo().getPfImgUrl();
+            if(StringUtils.hasText(member.getPfImgUrl())) {
+                this.pfImgUrl = member.getPfImgUrl();
             }
         }
-
     }
 
 

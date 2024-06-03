@@ -2,6 +2,7 @@ package com.peoplein.moiming.repository;
 
 
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.Optional;
 public interface MemberRepository {
 
     void save(Member member);
+    void save(MemberInfo memberInfo);
 
     Optional<Member> findById(Long memberId);
 

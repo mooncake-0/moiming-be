@@ -1,6 +1,7 @@
 package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,11 @@ public class MemberJpaRepository implements MemberRepository {
     @Override
     public void save(Member member) {
         em.persist(member);
+    }
+
+    @Override
+    public void save(MemberInfo memberInfo){
+        em.persist(memberInfo);
     }
 
     @Override

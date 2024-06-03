@@ -3,6 +3,7 @@ package com.peoplein.moiming.domain.member;
 
 import com.peoplein.moiming.domain.BaseEntity;
 import com.peoplein.moiming.domain.enums.MemberGender;
+import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
 import lombok.AccessLevel;
@@ -12,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -55,6 +55,10 @@ public class Member extends BaseEntity {
     private String fcmToken;
 
     private boolean hasDeleted;
+
+    private Long pfImgFileId;
+
+    private String pfImgUrl;
 
     private LocalDateTime lastLoginAt;
 
@@ -115,6 +119,18 @@ public class Member extends BaseEntity {
     public void changeLastLoginAt() {
         this.lastLoginAt = LocalDateTime.now();
     }
+
+    public void changePfImg(File file) {
+        this.pfImgFileId = file.getId();
+        this.pfImgUrl = file.getFileUrl();
+    }
+
+
+    public void deletePfImg() {
+        this.pfImgFileId = null;
+        this.pfImgUrl = null;
+    }
+
 
     public void changePassword(String password) {
         if (!StringUtils.hasText(password)) {

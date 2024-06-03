@@ -56,14 +56,13 @@ public class StorageService {
                 new MoimingApiException(COMMON_INVALID_SITUATION) // 정말 이상한 상황이라
         );
 
-        MemberInfo memberInfo = member.getMemberInfo();
-
         // 기존 정보 삭제 요청 (만약 프로필 이미지가 존재했었다면)
         // 1. 기존 파일 조회 및 삭제
         // 2. amazonS3Client 로 삭제
-        if (memberInfo.getPfImgFileId() != null) {
-            File originalFile = fileRepository.findById(memberInfo.getPfImgFileId()).orElseThrow(() -> {
-                log.error("{}, uploadMemberPfImg :: {}", this.getClass().getName(), "id: [" + memberInfo.getPfImgFileId() + "] 의 파일을 찾을 수 없습니다");
+        if (member.getPfImgFileId() != null) {
+            Long id = member.getPfImgFileId();
+            File originalFile = fileRepository.findById(id).orElseThrow(() -> {
+                log.error("{}, uploadMemberPfImg :: {}", this.getClass().getName(), "id: [" + id + "] 의 파일을 찾을 수 없습니다");
                 return new MoimingApiException(STORAGE_FILE_NOT_FOUND);
             });
             fileRepository.remove(originalFile);
@@ -83,7 +82,7 @@ public class StorageService {
 
             File file = new File(USER, fileName, resourceUrl, imgFile.getContentType(), member.getId());
             fileRepository.save(file);
-            memberInfo.changePfImg(file);
+            member.changePfImg(file);
 
             return resourceUrl;
 
@@ -105,19 +104,19 @@ public class StorageService {
                 new MoimingApiException(COMMON_INVALID_SITUATION)
         );
 
-        MemberInfo memberInfo = member.getMemberInfo();
-        if (memberInfo.getPfImgFileId() == null) { // 이미 없음
+        if (member.getPfImgFileId() == null) { // 이미 없음
             return;
         }
 
-        File originalFile = fileRepository.findById(memberInfo.getPfImgFileId()).orElseThrow(() -> {
-            log.error("{}, uploadMemberPfImg :: {}", this.getClass().getName(), "id: [" + memberInfo.getPfImgFileId() + "] 의 파일을 찾을 수 없습니다");
+        Long id = member.getPfImgFileId();
+        File originalFile = fileRepository.findById(id).orElseThrow(() -> {
+            log.error("{}, uploadMemberPfImg :: {}", this.getClass().getName(), "id: [" + id + "] 의 파일을 찾을 수 없습니다");
             return new MoimingApiException(STORAGE_FILE_NOT_FOUND);
         });
 
         amazonS3Client.deleteObject(bucketName, originalFile.getFileName()); // 현재 삭제 안됨
         fileRepository.remove(originalFile);
-        memberInfo.deletePfImg();
+        member.deletePfImg();
     }
 
 
