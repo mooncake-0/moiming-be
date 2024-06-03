@@ -29,7 +29,7 @@ public class MemberJpaRepository implements MemberRepository {
     }
 
     @Override
-    public void save(MemberInfo memberInfo){
+    public void saveMemberInfo(MemberInfo memberInfo){
         em.persist(memberInfo);
     }
 

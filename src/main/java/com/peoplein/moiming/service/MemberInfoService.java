@@ -33,7 +33,7 @@ public class MemberInfoService {
 
         member = persistSecurityMember(member.getId()); // 영속화하여 변경사항이 저장되도록 한다
         MemberInfo memberInfo = MemberInfo.saveMemberInfo(member, "", requestDto.getMemberGender(), requestDto.getMemberBirth());
-        memberRepository.save(memberInfo);
+        memberRepository.saveMemberInfo(memberInfo);
 
     }
 
