@@ -78,10 +78,8 @@ public class MoimPostRespDto {
                 this.nickname = member.getNickname();
                 this.creator = Objects.equals(moimCreatorId, member.getId());
                 this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
-                if (member.getMemberInfo() != null) { // NULL 인 경우는 발생할 수가 없다
-                    if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
-                        this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
-                    }
+                if(StringUtils.hasText(member.getPfImgUrl())) {
+                    this.memberPfImgUrl = member.getPfImgUrl();
                 }
             }
         }
@@ -149,10 +147,8 @@ public class MoimPostRespDto {
                 this.nickname = member.getNickname();
                 this.creator = creator;
                 this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
-                if (member.getMemberInfo() != null) { // NULL 인 경우는  DORMANT 혹은 DELETED
-                    if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
-                        this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
-                    }
+                if(StringUtils.hasText(member.getPfImgUrl())) {
+                    this.memberPfImgUrl = member.getPfImgUrl();
                 }
             }
         }
@@ -227,12 +223,10 @@ public class MoimPostRespDto {
             public PostMemberDto(Long moimCreatorId, Member member) {
                 this.memberId = member.getId();
                 this.nickname = member.getNickname();
-                this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
                 this.creator = Objects.equals(moimCreatorId, member.getId());
-                if (member.getMemberInfo() != null) { // NULL 인 경우 DELETE 혹은 DORMANT
-                    if (StringUtils.hasText(member.getMemberInfo().getPfImgUrl())) {
-                        this.memberPfImgUrl = member.getMemberInfo().getPfImgUrl();
-                    }
+                this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
+                if(StringUtils.hasText(member.getPfImgUrl())) {
+                    this.memberPfImgUrl = member.getPfImgUrl();
                 }
             }
         }

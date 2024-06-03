@@ -70,7 +70,8 @@ public enum ExceptionValue {
 
 
     // 개인정보 미등록 에러
-    MEMBER_INFO_NOT_REGISTERED(HttpStatus.FORBIDDEN.value(), "MI000", "개인 정보를 등록하지 않은 유저입니다"),;
+    MEMBER_INFO_NOT_REGISTERED(HttpStatus.FORBIDDEN.value(), "MI000", "개인 정보를 등록하지 않은 유저입니다"),
+    MEMBER_INFO_ALREADY_REGISTERED(HttpStatus.CONFLICT.value(), "MI001", "개인 정보가 이미 등록된 유저입니다. 수정 필요시 수정 API 를 활용하세요");
 
     private int status;
     private String errCode;

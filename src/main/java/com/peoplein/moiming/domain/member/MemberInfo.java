@@ -30,11 +30,6 @@ public class MemberInfo extends BaseEntity {
     @Column(nullable = false)
     private LocalDate memberBirth;
 
-    private Long pfImgFileId;
-
-    private String pfImgUrl;
-
-
     public static MemberInfo saveMemberInfo(Member member, String memberName, MemberGender memberGender, LocalDate memberBirth) {
         return new MemberInfo(member, memberName, memberGender, memberBirth);
     }
@@ -48,18 +43,6 @@ public class MemberInfo extends BaseEntity {
 
         // 연관관계 편의
         member.saveMemberInfo(this);
-    }
-
-
-    public void changePfImg(File file) {
-        this.pfImgFileId = file.getId();
-        this.pfImgUrl = file.getFileUrl();
-    }
-
-
-    public void deletePfImg() {
-        this.pfImgFileId = null;
-        this.pfImgUrl = null;
     }
 
 
