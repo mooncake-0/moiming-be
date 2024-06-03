@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface MemberRepository {
 
     void save(Member member);
-    void save(MemberInfo memberInfo);
+    void saveMemberInfo(MemberInfo memberInfo);
 
     Optional<Member> findById(Long memberId);
 
