@@ -7,6 +7,7 @@ import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberRoleType.*;
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
@@ -162,11 +163,18 @@ public class MoimMemberTest {
     // hasPermissionOfManager --> 현 상황이 MANAGER 인지 확인
     @Test
     void hasPermissionOfManager_shouldReturnTrue_whenManager() {
+
         // given
-        MoimMember moimMember = spy(MoimMember.class);
+//        MoimMember moimMember = spy(MoimMember.class);
 
         // given - stub
-        when(moimMember.getMemberRoleType()).thenReturn(MANAGER);
+//        when(moimMember.getMemberRoleType()).thenReturn(MANAGER);
+//        when(moimMember.getMemberState()).thenReturn(ACTIVE);
+
+        // given - 비즈니스 로직은 실 객체로 테스트, 하지만 Associate 된 필요 객체들은 모킹 주입
+        Member mockMember = mock(Member.class);
+        Moim mockMoim = mock(Moim.class);
+        MoimMember moimMember = MoimMember.memberJoinMoim(mockMember, mockMoim, MANAGER, ACTIVE);
 
         // when
         boolean result = moimMember.hasPermissionOfManager();
@@ -180,11 +188,11 @@ public class MoimMemberTest {
     // 아닐경우 false
     @Test
     void hasPermissionOfManager_shouldReturnFalse_whenNotManager() {
-        // given
-        MoimMember moimMember = spy(MoimMember.class);
 
-        // given - stub
-        when(moimMember.getMemberRoleType()).thenReturn(NORMAL);
+        // given - 비즈니스 로직은 실 객체로 테스트, 하지만 Associate 된 필요 객체들은 모킹 주입
+        Member mockMember = mock(Member.class);
+        Moim mockMoim = mock(Moim.class);
+        MoimMember moimMember = MoimMember.memberJoinMoim(mockMember, mockMoim, NORMAL, ACTIVE);
 
         // when
         boolean result = moimMember.hasPermissionOfManager();
@@ -194,6 +202,42 @@ public class MoimMemberTest {
 
     }
     // all 동작
+
+
+    // 모임장이 나갔다가 일반 유저로 재가입
+    @Test
+    void hasPermissionOfManager_shouldReturnFalse_whenFormerManager() {
+
+        // given - 비즈니스 로직은 실 객체로 테스트, 하지만 Associate 된 필요 객체들은 모킹 주입
+        Member mockMember = mock(Member.class);
+        Moim mockMoim = mock(Moim.class);
+        MoimMember moimMember = MoimMember.memberJoinMoim(mockMember, mockMoim, FORMER_MANAGER, ACTIVE);
+
+        // when
+        boolean result = moimMember.hasPermissionOfManager();
+
+        // then
+        assertFalse(result);
+
+    }
+
+
+    // 모임장이였다가 나간 유저, 접근 불가 권한
+    @Test
+    void hasPermissionOfManager_shouldReturnFalse_whenManagerButNotActive() {
+
+        // given - 비즈니스 로직은 실 객체로 테스트, 하지만 Associate 된 필요 객체들은 모킹 주입
+        Member mockMember = mock(Member.class);
+        Moim mockMoim = mock(Moim.class);
+        MoimMember moimMember = MoimMember.memberJoinMoim(mockMember, mockMoim, MANAGER, IBW);
+
+        // when
+        boolean result = moimMember.hasPermissionOfManager();
+
+        // then
+        assertFalse(result);
+
+    }
 
 
     // changeMemberState -> 각 상황별 동작성 확인해야함

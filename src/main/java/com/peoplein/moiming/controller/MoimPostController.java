@@ -116,7 +116,7 @@ public class MoimPostController {
         Map<Long, RelatedFile> fileMapper = moimPostViews.getThumbnailFiles();
 
         List<MoimPostViewRespDto> responseBody = moimPosts.stream().map(moimPost -> new MoimPostViewRespDto(moimPost
-                , Objects.equals(moimPost.getMember().getId(), moimPost.getMoim().getCreatorId()) // Moim 과 Member 모두 Fetch Join 되어 영속화된 상태
+                , Objects.equals(moimPost.getMember().getId(), moimPost.getMoim().getCurManagerId()) // Moim 과 Member 모두 Fetch Join 되어 영속화된 상태
                 , fileMapper.get(moimPost.getId())
         )).collect(Collectors.toList());
 

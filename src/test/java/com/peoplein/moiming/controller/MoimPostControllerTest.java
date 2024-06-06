@@ -138,7 +138,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
 
         // then notification 생성 확인 - moimMember 가 만들었으니 다른 모임원인 creator 에게 알림이 감
         Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
-                .setParameter("receiverId", testMoim.getCreatorId())
+                .setParameter("receiverId", testMoim.getCurManagerId())
                 .getSingleResult();
         assertNotNull(notification);
 

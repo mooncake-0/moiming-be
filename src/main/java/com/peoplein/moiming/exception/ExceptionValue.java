@@ -28,7 +28,7 @@ public enum ExceptionValue {
     MOIM_JOIN_FAIL_BY_MEMBER_FULL(HttpStatus.FORBIDDEN.value(), "M004", "모임 정원이 가득차서 가입할 수 없습니다"),
     MOIM_JOIN_FAIL_BY_ALREADY_JOINED(HttpStatus.CONFLICT.value(), "M005", "이미 가입한 모임입니다"),
 
-    MOIM_LEAVE_FAIL_BY_LAST_MEMBER(HttpStatus.FORBIDDEN.value(), "M006", "마지막 회원으로, 모임을 나갈 수 없습니다 (MVP 에선 발생할 일 없음)"),
+    MOIM_LEAVE_FAIL_BY_NO_MEMBER(HttpStatus.FORBIDDEN.value(), "M006", "운영중이지 않은 모임입니다"),
     MOIM_LEAVE_FAIL_BY_MANAGER(HttpStatus.FORBIDDEN.value(), "M007", "운영자(개설자) 는 모임을 나갈 수 없습니다"),
 
     MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER(HttpStatus.CONFLICT.value(), "M008", "수정하려는 최대 모임원 수가 현재 모임원 수보다 적습니다"),

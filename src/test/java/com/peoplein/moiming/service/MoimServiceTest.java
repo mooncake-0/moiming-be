@@ -82,7 +82,7 @@ public class MoimServiceTest {
         // given - stub
         when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
         when(member.getId()).thenReturn(2L);
-        when(moim.getCreatorId()).thenReturn(2L);
+        when(moim.getCurManagerId()).thenReturn(2L);
 
         // when
         moimService.updateImg(null, moimId, member);
@@ -129,7 +129,7 @@ public class MoimServiceTest {
         // given - stub
         when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
         when(member.getId()).thenReturn(2L);
-        when(moim.getCreatorId()).thenReturn(3L); // 둘이 다름 적용
+        when(moim.getCurManagerId()).thenReturn(3L); // 둘이 다름 적용
 
         // when
         assertThatThrownBy(() -> moimService.updateImg(null, moimId, member)).isInstanceOf(MoimingApiException.class);
@@ -153,7 +153,7 @@ public class MoimServiceTest {
         // given - stub
         when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
         when(member.getId()).thenReturn(1L);
-        when(moim.getCreatorId()).thenReturn(1L); // 모임 운영자의 요청임
+        when(moim.getCurManagerId()).thenReturn(1L); // 모임 운영자의 요청임
         when(moim.getImgFileId()).thenReturn(1L); // 모임에는 사진이 있음
 
         // when
@@ -196,7 +196,7 @@ public class MoimServiceTest {
         // given - stub
         when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
         when(member.getId()).thenReturn(1L);
-        when(moim.getCreatorId()).thenReturn(2L); // 모임 운영자의 요청임
+        when(moim.getCurManagerId()).thenReturn(2L); // 모임 운영자의 요청임
 
         // when
         // then
@@ -219,7 +219,7 @@ public class MoimServiceTest {
         // given - stub
         when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
         when(member.getId()).thenReturn(1L);
-        when(moim.getCreatorId()).thenReturn(1L); // 모임 운영자의 요청임
+        when(moim.getCurManagerId()).thenReturn(1L); // 모임 운영자의 요청임
         when(moim.getImgFileId()).thenReturn(null); // Mock 객체는 Long 은 get 했을 때 0 이 반환되는듯? null 이라고 명시해야함
 
         // when

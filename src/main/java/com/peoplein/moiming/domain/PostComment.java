@@ -83,10 +83,10 @@ public class PostComment extends BaseEntity{
      */
     public void deleteComment(Long deleterId) {
 
-        // 댓글 삭제 권한 - 모임 생성자, 댓글 작성자가 아니면 삭제할 수 없다
-        Long moimCreatorId = this.moimPost.getMoim().getCreatorId();
+        // 댓글 삭제 권한 - 모임 운영자, 댓글 작성자가 아니면 삭제할 수 없다
+        Long curManagerId = this.moimPost.getMoim().getCurManagerId();
 
-        if (!deleterId.equals(this.member.getId()) && !deleterId.equals(moimCreatorId)) {
+        if (!deleterId.equals(this.member.getId()) && !deleterId.equals(curManagerId)) {
             log.error("{}, deleteComment :: {}", this.getClass().getName(), "요청자는 해당 댓글을 삭제할 권한이 없습니다");
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }

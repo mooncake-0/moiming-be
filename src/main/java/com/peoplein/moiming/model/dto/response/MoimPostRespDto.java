@@ -59,7 +59,7 @@ public class MoimPostRespDto {
                 log.warn("{}, MoimPostCreateRespDto Creator :: {}", this.getClass().getName(), "Moim 이 연관관계되어 있지 않음");
                 throw new MoimingApiException(COMMON_INVALID_SITUATION);
             }
-            this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCreatorId(), postCreator);
+            this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCurManagerId(), postCreator);
             if (postWithFiles.getRelatedFiles() != null) {
                 this.files = postWithFiles.getRelatedFiles().stream().map(rf -> new FileDto(rf.getFile().getId(), rf.getFileUrl())).collect(Collectors.toList());
             }
@@ -71,12 +71,12 @@ public class MoimPostRespDto {
             private Long memberId;
             private String nickname;
             private String memberPfImgUrl;
-            private boolean creator;
+            private boolean manager;
 
-            public PostMemberDto(Long moimCreatorId, Member member) {
+            public PostMemberDto(Long curManagerId, Member member) {
                 this.memberId = member.getId();
                 this.nickname = member.getNickname();
-                this.creator = Objects.equals(moimCreatorId, member.getId());
+                this.manager = Objects.equals(curManagerId, member.getId());
                 this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
                 if(StringUtils.hasText(member.getPfImgUrl())) {
                     this.memberPfImgUrl = member.getPfImgUrl();
@@ -118,7 +118,7 @@ public class MoimPostRespDto {
         private FileDto file;
 
 
-        public MoimPostViewRespDto(MoimPost moimPost, boolean creator, RelatedFile thumbnailFile) {
+        public MoimPostViewRespDto(MoimPost moimPost, boolean manager, RelatedFile thumbnailFile) {
             this.moimPostId = moimPost.getId();
             this.postTitle = moimPost.getPostTitle();
             this.postContent = moimPost.getPostContent();
@@ -128,7 +128,7 @@ public class MoimPostRespDto {
             this.hasFiles = moimPost.isHasFiles();
             this.createdAt = moimPost.getCreatedAt() + "";
             this.updatedAt = moimPost.getUpdatedAt() + "";
-            this.postMemberDto = new PostMemberDto(moimPost.getMember(), creator);
+            this.postMemberDto = new PostMemberDto(moimPost.getMember(), manager);
             if (thumbnailFile != null) {
                 file = new FileDto(thumbnailFile.getFile().getId(), thumbnailFile.getFileUrl());
             }
@@ -140,12 +140,12 @@ public class MoimPostRespDto {
             private Long memberId;
             private String nickname;
             private String memberPfImgUrl;
-            private boolean creator;
+            private boolean manager;
 
-            public PostMemberDto(Member member, boolean creator) {
+            public PostMemberDto(Member member, boolean manager) {
                 this.memberId = member.getId();
                 this.nickname = member.getNickname();
-                this.creator = creator;
+                this.manager = manager;
                 this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
                 if(StringUtils.hasText(member.getPfImgUrl())) {
                     this.memberPfImgUrl = member.getPfImgUrl();
@@ -205,7 +205,7 @@ public class MoimPostRespDto {
                 log.warn("{}, MoimPostCreateRespDto Creator :: {}", this.getClass().getName(), "Moim 이 연관관계되어 있지 않음");
                 throw new MoimingApiException(COMMON_INVALID_SITUATION);
             }
-            this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCreatorId(), moimPost.getMember());
+            this.postMemberDto = new PostMemberDto(moimPost.getMoim().getCurManagerId(), moimPost.getMember());
             if (postWithFiles.getRelatedFiles() != null) {
                 this.files = postWithFiles.getRelatedFiles().stream().map(rf -> new FileDto(rf.getFile().getId(), rf.getFileUrl())).collect(Collectors.toList());
             }
@@ -217,13 +217,13 @@ public class MoimPostRespDto {
             private Long memberId;
             private String nickname;
             private String memberPfImgUrl;
-            private boolean creator;
+            private boolean manager;
 
 
-            public PostMemberDto(Long moimCreatorId, Member member) {
+            public PostMemberDto(Long curManagerId, Member member) {
                 this.memberId = member.getId();
                 this.nickname = member.getNickname();
-                this.creator = Objects.equals(moimCreatorId, member.getId());
+                this.manager = Objects.equals(curManagerId, member.getId());
                 this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
                 if(StringUtils.hasText(member.getPfImgUrl())) {
                     this.memberPfImgUrl = member.getPfImgUrl();

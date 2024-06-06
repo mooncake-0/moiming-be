@@ -60,6 +60,17 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                 .fetchOne());
     }
 
+
+    @Override
+    public Optional<MoimMember> findWithMoimByMemberAndMoimId(Long memberId, Long moimId) {
+        return Optional.ofNullable(queryFactory.selectFrom(moimMember)
+                .join(moimMember.moim, moim).fetchJoin()
+                .where(moimMember.member.id.eq(memberId),
+                        moimMember.moim.id.eq(moimId))
+                .fetchOne());
+    }
+
+
     @Override
     public Optional<MoimMember> findWithMoimAndCategoriesByMemberAndMoimId(Long memberId, Long moimId) {
         checkIllegalQueryParams(memberId, moimId);
@@ -89,7 +100,8 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
         return queryFactory.selectFrom(moimMember)
                 .join(moimMember.member, member).fetchJoin()
                 .leftJoin(member.memberInfo, memberInfo).fetchJoin()
-                .where(moimMember.moim.id.eq(moimId))
+                .where(moimMember.moim.id.eq(moimId)
+                , moimMember.memberState.eq(MoimMemberState.ACTIVE))
                 .fetch();
     }
 
@@ -125,6 +137,17 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
                         moimMember.member.id.in(memberIds)
                 )
                 .fetch();
+    }
+
+    @Override
+    public Optional<MoimMember> findLongestNormalActiveMemberByMoimId(Long moimId) {
+
+        return Optional.ofNullable(queryFactory.selectFrom(moimMember)
+                .where(moimMember.memberState.eq(MoimMemberState.ACTIVE)
+                        , moimMember.memberRoleType.eq(MoimMemberRoleType.NORMAL))
+                .orderBy(moimMember.createdAt.asc())
+                .limit(1)
+                .fetchOne());
     }
 
 

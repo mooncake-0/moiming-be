@@ -62,8 +62,8 @@ public class MoimPostDetailViewRespDto {
             log.warn("{}, MoimPostCreateRespDto Creator :: {}", this.getClass().getName(), "Moim 이 연관관계되어 있지 않음");
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
-        this.postCreator = new MemberInfoDto(moim.getCreatorId(), moimPost.getMember());
-        this.postComments = parentComments.stream().map(parent -> new ParentCommentDto(moim.getCreatorId(), parent, inputMap.get(parent.getId()))).collect(Collectors.toList());
+        this.postCreator = new MemberInfoDto(moim.getCurManagerId(), moimPost.getMember());
+        this.postComments = parentComments.stream().map(parent -> new ParentCommentDto(moim.getCurManagerId(), parent, inputMap.get(parent.getId()))).collect(Collectors.toList());
         if (postWithFiles.getRelatedFiles() != null) {
             this.files = postWithFiles.getRelatedFiles().stream().map(rf -> new FileDto(rf.getFile().getId(), rf.getFileUrl())).collect(Collectors.toList());
         }
@@ -77,12 +77,12 @@ public class MoimPostDetailViewRespDto {
         private Long memberId;
         private String nickname;
         private String memberPfImgUrl;
-        private boolean creator;
+        private boolean manager;
 
-        public MemberInfoDto(Long moimCreatorId, Member member) {
+        public MemberInfoDto(Long curManagerId, Member member) {
             this.memberId = member.getId();
             this.nickname = member.getNickname();
-            this.creator = Objects.equals(moimCreatorId, member.getId());
+            this.manager = Objects.equals(curManagerId, member.getId());
             this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
             if (StringUtils.hasText(member.getPfImgUrl())) {
                 this.memberPfImgUrl = member.getPfImgUrl();
@@ -117,7 +117,7 @@ public class MoimPostDetailViewRespDto {
         private MemberInfoDto commentCreator;
         private List<ChildCommentDto> childComments;
 
-        public ParentCommentDto(Long moimCreatorId, PostComment parentComment, List<PostComment> childComments) {
+        public ParentCommentDto(Long curManagerId, PostComment parentComment, List<PostComment> childComments) {
             this.parentCommentId = parentComment.getId();
             this.content = parentComment.getContent();
             this.depth = parentComment.getDepth();
@@ -125,9 +125,10 @@ public class MoimPostDetailViewRespDto {
             this.reported = parentComment.isReported();
             this.createdAt = parentComment.getCreatedAt() + "";
             this.updatedAt = parentComment.getUpdatedAt() + "";
-            this.commentCreator = new MemberInfoDto(moimCreatorId, parentComment.getMember());
-            this.childComments = childComments.stream().map(cc -> new ChildCommentDto(moimCreatorId, cc)).collect(Collectors.toList());
+            this.commentCreator = new MemberInfoDto(curManagerId, parentComment.getMember());
+            this.childComments = childComments.stream().map(cc -> new ChildCommentDto(curManagerId, cc)).collect(Collectors.toList());
         }
+
 
         @Getter
         @Setter
@@ -143,7 +144,7 @@ public class MoimPostDetailViewRespDto {
             private Long parentId;
             private MemberInfoDto commentCreator;
 
-            public ChildCommentDto(Long moimCreatorId, PostComment childComment) {
+            public ChildCommentDto(Long curManagerId, PostComment childComment) {
                 this.childCommentId = childComment.getId();
                 this.content = childComment.getContent();
                 this.depth = childComment.getDepth();
@@ -152,7 +153,7 @@ public class MoimPostDetailViewRespDto {
                 this.createdAt = childComment.getCreatedAt() + "";
                 this.updatedAt = childComment.getUpdatedAt() + "";
                 this.parentId = childComment.getParent().getId();
-                this.commentCreator = new MemberInfoDto(moimCreatorId, childComment.getMember());
+                this.commentCreator = new MemberInfoDto(curManagerId, childComment.getMember());
             }
         }
 

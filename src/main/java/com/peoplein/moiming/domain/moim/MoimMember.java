@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.InvalidParameterException;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
@@ -64,6 +65,7 @@ public class MoimMember extends BaseEntity {
         return moimMember;
     }
 
+
     private MoimMember(Member member, Moim moim, MoimMemberRoleType memberRoleType, MoimMemberState memberState) {
 
         this.member = member;
@@ -101,29 +103,30 @@ public class MoimMember extends BaseEntity {
     }
 
 
-
     /*
      해당 도메인이 원하는 로직의 여부를 수행한 후 반환
      > 예외처리를 진행할지 말지는 Service 의 역할로 둔다
+     > Manager 이며 Active 한지 확인한다 (이전 MANAGER 가 아님을 확인)
     */
-
     public boolean hasPermissionOfManager() {
-        return getMemberRoleType().equals(MoimMemberRoleType.MANAGER);
+        return this.memberRoleType.equals(MoimMemberRoleType.MANAGER) && this.memberState.equals(ACTIVE);
     }
+
 
     public boolean hasActivePermission() {
         return getMemberState().equals(ACTIVE);
     }
 
+
     public void changeMemberState(MoimMemberState memberState) {
 
-        MoimMemberState curState = getMemberState();
+        MoimMemberState curState = this.memberState;
 
         if (Objects.isNull(memberState)) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        if (curState == memberState) { // 같은 상태로의 변경은 서버가 처리할 수 없음
+        if (curState == memberState) { // 같은 상태로의 변경은 서버가 처리하지 않음
             if (curState == ACTIVE) { // 이미 가입된 회원임
                 throw new MoimingApiException(MOIM_JOIN_FAIL_BY_ALREADY_JOINED);
             }
@@ -148,7 +151,11 @@ public class MoimMember extends BaseEntity {
 
     private void changeStateFromIBW(MoimMemberState memberState) {
         if(memberState == ACTIVE){
+            if (this.memberRoleType.equals(MoimMemberRoleType.MANAGER)) { // 이전에 모임장이였던 사람이 재가입한다
+                this.memberRoleType = MoimMemberRoleType.FORMER_MANAGER;
+            }
             this.moim.addCurMemberCount();
+            this.resetCreatedAtInNeed();
         } else if (memberState == IBF) { // 불가능 CASE
             throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }

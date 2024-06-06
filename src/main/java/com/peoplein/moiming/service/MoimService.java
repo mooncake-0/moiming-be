@@ -68,7 +68,7 @@ public class MoimService {
                     new MoimingApiException(MOIM_NOT_FOUND)
             );
 
-            if (!member.getId().equals(moim.getCreatorId())) {
+            if (!member.getId().equals(moim.getCurManagerId())) {
                 log.warn("{}, updateImg :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 [" + moim.getId() + "] 이미지 변경 시도, 모임장 아님");
                 throw new MoimingApiException(MEMBER_NOT_AUTHORIZED);
             }
@@ -95,7 +95,7 @@ public class MoimService {
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
-        if (!member.getId().equals(moim.getCreatorId())) {
+        if (!member.getId().equals(moim.getCurManagerId())) {
             log.warn("{}, deleteImg :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 [" + moim.getId() + "] 이미지 삭제 시도, 모임장 아님");
             throw new MoimingApiException(MEMBER_NOT_AUTHORIZED);
         }
@@ -196,7 +196,7 @@ public class MoimService {
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
-        MoimMember creatorMember = moimMemberRepository.findWithMemberAndInfoByMemberAndMoimId(moim.getCreatorId(), moim.getId()).orElseThrow(() -> {
+        MoimMember managerMember = moimMemberRepository.findWithMemberAndInfoByMemberAndMoimId(moim.getCurManagerId(), moim.getId()).orElseThrow(() -> {
             log.error("{}, {}", "모임 생성자 정보를 찾을 수 없음, C999", COMMON_INVALID_SITUATION.getErrMsg());
             return new MoimingApiException(COMMON_INVALID_SITUATION);
         });
@@ -204,7 +204,7 @@ public class MoimService {
         moimCountService.processMoimCounting(member, moim);
 
 
-        return creatorMember;
+        return managerMember;
     }
 
 

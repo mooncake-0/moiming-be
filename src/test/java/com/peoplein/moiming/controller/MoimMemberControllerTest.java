@@ -299,7 +299,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // then - 알림 생성 확인 필요 - 모임 생성자
         Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
-                .setParameter("receiverId", testMoim1.getCreatorId())
+                .setParameter("receiverId", testMoim1.getCurManagerId())
                 .getSingleResult();
         assertNotNull(notification);
 
@@ -342,7 +342,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // then - 알림 생성 확인 필요 - 모임 생성자
         Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
-                .setParameter("receiverId", testMoim1.getCreatorId())
+                .setParameter("receiverId", testMoim1.getCurManagerId())
                 .getSingleResult();
         assertNotNull(notification);
     }
@@ -520,7 +520,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // then - 알림 생성 확인 필요 - 모임 생성자
         Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
-                .setParameter("receiverId", testMoim1.getCreatorId())
+                .setParameter("receiverId", testMoim1.getCurManagerId())
                 .getSingleResult();
         assertNotNull(notification);
     }
@@ -570,31 +570,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isForbidden());
         resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
-
-    }
-
-
-    // MANAGER 가 나가려 한다 (운영자(생성자)는 나갈 수 없음)
-    @Test
-    void leaveMoim_shouldReturn403_whenManagerAttemptsLeave_byMoimingApiException() throws Exception {
-
-        // given - 요청자 개인 정보 입력 완
-        testMember1 = em.find(Member.class, testMember1.getId());
-        insertTestMemberInfo(testMember1, memberGender, memberBirth);
-
-        // given
-        MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
-        String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(testMember1, 2000);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
-                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
-                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
-
-        // then
-        resultActions.andExpect(status().isForbidden());
-        resultActions.andExpect(jsonPath("$.code").value(MOIM_LEAVE_FAIL_BY_MANAGER.getErrCode()));
 
     }
 
@@ -672,7 +647,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         // then - 알림 생성 확인 필요 - 모임 생성자는 아무 알림이 오지 않았다
         List<Notification> notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
-                .setParameter("receiverId", testMoim1.getCreatorId())
+                .setParameter("receiverId", testMoim1.getCurManagerId())
                 .getResultList();
         assertTrue(notification.isEmpty());
 
