@@ -41,8 +41,8 @@ public class MoimRespDto {
         private String areaCity;
         private String areaState;
         private String imgUrl;
-        @JsonProperty("creatorInfo")
-        private MoimCreatorInfoDto creatorInfoDto;
+        @JsonProperty("managerInfo")
+        private MoimManagerInfoDto managerInfoDto;
         @JsonProperty("joinRule")
         private JoinRuleCreateRespDto joinRuleDto;
         @JsonProperty("categories")
@@ -57,7 +57,7 @@ public class MoimRespDto {
             this.imgUrl = moim.getImgUrl();
             this.areaCity = moim.getMoimArea().getCity();
             this.areaState = moim.getMoimArea().getState();
-            this.creatorInfoDto = new MoimCreatorInfoDto(creator);
+            this.managerInfoDto = new MoimManagerInfoDto(creator);
             if (moim.getMoimJoinRule() != null) {
                 this.joinRuleDto = new JoinRuleCreateRespDto(moim.getMoimJoinRule());
             }
@@ -167,8 +167,8 @@ public class MoimRespDto {
         // 모든 MemberMoim 정보 전달 필요
         private List<String> categories;
 
-        @JsonProperty("creatorInfo")
-        private MoimCreatorInfoDto creatorInfoDto;
+        @JsonProperty("managerInfo")
+        private MoimManagerInfoDto managerInfoDto;
 
         public MoimDetailViewRespDto(MoimMember moimMember) {
             this.moimId = moimMember.getMoim().getId();
@@ -185,7 +185,7 @@ public class MoimRespDto {
             this.createdAt = moimMember.getMoim().getCreatedAt() + "";
             this.updatedAt = moimMember.getMoim().getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(moimMember.getMoim().getMoimCategoryLinkers());
-            this.creatorInfoDto = new MoimCreatorInfoDto(moimMember.getMember());
+            this.managerInfoDto = new MoimManagerInfoDto(moimMember.getMember());
             if (moimMember.getMoim().getMoimJoinRule() != null) {
                 this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());
             }
@@ -325,13 +325,13 @@ public class MoimRespDto {
 
     @Getter
     @Setter
-    public static class MoimCreatorInfoDto {
+    public static class MoimManagerInfoDto {
 
         private Long memberId;
         private String nickname;
         private String memberPfImgUrl;
 
-        public MoimCreatorInfoDto(Member member) {
+        public MoimManagerInfoDto(Member member) {
             this.memberId = member.getId();
             this.nickname = member.getNickname();
             this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;

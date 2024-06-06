@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.*;
 public class MoimMemberServiceTest {
 
     @InjectMocks
+    @Spy
     private MoimMemberService moimMemberService;
 
     @Mock
@@ -47,6 +49,7 @@ public class MoimMemberServiceTest {
         // given
         // Wrapper 외 Test 객체에는 다 Mock 객체 필요함
         Long moimId = 1L;
+        Member member = mock(Member.class);
         MoimMember moimMember = mock(MoimMember.class);
 
         // given - stub
@@ -54,7 +57,7 @@ public class MoimMemberServiceTest {
 
         // when
         // then
-        assertDoesNotThrow(()->moimMemberService.getActiveMoimMembers(moimId, any()));
+        assertDoesNotThrow(() -> moimMemberService.getActiveMoimMembers(moimId, member));
     }
 
 
@@ -120,7 +123,7 @@ public class MoimMemberServiceTest {
     // leaveMoim
     // 성공 CASE
     @Test
-    void leaveMoim_shouldLeaveMoim_whenRightInfoPassed() {
+    void leaveMoim_shouldLeaveMoim_whenNormalActiveMoimMemberReq() {
 
         // given
         MoimMemberLeaveReqDto requestDto = mock(MoimMemberLeaveReqDto.class);
@@ -129,8 +132,10 @@ public class MoimMemberServiceTest {
         Moim moim = mock(Moim.class); // Lazy Loading 으로 조회된다
 
         // given - stub
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.ofNullable(moimMember));
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.ofNullable(moimMember));
         when(moimMember.getMoim()).thenReturn(moim);
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(moimMember.hasPermissionOfManager()).thenReturn(false);
 
         // when
         moimMemberService.leaveMoim(requestDto, member);
@@ -139,24 +144,81 @@ public class MoimMemberServiceTest {
         verify(moimMember, times(1)).changeMemberState(any());
         verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
-
     }
 
 
     // 1 CASE - MoimMember 를 못찾음
     @Test
-    void leaveMoim_shouldThrowException_whenNotFound_byMoimingApiException() {
+    void leaveMoim_shouldThrowException_whenMoimMemberNotFound_byMoimingApiException() {
 
         // given
         MoimMemberLeaveReqDto requestDto = mock(MoimMemberLeaveReqDto.class);
         Member member = mock(Member.class);
 
         // given - stub
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
 
         // when
         // then
         assertThatThrownBy(() -> moimMemberService.leaveMoim(requestDto, member)).isInstanceOf(MoimingApiException.class);
+
+    }
+
+
+    // 모임장이 나감을 시도하는데, 모임원이 남아있어서 승계를 해야함
+    @Test
+    void leaveMoim_shouldSuccessAndDelegateManager_whenManagerTrialButMoimMemberExists() {
+
+        // given
+        MoimMemberLeaveReqDto requestDto = mock(MoimMemberLeaveReqDto.class);
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        Moim moim = mock(Moim.class); // Lazy Loading 으로 조회된다
+
+        // given - stub
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.ofNullable(moimMember));
+        when(moimMember.getMoim()).thenReturn(moim);
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(moimMember.hasPermissionOfManager()).thenReturn(true);
+        when(moim.getCurMemberCount()).thenReturn(10);
+        doNothing().when(moimMemberService).delegateMoimManager(any());
+
+        // when
+        moimMemberService.leaveMoim(requestDto, member);
+
+        // then
+        verify(moimMemberService, times(1)).delegateMoimManager(any());
+        verify(moimMember, times(1)).changeMemberState(any());
+        verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
+    }
+
+
+    // 모임장이 나감을 시도하는데, 모임원이 없어서 모임이 삭제되는 상황
+    @Test
+    void leaveMoim_shouldSuccessAndMarkDeletion_whenManagerTrialAndNoMemberLeft() {
+
+        // given
+        MoimMemberLeaveReqDto requestDto = mock(MoimMemberLeaveReqDto.class);
+        Member member = mock(Member.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        Moim moim = mock(Moim.class); // Lazy Loading 으로 조회된다
+
+        // given - stub
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.ofNullable(moimMember));
+        when(moimMember.getMoim()).thenReturn(moim);
+        when(moimMember.hasActivePermission()).thenReturn(true);
+        when(moimMember.hasPermissionOfManager()).thenReturn(true);
+        when(moim.getCurMemberCount()).thenReturn(1);
+
+        // when
+        moimMemberService.leaveMoim(requestDto, member);
+
+        // then
+        verify(moim, times(1)).markDeletedTime();
+        verify(moimMemberService, times(0)).delegateMoimManager(any());
+        verify(moimMember, times(1)).changeMemberState(any());
+        verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
 

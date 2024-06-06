@@ -17,6 +17,7 @@ import javax.persistence.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,11 +53,15 @@ public class Moim extends BaseEntity {
 
     private Long creatorId;
 
+    private Long curManagerId;
+
     private Long updaterId;
 
     private Long imgFileId;
 
     private String imgUrl;
+
+    private LocalDateTime deletedAt;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "moim_join_rule_id")
@@ -71,6 +76,9 @@ public class Moim extends BaseEntity {
     @OneToMany(mappedBy = "moim", cascade = CascadeType.PERSIST)
     private List<MoimCategoryLinker> moimCategoryLinkers = new ArrayList<>();
 
+    public Long getCreatorId() {
+        return creatorId;
+    }
 
     public static Moim createMoim(String moimName, String moimInfo, int maxMember, Area moimArea, List<Category> categories, Member creator) {
         // 생성 시점에서 수정자는 동일
@@ -89,6 +97,7 @@ public class Moim extends BaseEntity {
         this.maxMember = maxMember;
         this.moimArea = moimArea;
         this.creatorId = creatorId;
+        this.curManagerId = creatorId; // 초기에는 동일하다
         this.updaterId = creatorId;
     }
 
@@ -102,8 +111,9 @@ public class Moim extends BaseEntity {
 
 
     public void minusCurMemberCount() {
-        if (this.curMemberCount == 1) {
-            throw new MoimingApiException(ExceptionValue.MOIM_LEAVE_FAIL_BY_LAST_MEMBER);
+        // 모임원이 0 이 된다면 삭제된 모임임
+        if (this.curMemberCount < 1) {
+            throw new MoimingApiException(ExceptionValue.MOIM_LEAVE_FAIL_BY_NO_MEMBER); // 운영중이지 않은 모임
         } else {
             this.curMemberCount--;
         }
@@ -122,7 +132,6 @@ public class Moim extends BaseEntity {
             MoimMember.memberJoinMoim(curMember, this, MoimMemberRoleType.NORMAL, ACTIVE);
         }
     }
-
 
 
     // 값 존재 > Update 해야함 > Create 처럼 List<Category> 는 따로 넣어주는게 맞다
@@ -207,6 +216,18 @@ public class Moim extends BaseEntity {
     }
 
 
+    // 모임 삭제를 인식하는 기준이 된다
+    public void markDeletedTime() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+
+    //
+    public void changeCurManagerId(Long curManagerId) {
+        this.curManagerId = curManagerId;
+    }
+
+
     public void setMoimJoinRule(MoimJoinRule moimJoinRule) {
         this.moimJoinRule = moimJoinRule;
     }
@@ -228,7 +249,7 @@ public class Moim extends BaseEntity {
             return true;
         } else if (this.imgFileId == null && this.imgUrl == null) {
             return false;
-        }else {
+        } else {
             log.error("{}, Moim Status :: {}", this.getClass().getName(), "Moim 이미지 상태 이상");
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }

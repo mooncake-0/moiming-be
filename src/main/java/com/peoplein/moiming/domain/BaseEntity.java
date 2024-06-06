@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Getter
 public class BaseEntity {
 
-    @Column(nullable = false, updatable = false, insertable = true)
+    @Column(nullable = false, updatable = true, insertable = true)
     private LocalDateTime createdAt;
 
 
@@ -32,6 +32,10 @@ public class BaseEntity {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    protected void resetCreatedAtInNeed() {
+        this.createdAt = LocalDateTime.now();
     }
 
 

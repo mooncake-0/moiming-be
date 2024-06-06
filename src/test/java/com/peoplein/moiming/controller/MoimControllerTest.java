@@ -1198,8 +1198,8 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.joinRule.ageMax").value(40));
         resultActions.andExpect(jsonPath("$.data.joinRule.ageMin").value(20));
         resultActions.andExpect(jsonPath("$.data.joinRule.memberGender").value(MemberGender.N + ""));
-        resultActions.andExpect(jsonPath("$.data.creatorInfo.memberId").value(curMember.getId()));
-        resultActions.andExpect(jsonPath("$.data.creatorInfo.nickname").value(curMember.getNickname()));
+        resultActions.andExpect(jsonPath("$.data.managerInfo.memberId").value(curMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.managerInfo.nickname").value(curMember.getNickname()));
 
     }
 
@@ -1235,8 +1235,8 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.categories").isArray());
         resultActions.andExpect(jsonPath("$.data.categories", hasItems(testCategory1.getCategoryName().getValue(), testCategory1_1.getCategoryName().getValue())));
         resultActions.andExpect(jsonPath("$.data.joinRule").isEmpty());
-        resultActions.andExpect(jsonPath("$.data.creatorInfo.memberId").value(curMember.getId()));
-        resultActions.andExpect(jsonPath("$.data.creatorInfo.nickname").value(curMember.getNickname()));
+        resultActions.andExpect(jsonPath("$.data.managerInfo.memberId").value(curMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.managerInfo.nickname").value(curMember.getNickname()));
 
     }
 
@@ -1275,8 +1275,8 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.categories").isArray());
         resultActions.andExpect(jsonPath("$.data.categories", hasItems(testCategory1.getCategoryName().getValue(), testCategory1_1.getCategoryName().getValue())));
         resultActions.andExpect(jsonPath("$.data.joinRule").isEmpty());
-        resultActions.andExpect(jsonPath("$.data.creatorInfo.memberId").value(curMember.getId()));
-        resultActions.andExpect(jsonPath("$.data.creatorInfo.nickname").value(curMember.getNickname()));
+        resultActions.andExpect(jsonPath("$.data.managerInfo.memberId").value(curMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.managerInfo.nickname").value(curMember.getNickname()));
 
     }
 
