@@ -179,6 +179,8 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
         if (isManagerReq) {
             dynamicQuery.and(moimMember.memberRoleType.eq(MoimMemberRoleType.MANAGER));
+        }else{
+            dynamicQuery.and(moimMember.memberRoleType.ne(MoimMemberRoleType.MANAGER));
         }
 
         if (lastMoim != null) {

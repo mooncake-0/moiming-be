@@ -112,7 +112,7 @@ public class MoimControllerTest extends TestObjectCreator {
         moimRepository.save(createdMoim);
 
         // 3번 Member의 Access Token 발급
-        testAccessToken = createTestJwtToken(curMember, 2000);
+        testAccessToken = createTestJwtToken(curMember, 3000);
 
         em.flush();
         em.clear();
@@ -367,7 +367,7 @@ public class MoimControllerTest extends TestObjectCreator {
         testMember2 = em.find(Member.class, testMember2.getId()); // 영속화
         makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
 
-        // when - limit 과 isManagerReq 는 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
+        // when - limit 과 isManagerReq 는 false 가 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
         ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
                 .header(HEADER, PREFIX + testAccessToken)
         );
@@ -387,7 +387,8 @@ public class MoimControllerTest extends TestObjectCreator {
             assertTrue(nodeTime.isAfter(nextNodeTime) || nodeTime.isEqual(nextNodeTime)); // 같거나 빠른 날짜 순서대로 정렬된다
         }
 
-        assertThat(arrayNode.size()).isEqualTo(20);
+//        assertThat(arrayNode.size()).isEqualTo(20); 기본 20개 페이징이기 때문에 20개 꽉 채워서 전달, 아니였다면 20 + 5 개 전달
+        assertThat(arrayNode.size()).isEqualTo(5); // isManagerReq = false 면 자기가 속한 ACTIVE 한 모임 5개만 전달됨
     }
 
 
@@ -409,6 +410,7 @@ public class MoimControllerTest extends TestObjectCreator {
         // when - limit 과 isManagerReq 는 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
         ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
                 .header(HEADER, PREFIX + testAccessToken)
+                .param("limit", "2")
         );
 
         String resp = resultActions.andReturn().getResponse().getContentAsString();
@@ -423,7 +425,6 @@ public class MoimControllerTest extends TestObjectCreator {
                 .header(HEADER, PREFIX + testAccessToken)
                 .param("lastMoimId", String.valueOf(lastMoimId))
                 .param("isManagerReq", String.valueOf(false))
-                .param("limit", String.valueOf(20))
         );
 
         String resp2 = resultActions2.andReturn().getResponse().getContentAsString();
@@ -439,8 +440,8 @@ public class MoimControllerTest extends TestObjectCreator {
             assertTrue(nodeTime.isAfter(nextNodeTime) || nodeTime.isEqual(nextNodeTime)); // 같거나 빠른 날짜 순서대로 정렬된다
         }
 
-        assertThat(arrayNode.size()).isEqualTo(20);
-        assertThat(arrayNode2.size()).isEqualTo(11);
+        assertThat(arrayNode.size()).isEqualTo(2);
+        assertThat(arrayNode2.size()).isEqualTo(3);
 
     }
 

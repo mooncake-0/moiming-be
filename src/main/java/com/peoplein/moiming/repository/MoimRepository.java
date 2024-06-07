@@ -21,5 +21,7 @@ public interface MoimRepository {
 
     Optional<Moim> findWithActiveMoimMembersById(Long moimId);
 
+    List<Moim> findNewMoims(int offset, int limit);
+
     void remove(Long moimId);
 }

@@ -100,7 +100,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 일반 조회 - 유저의 모임 20개씩 조회 Paging (내가 운영중인지 모임만 불러오기 필터 설정 가능) (페이징시 lastMoimId 커서 전달 필수)")
+    @ApiOperation("모임 일반 조회 - 유저의 모임 Paging (내가 운영중인지 모임만 불러오기 필터 설정 가능) (페이징시 lastMoimId 커서 전달 필수) // 필요에 따라 limit 조절 가능")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -206,6 +206,42 @@ public class MoimController {
 
         moimService.deleteMoim(moimId, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 및 모든 모임 정보 삭제 성공", null));
+    }
+
+
+    @ApiOperation("신규 모임 조회 - 요청 시점 가장 최근에 생성된 모임 정보 제공 (offset=0 필수, limit 은 원하는 갯수 (Top 20 이면 20 지정))")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "모임 추천 성공", response = NewMoimDto.class),
+            @ApiResponse(code = 400, message = "모임 추천 실패, ERR MSG 확인")
+    })
+    @GetMapping(PATH_MOIM_NEW)
+    public ResponseEntity<?> getNewMoims(
+            @RequestParam(defaultValue = "0") int offset
+            , @RequestParam(required = false, defaultValue = "20") int limit
+            , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+
+        if (offset != 0) {
+            log.info("{}, getNewMoims :: {}", this.getClass().getName(), "해당 요청의 offset 은 현재 요구사항 기준 0만 허용됩니다");
+            throw new MoimingApiException(COMMON_INVALID_REQUEST_PARAM); // 필수 parameter 누락,
+        }
+
+        MoimCategoryMapperDto moimMapper = moimService.getNewMoim(offset, limit);
+
+        List<Moim> targetMoims = moimMapper.getTargetMoims();
+        Map<Long, List<MoimCategoryLinker>> categoryLinkersMap = moimMapper.getCategoryLinkersMap();
+
+        List<NewMoimDto> newMoims = targetMoims.stream().map(m -> {
+            if (m == null || !categoryLinkersMap.containsKey(m.getId())) {
+                log.error("추천 모임 Controller :: {}, {}", "Moim 을 불러오지 못했거나, 잘못된 Id mapped : ", COMMON_INVALID_SITUATION.getErrMsg());
+                throw new MoimingApiException(COMMON_INVALID_SITUATION);
+            }
+            return new NewMoimDto(m, categoryLinkersMap.get(m.getId()));
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "신규 모임 조회 성공", newMoims));
     }
 
 
