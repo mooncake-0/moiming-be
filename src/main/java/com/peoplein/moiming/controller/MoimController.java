@@ -100,7 +100,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 일반 조회 - 유저의 모임 20개씩 조회 Paging (내가 운영중인지 모임만 불러오기 필터 설정 가능) (페이징시 lastMoimId 커서 전달 필수)")
+    @ApiOperation("모임 일반 조회 - 유저의 모임 Paging (내가 운영중인지 모임만 불러오기 필터 설정 가능) (페이징시 lastMoimId 커서 전달 필수) // 필요에 따라 limit 조절 가능")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
