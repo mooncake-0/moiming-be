@@ -79,6 +79,7 @@ public abstract class AppUrlPath {
 
 
     public final static String PATH_MOIM_SUGGESTED = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/main" + "/suggest";
+    public final static String PATH_MOIM_NEW = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/new";
 
 
     // Moim Member 관련 API

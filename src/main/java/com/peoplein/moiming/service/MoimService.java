@@ -343,6 +343,22 @@ public class MoimService {
 
 
     @Transactional
+    public MoimCategoryMapperDto getNewMoim(int offset, int limit) {
+
+        List<Moim> newMoims = moimRepository.findNewMoims(offset, limit);
+        List<Long> moimIds = newMoims.stream().map(Moim::getId).collect(Collectors.toList());
+
+        // 카테고리는 따로 쿼리 한다
+        List<MoimCategoryLinker> categoryLinkers = new ArrayList<>();
+        if (!moimIds.isEmpty()) {
+            categoryLinkers = moimCategoryLinkerRepository.findWithCategoryByMoimIds(moimIds);
+        }
+
+        return new MoimCategoryMapperDto(newMoims, categoryLinkers);
+    }
+
+
+    @Transactional
     public MoimCategoryMapperDto getSuggestedMoim(AreaValue areaFilter, CategoryName categoryFilter, int offset, int limit) {
 
         // 지역 필터가 있으면, 지역 넘겨주면 됨 - AND 조건 걸림, 없으면 NULL 로 전달됨

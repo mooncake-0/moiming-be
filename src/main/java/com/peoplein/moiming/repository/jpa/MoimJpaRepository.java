@@ -108,6 +108,18 @@ public class MoimJpaRepository implements MoimRepository {
 
     }
 
+    @Override
+    public List<Moim> findNewMoims(int offset, int limit) {
+
+        return queryFactory.selectFrom(moim)
+                .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                .orderBy(moim.createdAt.desc())
+                .offset(offset)
+                .limit(limit)
+                .fetch();
+
+    }
+
 
     @Override
     public void remove(Long moimId) {

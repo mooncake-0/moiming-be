@@ -1,6 +1,7 @@
 package com.peoplein.moiming.service;
 
 
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
@@ -347,4 +348,48 @@ public class MoimMemberServiceTest {
         assertThatThrownBy(() -> moimMemberService.expelMember(requestDto, member)).isInstanceOf(MoimingApiException.class);
 
     }
+
+
+    // 오래된 멤버를 찾는데 실패함
+    // 사실 불가능한 상황, 삭제된 모임에서만 발생할 상황인데, 삭제된 모임에선 요청이 불가능
+    @Test
+    void delegateMoimManager_shouldThrowException_whenLongestActiveMemberNotFound_byMoimingApiException() {
+
+        // given
+        Moim moim = mock(Moim.class);
+
+        // given - stub
+        when(moimMemberRepository.findLongestNormalActiveMemberByMoimId(any())).thenReturn(Optional.empty());
+
+        // when
+        // then
+        assertThatThrownBy(() -> moimMemberService.delegateMoimManager(moim));
+
+    }
+
+
+    // 성공
+    @Test
+    void delegateMoimManager_shouldPass_whenRightInfoPassed() {
+
+        // given
+        Moim moim = mock(Moim.class);
+        Member member = mock(Member.class);
+        MoimMember longestMember = mock(MoimMember.class);
+
+        // given - stub
+        when(longestMember.getMember()).thenReturn(member);
+        when(moimMemberRepository.findLongestNormalActiveMemberByMoimId(any())).thenReturn(Optional.of(longestMember));
+
+        // when
+        moimMemberService.delegateMoimManager(moim);
+
+        // then
+        verify(longestMember, times(1)).changeMoimMemberRoleType(MoimMemberRoleType.MANAGER);
+        verify(moim, times(1)).changeCurManagerId(any());
+        verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
+
+    }
+
+
 }
