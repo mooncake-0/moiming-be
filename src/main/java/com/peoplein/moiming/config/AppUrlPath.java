@@ -78,8 +78,8 @@ public abstract class AppUrlPath {
     public final static String PATH_MOIM_DELETE_PF_IMG = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/{moimId}" + "/image";
 
 
-    public final static String PATH_MOIM_SUGGESTED = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/main" + "/suggest";
-    public final static String PATH_MOIM_NEW = API_SERVER + API_MOIM_VER + API_DOMAIN_MOIM + "/new";
+    public final static String PATH_MOIM_SUGGESTED = API_SERVER + API_SEARCH_VER + API_DOMAIN_SEARCH + "/moim" + "/suggest";
+    public final static String PATH_MOIM_NEW = API_SERVER + API_SEARCH_VER + API_DOMAIN_SEARCH + "/moim" + "/new";
 
 
     // Moim Member 관련 API
