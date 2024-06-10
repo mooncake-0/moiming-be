@@ -33,7 +33,7 @@ public class FcmService {
     // 초기화 이후 앱 내에서 지속 사용 가능, 단 해당 클래스 내에서만 사용됨
     private String appAccessToken;
 
-    private static final String API_URL = "https://fcm.googleapis.com/v1/projects/moiming-b2ae3/messages:send";
+    private static final String API_URL = "https://fcm.googleapis.com/v1/projects/moiming-ac87b/messages:send";
 
     @Value("${app_files.fcm_path}")
     private String fcmFilePath;
