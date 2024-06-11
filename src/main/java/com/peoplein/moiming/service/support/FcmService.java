@@ -30,9 +30,6 @@ import java.util.List;
 @Slf4j
 public class FcmService {
 
-    // 초기화 이후 앱 내에서 지속 사용 가능, 단 해당 클래스 내에서만 사용됨
-    private String appAccessToken;
-
     private static final String API_URL = "https://fcm.googleapis.com/v1/projects/moiming-ac87b/messages:send";
 
     @Value("${app_files.fcm_path}")
@@ -40,25 +37,30 @@ public class FcmService {
 
     private final ObjectMapper om = new ObjectMapper();
 
-    private void initAccessToken() throws IOException {
+    private String initAccessToken() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
                 .fromStream(new ClassPathResource(fcmFilePath).getInputStream())
                 .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
         googleCredentials.refreshIfExpired();
-        appAccessToken = googleCredentials.getAccessToken().getTokenValue();
+        return googleCredentials.getAccessToken().getTokenValue();
     }
 
 
-    public String buildMessage(String receiverToken, String title, String body) throws JsonProcessingException {
+    private String buildMessage(String receiverToken, String title, String body, String deepLink) throws JsonProcessingException {
 
         FcmMessageDto.Notification notification = FcmMessageDto.Notification.builder()
                 .title(title)
                 .body(body)
                 .build();
 
+        FcmMessageDto.Data data = FcmMessageDto.Data.builder()
+                .deepLink(deepLink)
+                .build();
+
         FcmMessageDto.Message message = FcmMessageDto.Message.builder()
                 .token(receiverToken)
                 .notification(notification)
+                .data(data)
                 .build();
 
         FcmMessageDto fcmMessageDto = FcmMessageDto.builder()
@@ -69,15 +71,13 @@ public class FcmService {
 
     }
 
-    public void sendSingleMessageTo(String receiverToken, String title, String body) {
+
+    public void sendSingleMessage(String receiverToken, String title, String body, String deepLink) {
 
         try {
 
-            if (!StringUtils.hasText(appAccessToken)) {
-                initAccessToken();
-            }
-
-            String message = buildMessage(receiverToken, title, body);
+            String accessToken = initAccessToken();
+            String message = buildMessage(receiverToken, title, body, deepLink);
 
             OkHttpClient client = new OkHttpClient();
             RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
@@ -85,7 +85,7 @@ public class FcmService {
             Request request = new Request.Builder()
                     .url(API_URL)
                     .post(requestBody)
-                    .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + appAccessToken)
+                    .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
                     .build();
 
@@ -101,7 +101,7 @@ public class FcmService {
         }
     }
 
-    public void sendBatchMessageTo(List<String> receiverToken, String title, String body) throws IOException {
+    public void sendMultiMessage(List<String> receiverToken, String title, String body) throws IOException {
 
     }
 

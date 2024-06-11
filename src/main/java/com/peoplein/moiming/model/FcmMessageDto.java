@@ -19,6 +19,7 @@ public class FcmMessageDto {
     public static class Message {
         private Notification notification;
         private String token;
+        private Data data;
     }
 
     @Builder
@@ -27,5 +28,11 @@ public class FcmMessageDto {
         private String title;
         private String body;
         private String image;
+    }
+
+    @Builder
+    @Getter
+    public static class Data {
+        private String deepLink;
     }
 }

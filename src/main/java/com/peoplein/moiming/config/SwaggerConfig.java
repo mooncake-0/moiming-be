@@ -26,7 +26,7 @@ import java.util.*;
 @Profile({"dev", "local"})
 @Configuration
 @EnableSwagger2
-public class SwaggerConfiguration {
+public class SwaggerConfig {
 
     // START
     /*

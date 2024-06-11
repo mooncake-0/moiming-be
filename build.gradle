@@ -61,8 +61,7 @@ dependencies {
 	runtimeOnly 'com.h2database:h2'
 
     // FCM 환경
-    implementation 'com.google.firebase:firebase-admin:9.1.1'
-    implementation 'com.google.firebase:firebase-messaging:22.0.0'
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
 
     // Swagger 2.9.2 적용
     implementation 'io.springfox:springfox-swagger-ui:2.9.2'
