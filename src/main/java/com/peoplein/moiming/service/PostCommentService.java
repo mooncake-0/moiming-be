@@ -74,7 +74,7 @@ public class PostCommentService {
 
         if (receiverStatus.hasActivePermission()) { // 현재 활동중인 모임원 아니면 알림 안보냄
             notificationService.createNotification(NotificationTopCategory.MOIM, subCategory, NotificationType.INFORM
-                    , notificationReceiver.getId(), "", notiBody, moimPost.getMoim().getId(), moimPost.getId());
+                    , notificationReceiver, "", notiBody, moimPost.getMoim().getId(), moimPost.getId());
         }
 
         return comment;

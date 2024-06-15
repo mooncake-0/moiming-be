@@ -9,6 +9,8 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.NotificationRepository;
+import com.peoplein.moiming.service.support.FcmService;
+import com.peoplein.moiming.service.util.DeepLinkCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,19 +27,30 @@ import static com.peoplein.moiming.exception.ExceptionValue.*;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final FcmService fcmService;
 
     @Transactional
     public void createNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
-            , Long receiverId, String title, String body, Long topCategoryId, Long subCategoryId) {
+            , Member receiver, String title, String body, Long topCategoryId, Long subCategoryId) {
 
-        if (topCategory == null || subCategory == null || type == null || receiverId == null) {
+        if (topCategory == null || subCategory == null || type == null || receiver == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        Notification notification = Notification.createNotification(topCategory, subCategory, type, receiverId, title, body, topCategoryId, subCategoryId);
+        Notification notification = Notification.createNotification(topCategory, subCategory, type, receiver.getId(), title, body, topCategoryId, subCategoryId);
         notificationRepository.save(notification);
 
+        // TODO :: 해당 유저의 알림 허용 정보 확인, 비허용 하는 상황이 있을시 차단하고 FCM 을 생성하지 않음
+//        memberNotiSetting.checkNotiSetting(receiver, TopCategory, SubCategory, type); // 전달해서 유저 설정 확인
+
         // TODO :: FCM 관련 처리
+        DeepLinkCreator dlCreator = new DeepLinkCreator();
+        String deepLink = dlCreator.createDeepLink(topCategoryId, subCategoryId);
+
+        // FCM Message 에 Top Category, Sub Category 추가 필요
+        // FCM 에서 reqsender 활용해서 요청 발신하기
+//        fcmService.sendSingleMessage(topCategory, subCategory, receiver.getFcmToken(), title, body, deepLink);
+
     }
 
 

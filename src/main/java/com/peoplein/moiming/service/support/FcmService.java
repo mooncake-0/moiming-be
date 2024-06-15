@@ -3,7 +3,11 @@ package com.peoplein.moiming.service.support;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.peoplein.moiming.domain.enums.NotificationSubCategory;
+import com.peoplein.moiming.domain.enums.NotificationTopCategory;
 import com.peoplein.moiming.model.FcmMessageDto;
+import com.peoplein.moiming.service.external.ExternalReqSender;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +31,7 @@ import java.util.List;
 
  */
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class FcmService {
 
@@ -35,7 +40,8 @@ public class FcmService {
     @Value("${app_files.fcm_path}")
     private String fcmFilePath;
 
-    private final ObjectMapper om = new ObjectMapper();
+    private final ObjectMapper om;
+    private final ExternalReqSender reqSender;
 
     private String initAccessToken() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
@@ -46,7 +52,7 @@ public class FcmService {
     }
 
 
-    private String buildMessage(String receiverToken, String title, String body, String deepLink) throws JsonProcessingException {
+    private String buildMessage(NotificationTopCategory topCategory, NotificationSubCategory subCategory, String receiverToken, String title, String body, String deepLink) throws JsonProcessingException {
 
         FcmMessageDto.Notification notification = FcmMessageDto.Notification.builder()
                 .title(title)
@@ -54,6 +60,8 @@ public class FcmService {
                 .build();
 
         FcmMessageDto.Data data = FcmMessageDto.Data.builder()
+                .topCategory(topCategory)
+                .subCategory(subCategory)
                 .deepLink(deepLink)
                 .build();
 
@@ -72,12 +80,12 @@ public class FcmService {
     }
 
 
-    public void sendSingleMessage(String receiverToken, String title, String body, String deepLink) {
+    public void sendSingleMessage(NotificationTopCategory topCategory, NotificationSubCategory subCategory, String receiverToken, String title, String body, String deepLink) {
 
         try {
 
             String accessToken = initAccessToken();
-            String message = buildMessage(receiverToken, title, body, deepLink);
+            String message = buildMessage(topCategory, subCategory, receiverToken, title, body, deepLink);
 
             OkHttpClient client = new OkHttpClient();
             RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
@@ -89,13 +97,10 @@ public class FcmService {
                     .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
                     .build();
 
-            Response response = client.newCall(request).execute();
-
-            log.info("FCM SENT:: RESPONSE:: {}", response.body().string());
+            reqSender.sendAsynchronousMessage(request);
 
         } catch (IOException exception) {
 
-            // TODO : FCM SEND FAILURE HANDLING NEEDED
             log.error("CREATE FCM ERROR :: {}", exception.getMessage());
 
         }

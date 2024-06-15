@@ -107,28 +107,6 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
 
     @Override
-    public List<MoimMember> findWithMoimByMoimId(Long moimId) {
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.moim, moim).fetchJoin()
-                .where(moimMember.moim.id.eq(moimId))
-                .fetch();
-    }
-
-
-    // 각 모임 정보를 모두 같이 불러온다
-    // In USE
-    @Override
-    public List<MoimMember> findWithMoimByMemberId(Long memberId) {
-        checkIllegalQueryParams(memberId);
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.moim, moim).fetchJoin()
-                .where(moimMember.member.id.eq(memberId))
-                .fetch();
-
-    }
-
-
-    @Override
     public List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds) {
 
         return queryFactory.selectFrom(moimMember)

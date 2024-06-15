@@ -36,10 +36,10 @@ public class NotificationServiceTest {
         NotificationTopCategory topCategory = mock(NotificationTopCategory.class);
         NotificationSubCategory subCategory = mock(NotificationSubCategory.class);
         NotificationType type = mock(NotificationType.class);
-        Long receiverId = 1L; // NOT_NULL
+        Member receiver = mock(Member.class);
 
         // when
-        notificationService.createNotification(topCategory, subCategory, type, receiverId, "", "", null, null);
+        notificationService.createNotification(topCategory, subCategory, type, receiver, "", "", null, null);
 
         // then
         verify(notificationRepository, times(1)).save(any());

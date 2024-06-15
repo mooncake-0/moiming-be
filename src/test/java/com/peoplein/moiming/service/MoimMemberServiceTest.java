@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import org.junit.jupiter.api.Assertions;
@@ -41,6 +42,9 @@ public class MoimMemberServiceTest {
 
     @Mock
     private NotificationService notificationService;
+
+    @Mock
+    private MemberRepository memberRepository;
 
     // getMoimMembers Test
     // 1. 모임원 반환
@@ -98,7 +102,6 @@ public class MoimMemberServiceTest {
 
 
     // Params 들은 NotNull 보장이므로 (Validation / Security Filter), 분기 경우가 없음
-    // TODO: 사실 위의 경우도 다 TEST 해줘야함 (단위테스트는 앱의 흐름에 의존하면 안된다)
     // MoimMember 가 Null 이든, 실제 값이 있든, judgeMmeberJoinByRule 이 알아서 처리한다, 분기 경우 없음
     @Test
     void joinMoim_shouldCallJudgeMethod_whenRightInfoPassed() {
@@ -107,9 +110,11 @@ public class MoimMemberServiceTest {
         MoimMemberJoinReqDto requestDto = mock(MoimMemberJoinReqDto.class);
         Member member = mock(Member.class);
         Moim moim = mock(Moim.class);
+        Member curManager = mock(Member.class);
 
         // given - stub
         when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.ofNullable(moim));
+        when(memberRepository.findById(any())).thenReturn(Optional.of(curManager));
 
         // when
         moimMemberService.joinMoim(requestDto, member);

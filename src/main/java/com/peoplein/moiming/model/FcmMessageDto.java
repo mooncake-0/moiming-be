@@ -1,6 +1,8 @@
 package com.peoplein.moiming.model;
 
 
+import com.peoplein.moiming.domain.enums.NotificationSubCategory;
+import com.peoplein.moiming.domain.enums.NotificationTopCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,6 +35,25 @@ public class FcmMessageDto {
     @Builder
     @Getter
     public static class Data {
+        private NotificationTopCategory topCategory;
+        private NotificationSubCategory subCategory;
         private String deepLink;
     }
 }
+
+/*
+{
+    "message":{
+        "token" : "~fcmToken~",
+        "notification": {
+            "title":"-",
+            "body":"~~가 모임에 가입하였습니다",
+            "image": ""
+        },
+        "data":{
+            "topCategory": "moim",
+            "subCategory": "post_create"
+            "deepLink":"moiming://topCategory/17/subCategory/28
+        }
+}
+ */
