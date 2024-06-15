@@ -6,6 +6,7 @@ import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.repository.MoimRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import static com.peoplein.moiming.model.dto.request.MoimMemberReqDto.*;
 @RequiredArgsConstructor
 public class MoimMemberService {
 
+    private final MemberRepository memberRepository;
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
     private final NotificationService notificationService;
@@ -57,7 +59,14 @@ public class MoimMemberService {
         );
 
         // 둘 관계가 맺어진 적이 있는지 확인한다
+        // 둘 관계가 맺어진 적이 있는지 확인한다
         MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElse(null);
+
+        // moimPs 에 Join Rule 이 있고, moimMemberPs 가 존재하지 않는다면 curMember 에 판단이 들어갈 것이므로, 영속화시켜줘야 한다 (Security 에서 온 객체)
+        if(moimPs.getMoimJoinRule() != null && moimMemberPs == null) {
+            curMember = persistSecurityMember(curMember.getId());
+        }
+
         moimPs.judgeMemberJoinByRule(moimMemberPs, curMember);
 
         // 알림을 발생시킨다
@@ -186,4 +195,10 @@ public class MoimMemberService {
     }
 
 
+    private Member persistSecurityMember(Long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> {
+            log.error("{}, persistSecurityMember :: {}", this.getClass().getName(), "Member 영속화 중 Id [" + memberId + "] 조회 불가 예외 발생");
+            return new MoimingApiException(MEMBER_NOT_FOUND);
+        });
+    }
 }
