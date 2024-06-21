@@ -38,15 +38,7 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
 
         Member member = ((SecurityMember) authentication.getPrincipal()).getMember();
 
-        // FCM 토큰 뽑기 위해 요청 본문 필요
-        AuthLoginReqDto loginParams = null;
-        try {
-            loginParams = om.readValue(request.getReader(), AuthLoginReqDto.class);
-        } catch (IOException e) {
-            throw new LoginAttemptException(AUTH_COMMON_INVALID_PARAM_NULL, e);
-        }
-
-        TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member, loginParams.getFcmToken());
+        TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member, null);
 
         ResponseBodyDto<AuthLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공"
                 , new AuthLoginRespDto(member, tokenRespDto)

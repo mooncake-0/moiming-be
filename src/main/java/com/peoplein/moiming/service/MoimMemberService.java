@@ -59,7 +59,6 @@ public class MoimMemberService {
         );
 
         // 둘 관계가 맺어진 적이 있는지 확인한다
-        // 둘 관계가 맺어진 적이 있는지 확인한다
         MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElse(null);
 
         // moimPs 에 Join Rule 이 있고, moimMemberPs 가 존재하지 않는다면 curMember 에 판단이 들어갈 것이므로, 영속화시켜줘야 한다 (Security 에서 온 객체)
