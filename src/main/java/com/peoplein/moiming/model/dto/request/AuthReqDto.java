@@ -28,14 +28,11 @@ public class AuthReqDto {
     @NoArgsConstructor
     public static class AuthLoginReqDto {
 
-        @NotEmpty
         private String memberPhone;
 
-        @NotEmpty
         private String password;
 
-        @NotEmpty
-        private String fcmToken;
+//        private String fcmToken;
 
     }
 

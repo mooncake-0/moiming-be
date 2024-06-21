@@ -33,4 +33,8 @@ public class SecurityMemberService implements UserDetailsService {
 
         return new SecurityMember(memberPs);
     }
+
+    @Transactional
+    public void saveUserFcmToken(String fcmToken) {
+    }
 }
