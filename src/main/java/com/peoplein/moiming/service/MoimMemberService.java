@@ -219,5 +219,4 @@ public class MoimMemberService {
             return new MoimingApiException(MEMBER_NOT_FOUND);
         });
     }
-
 }
