@@ -21,4 +21,4 @@ spring:
     open-in-view: false
 
 app_files:
-  fcm_path: src/main/resources/fcm/fcm_moiming_ley.json
+  fcm_path: src/main/resources/fcm/fcm_moiming_key.json
