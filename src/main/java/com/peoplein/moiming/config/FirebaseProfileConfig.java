@@ -1,4 +1,4 @@
-package com.peoplein.moiming.service.support;
+package com.peoplein.moiming.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
@@ -13,8 +13,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 @Slf4j
-@Profile(value = "production")
-public class FirebaseService {
+@Profile(value = "dev")
+public class FirebaseProfileConfig {
 
     @Value("${app_files.fcm_path}")
     private String fcmFilePath;
@@ -25,8 +25,7 @@ public class FirebaseService {
     @EventListener(ApplicationReadyEvent.class)
     public void initFirebaseApp() throws IOException {
 
-        FileInputStream serviceAccount =
-                new FileInputStream(fcmFilePath);
+        FileInputStream serviceAccount = new FileInputStream(fcmFilePath);
 
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))

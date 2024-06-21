@@ -69,9 +69,9 @@ public class Moim extends BaseEntity {
 
 
     // MEMO :: Fetch 시 MoimMember 는 모든 상태를 불러온다 // curMemberCount 값과 size 가 다를 수 있음
-    @OneToMany(mappedBy = "moim", cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
+    //         24.06 > List<Moim> 을 조회하는 일이 언제든 발생하기 때문에, N+1 방지를 위해 해당 조회 type LAZY 로 변경된다
+    @OneToMany(mappedBy = "moim", cascade = CascadeType.PERSIST)
     private List<MoimMember> moimMembers = new ArrayList<>();
-
 
     @OneToMany(mappedBy = "moim", cascade = CascadeType.PERSIST)
     private List<MoimCategoryLinker> moimCategoryLinkers = new ArrayList<>();

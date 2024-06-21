@@ -78,15 +78,16 @@ public class AuthServiceTest extends TestObjectCreator {
         when(memberRepository.findByNickname(any())).thenReturn(Optional.empty()); // 중복 닉네임 없음 통과
 
         // 아무 수행이나 상관 없음을 지칭
-        doReturn(null).when(authService).issueTokensAndUpdateColumns(anyBoolean(), any());
+        doReturn(null).when(authService).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
         // when
         authService.signUp(requestDto);
 
         // then
         verify(memberRepository, times(1)).save(any());
+        verify(memberRepository, times(1)).saveMemberSetting(any());
         verify(policyAgreeService, times(1)).createPolicyAgree(any(), any());
-        verify(authService, times(1)).issueTokensAndUpdateColumns(anyBoolean(), any());
+        verify(authService, times(1)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
     }
 
@@ -108,7 +109,7 @@ public class AuthServiceTest extends TestObjectCreator {
         assertThatThrownBy(() -> authService.signUp(requestDto)).isInstanceOf(MoimingAuthApiException.class);
         verify(memberRepository, times(0)).save(any());
         verify(policyAgreeService, times(0)).createPolicyAgree(any(), any());
-        verify(authService, times(0)).issueTokensAndUpdateColumns(anyBoolean(), any());
+        verify(authService, times(0)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
     }
 
@@ -127,13 +128,13 @@ public class AuthServiceTest extends TestObjectCreator {
         when(member.getRefreshToken()).thenReturn(preRefreshToken); // 리프레시 토큰 일치
 
         // 현재 함수는 이 함수와 분리되어야 한다
-        doReturn(null).when(authService).issueTokensAndUpdateColumns(anyBoolean(), any());
+        doReturn(null).when(authService).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
         //when
         authService.reissueToken(reqDto);
 
         // then
-        verify(authService, times(1)).issueTokensAndUpdateColumns(anyBoolean(), any());
+        verify(authService, times(1)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
     }
 

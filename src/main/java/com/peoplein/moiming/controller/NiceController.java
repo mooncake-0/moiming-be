@@ -27,9 +27,7 @@ import static com.peoplein.moiming.service.util.nice.NiceParamsDto.*;
 @RequiredArgsConstructor
 public class NiceController {
 
-
     private final NiceService niceService;
-
 
     @ApiOperation("NICE 표준창 호출을 위한 보안 Params 요청")
     @ApiResponses({

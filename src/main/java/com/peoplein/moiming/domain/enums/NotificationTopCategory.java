@@ -12,9 +12,10 @@ import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUA
 @Slf4j
 @Getter
 public enum NotificationTopCategory {
-    MOIM("모임"),
-    DEFAULT("기타"),
-    NOTICE("공지");
+
+    MOIM("모임활동"),
+    NOTICE("공지사항"),
+    DEFAULT("기타");
 
     private final String value;
 

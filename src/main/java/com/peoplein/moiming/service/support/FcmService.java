@@ -2,8 +2,21 @@ package com.peoplein.moiming.service.support;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.messaging.BatchResponse;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.MulticastMessage;
+import com.google.firebase.messaging.Notification;
+import com.peoplein.moiming.domain.enums.NotificationSubCategory;
+import com.peoplein.moiming.domain.enums.NotificationTopCategory;
+import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.FcmMessageDto;
+import com.peoplein.moiming.repository.jpa.MemberSettingRepository;
+import com.peoplein.moiming.service.MemberSettingService;
+import com.peoplein.moiming.service.external.ExternalReqSender;
+import com.peoplein.moiming.service.util.DeepLinkManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /*
  모든 알림 송신을 담당
@@ -27,38 +41,47 @@ import java.util.List;
 
  */
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class FcmService {
-
-    // 초기화 이후 앱 내에서 지속 사용 가능, 단 해당 클래스 내에서만 사용됨
-    private String appAccessToken;
 
     private static final String API_URL = "https://fcm.googleapis.com/v1/projects/moiming-ac87b/messages:send";
 
     @Value("${app_files.fcm_path}")
     private String fcmFilePath;
 
-    private final ObjectMapper om = new ObjectMapper();
+    private final ObjectMapper om;
+    private final ExternalReqSender reqSender;
+    private final DeepLinkManager deepLinkManager;
+    private final MemberSettingService memberSettingService;
 
-    private void initAccessToken() throws IOException {
+
+    private String initAccessToken() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
                 .fromStream(new ClassPathResource(fcmFilePath).getInputStream())
                 .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
         googleCredentials.refreshIfExpired();
-        appAccessToken = googleCredentials.getAccessToken().getTokenValue();
+        return googleCredentials.getAccessToken().getTokenValue();
     }
 
 
-    public String buildMessage(String receiverToken, String title, String body) throws JsonProcessingException {
+    private String buildMessage(NotificationTopCategory topCategory, NotificationSubCategory subCategory, String receiverToken, String title, String body, String deepLink) throws JsonProcessingException {
 
         FcmMessageDto.Notification notification = FcmMessageDto.Notification.builder()
                 .title(title)
                 .body(body)
                 .build();
 
+        FcmMessageDto.Data data = FcmMessageDto.Data.builder()
+                .topCategory(topCategory.toString().toLowerCase())
+                .subCategory(subCategory.toString().toLowerCase())
+                .deepLink(deepLink)
+                .build();
+
         FcmMessageDto.Message message = FcmMessageDto.Message.builder()
                 .token(receiverToken)
                 .notification(notification)
+                .data(data)
                 .build();
 
         FcmMessageDto fcmMessageDto = FcmMessageDto.builder()
@@ -69,15 +92,25 @@ public class FcmService {
 
     }
 
-    public void sendSingleMessageTo(String receiverToken, String title, String body) {
+
+    public void sendSingleMessage(Member receiver
+            , NotificationTopCategory topCategory, NotificationSubCategory subCategory, String receiverFcmToken, String title, String body
+            , Long topCategoryId, Long subCategoryId) {
+
+        if (!memberSettingService.isMemberNotifyAllowed(receiver, topCategory)) { // 허용되어 있지 않다면 보내지 않는다
+            return;
+        }
+
+        // fcmToken 이 없을 경우엔 처리하지 않는다
+        if (!StringUtils.hasText(receiverFcmToken)) {
+            return;
+        }
 
         try {
 
-            if (!StringUtils.hasText(appAccessToken)) {
-                initAccessToken();
-            }
-
-            String message = buildMessage(receiverToken, title, body);
+            String accessToken = initAccessToken();
+            String deepLink = createDeepLink(topCategoryId, subCategoryId);
+            String message = buildMessage(topCategory, subCategory, receiverFcmToken, title, body, deepLink);
 
             OkHttpClient client = new OkHttpClient();
             RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
@@ -85,24 +118,53 @@ public class FcmService {
             Request request = new Request.Builder()
                     .url(API_URL)
                     .post(requestBody)
-                    .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + appAccessToken)
+                    .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
                     .build();
 
-            Response response = client.newCall(request).execute();
-
-            log.info("FCM SENT:: RESPONSE:: {}", response.body().string());
+            reqSender.sendAsynchronousMessage(request);
 
         } catch (IOException exception) {
 
-            // TODO : FCM SEND FAILURE HANDLING NEEDED
             log.error("CREATE FCM ERROR :: {}", exception.getMessage());
 
         }
     }
 
-    public void sendBatchMessageTo(List<String> receiverToken, String title, String body) throws IOException {
 
+    public void sendMultiMessage(List<Member> receivers
+            , NotificationTopCategory topCategory, NotificationSubCategory subCategory
+            , String title, String body
+            , Long topCategoryId, Long subCategoryId) {
+
+
+        List<String> receiversToken = memberSettingService.getAllowedReceiverFcmTokens(receivers, topCategory);
+        String deepLink = createDeepLink(topCategoryId, subCategoryId);
+        Notification notification = Notification.builder().setTitle(title).setBody(body).build();
+
+        MulticastMessage multicastMessage = MulticastMessage.builder()
+                .setNotification(notification)
+                .putData("topCategory", topCategory.getValue().toLowerCase())
+                .putData("subCategory", subCategory.getValue().toLowerCase())
+                .putData("deepLink", deepLink)
+                .addAllTokens(receiversToken)
+                .build();
+
+        ApiFuture<BatchResponse> response = FirebaseMessaging.getInstance().sendEachForMulticastAsync(multicastMessage);
+
+        try {
+            if (response.get().getFailureCount() < 0) {
+                log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + body + "] 의 Multi Message 전송 실패 내역이 존재합니다" );
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + e.getMessage() + "] 의 사유로 BatchResponse 해독에 실패했습니다" );
+        }
+
+    }
+
+
+    private String createDeepLink(Long topCategoryId, Long subCategoryId) {
+        return deepLinkManager.createDeepLink(topCategoryId, subCategoryId);
     }
 
 }

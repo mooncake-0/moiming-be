@@ -25,13 +25,13 @@ public class ExternalReqSender {
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
 
                 assert request.body() != null;
-                log.error("SMS API :: SMS 문자 실패 - {}, {}", request.body().toString(), e.getMessage());
+                log.error("비동기 외부 요청 송신 실패 - {}, {}", request.body().toString(), e.getMessage());
 
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                log.info("SMS API :: SMS 문자 시도 - {}", response.body().string());
+                log.info("비동기 외부 요청 송신 성공 - {}", response.body().string()); // 굳이?
             }
         });
     }

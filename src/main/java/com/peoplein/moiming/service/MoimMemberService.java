@@ -42,7 +42,7 @@ public class MoimMemberService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberAndInfoByMoimId(moimId);
+        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberByMoimId(moimId, true);
 
         return moimMembers;
     }
@@ -69,9 +69,14 @@ public class MoimMemberService {
 
         moimPs.judgeMemberJoinByRule(moimMemberPs, curMember);
 
+        // 알람 형성을 위해 모임의 Manager 를 조회한다
+        Member curManager = memberRepository.findById(moimPs.getCurManagerId()).orElseThrow(() ->
+                new MoimingApiException(MEMBER_NOT_FOUND)
+        );
+
         // 알림을 발생시킨다
         notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_JOIN, NotificationType.INFORM
-                , moimPs.getCurManagerId(), "", "\"" + curMember.getNickname() + "\"님이 모임에 가입하였습니다", moimPs.getId(), null);
+                , curManager, "", "\"" + curMember.getNickname() + "\"님이 모임에 가입하였습니다", moimPs.getId(), null);
 
     }
 
@@ -91,26 +96,33 @@ public class MoimMemberService {
                 () -> new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
         );
 
+        Moim moim = moimMember.getMoim();
+
         if (!moimMember.hasActivePermission()) { // ACTIVE 하지 않으면 수행할 수 없음
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
         // 만약 MANAGER 가 요청한 것이라면, alternative flow 가 실행된다
         if (moimMember.hasPermissionOfManager()) {
-            if (moimMember.getMoim().getCurMemberCount() == 1) { // Moim 삭제 진행
+            if (moim.getCurMemberCount() == 1) { // Moim 삭제 진행
                 // 후속으로 -1 과 IBW 변환은 진행되므로, moim 삭제 정보만 기록한다
-                moimMember.getMoim().markDeletedTime();
+                moim.markDeletedTime();
 
             } else { // 모임장이 나가며, 모임장 승계가 진행된다
-                delegateMoimManager(moimMember.getMoim());
+                delegateMoimManager(moim);
             }
         }
 
         moimMember.changeMemberState(IBW);  // 나가려는 모임원의 상태를 IBW 로 기록, 모임원 -1 처리가 진행된다
 
+        // 알람 형성을 위해 모임의 Manager 를 조회한다
+        Member curManager = memberRepository.findById(moim.getCurManagerId()).orElseThrow(() ->
+                new MoimingApiException(MEMBER_NOT_FOUND)
+        );
+
         // 모임장에게 알림을 발생시킨다
         notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_IBW, NotificationType.INFORM
-                , moimMember.getMoim().getCurManagerId(), "", "\"" + curMember.getNickname() + "\"님이 모임을 탈퇴하였습니다", moimMember.getMoim().getId(), null);
+                , curManager, "", "\"" + curMember.getNickname() + "\"님이 모임을 탈퇴하였습니다", moimMember.getMoim().getId(), null);
 
     }
 
@@ -145,12 +157,14 @@ public class MoimMemberService {
         expelMoimMember.changeMemberState(IBF);
         expelMoimMember.setInactiveReason(requestDto.getInactiveReason());
 
+        Member expelMember = memberRepository.findById(requestDto.getExpelMemberId()).orElseThrow(() ->
+                new MoimingApiException(MEMBER_NOT_FOUND)
+        );
 
-        // MEMO :: MoimMember 에서 Moim 에 대한 Lazy Loading 발생 시점 (moimName 조회)
         // 알림을 발생시킨다
         String notiBody = expelMoimMember.getMoim().getMoimName() + "에서 " + requestDto.getInactiveReason() + "의 이유로 탈퇴 처리 되었습니다";
         notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_IBF, NotificationType.INFORM
-                , expelMoimMember.getMember().getId(), "", notiBody, expelMoimMember.getMoim().getId(), null);
+                , expelMember, "", notiBody, expelMoimMember.getMoim().getId(), null);
 
     }
 
@@ -187,10 +201,15 @@ public class MoimMemberService {
         // 3. 해당 모임의 모임장 ID 를 지정한다
         moim.changeCurManagerId(longestMoimMember.getMember().getId());
 
+        // Moim 은 이미 조회됨, 알람 형성을 위해 curManager 를 불러온다
+        Member curManager = memberRepository.findById(longestMoimMember.getMember().getId()).orElseThrow(() ->
+                new MoimingApiException(MEMBER_NOT_FOUND)
+        );
+
         // 4. 모임장 승계 알림을 전송한다
         String body = "기존 모임장의 탈퇴로, " + moim.getMoimName() + " 모임의 모임장으로 위임되셨습니다";
         notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_MANAGER_DELEGATE, NotificationType.INFORM
-                , longestMoimMember.getMember().getId(), "", body, moim.getId(), null);
+                , curManager, "", body, moim.getId(), null);
 
     }
 

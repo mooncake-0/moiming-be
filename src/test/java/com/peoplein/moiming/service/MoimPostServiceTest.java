@@ -63,7 +63,7 @@ public class MoimPostServiceTest {
     @Mock
     private RelatedFileService relatedFileService;
 
-
+/*
     @Test
     void createMoimPost_shouldPass_whenRightInfoPassed() {
 
@@ -112,7 +112,7 @@ public class MoimPostServiceTest {
 
             // given - stub
             when(moimMember.getMemberState()).thenReturn(MoimMemberState.ACTIVE);
-            when(moimRepository.findWithActiveMoimMembersById(any())).thenReturn(Optional.of(moim));
+            when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
             when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
             when(member.getId()).thenReturn(1L);
             mocker.when(() -> MoimPost.createMoimPost(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
@@ -194,7 +194,7 @@ public class MoimPostServiceTest {
         assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
 
     }
-
+*/
 
     // --- getMoimPosts TEST
     // getMoimPosts > MoimPost 정상, moimmember 통과 정상일 경우

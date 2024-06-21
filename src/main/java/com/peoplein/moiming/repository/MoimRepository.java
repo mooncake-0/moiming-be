@@ -15,11 +15,7 @@ public interface MoimRepository {
 
     Optional<Moim> findWithMoimMemberAndMemberById(Long moimId);
 
-    // MEMO :: NEW
-
     Optional<Moim> findWithJoinRuleAndCategoriesById(Long moimId);
-
-    Optional<Moim> findWithActiveMoimMembersById(Long moimId);
 
     List<Moim> findNewMoims(int offset, int limit);
 

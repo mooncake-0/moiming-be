@@ -116,6 +116,7 @@ public abstract class AppUrlPath {
 
     // MEMBER POLICY 관련 API
     // PATCH - /api/v0/member/policy
+    public final static String PATH_MEMBER_POLICY_VIEW = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_POLICY;
     public final static String PATH_MEMBER_POLICY_UPDATE = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_POLICY;
 
 
@@ -133,6 +134,9 @@ public abstract class AppUrlPath {
     public final static String PATH_MEMBER_CREATE_MEMBER_INFO = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO;
     public final static String PATH_MEMBER_CHANGE_PF_IMG = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO + "/image";
     public final static String PATH_MEMBER_DELETE_PF_IMG = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + API_MEMBER_INFO + "/image";
+
+    public final static String PATH_GET_MEMBER_NOTIFY_SETTING = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notifySetting";
+    public final static String PATH_UPDATE_MEMBER_NOTIFY_SETTING = API_SERVER + API_MEMBER_VER + API_DOMAIN_MEMBER + "/notifySetting";
 
     // 애매한 것들
     public final static String PATH_REPORT_CREATE_IMG = API_SERVER + "/v0" + "/report" + "/image";

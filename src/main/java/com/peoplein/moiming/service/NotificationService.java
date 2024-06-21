@@ -9,12 +9,14 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.NotificationRepository;
+import com.peoplein.moiming.service.support.FcmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 
@@ -25,31 +27,37 @@ import static com.peoplein.moiming.exception.ExceptionValue.*;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final FcmService fcmService;
 
     @Transactional
     public void createNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
-            , Long receiverId, String title, String body, Long topCategoryId, Long subCategoryId) {
+            , Member receiver, String title, String body, Long topCategoryId, Long subCategoryId) {
 
-        if (topCategory == null || subCategory == null || type == null || receiverId == null) {
+        if (topCategory == null || subCategory == null || type == null || receiver == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        Notification notification = Notification.createNotification(topCategory, subCategory, type, receiverId, title, body, topCategoryId, subCategoryId);
+        Notification notification = Notification.createNotification(topCategory, subCategory, type, receiver.getId(), title, body, topCategoryId, subCategoryId);
         notificationRepository.save(notification);
 
-        // TODO :: FCM 관련 처리
+        // FCM Message 에 Top Category, Sub Category 추가 필요
+        // FCM 에서 reqsender 활용해서 요청 발신하기
+        fcmService.sendSingleMessage(receiver, topCategory, subCategory, receiver.getFcmToken(), title, body, topCategoryId, subCategoryId);
+
     }
 
 
-    // TODO :: FCM 다량 요청 확인 후 점검
     @Transactional
     public void createManyNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
             , List<Member> receivers, String title, String body, Long topCategoryId, Long subCategoryId) {
+
         for (Member receiver : receivers) {
             Long receiverId = receiver.getId(); // Member Id 들을 가져온다
             Notification notification = Notification.createNotification(topCategory, subCategory, type, receiverId, title, body, topCategoryId, subCategoryId);
             notificationRepository.save(notification);
         }
+
+        fcmService.sendMultiMessage(receivers, topCategory, subCategory, title, body, topCategoryId, subCategoryId);
 
     }
 

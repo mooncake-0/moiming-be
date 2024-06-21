@@ -34,6 +34,7 @@ public class MoimingAuthenticationProvider implements AuthenticationProvider {
             throw new LoginAttemptException(AUTH_LOGIN_PASSWORD_INCORRECT);
         }
 
+        // 로그인 성공
         JwtAuthenticationToken authenticatedToken = new JwtAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         return authenticatedToken;

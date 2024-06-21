@@ -3,8 +3,10 @@ package com.peoplein.moiming.security.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
+import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
+import com.peoplein.moiming.security.exception.LoginAttemptException;
 import com.peoplein.moiming.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +19,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
 import static com.peoplein.moiming.model.dto.response.AuthRespDto.*;
+import static com.peoplein.moiming.security.exception.AuthExceptionValue.AUTH_COMMON_INVALID_PARAM_NULL;
 
 @RequiredArgsConstructor
 public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler {
@@ -33,7 +37,16 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
         Member member = ((SecurityMember) authentication.getPrincipal()).getMember();
-        TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member);
+
+        // FCM 토큰 뽑기 위해 요청 본문 필요
+        AuthLoginReqDto loginParams = null;
+        try {
+            loginParams = om.readValue(request.getReader(), AuthLoginReqDto.class);
+        } catch (IOException e) {
+            throw new LoginAttemptException(AUTH_COMMON_INVALID_PARAM_NULL, e);
+        }
+
+        TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member, loginParams.getFcmToken());
 
         ResponseBodyDto<AuthLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공"
                 , new AuthLoginRespDto(member, tokenRespDto)

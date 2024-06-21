@@ -8,6 +8,7 @@ import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
 import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -20,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QPostComment.postComment;
+import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 import static com.peoplein.moiming.domain.moim.QMoim.*;
 import static com.peoplein.moiming.domain.moim.QMoimMember.*;
 import static com.peoplein.moiming.domain.member.QMember.*;
@@ -96,35 +98,17 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     }
 
     @Override
-    public List<MoimMember> findActiveWithMemberAndInfoByMoimId(Long moimId) {
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.member, member).fetchJoin()
-                .leftJoin(member.memberInfo, memberInfo).fetchJoin()
-                .where(moimMember.moim.id.eq(moimId)
-                , moimMember.memberState.eq(MoimMemberState.ACTIVE))
+    public List<MoimMember> findActiveWithMemberByMoimId(Long moimId, boolean joinMemberInfo) {
+        JPAQuery<MoimMember> query = queryFactory.selectFrom(moimMember)
+                .join(moimMember.member, member).fetchJoin();
+
+        if (joinMemberInfo) {
+            query.leftJoin(member.memberInfo, memberInfo).fetchJoin();
+        }
+
+        return query.where(moimMember.moim.id.eq(moimId)
+                        , moimMember.memberState.eq(ACTIVE))
                 .fetch();
-    }
-
-
-    @Override
-    public List<MoimMember> findWithMoimByMoimId(Long moimId) {
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.moim, moim).fetchJoin()
-                .where(moimMember.moim.id.eq(moimId))
-                .fetch();
-    }
-
-
-    // 각 모임 정보를 모두 같이 불러온다
-    // In USE
-    @Override
-    public List<MoimMember> findWithMoimByMemberId(Long memberId) {
-        checkIllegalQueryParams(memberId);
-        return queryFactory.selectFrom(moimMember)
-                .join(moimMember.moim, moim).fetchJoin()
-                .where(moimMember.member.id.eq(memberId))
-                .fetch();
-
     }
 
 
@@ -143,7 +127,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     public Optional<MoimMember> findLongestNormalActiveMemberByMoimId(Long moimId) {
 
         return Optional.ofNullable(queryFactory.selectFrom(moimMember)
-                .where(moimMember.memberState.eq(MoimMemberState.ACTIVE)
+                .where(moimMember.memberState.eq(ACTIVE)
                         , moimMember.memberRoleType.eq(MoimMemberRoleType.NORMAL))
                 .orderBy(moimMember.createdAt.asc())
                 .limit(1)
@@ -174,12 +158,12 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
         BooleanBuilder dynamicQuery = new BooleanBuilder();
 
         if (isActiveReq) { // 아닐 경우 다 들고온다, 보통 isActive 만 찾을 것임
-            dynamicQuery.and(moimMember.memberState.eq(MoimMemberState.ACTIVE));
+            dynamicQuery.and(moimMember.memberState.eq(ACTIVE));
         }
 
         if (isManagerReq) {
             dynamicQuery.and(moimMember.memberRoleType.eq(MoimMemberRoleType.MANAGER));
-        }else{
+        } else {
             dynamicQuery.and(moimMember.memberRoleType.ne(MoimMemberRoleType.MANAGER));
         }
 

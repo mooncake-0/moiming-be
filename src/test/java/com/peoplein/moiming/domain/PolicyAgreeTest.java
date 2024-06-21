@@ -145,10 +145,10 @@ public class PolicyAgreeTest {
         Member member = mock(Member.class);
 
         // when
-        PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, MARKETING_EMAIL, true);
+        PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, MARKETING_SMS, true);
 
         // then
-        assertThat(policyAgree.getPolicyType()).isEqualTo(MARKETING_EMAIL);
+        assertThat(policyAgree.getPolicyType()).isEqualTo(MARKETING_SMS);
         assertThat(policyAgree.isHasAgreed()).isEqualTo(true);
 
     }
@@ -160,10 +160,10 @@ public class PolicyAgreeTest {
         Member member = mock(Member.class);
 
         // when
-        PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, MARKETING_EMAIL, false);
+        PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, MARKETING_SMS, false);
 
         // then
-        assertThat(policyAgree.getPolicyType()).isEqualTo(MARKETING_EMAIL);
+        assertThat(policyAgree.getPolicyType()).isEqualTo(MARKETING_SMS);
         assertThat(policyAgree.isHasAgreed()).isEqualTo(false);
 
     }
@@ -309,7 +309,7 @@ public class PolicyAgreeTest {
 
         // given
         Member member = mock(Member.class);
-        PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, MARKETING_EMAIL, false);
+        PolicyAgree policyAgree = PolicyAgree.createPolicyAgree(member, MARKETING_SMS, false);
 
         // given - stub
         when(member.getId()).thenReturn(1L);

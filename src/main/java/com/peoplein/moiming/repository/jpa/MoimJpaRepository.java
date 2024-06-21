@@ -95,19 +95,6 @@ public class MoimJpaRepository implements MoimRepository {
     }
 
 
-    // Moim List 조회가 아니므로 distinct 도 필요 없음
-    // MOIM 에 대한 MoimMember EAGER 조회
-    @Override
-    public Optional<Moim> findWithActiveMoimMembersById(Long moimId) {
-
-        return Optional.ofNullable(queryFactory.selectFrom(moim)
-                .join(moim.moimMembers, moimMember).fetchJoin()
-                .where(moim.id.eq(moimId),
-                        moimMember.memberState.eq(MoimMemberState.ACTIVE))
-                .fetchOne());
-
-    }
-
     @Override
     public List<Moim> findNewMoims(int offset, int limit) {
 

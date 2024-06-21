@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.peoplein.moiming.domain.enums.NotificationSubCategory.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.inner.PostDetailsInnerDto.*;
 import static com.peoplein.moiming.model.dto.request.PostCommentReqDto.*;
@@ -55,12 +56,13 @@ public class PostCommentService {
                 requestDto.getDepth(), getParentCommentByReqDto(requestDto.getDepth(), requestDto.getParentId()));
 
         // Comment 종류에 따른 알림 생성
-        NotificationSubCategory subCategory = NotificationSubCategory.COMMENT_CREATE;
-        Member notificationReceiver = moimPost.getMember();
+        NotificationSubCategory subCategory = COMMENT_CREATE;
+        Member notificationReceiver = moimPost.getMember(); // 게시물 작성자
         String notiBody = moimPost.getPostTitle() + "에 새로운 댓글이 등록되었습니다";
+
         if (comment.getDepth() == 1) {
-            subCategory = NotificationSubCategory.CHILD_COMMENT_CREATE;
-            notificationReceiver = comment.getParent().getMember();
+            subCategory = CHILD_COMMENT_CREATE;
+            notificationReceiver = comment.getParent().getMember(); // 답글 작성자
             notiBody = moimPost.getPostTitle() + "에 남긴 댓글에 새로운 답글이 등록되었습니다";
         }
 
@@ -74,7 +76,7 @@ public class PostCommentService {
 
         if (receiverStatus.hasActivePermission()) { // 현재 활동중인 모임원 아니면 알림 안보냄
             notificationService.createNotification(NotificationTopCategory.MOIM, subCategory, NotificationType.INFORM
-                    , notificationReceiver.getId(), "", notiBody, moimPost.getMoim().getId(), moimPost.getId());
+                    , notificationReceiver, "", notiBody, moimPost.getMoim().getId(), moimPost.getId());
         }
 
         return comment;

@@ -60,6 +60,7 @@ public class MemberService {
 
         member = persistSecurityMember(member.getId());
         member.changeRefreshToken(null);
+        member.changeFcmToken(null);
 
         // LOGOUT 처리 토큰으로 등재한다
         Date expireAt = moimingTokenProvider.verifyExpireAt(MoimingTokenType.JWT_AT, accessToken);

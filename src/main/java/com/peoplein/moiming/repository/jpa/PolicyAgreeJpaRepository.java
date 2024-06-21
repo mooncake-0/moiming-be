@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.peoplein.moiming.domain.QPolicyAgree.*;
 import static com.peoplein.moiming.domain.enums.PolicyType.*;
@@ -29,7 +30,7 @@ public class PolicyAgreeJpaRepository implements PolicyAgreeRepository {
     }
 
 
-    private void checkIllegalQueryParams(Object ... objs) {
+    private void checkIllegalQueryParams(Object... objs) {
         for (Object obj : objs) {
             if (Objects.isNull(obj)) {
                 throw new InvalidQueryParameterException("쿼리 파라미터는 NULL 일 수 없습니다");
@@ -48,17 +49,13 @@ public class PolicyAgreeJpaRepository implements PolicyAgreeRepository {
 
     }
 
+    @Override
+    public Optional<PolicyAgree> findByMemberIdAndPolicyType(Long memberId, PolicyType policyType) {
 
-    // Policy 란 Entity 의 필요성? PolicyAgree 을 통한 Member 와의 N:N 이 필요할까?
-    public List<PolicyAgree> findByMemberIdAndPolicyTypes(Long memberId, List<PolicyType> policyTypes) {
-
-        checkIllegalQueryParams(memberId, policyTypes);
-
-        return queryFactory.selectFrom(policyAgree)
+        return Optional.ofNullable(queryFactory.selectFrom(policyAgree)
                 .where(policyAgree.member.id.eq(memberId),
-                        policyAgree.policyType.in(policyTypes))
-                .fetch();
-
+                        policyAgree.policyType.eq(policyType))
+                .fetchOne());
     }
 
 }

@@ -83,17 +83,6 @@ public class TestObjectCreator {
     }
 
 
-    protected List<PolicyAgreeUpdateReqDto.PolicyAgreeDto> makePolicyUpdateReqDtoList(Boolean[] hasAgreeds, PolicyType[] types) {
-        List<PolicyAgreeUpdateReqDto.PolicyAgreeDto> policyDtos = new ArrayList<>();
-
-        for (int i = 0; i < types.length; i++) {
-            policyDtos.add(new PolicyAgreeUpdateReqDto.PolicyAgreeDto(hasAgreeds[i], types[i]));
-        }
-
-        return policyDtos;
-    }
-
-
     protected MoimCreateReqDto makeMoimReqDtoNoJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
         return new MoimCreateReqDto(
                 mName, moimInfo, state, city, mMember, false, null, null, List.of(category1, category2)
