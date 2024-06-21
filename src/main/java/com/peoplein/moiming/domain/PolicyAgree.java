@@ -58,7 +58,9 @@ public class PolicyAgree extends BaseEntity {
 
     public void changeHasAgreed(boolean hasAgreed, Long memberId) {
 
-        if (!(this.getPolicyType().equals(MARKETING_EMAIL) || this.getPolicyType().equals(MARKETING_SMS))) {
+        // 선택사항들이 아닌 값이 changeHasAgreed 호출시
+        if (!(this.getPolicyType().equals(MARKETING_AGREE)) && !(this.getPolicyType().equals(MARKETING_PUSH)) &&
+                !(this.getPolicyType().equals(MARKETING_SMS))) {
             throw new MoimingApiException(MEMBER_POLICY_ESSENTIAL);
         }
 

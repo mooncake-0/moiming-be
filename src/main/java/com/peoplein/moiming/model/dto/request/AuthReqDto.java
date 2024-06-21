@@ -34,6 +34,9 @@ public class AuthReqDto {
         @NotEmpty
         private String password;
 
+        @NotEmpty
+        private String fcmToken;
+
     }
 
 
@@ -60,7 +63,7 @@ public class AuthReqDto {
         private String fcmToken;
 
         @NotEmpty // 안에 값이 들어있고, Null 이 아닌지도 체크
-        @Size(min = 5, max = 5, message = "필요 항목은 5개입니다")
+        @Size(min = 6, max = 6, message = "필요 항목은 6개입니다")
         @JsonProperty("policies")
         private List<PolicyAgreeDto> policyDtos;
 
@@ -99,7 +102,7 @@ public class AuthReqDto {
         private String fcmToken;
 
         @NotEmpty // 안에 값이 들어있고, Null 이 아닌지도 체크
-        @Size(min = 5, max = 5, message = "필요 항목은 5개입니다")
+        @Size(min = 6, max = 6, message = "필요 항목은 5개입니다")
         @JsonProperty("policies")
         private List<PolicyAgreeDto> policyDtos;
 

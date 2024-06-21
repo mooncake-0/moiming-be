@@ -87,8 +87,8 @@ public class AuthControllerTest extends TestObjectCreator {
     }
 
     private List<PolicyAgreeDto> provideNormalPolicyDtos() {
-        boolean[] hasAgreeds = {true, true, true, true, false};
-        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
+        boolean[] hasAgreeds = {true, true, true, true, false, true};
+        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_AGREE, MARKETING_SMS, MARKETING_PUSH};
         return makePolicyReqDtoList(hasAgreeds, policyTypes);
     }
 
@@ -281,8 +281,8 @@ public class AuthControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        boolean[] isAgreeds = {true, true, false, true, false};
-        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
+        boolean[] isAgreeds = {true, true, false, true, false, true};
+        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_AGREE, MARKETING_SMS, MARKETING_PUSH};
         AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, makePolicyReqDtoList(isAgreeds, policyTypes));
         String requestString = om.writeValueAsString(reqDto);
 
@@ -309,8 +309,8 @@ public class AuthControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        boolean[] isAgreeds = {true, true, true, true};
-        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_EMAIL};
+        boolean[] isAgreeds = {true, true, true, true, true, false};
+        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_AGREE, MARKETING_SMS};
         AuthSignUpReqDto reqDto = new AuthSignUpReqDto(smsVerification.getId(), memberPhone2, password, fcmToken, makePolicyReqDtoList(isAgreeds, policyTypes));
         String requestString = om.writeValueAsString(reqDto);
 

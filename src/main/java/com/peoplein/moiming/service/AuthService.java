@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.enums.VerificationType;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberSetting;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
@@ -137,12 +138,13 @@ public class AuthService {
 
         // member 저장
         memberRepository.save(signUpMember);
+        memberRepository.saveMemberSetting(MemberSetting.saveMemberSetting(signUpMember)); // Member Persist 이후로 저장, 멤버 초기 설정을 저장한다
 
         // Policy 저장 분리
         policyAgreeService.createPolicyAgree(signUpMember, requestDto.getPolicyDtos());
 
         // Refresh 토큰 발급 & Response Data 생성
-        TokenRespDto tokenRespDto = issueTokensAndUpdateColumns(true, signUpMember);
+        TokenRespDto tokenRespDto = issueTokensAndUpdateColumns(true, signUpMember, null);
 
         return new AuthSignUpRespDto(signUpMember, tokenRespDto);
 
@@ -171,12 +173,13 @@ public class AuthService {
 
         // member 저장
         memberRepository.save(signUpMember);
+        memberRepository.saveMemberSetting(MemberSetting.saveMemberSetting(signUpMember)); // member persist 이후 멤버 초기 설정을 저장한다
 
         // Policy 저장 분리
         policyAgreeService.createPolicyAgree(signUpMember, requestDto.getPolicyDtos());
 
         // Refresh 토큰 발급 & Response Data 생성
-        TokenRespDto tokenRespDto = issueTokensAndUpdateColumns(true, signUpMember);
+        TokenRespDto tokenRespDto = issueTokensAndUpdateColumns(true, signUpMember, null);
 
         return new AuthSignUpRespDto(signUpMember, tokenRespDto);
 
@@ -212,7 +215,7 @@ public class AuthService {
             throw new MoimingAuthNoRollbackException(AUTH_REFRESH_TOKEN_NOT_MATCH);
         }
 
-        return issueTokensAndUpdateColumns(true, memberPs);
+        return issueTokensAndUpdateColumns(true, memberPs, null);
     }
 
 
@@ -242,7 +245,7 @@ public class AuthService {
                유저에 대한 인증, 갱신 토큰을 발급한다
      */
     @Transactional
-    public TokenRespDto issueTokensAndUpdateColumns(boolean persisted, Member member) {
+    public TokenRespDto issueTokensAndUpdateColumns(boolean persisted, Member member, String fcmToken) {
 
         if (!persisted) {
             member = memberRepository.findById(member.getId()).orElseThrow(
@@ -255,6 +258,10 @@ public class AuthService {
 
         member.changeRefreshToken(refreshTokenDto.getJwtToken());
         member.changeLastLoginAt();
+
+        if (StringUtils.hasText(fcmToken)) { // 필요시에만
+            member.changeFcmToken(fcmToken);
+        }
 
         return new TokenRespDto(accessTokenDto.getJwtToken(), accessTokenDto.getExp(), refreshTokenDto.getJwtToken(), refreshTokenDto.getExp());
     }

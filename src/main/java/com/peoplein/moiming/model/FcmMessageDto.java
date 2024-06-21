@@ -35,8 +35,8 @@ public class FcmMessageDto {
     @Builder
     @Getter
     public static class Data {
-        private NotificationTopCategory topCategory;
-        private NotificationSubCategory subCategory;
+        private String topCategory;
+        private String subCategory;
         private String deepLink;
     }
 }

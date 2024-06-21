@@ -65,8 +65,8 @@ public class PolicyServiceIntegratedTest extends TestObjectCreator {
     void createPolicyAgree_shouldSaveMemberPolicyAgreeStatus_whenRightInfoPassed() {
 
         // given
-        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_SMS, MARKETING_EMAIL};
-        boolean[] hasAgreeds = {true, true, true, true, false};
+        PolicyType[] policyTypes = {SERVICE, PRIVACY, AGE, MARKETING_AGREE, MARKETING_SMS, MARKETING_PUSH};
+        boolean[] hasAgreeds = {true, true, true, true, false, true};
         List<PolicyAgreeDto> policyDtos = makePolicyReqDtoList(hasAgreeds, policyTypes);
 
         // when
@@ -84,45 +84,13 @@ public class PolicyServiceIntegratedTest extends TestObjectCreator {
             if (policyAgree.getPolicyType().equals(AGE)) {
                 assertThat(policyAgree.isHasAgreed()).isEqualTo(true);
             }
-            if (policyAgree.getPolicyType().equals(MARKETING_SMS)) {
+            if (policyAgree.getPolicyType().equals(MARKETING_AGREE)) {
                 assertThat(policyAgree.isHasAgreed()).isEqualTo(true);
             }
-            if (policyAgree.getPolicyType().equals(MARKETING_EMAIL)) {
-                assertThat(policyAgree.isHasAgreed()).isEqualTo(false);
-            }
-        }
-    }
-
-
-    // 잘 변하는지만 확인한다
-    @Test
-    void updatePolicyAgree_shouldUpdatePolicies_whenRightInfoPassed() {
-
-        // given - Policy 를 저장시킨다
-        em.persist(PolicyAgree.createPolicyAgree(testMember, SERVICE, true));
-        em.persist(PolicyAgree.createPolicyAgree(testMember, PRIVACY, true));
-        em.persist(PolicyAgree.createPolicyAgree(testMember, AGE, true));
-        em.persist(PolicyAgree.createPolicyAgree(testMember, MARKETING_SMS, true));
-        em.persist(PolicyAgree.createPolicyAgree(testMember, MARKETING_EMAIL, false));
-        em.flush();
-        em.clear();
-
-        // given - 바꿀 입력 값들만 들어가게 된다
-        Boolean[] hasAgreed = {false, true};
-        PolicyType[] policyTypes = {MARKETING_SMS, MARKETING_EMAIL};
-        List<PolicyAgreeUpdateReqDto.PolicyAgreeDto> policyDtos = makePolicyUpdateReqDtoList(hasAgreed, policyTypes);
-
-        // when
-        policyAgreeService.updatePolicyAgree(testMember, policyDtos);
-
-        // then - db verify
-        List<PolicyAgree> policyAgrees = policyAgreeRepository.findByMemberId(testMember.getId());
-        for (PolicyAgree policyAgree : policyAgrees) {
             if (policyAgree.getPolicyType().equals(MARKETING_SMS)) {
                 assertThat(policyAgree.isHasAgreed()).isEqualTo(false);
             }
-
-            if (policyAgree.getPolicyType().equals(MARKETING_EMAIL)) {
+            if (policyAgree.getPolicyType().equals(MARKETING_PUSH)) {
                 assertThat(policyAgree.isHasAgreed()).isEqualTo(true);
             }
         }

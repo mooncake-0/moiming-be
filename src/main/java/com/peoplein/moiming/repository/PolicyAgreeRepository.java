@@ -4,6 +4,7 @@ import com.peoplein.moiming.domain.PolicyAgree;
 import com.peoplein.moiming.domain.enums.PolicyType;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PolicyAgreeRepository {
 
@@ -11,5 +12,5 @@ public interface PolicyAgreeRepository {
 
     List<PolicyAgree> findByMemberId(Long memberId);
 
-    List<PolicyAgree> findByMemberIdAndPolicyTypes(Long memberId, List<PolicyType> policyTypes);
+    Optional<PolicyAgree> findByMemberIdAndPolicyType(Long memberI, PolicyType policyType);
 }

@@ -10,13 +10,13 @@ import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.NotificationRepository;
 import com.peoplein.moiming.service.support.FcmService;
-import com.peoplein.moiming.service.util.DeepLinkCreator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 
@@ -40,29 +40,24 @@ public class NotificationService {
         Notification notification = Notification.createNotification(topCategory, subCategory, type, receiver.getId(), title, body, topCategoryId, subCategoryId);
         notificationRepository.save(notification);
 
-        // TODO :: 해당 유저의 알림 허용 정보 확인, 비허용 하는 상황이 있을시 차단하고 FCM 을 생성하지 않음
-//        memberNotiSetting.checkNotiSetting(receiver, TopCategory, SubCategory, type); // 전달해서 유저 설정 확인
-
-        // TODO :: FCM 관련 처리
-        DeepLinkCreator dlCreator = new DeepLinkCreator();
-        String deepLink = dlCreator.createDeepLink(topCategoryId, subCategoryId);
-
         // FCM Message 에 Top Category, Sub Category 추가 필요
         // FCM 에서 reqsender 활용해서 요청 발신하기
-//        fcmService.sendSingleMessage(topCategory, subCategory, receiver.getFcmToken(), title, body, deepLink);
+        fcmService.sendSingleMessage(receiver, topCategory, subCategory, receiver.getFcmToken(), title, body, topCategoryId, subCategoryId);
 
     }
 
 
-    // TODO :: FCM 다량 요청 확인 후 점검
     @Transactional
     public void createManyNotification(NotificationTopCategory topCategory, NotificationSubCategory subCategory, NotificationType type
             , List<Member> receivers, String title, String body, Long topCategoryId, Long subCategoryId) {
+
         for (Member receiver : receivers) {
             Long receiverId = receiver.getId(); // Member Id 들을 가져온다
             Notification notification = Notification.createNotification(topCategory, subCategory, type, receiverId, title, body, topCategoryId, subCategoryId);
             notificationRepository.save(notification);
         }
+
+        fcmService.sendMultiMessage(receivers, topCategory, subCategory, title, body, topCategoryId, subCategoryId);
 
     }
 

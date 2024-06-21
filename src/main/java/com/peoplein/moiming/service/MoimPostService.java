@@ -108,16 +108,26 @@ public class MoimPostService {
 
         member.isMemberInfoRegistered();
 
-        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), requestDto.getMoimId())
-                .orElseThrow(() -> new MoimingApiException(MOIM_MEMBER_NOT_FOUND));
+        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberByMoimId(requestDto.getMoimId(), false); // 개인 정보가 필요 없음
+        List<Member> fcmReceivers = new ArrayList<>();
 
-        if (!moimMember.getMemberState().equals(MoimMemberState.ACTIVE)) {
+        MoimMember postCreator = null;
+        for (MoimMember moimMember : moimMembers) {
+            if (moimMember.getMember().getId().equals(member.getId())) { // post creator 임
+                postCreator = moimMember;
+            }else{
+                fcmReceivers.add(moimMember.getMember());
+            }
+        }
+
+        if (postCreator == null || !postCreator.getMemberState().equals(MoimMemberState.ACTIVE)) {
+            log.warn("{}, createMoimPost :: {}", this.getClass().getName(), "[" + postCreator + "] 가 [" + requestDto.getMoimId() + "] 에 게시물을 생성 시도, 권한 없음 발생");
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
         // Notification 을 위해서 필요하므로, Moim 과 관련 유저들은 모두 조회한다
         // MOIM 에 대한 EAGER 조회
-        Moim moim = moimRepository.findWithActiveMoimMembersById(requestDto.getMoimId())
+        Moim moim = moimRepository.findById(requestDto.getMoimId())
                 .orElseThrow(() -> new MoimingApiException(MOIM_NOT_FOUND));
 
         MoimPost post = MoimPost.createMoimPost(requestDto.getPostTitle(), requestDto.getPostContent()
@@ -137,18 +147,12 @@ public class MoimPostService {
             throw new MoimingApiException(COMMON_REQUEST_VALIDATION);
         }
 
-        // 게시글 생성자를 제외하고 전달시킨다
-        List<MoimMember> moimMembers = moim.getMoimMembers();
-        List<Member> receivers = moimMembers.stream()
-                .map(MoimMember::getMember)
-                .filter(mem -> !mem.getId().equals(member.getId()))
-                .collect(Collectors.toList());
-
         notificationService.createManyNotification(NotificationTopCategory.MOIM, NotificationSubCategory.POST_CREATE, NotificationType.INFORM
-                , receivers, "", moim.getMoimName() + "에 새로운 게시글이 등록되었습니다", requestDto.getMoimId(), post.getId());
+                , fcmReceivers, "", moim.getMoimName() + "에 새로운 게시글이 등록되었습니다", requestDto.getMoimId(), post.getId());
 
         List<RelatedFile> relatedFiles = relatedFileService.getRelatedFilesBySeq(POST, post.getId());
         return new MoimPostWithFileDto(post, relatedFiles);
+
     }
 
 

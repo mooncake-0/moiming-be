@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,13 +24,13 @@ import static com.peoplein.moiming.model.dto.request.PolicyAgreeReqDto.*;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class PolicyAgreeService {
 
     private final PolicyAgreeRepository policyAgreeRepository;
 
     // 회원 가입시에만 사용됨
+    @Transactional
     public void createPolicyAgree(Member member, List<PolicyAgreeDto> policyDtos) {
 
         if (member == null || policyDtos == null) {
@@ -47,30 +48,51 @@ public class PolicyAgreeService {
     }
 
 
-    /*
-     전달된 내역들을 통해 요청한 유저의 (선택) 약관 내역들을 변경한다
-     */
-    public void updatePolicyAgree(Member member, List<PolicyAgreeUpdateReqDto.PolicyAgreeDto> policyDtos) {
+    @Transactional(readOnly = true)
+    public List<PolicyAgree> getPolicyAgree(Member member, boolean optionalOnly) {
 
-        if (member == null || policyDtos == null || policyDtos.isEmpty()) {
+        if (member == null) {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        List<PolicyType> policyTypes = policyDtos.stream().map(PolicyAgreeUpdateReqDto.PolicyAgreeDto::getPolicyType).collect(Collectors.toList());
-        List<PolicyAgree> policyAgrees = policyAgreeRepository.findByMemberIdAndPolicyTypes(member.getId(), policyTypes);
+        List<PolicyAgree> memberPolicyAgree = policyAgreeRepository.findByMemberId(member.getId());
 
-        if (policyTypes.size() != policyAgrees.size() || policyAgrees.isEmpty()) {
-            log.error("{}, {}", "약관 수정 중 INTERNAL 오류 발생, C999", COMMON_INVALID_SITUATION.getErrMsg());
+        if (memberPolicyAgree.isEmpty() || memberPolicyAgree.size() != PolicyAgree.CUR_MOIMING_REQ_POLICY_CNT) {
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
 
-        for (PolicyAgree policyAgree : policyAgrees) {
-            for (PolicyAgreeUpdateReqDto.PolicyAgreeDto reqDto : policyDtos) {
-                if (policyAgree.getPolicyType().equals(reqDto.getPolicyType())) {
-                    policyAgree.changeHasAgreed(reqDto.getHasAgreed(), member.getId());
+        if (optionalOnly) {
+            List<PolicyAgree> optionalPolicy = new ArrayList<>();
+            for (PolicyAgree policyAgree : memberPolicyAgree) {
+                if (policyAgree.getPolicyType().isOptional()) {
+                    optionalPolicy.add(policyAgree);
                 }
             }
+            return optionalPolicy;
         }
+        return memberPolicyAgree;
+    }
+
+
+    /*
+     전달된 내역들을 통해 요청한 유저의 (선택) 약관 내역들을 변경한다
+     */
+    @Transactional
+    public PolicyAgree updatePolicyAgree(Member member, PolicyAgreeUpdateReqDto requestDto) {
+
+        if (member == null || requestDto == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
+
+        PolicyAgree policyAgree = policyAgreeRepository.findByMemberIdAndPolicyType(member.getId(), requestDto.getPolicyType()).orElseThrow(() -> {
+            log.error("{}, updatePolicyAgree :: {}", this.getClass().getName(), "[" + member.getId() + ", " + requestDto.getPolicyType() + "] 로 조회된 결과가 없습니다");
+            throw new MoimingApiException(COMMON_INVALID_SITUATION);
+        });
+
+        policyAgree.changeHasAgreed(requestDto.getHasAgreed(), member.getId());
+
+        return policyAgree;
     }
 
 

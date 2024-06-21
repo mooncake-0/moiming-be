@@ -42,7 +42,7 @@ public class MoimMemberService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberAndInfoByMoimId(moimId);
+        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberByMoimId(moimId, true);
 
         return moimMembers;
     }
