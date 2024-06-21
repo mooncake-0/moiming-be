@@ -18,6 +18,7 @@ import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
 
@@ -58,6 +59,9 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
             throw new LoginAttemptException(AUTH_COMMON_INVALID_PARAM_NULL, e);
         }
 
+//        HttpSession session = request.getSession();
+//        session.setAttribute("fcmToken", loginParams.getFcmToken());
+//
         if (!StringUtils.hasText(loginParams.getMemberPhone()) || !StringUtils.hasText(loginParams.getPassword())) {
             throw new LoginAttemptException(AuthExceptionValue.AUTH_LOGIN_REQUEST_INVALID);
         }

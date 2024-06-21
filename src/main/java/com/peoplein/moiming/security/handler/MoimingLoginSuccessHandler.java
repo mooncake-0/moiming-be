@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.*;
@@ -37,6 +38,8 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
         Member member = ((SecurityMember) authentication.getPrincipal()).getMember();
+//        HttpSession session = request.getSession();
+//        String fcmToken = (String) session.getAttribute("fcmToken");
 
         TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member, null);
 

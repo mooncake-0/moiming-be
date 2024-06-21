@@ -97,23 +97,40 @@ public class FcmService {
             , NotificationTopCategory topCategory, NotificationSubCategory subCategory, String receiverFcmToken, String title, String body
             , Long topCategoryId, Long subCategoryId) {
 
+        System.out.println("FCM LOG:: PASSED 1");
+
         if (!memberSettingService.isMemberNotifyAllowed(receiver, topCategory)) { // 허용되어 있지 않다면 보내지 않는다
+            System.out.println("FCM LOG:: PASSED 2");
             return;
         }
 
+        System.out.println("FCM LOG:: PASSED 3");
         // fcmToken 이 없을 경우엔 처리하지 않는다
         if (!StringUtils.hasText(receiverFcmToken)) {
+            System.out.println("FCM LOG:: PASSED 4");
             return;
         }
+
+        System.out.println("FCM LOG:: PASSED 5");
 
         try {
 
             String accessToken = initAccessToken();
+            System.out.println("FCM LOG:: PASSED 6");
+
             String deepLink = createDeepLink(topCategoryId, subCategoryId);
+            System.out.println("FCM LOG:: PASSED 7");
+
             String message = buildMessage(topCategory, subCategory, receiverFcmToken, title, body, deepLink);
+            System.out.println("FCM LOG:: PASSED 8");
+
+            System.out.println(message);
 
             OkHttpClient client = new OkHttpClient();
             RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
+
+            System.out.println("FCM LOG:: PASSED 9");
+
 
             Request request = new Request.Builder()
                     .url(API_URL)
@@ -122,11 +139,16 @@ public class FcmService {
                     .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
                     .build();
 
+            System.out.println("FCM LOG:: PASSED 10");
+
             reqSender.sendAsynchronousMessage(request);
+
+            System.out.println("FCM LOG:: PASSED 11");
 
         } catch (IOException exception) {
 
             log.error("CREATE FCM ERROR :: {}", exception.getMessage());
+            System.out.println("FCM LOG:: PASSED 12");
 
         }
     }

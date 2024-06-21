@@ -42,6 +42,7 @@ public class NotificationService {
 
         // FCM Message 에 Top Category, Sub Category 추가 필요
         // FCM 에서 reqsender 활용해서 요청 발신하기
+        System.out.println("FCM LOG :: PAAPAPAPAPAPA");
         fcmService.sendSingleMessage(receiver, topCategory, subCategory, receiver.getFcmToken(), title, body, topCategoryId, subCategoryId);
 
     }
