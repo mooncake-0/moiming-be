@@ -45,7 +45,7 @@ public class MoimController {
 
     private final MoimService moimService;
 
-    @ApiOperation("모임 프로필 사진 지정 (생성, 수정), (file key {imgFile} 이름으로 전달 필요)")
+    @ApiOperation("모임 프로필 사진 지정 (QueryParam 에 moimId 없을시 생성, 있을시 해당 모임에 대한 수정으로 판단), (file key {imgFile} 이름으로 전달 필요)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
