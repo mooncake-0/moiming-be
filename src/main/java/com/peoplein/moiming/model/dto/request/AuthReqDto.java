@@ -32,7 +32,7 @@ public class AuthReqDto {
 
         private String password;
 
-//        private String fcmToken;
+        private String fcmToken;
 
     }
 

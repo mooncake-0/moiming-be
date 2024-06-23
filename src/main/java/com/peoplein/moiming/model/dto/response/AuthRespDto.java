@@ -68,7 +68,8 @@ public class AuthRespDto {
         private String createdAt;
         private TokenRespDto tokenInfo;
 
-        public AuthLoginRespDto(Member member, TokenRespDto tokenRespDto) {
+        // 로그인시 FCM Token 은 따로 참조가 필요하다
+        public AuthLoginRespDto(Member member, TokenRespDto tokenRespDto, String fcmToken) {
             this.memberId = member.getId();
             this.hasMemberInfo = false;
             if (member.getMemberInfo() != null) {

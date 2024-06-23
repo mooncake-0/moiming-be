@@ -243,11 +243,12 @@ public class AuthService {
      토큰 발급 로직
      사용 로직 : 로그인 / 회원가입 / (위에 있음) 토큰 재발급 로직
                유저에 대한 인증, 갱신 토큰을 발급한다
+
      */
     @Transactional
     public TokenRespDto issueTokensAndUpdateColumns(boolean persisted, Member member, String fcmToken) {
 
-        if (!persisted) {
+        if (!persisted) { // 새로운 객체 참조하므로 호출하는 기존 객체와의 연관성을 잃는다
             member = memberRepository.findById(member.getId()).orElseThrow(
                     () -> new MoimingApiException(ExceptionValue.MEMBER_NOT_FOUND)
             );

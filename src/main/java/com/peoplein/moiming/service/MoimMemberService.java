@@ -42,7 +42,11 @@ public class MoimMemberService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberByMoimId(moimId, true);
+        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberByMoimId(moimId);
+
+        if (moimMembers.isEmpty()) {
+            throw new MoimingApiException(MOIM_NOT_FOUND);
+        }
 
         return moimMembers;
     }
@@ -106,7 +110,8 @@ public class MoimMemberService {
             if (moim.getCurMemberCount() == 1) { // Moim 삭제 진행
                 // 후속으로 -1 과 IBW 변환은 진행되므로, moim 삭제 정보만 기록한다
                 moim.markDeletedTime();
-
+                moimMember.changeMemberState(IBW);
+                return; // 이후로는 로직이 종료된다. 어떤 추가 기록도 불필요
             } else { // 모임장이 나가며, 모임장 승계가 진행된다
                 delegateMoimManager(moim);
             }
@@ -156,6 +161,7 @@ public class MoimMemberService {
         expelMoimMember.changeMemberState(IBF);
         expelMoimMember.setInactiveReason(requestDto.getInactiveReason());
 
+        // Memo :: 어차피 Member FCM 토큰 때문에 조회 때려야 함
         Member expelMember = memberRepository.findById(requestDto.getExpelMemberId()).orElseThrow(() ->
                 new MoimingApiException(MEMBER_NOT_FOUND)
         );
@@ -201,14 +207,15 @@ public class MoimMemberService {
         moim.changeCurManagerId(longestMoimMember.getMember().getId());
 
         // Moim 은 이미 조회됨, 알람 형성을 위해 curManager 를 불러온다
-        Member curManager = memberRepository.findById(longestMoimMember.getMember().getId()).orElseThrow(() ->
+        // MoimMember 의 FK 임
+        Member longestMember = memberRepository.findById(longestMoimMember.getMember().getId()).orElseThrow(() ->
                 new MoimingApiException(MEMBER_NOT_FOUND)
         );
 
         // 4. 모임장 승계 알림을 전송한다
         String body = "기존 모임장의 탈퇴로, " + moim.getMoimName() + " 모임의 모임장으로 위임되셨습니다";
         notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_MANAGER_DELEGATE, NotificationType.INFORM
-                , curManager, "", body, moim.getId(), null);
+                , longestMember, "", body, moim.getId(), null);
 
     }
 

@@ -59,14 +59,11 @@ public class MoimingLoginFilter extends AbstractAuthenticationProcessingFilter {
             throw new LoginAttemptException(AUTH_COMMON_INVALID_PARAM_NULL, e);
         }
 
-//        HttpSession session = request.getSession();
-//        session.setAttribute("fcmToken", loginParams.getFcmToken());
-//
         if (!StringUtils.hasText(loginParams.getMemberPhone()) || !StringUtils.hasText(loginParams.getPassword())) {
             throw new LoginAttemptException(AuthExceptionValue.AUTH_LOGIN_REQUEST_INVALID);
         }
 
-        JwtAuthenticationToken preAuthentication = new JwtAuthenticationToken(loginParams.getMemberPhone(), loginParams.getPassword());
+        JwtAuthenticationToken preAuthentication = new JwtAuthenticationToken(loginParams.getMemberPhone(), loginParams.getPassword(), loginParams.getFcmToken());
         AuthenticationManager authenticationManager = getAuthenticationManager();
 
         return authenticationManager.authenticate(preAuthentication);

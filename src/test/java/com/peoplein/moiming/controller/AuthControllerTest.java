@@ -266,7 +266,7 @@ public class AuthControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1))); // Policy 는 5개의 필드가 필요하다
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1))); // Policy 는 6개의 필드가 필요하다
 
     }
 

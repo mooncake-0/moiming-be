@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.request.AuthReqDto;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;
+import com.peoplein.moiming.security.auth.JwtAuthenticationToken;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.security.exception.LoginAttemptException;
 import com.peoplein.moiming.service.AuthService;
@@ -38,13 +39,17 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
         Member member = ((SecurityMember) authentication.getPrincipal()).getMember();
-//        HttpSession session = request.getSession();
-//        String fcmToken = (String) session.getAttribute("fcmToken");
 
-        TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member, null);
+        String fcmToken = "";
+        if (authentication instanceof JwtAuthenticationToken) {
+            fcmToken = ((JwtAuthenticationToken) authentication).getFcmToken();
+        }
 
+        TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member, fcmToken);
+
+        // 위 함수를 통과해도 member 는 update 되지 않는다.
         ResponseBodyDto<AuthLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공"
-                , new AuthLoginRespDto(member, tokenRespDto)
+                , new AuthLoginRespDto(member, tokenRespDto, fcmToken)
         );
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

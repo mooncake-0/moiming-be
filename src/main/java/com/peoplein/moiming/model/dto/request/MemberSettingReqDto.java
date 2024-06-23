@@ -14,6 +14,7 @@ public class MemberSettingReqDto {
     @Getter
     @Setter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class MemberSettingUpdateReqDto{
         @NotNull
         private Boolean allowNoticeNotify;

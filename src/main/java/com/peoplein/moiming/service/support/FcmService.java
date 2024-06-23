@@ -4,10 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.firebase.messaging.BatchResponse;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.MulticastMessage;
-import com.google.firebase.messaging.Notification;
+import com.google.firebase.messaging.*;
 import com.peoplein.moiming.domain.enums.NotificationSubCategory;
 import com.peoplein.moiming.domain.enums.NotificationTopCategory;
 import com.peoplein.moiming.domain.member.Member;
@@ -94,7 +91,8 @@ public class FcmService {
 
 
     public void sendSingleMessage(Member receiver
-            , NotificationTopCategory topCategory, NotificationSubCategory subCategory, String receiverFcmToken, String title, String body
+            , NotificationTopCategory topCategory, NotificationSubCategory subCategory
+            , String receiverFcmToken, String title, String body
             , Long topCategoryId, Long subCategoryId) {
 
         System.out.println("FCM LOG:: PASSED 1");
@@ -161,6 +159,10 @@ public class FcmService {
 
 
         List<String> receiversToken = memberSettingService.getAllowedReceiverFcmTokens(receivers, topCategory);
+        if (receiversToken.isEmpty()) {
+            return;
+        }
+
         String deepLink = createDeepLink(topCategoryId, subCategoryId);
         Notification notification = Notification.builder().setTitle(title).setBody(body).build();
 
@@ -178,6 +180,13 @@ public class FcmService {
             if (response.get().getFailureCount() < 0) {
                 log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + body + "] 의 Multi Message 전송 실패 내역이 존재합니다" );
             }
+
+            List<SendResponse> responses = response.get().getResponses();
+            for (SendResponse resp : responses) {
+                log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + body + "] 의 메세지 전송 내역이" +
+                        "[" + resp.getException().getMessage() + "] 의 사유로 전송에 실패했습니다");
+            }
+
         } catch (InterruptedException | ExecutionException e) {
             log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + e.getMessage() + "] 의 사유로 BatchResponse 해독에 실패했습니다" );
         }

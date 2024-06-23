@@ -15,14 +15,17 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private Object credentials;
 
+    private String fcmToken;
+
     /*
      인증전 Authentication 객체를 형성하여 사용할 수 있도록 해준다
      결과적으로 setAuthenticated 를 false 로 설정한다
      */
-    public JwtAuthenticationToken(Object principal, Object credentials) {
+    public JwtAuthenticationToken(Object principal, Object credentials, String fcmToken) {
         super(null);
         this.principal = principal;
         this.credentials = credentials;
+        this.fcmToken = fcmToken;
         setAuthenticated(false);
     }
 
@@ -31,11 +34,12 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
      인증된 Authentication 객체를 형성해준다
      결과적으로 setAuthenticated 를 true 로 설정한다
      */
-    public JwtAuthenticationToken(Object principal, Object credentials,
+    public JwtAuthenticationToken(Object principal, Object credentials, String fcmToken,
                                                Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;
         this.credentials = credentials;
+        this.fcmToken = fcmToken;
         super.setAuthenticated(true);
     }
 
@@ -47,6 +51,10 @@ public class JwtAuthenticationToken extends AbstractAuthenticationToken {
     @Override
     public Object getPrincipal() {
         return this.principal;
+    }
+
+    public String getFcmToken() {
+        return fcmToken;
     }
 
     @Override

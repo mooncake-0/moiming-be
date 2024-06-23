@@ -196,9 +196,9 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
 
     // CASE2 잘못된 moim Id 전달
-    //       그냥 한방 쿼리로 응답하기 때문에, 별다른 오류가 전달될 필요가 없음 (그냥 단순히 조회 실패만 함)
+    // 24.06 > 기존에는 에러 없이 빈 리스트 전달이였으나, 빈 리스트 상황이 적합하지 않다 판단, 400 변경
     @Test
-    void getActiveMoimMember_shouldReturn200_whenMoimNotFound() throws Exception {
+    void getActiveMoimMember_shouldReturn400_whenMoimNotFound_byMoimingApiException () throws Exception {
 
         // given
         Long moimId = 1000L;
@@ -213,8 +213,9 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         System.out.println("responseBody = " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.data").isEmpty());
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_NOT_FOUND.getErrCode()));
+
     }
 
 

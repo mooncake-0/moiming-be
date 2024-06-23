@@ -30,7 +30,7 @@ public class PolicyAgreeController {
 
     // 동의는 회원가입과 동시에 진행된다. Policy Service 에 한함
     // 삭제 또한 회원탈퇴에서 진행되려나? > 여기에서 받을 필요는 없을 듯
-    @ApiOperation("약관 조회 - 약관들의 동의 현황에 대해서 전달한다 (자동으로 선택에 대해서 조회한다. 만약 모두 조회할 use case 있을 시 optionalOnly=false Query Param 추가전달)")
+    @ApiOperation("약관 조회 - 약관들의 동의 현황에 대해서 전달한다 (자동으로 선택에 대해서 조회한다. 만약 필수 약관 상태까지 모두 조회할 use case 있을 시 optionalOnly=false Query Param 추가전달)")
     @ApiResponses({
             @ApiResponse(code = 200, message = "약관 조회 성공", response = PolicyAgreeViewRespDto.class),
             @ApiResponse(code = 400, message = "약관 조회 실패, ERR MSG 확인")
@@ -57,7 +57,7 @@ public class PolicyAgreeController {
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         PolicyAgree updatedPolicy = policyAgreeService.updatePolicyAgree(principal.getMember(), requestDto);
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "약관의 수정 성공", new PolicyAgreeUpdateRespDto(updatedPolicy)));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "약관 수정 성공", new PolicyAgreeUpdateRespDto(updatedPolicy)));
     }
 
 }

@@ -34,8 +34,13 @@ public class MoimingAuthenticationProvider implements AuthenticationProvider {
             throw new LoginAttemptException(AUTH_LOGIN_PASSWORD_INCORRECT);
         }
 
-        // 로그인 성공
-        JwtAuthenticationToken authenticatedToken = new JwtAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        // 로그인 성공, 인증 객체의 정보 활용
+        String fcmToken = "";
+        if (authentication instanceof JwtAuthenticationToken) {
+            fcmToken = ((JwtAuthenticationToken) authentication).getFcmToken();
+        }
+
+        JwtAuthenticationToken authenticatedToken = new JwtAuthenticationToken(userDetails, null, fcmToken, userDetails.getAuthorities());
 
         return authenticatedToken;
     }
