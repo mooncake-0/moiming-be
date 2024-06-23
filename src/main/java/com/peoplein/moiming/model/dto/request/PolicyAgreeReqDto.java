@@ -23,6 +23,7 @@ public class PolicyAgreeReqDto {
     @Getter
     @Setter
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class PolicyAgreeUpdateReqDto {
 
         @NotNull

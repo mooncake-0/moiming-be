@@ -36,7 +36,7 @@ public class MemberController {
     private final StorageService storageService;
 
 
-    @ApiOperation("로그아웃")
+    @ApiOperation("로그아웃 - 서버에선 금지된 Access Token 30분간 저장 / Refresh Token + FCM Token 삭제만 진행한다")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })

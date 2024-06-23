@@ -108,7 +108,7 @@ public class MoimPostService {
 
         member.isMemberInfoRegistered();
 
-        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberByMoimId(requestDto.getMoimId(), false); // 개인 정보가 필요 없음
+        List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberByMoimId(requestDto.getMoimId()); // 개인 정보가 필요 없음
         List<Member> fcmReceivers = new ArrayList<>();
 
         MoimMember postCreator = null;

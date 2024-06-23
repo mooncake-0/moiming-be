@@ -62,6 +62,6 @@ public class MemberSettingController {
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
         MemberSetting memberSetting = memberSettingService.updateNotifySetting(requestDto, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "조회 성공", new MemberSettingNotifyUpdateRespDto(memberSetting)));
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "수정 성공", new MemberSettingNotifyUpdateRespDto(memberSetting)));
     }
 }

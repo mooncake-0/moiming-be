@@ -52,7 +52,8 @@ public class MoimingAuthenticationFilter extends BasicAuthenticationFilter {
         if (StringUtils.hasText(accessToken)) {
             try {
 
-                if(authService.isLogoutToken(accessToken)){
+                if (authService.isLogoutToken(accessToken)) {
+                    log.warn("{}, doFilterInternal :: {}", this.getClass().getName(), "로그아웃 관리 대상인 토큰으로 접근 시도");
                     throw new LogoutTokenTrialException(""); // 예외를 발생시킨다
                 }
 
@@ -60,8 +61,9 @@ public class MoimingAuthenticationFilter extends BasicAuthenticationFilter {
                 SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(verifiedMemberId);
                 authService.updateLoginAt(false, securityMember.getMember());
 
+                // 이 객체의 FCM 토큰은 오직 로그인시 전달용으로만 사용되고, 후속에 사용되지 않는다
                 SecurityContextHolder.getContext().setAuthentication(
-                        new JwtAuthenticationToken(securityMember, null, securityMember.getAuthorities())
+                        new JwtAuthenticationToken(securityMember, null, null, securityMember.getAuthorities())
                 );
 
             } catch (JWTVerificationException exception) {

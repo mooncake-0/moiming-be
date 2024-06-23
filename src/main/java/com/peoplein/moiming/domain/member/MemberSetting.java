@@ -51,11 +51,11 @@ public class MemberSetting extends BaseEntity {
     }
 
     public void changeNotifySettings(boolean allowNoticeNotify, boolean allowMoimNotify) {
-        if (allowNoticeNotify != isNoticeNotifyAllowed()) {
+        if (this.allowNoticeNotify != allowNoticeNotify) {
             this.allowNoticeNotify = allowNoticeNotify;
         }
 
-        if (allowMoimNotify != isMoimActivityNotifyAllowed()) {
+        if (this.allowMoimNotify != allowMoimNotify) {
             this.allowMoimNotify = allowMoimNotify;
         }
     }

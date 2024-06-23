@@ -98,15 +98,10 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     }
 
     @Override
-    public List<MoimMember> findActiveWithMemberByMoimId(Long moimId, boolean joinMemberInfo) {
-        JPAQuery<MoimMember> query = queryFactory.selectFrom(moimMember)
-                .join(moimMember.member, member).fetchJoin();
-
-        if (joinMemberInfo) {
-            query.leftJoin(member.memberInfo, memberInfo).fetchJoin();
-        }
-
-        return query.where(moimMember.moim.id.eq(moimId)
+    public List<MoimMember> findActiveWithMemberByMoimId(Long moimId) {
+        return queryFactory.selectFrom(moimMember)
+                .join(moimMember.member, member).fetchJoin()
+                .where(moimMember.moim.id.eq(moimId)
                         , moimMember.memberState.eq(ACTIVE))
                 .fetch();
     }
