@@ -104,7 +104,7 @@ public class DevDbInit {
             , LocalDateTime createdAt, int ageMax, int ageMin, MemberGender gender, int lastCnt, int thisCnt) {
 
         Moim moim = Moim.createMoim(name, info, maxMember, area, categories, member);
-        MoimJoinRule mjr = MoimJoinRule.createMoimJoinRule(ageMax, ageMin, gender);
+        MoimJoinRule mjr = MoimJoinRule.createMoimJoinRule(ageMax, ageMin, gender, member);
         moim.initJoinRule(mjr);
         moimRepository.save(moim);
         moim.changeMoimCreatedTimeInNeed(createdAt); // PERSIST 이후 수행해야 PRE_Persist 안걸림

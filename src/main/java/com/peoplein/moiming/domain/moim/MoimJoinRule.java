@@ -48,17 +48,23 @@ public class MoimJoinRule extends BaseEntity {
     // 여기서 Validation 을 해주는 느낌이니, Creator 의 적합 여부도 여기서 판단한다
     // Create Logic 에서 judgeByJoinRule 을 호출하는 것도 가능하지만, MoimJoinRule 이 생성되는 모든 Test 에서도 적용하기 위해 생성자단에서 적용한다
     private MoimJoinRule(int ageMax, int ageMin, MemberGender memberGender, Member creator) {
+
+        // SET 을 해두고 해당 객체와 validation 을 한다
+        // JudgeByRule 이 this 객체 값이기 때문에 먼저 Set 해줘야 함
+        // 좀 이상하긴 한데 하기 로직을 진행하는데 아무 이슈 없음
+
+        this.ageMin = ageMin;
+        this.ageMax = ageMax;
+        this.memberGender = memberGender;
+
         if (ageMax != -1 && ageMin != -1) {
-            validateAge(ageMax, ageMin);
+            validateAge(ageMax, ageMin); // 요청한 값에 대해
             try {
                 judgeByRule(creator); // 생성하려는 자 역시 대상이 된다
             } catch (MoimingApiException exception) { // 발생 예외 전환
                 throw new MoimingApiException(MOIM_CREATE_FAIL_BY_UNAVAILABLE_JOIN_RULE);
             }
         }
-        this.ageMin = ageMin;
-        this.ageMax = ageMax;
-        this.memberGender = memberGender;
     }
 
 
