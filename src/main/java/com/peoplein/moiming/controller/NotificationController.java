@@ -33,7 +33,7 @@ public class NotificationController {
     private final NotificationService notificationService;
 
 
-    @ApiOperation("알림 조회 - 알림 종류 필수 지정 (현재는 [모임]만 필요), moimType = manage, join 가능 (알림 종류 [모임] 일 때만 지정 가능), 최신 작성일 순서대로 정렬, lastId 필요, 20개씩 전달")
+    @ApiOperation("알림 조회 - 알림 종류 필수 지정 (topCategory = moim / notice 가능) / moimType = manage, join 가능 (알림 종류 [모임] 일 때만 지정 가능), 최신 작성일 순서대로 정렬, lastId 필요, 20개씩 전달")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -54,10 +54,11 @@ public class NotificationController {
             throw new MoimingApiException(ExceptionValue.COMMON_INVALID_REQUEST_PARAM);
         }
 
-        NotificationTopCategory category = NotificationTopCategory.fromQueryParam(topCategory);
+        NotificationTopCategory category = NotificationTopCategory.fromValue(topCategory);
         List<Notification> memberNotifications = notificationService.getMemberNotification(principal.getMember(), category, moimType, lastNotificationId, limit);
         List<MemberNotificationRespDto> responseBody = memberNotifications.stream().map(MemberNotificationRespDto::new).collect(Collectors.toList());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "알림 일반 조회 성공", responseBody));
+
     }
 
 

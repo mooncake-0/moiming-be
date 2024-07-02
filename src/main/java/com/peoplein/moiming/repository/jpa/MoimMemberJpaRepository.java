@@ -174,7 +174,7 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
 
         return queryFactory.selectFrom(moimMember)
                 .join(moimMember.moim, moim).fetchJoin()
-                .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                .join(moim.moimJoinRule, moimJoinRule).fetchJoin()
                 .where(moimMember.member.id.eq(memberId), dynamicQuery)// 기본 where 외로 and 가 붙는다
                 .orderBy(moimMember.moim.createdAt.desc(), moimMember.moim.id.desc())
                 .limit(limit)

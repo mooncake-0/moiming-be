@@ -21,6 +21,7 @@ public enum ExceptionValue {
     MOIM_RULE_AGE_NOT_VALID(HttpStatus.BAD_REQUEST.value(), "MJ000", "최소 연령은 15, 최대 연령은 100이며, 최소 연령이 더 클 수 없습니다"),
 
     // MOIM DOMAIN
+
     MOIM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "M000", "해당 모임을 찾을 수 없습니다"),
     MOIM_ACT_NOT_AUTHORIZED(HttpStatus.FORBIDDEN.value(), "M001", "해당 모임에서 해당 요청을 수행할 권한이 없습니다"),
     MOIM_JOIN_FAIL_BY_AGE_RULE(HttpStatus.FORBIDDEN.value(), "M002", "가입 조건 중 나이가 부합하지 않아 가입할 수 없습니다"),
@@ -33,6 +34,9 @@ public enum ExceptionValue {
 
     MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER(HttpStatus.CONFLICT.value(), "M008", "수정하려는 최대 모임원 수가 현재 모임원 수보다 적습니다"),
 
+    MOIM_CREATE_INFO_UNAVAILABLE(HttpStatus.BAD_REQUEST.value(), "M009", "모임 생성을 위한 정보 중 적합하지 못한 정보가 있습니다"),
+    MOIM_CREATE_FAIL_BY_UNAVAILABLE_JOIN_RULE(HttpStatus.BAD_REQUEST.value(), "M010", "모임 관리자는 자신과 부합하지 않는 가입 조건을 만들 수 없습니다"),
+
     MOIM_POST_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MP000", "해당 게시물을 찾을 수 없습니다"),
 
     MOIM_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MM000", "모임의 모임원이 아닙니다"),
@@ -41,8 +45,6 @@ public enum ExceptionValue {
     MOIM_MEMBER_JOIN_FORBIDDEN(HttpStatus.FORBIDDEN.value(), "MM003", "재가입이 불가능한 유저입니다"),
     MOIM_MEMBER_STATE_CHANGE_FAIL(HttpStatus.UNPROCESSABLE_ENTITY.value(), "MM004", "해당 상태로 변경이 불가능합니다"),
     MOIM_MEMBER_ROLE_GRANT_FAIL(HttpStatus.FORBIDDEN.value(), "MM005", "해당 모임원에게 권한 부여가 불가능합니다 (MVP 에선 발생할 일 없음)"),
-//    MOIM_MEMBERS_ERROR(HttpStatus.CONFLICT.value(), "MM006", "모임원이 아무도 없습니다 (발생하면 안됨)"),
-
     MOIM_POST_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "MC000", "관련 댓글을 찾을 수 없습니다"),
     MOIM_POST_COMMENT_NOT_PARENT(HttpStatus.UNPROCESSABLE_ENTITY.value(), "MC001", "답글에 답글을 달 수 없습니다"),
 

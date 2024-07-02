@@ -58,22 +58,18 @@ public class MoimRespDto {
             this.areaCity = moim.getMoimArea().getCity();
             this.areaState = moim.getMoimArea().getState();
             this.managerInfoDto = new MoimManagerInfoDto(creator);
-            if (moim.getMoimJoinRule() != null) {
-                this.joinRuleDto = new JoinRuleCreateRespDto(moim.getMoimJoinRule());
-            }
+            this.joinRuleDto = new JoinRuleCreateRespDto(moim.getMoimJoinRule());
             this.categoryNameValues = MoimCategoryLinker.convertLinkersToNameValues(moim.getMoimCategoryLinkers());
         }
 
         @Getter
         @Setter
         public static class JoinRuleCreateRespDto {
-            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public JoinRuleCreateRespDto(MoimJoinRule moimJoinRule) {
-                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
@@ -116,9 +112,7 @@ public class MoimRespDto {
             this.createdAt = moim.getCreatedAt() + "";
             this.updatedAt = moim.getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);
-            if (!Objects.isNull(moim.getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
-                this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
-            }
+            this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
         }
 
 
@@ -127,13 +121,11 @@ public class MoimRespDto {
         @NoArgsConstructor
         public static class MoimJoinRuleDto {
 
-            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public MoimJoinRuleDto(MoimJoinRule moimJoinRule) {
-                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
@@ -186,9 +178,7 @@ public class MoimRespDto {
             this.updatedAt = moimMember.getMoim().getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(moimMember.getMoim().getMoimCategoryLinkers());
             this.managerInfoDto = new MoimManagerInfoDto(moimMember.getMember());
-            if (moimMember.getMoim().getMoimJoinRule() != null) {
-                this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());
-            }
+            this.moimJoinRuleDto = new MoimJoinRuleDto(moimMember.getMoim().getMoimJoinRule());
 
         }
 
@@ -198,13 +188,11 @@ public class MoimRespDto {
         @NoArgsConstructor
         public static class MoimJoinRuleDto {
 
-            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public MoimJoinRuleDto(MoimJoinRule moimJoinRule) {
-                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
@@ -228,7 +216,6 @@ public class MoimRespDto {
         private int maxMember;
         private String areaState;
         private String areaCity;
-
         private List<String> categories;
 
         public MoimUpdateRespDto(Moim moim) {
@@ -250,14 +237,12 @@ public class MoimRespDto {
     public static class MoimJoinRuleUpdateRespDto {
 
         private int maxMember;
-        private boolean hasAgeRule;
         private int ageMax;
         private int ageMin;
         private MemberGender memberGender;
 
         public MoimJoinRuleUpdateRespDto(int maxMember, MoimJoinRule moimJoinRule) {
             this.maxMember = maxMember;
-            this.hasAgeRule = moimJoinRule.isHasAgeRule();
             this.ageMax = moimJoinRule.getAgeMax();
             this.ageMin = moimJoinRule.getAgeMin();
             this.memberGender = moimJoinRule.getMemberGender();
@@ -297,9 +282,7 @@ public class MoimRespDto {
             this.createdAt = moim.getCreatedAt() + "";
             this.updatedAt = moim.getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);
-            if (!Objects.isNull(moim.getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
-                this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
-            }
+            this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
         }
 
 
@@ -308,13 +291,11 @@ public class MoimRespDto {
         @NoArgsConstructor
         public static class MoimJoinRuleDto {
 
-            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public MoimJoinRuleDto(MoimJoinRule moimJoinRule) {
-                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
@@ -356,9 +337,7 @@ public class MoimRespDto {
             this.createdAt = moim.getCreatedAt() + "";
             this.updatedAt = moim.getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);
-            if (!Objects.isNull(moim.getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
-                this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
-            }
+            this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
         }
 
 
@@ -367,13 +346,11 @@ public class MoimRespDto {
         @NoArgsConstructor
         public static class MoimJoinRuleDto {
 
-            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public MoimJoinRuleDto(MoimJoinRule moimJoinRule) {
-                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();
@@ -394,7 +371,7 @@ public class MoimRespDto {
             this.memberId = member.getId();
             this.nickname = member.getNickname();
             this.memberPfImgUrl = AppParams.DEFAULT_MEMBER_PF_IMG_PATH;
-            if(StringUtils.hasText(member.getPfImgUrl())) {
+            if (StringUtils.hasText(member.getPfImgUrl())) {
                 this.memberPfImgUrl = member.getPfImgUrl();
             }
         }

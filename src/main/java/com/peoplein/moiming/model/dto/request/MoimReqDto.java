@@ -40,9 +40,6 @@ public class MoimReqDto {
         @Max(100)
         private int maxMember;
 
-        @NotNull
-        private Boolean hasJoinRule;
-
         @JsonProperty("joinRule")
         private JoinRuleCreateReqDto joinRuleDto;
 
@@ -60,9 +57,6 @@ public class MoimReqDto {
         @AllArgsConstructor
         public static class JoinRuleCreateReqDto {
 
-            @NotNull
-            private Boolean hasAgeRule;
-
             @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
             private Integer ageMax;
 
@@ -79,7 +73,7 @@ public class MoimReqDto {
     /*
      PATCH 특성상 없는 필드들이 더 많을 것이므로 모두 다 NULLABLE
      */
-    @ApiModel(value = "Moim API - 요청 - 모임 수정")
+    @ApiModel(value = "Moim API - 요청 - 모임 정보 수정")
     @Getter
     @Setter
     @NoArgsConstructor
@@ -95,10 +89,6 @@ public class MoimReqDto {
         @Size(min = 10, max = 5000)
         private String moimInfo;
 
-//        @Min(3)
-//        @Max(100)
-//        private Integer maxMember;
-
         private String areaState;
 
         private String areaCity;
@@ -113,7 +103,7 @@ public class MoimReqDto {
     /*
      화면상 한번에 정보를 보내줄 것이기 때문에 전부 다 받는다
      */
-    @ApiModel(value = "Moim API - 요청 - 모임 가입 조건 수정")
+    @ApiModel(value = "Moim API - 요청 - 모임 가입 조건 및 최대 인원 수정")
     @Getter
     @Setter
     @NoArgsConstructor
@@ -127,16 +117,10 @@ public class MoimReqDto {
         @Max(100)
         private Integer maxMember;
 
-        @NotNull
-        private Boolean hasAgeRule;
-
-        @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
         private Integer ageMax;
 
-        @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
         private Integer ageMin;
 
-        @NotNull
         private MemberGender memberGender;
 
     }

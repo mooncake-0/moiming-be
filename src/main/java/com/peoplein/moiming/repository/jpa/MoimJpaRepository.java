@@ -62,7 +62,7 @@ public class MoimJpaRepository implements MoimRepository {
         */
         checkIllegalQueryParams(moimId);
         return Optional.ofNullable(queryFactory.selectFrom(moim)
-                .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                .join(moim.moimJoinRule, moimJoinRule).fetchJoin()
                 .where(moim.id.eq(moimId))
                 .fetchOne());
     }
@@ -88,7 +88,7 @@ public class MoimJpaRepository implements MoimRepository {
                 queryFactory.selectFrom(moim).distinct()
                         .join(moim.moimCategoryLinkers, moimCategoryLinker).fetchJoin()
                         .join(moimCategoryLinker.category, category).fetchJoin()
-                        .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                        .join(moim.moimJoinRule, moimJoinRule).fetchJoin()
                         .where(moim.id.eq(moimId))
                         .fetchOne()
         );
@@ -99,7 +99,7 @@ public class MoimJpaRepository implements MoimRepository {
     public List<Moim> findNewMoims(int offset, int limit) {
 
         return queryFactory.selectFrom(moim)
-                .leftJoin(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                .join(moim.moimJoinRule, moimJoinRule).fetchJoin()
                 .orderBy(moim.createdAt.desc())
                 .offset(offset)
                 .limit(limit)

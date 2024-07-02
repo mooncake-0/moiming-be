@@ -30,7 +30,7 @@ public class NotificationRespDto {
         public MemberNotificationRespDto(Notification notification) {
             this.notificationId = notification.getId();
             this.hasRead = notification.isHasRead();
-            this.topCategory = notification.getTopCategory().getValue();
+            this.topCategory = notification.getTopCategory().getName();
             this.title = notification.getTitle();
             this.body = notification.getBody();
             this.topCategoryId = notification.getTopCategoryId();

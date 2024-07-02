@@ -95,7 +95,7 @@ public class MoimController {
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
         Moim moimOut = moimService.createMoim(requestDto, principal.getMember());
-        MoimCreateRespDto respDto = new MoimCreateRespDto(moimOut, principal.getMember()); // 생성자 정보는 다 조회되어 있음
+        MoimCreateRespDto respDto = new MoimCreateRespDto(moimOut, principal.getMember());
         return new ResponseEntity<>(ResponseBodyDto.createResponse("1", "모임 생성 성공", respDto), HttpStatus.CREATED);
     }
 

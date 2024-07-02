@@ -48,4 +48,13 @@ public class MoimMonthlyCount {
         this.monthlyCount += 1;
     }
 
+
+    // USED FOR SAMPLE COUNT DATA ONLY
+    public void changeDateTimeForSampleData(LocalDate sampleDate) {
+        this.countDate = sampleDate;
+    }
+
+    public void changeCntForSampleData(int sampleCnt) {
+        this.monthlyCount = sampleCnt;
+    }
 }

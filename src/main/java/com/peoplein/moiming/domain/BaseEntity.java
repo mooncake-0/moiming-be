@@ -34,9 +34,9 @@ public class BaseEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    protected void resetCreatedAtInNeed() {
-        this.createdAt = LocalDateTime.now();
+    // BaseEntity
+    protected void changeCreatedAtInNeed(LocalDateTime neededChangeCreationDate) {
+        this.createdAt = neededChangeCreationDate;
     }
-
 
 }

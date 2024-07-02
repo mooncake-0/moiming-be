@@ -51,7 +51,7 @@ public class MemberInfo extends BaseEntity {
     public int getMemberAge() {
         int birthYear = this.getMemberBirth().getYear();
         int todayYear = LocalDate.now().getYear();
-        return todayYear - birthYear + 1;
+        return todayYear - birthYear;
     }
 
 }

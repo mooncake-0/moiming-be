@@ -30,11 +30,6 @@ public class MoimJoinRule extends BaseEntity {
     @Column(name = "moim_join_rule_id")
     private Long id;
 
-    /*
-     ageRuleFlag = false 일 시 ageMax, ageMin = -1
-     */
-    private boolean hasAgeRule;
-
     private int ageMax;
 
     private int ageMin;
@@ -43,33 +38,34 @@ public class MoimJoinRule extends BaseEntity {
     private MemberGender memberGender;
 
 
-    public static MoimJoinRule createMoimJoinRule(boolean hasAgeRule, int ageMax, int ageMin, MemberGender memberGender) {
-        if (!hasAgeRule) {
-            ageMax = -1;
-            ageMin = -1;
-        }
-
-        // static 함수이므로 validateAge 는 생성자에서
-        return new MoimJoinRule(hasAgeRule, ageMax, ageMin, memberGender);
+    public static MoimJoinRule createMoimJoinRule(int ageMax, int ageMin, MemberGender memberGender, Member creator) {
+        return new MoimJoinRule(ageMax, ageMin, memberGender, creator);
     }
 
 
-    private MoimJoinRule(boolean hasAgeRule, int ageMax, int ageMin, MemberGender memberGender) {
-        validateAge(hasAgeRule, ageMin, ageMax);
-
-        this.hasAgeRule = hasAgeRule;
-        this.ageMax = ageMax;
+    // 24.07 Update
+    // validateAge 함수가 static 팩토리 함수에 추가될 수 없으므로, 생성자에서 진행한다
+    // 여기서 Validation 을 해주는 느낌이니, Creator 의 적합 여부도 여기서 판단한다
+    // Create Logic 에서 judgeByJoinRule 을 호출하는 것도 가능하지만, MoimJoinRule 이 생성되는 모든 Test 에서도 적용하기 위해 생성자단에서 적용한다
+    private MoimJoinRule(int ageMax, int ageMin, MemberGender memberGender, Member creator) {
+        if (ageMax != -1 && ageMin != -1) {
+            validateAge(ageMax, ageMin);
+            try {
+                judgeByRule(creator); // 생성하려는 자 역시 대상이 된다
+            } catch (MoimingApiException exception) { // 발생 예외 전환
+                throw new MoimingApiException(MOIM_CREATE_FAIL_BY_UNAVAILABLE_JOIN_RULE);
+            }
+        }
         this.ageMin = ageMin;
+        this.ageMax = ageMax;
         this.memberGender = memberGender;
     }
 
 
     public void judgeByRule(Member member) {
-        if (this.hasAgeRule) {
-            int memberAge = member.getMemberInfo().getMemberAge();
-            if (this.ageMin > memberAge || this.ageMax < memberAge) { // 최소 나이보다 작거나 최대 나이보다 많다면
-                throw new MoimingApiException(MOIM_JOIN_FAIL_BY_AGE_RULE);
-            }
+        int memberAge = member.getMemberInfo().getMemberAge();
+        if (this.ageMin > memberAge || this.ageMax < memberAge) { // 최소 나이보다 작거나 최대 나이보다 많다면
+            throw new MoimingApiException(MOIM_JOIN_FAIL_BY_AGE_RULE);
         }
 
         if (this.memberGender != MemberGender.N) {
@@ -80,24 +76,19 @@ public class MoimJoinRule extends BaseEntity {
     }
 
 
-    public void changeJoinRule(boolean hasAgeRule, int ageMax, int ageMin, MemberGender memberGender) {
-        if (!hasAgeRule) {
-            ageMax = -1;
-            ageMin = -1;
+    public void changeJoinRule(int ageMax, int ageMin, MemberGender memberGender) {
+        if (ageMax != -1 && ageMin != -1) {
+            validateAge(ageMax, ageMin);
         }
 
-        validateAge(hasAgeRule, ageMin, ageMax);
-
-        this.hasAgeRule = hasAgeRule;
         this.ageMax = ageMax;
         this.ageMin = ageMin;
         this.memberGender = memberGender;
     }
 
-    private void validateAge(boolean hasAgeRule, int ageMin, int ageMax) {
-        // ageMin = -1 이면 없다는 뜻이므로, 통과할 수 있음 -> -1 이 아니면서 15 이하면 에러
-        // ageMax= -1 이면 없다는 뜻이므로, 통과할 수 있음 -> 100을 넘기만 하면 에러
-        if (ageMin > ageMax || (hasAgeRule && ageMin < 15) || (hasAgeRule && ageMax > 100)) {
+    private void validateAge(int ageMax, int ageMin) {
+        // 최소 15, 최대 100
+        if (ageMin > ageMax || ageMin < 15 || ageMax > 100) {
             log.info("{}, validateAge :: {}", this.getClass().getName(), "최소 연령이 더 큰 값 or 최소 나이 15 미만이나 최대 나이 100 초과로 입력");
             throw new MoimingApiException(MOIM_RULE_AGE_NOT_VALID);
         }
