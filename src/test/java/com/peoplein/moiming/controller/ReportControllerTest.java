@@ -10,6 +10,7 @@ import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.Test;
@@ -67,13 +68,15 @@ public class ReportControllerTest extends TestObjectCreator {
         em.persist(member);
         em.persist(member2);
 
+        MemberInfo curMemberInfo = makeMemberInfo(member, memberGender, memberBirth);
+        em.persist(curMemberInfo);
 
         Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
         Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth2SampleCategory), 1, testCategory1);
         em.persist(testCategory1);
         em.persist(testCategory1_1);
 
-        moim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), member);
+        moim = makeTestMoim(moimName, maxMember, moimArea, List.of(testCategory1, testCategory1_1), member, -1, -1, MemberGender.N);
         em.persist(moim);
 
         moimPost = makeMoimPost(moim, member, MoimPostCategory.NOTICE, false);

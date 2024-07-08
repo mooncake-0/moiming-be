@@ -28,12 +28,12 @@ public enum NotificationTopCategory {
      */
     public static NotificationTopCategory fromValue(String value) {
         for (NotificationTopCategory topCategory : NotificationTopCategory.values()) {
-            if (topCategory.toString().toLowerCase().equals(value)) {
+            if (topCategory.toString().equalsIgnoreCase(value)) {
                 return topCategory;
             }
         }
 
-        log.warn("{}, fromValue :: {}", "NotificationTopCategory", "[" + value + "] 에 해당하는 객체를 찾을 수 없습니다");
+        log.info("{}, fromValue :: {}", "NotificationTopCategory", "[" + value + "] 에 해당하는 객체를 찾을 수 없습니다");
         throw new MoimingApiException(COMMON_MAPPABLE_ENUM_VALUE);
     }
 

@@ -58,9 +58,11 @@ public class MoimReqDto {
         public static class JoinRuleCreateReqDto {
 
             @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
+            @Min(value = 1000, message = "v0.1.5 - 나이값이 아닌 년생으로 변경")
             private Integer ageMax;
 
             @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
+            @Min(value = 1000, message = "v0.1.5 - 나이값이 아닌 년생으로 변경")
             private Integer ageMin;
 
             @NotNull
@@ -113,12 +115,17 @@ public class MoimReqDto {
         @NotNull
         private Long moimId;
 
+        @NotNull
+        private Boolean editingJoinRule;
+
         @Min(3)
         @Max(100)
         private Integer maxMember;
 
+        @Min(value = 1000, message = "v0.1.5 - 나이값이 아닌 년생으로 변경")
         private Integer ageMax;
 
+        @Min(value = 1000, message = "v0.1.5 - 나이값이 아닌 년생으로 변경")
         private Integer ageMin;
 
         private MemberGender memberGender;

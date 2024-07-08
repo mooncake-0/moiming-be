@@ -6,10 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.peoplein.moiming.domain.Notification;
 import com.peoplein.moiming.domain.enums.CategoryName;
+import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.support.TestObjectCreator;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -76,14 +79,22 @@ public class NotificationControllerTest extends TestObjectCreator {
         em.persist(member2);
         em.persist(member3);
 
+        // 가입조건에 부합하게 생성될 수 있도록 지정
+        MemberInfo member1Info = makeMemberInfo(member, memberGender, memberBirth);
+        em.persist(member1Info);
+        MemberInfo member2Info = makeMemberInfo(member2, MemberGender.F, LocalDate.of(2000, 1,1));
+        em.persist(member2Info);
+        MemberInfo member3Info = makeMemberInfo(member3, memberGender, memberBirth);
+        em.persist(member3Info);
+
         Category testCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
         Category testCategory1_1 = new Category(2L, CategoryName.fromValue(depth2SampleCategory), 1, testCategory1);
         em.persist(testCategory1);
         em.persist(testCategory1_1);
 
-        moim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), member);
-        moim2 = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), member2);
-        moim3 = makeTestMoim(moimName2, maxMember2, moimArea2.getState(), moimArea2.getCity(), List.of(testCategory1, testCategory1_1), member3);
+        moim = makeTestMoim(moimName, maxMember, moimArea, List.of(testCategory1, testCategory1_1), member, -1, -1, MemberGender.N);
+        moim2 = makeTestMoim(moimName, maxMember, moimArea, List.of(testCategory1, testCategory1_1), member2, -1, -1, MemberGender.N);
+        moim3 = makeTestMoim(moimName2, maxMember2, moimArea2, List.of(testCategory1, testCategory1_1), member3, -1, -1, MemberGender.N);
 
         MoimMember.memberJoinMoim(member, moim2, NORMAL, ACTIVE);
         MoimMember.memberJoinMoim(member, moim3, NORMAL, ACTIVE);
@@ -173,7 +184,7 @@ public class NotificationControllerTest extends TestObjectCreator {
         // when
         ResultActions resultAction = mvc.perform(get(PATH_MEMBER_NOTIFICATIONS)
                 .header(HEADER, PREFIX + accessToken)
-                .param("topCategory", MOIM.getValue())
+                .param("topCategory", MOIM.toString())
                 .param("moimType", "hello") // 잘못됨
                 .param("limit", "20"));
 
@@ -196,7 +207,7 @@ public class NotificationControllerTest extends TestObjectCreator {
         // when
         ResultActions resultAction = mvc.perform(get(PATH_MEMBER_NOTIFICATIONS)
                 .header(HEADER, PREFIX + accessToken)
-                .param("topCategory", MOIM.getValue())
+                .param("topCategory", MOIM.toString())
                 .param("lastNotificationId", wrongNotiId + "")
                 .param("limit", "20"));
 
@@ -219,7 +230,7 @@ public class NotificationControllerTest extends TestObjectCreator {
         // when
         ResultActions resultAction = mvc.perform(get(PATH_MEMBER_NOTIFICATIONS)
                 .header(HEADER, PREFIX + accessToken)
-                .param("topCategory", MOIM.getValue())
+                .param("topCategory", MOIM.toString())
                 .param("limit", "20"));
 
         // then
@@ -242,7 +253,7 @@ public class NotificationControllerTest extends TestObjectCreator {
         // when
         ResultActions resultAction = mvc.perform(get(PATH_MEMBER_NOTIFICATIONS)
                 .header(HEADER, PREFIX + accessToken)
-                .param("topCategory", MOIM.getValue())
+                .param("topCategory", MOIM.toString())
                 .param("moimType", "join")
                 .param("limit", "20"));
 
@@ -268,7 +279,7 @@ public class NotificationControllerTest extends TestObjectCreator {
         // when
         ResultActions resultAction = mvc.perform(get(PATH_MEMBER_NOTIFICATIONS)
                 .header(HEADER, PREFIX + accessToken)
-                .param("topCategory", MOIM.getValue())
+                .param("topCategory", MOIM.toString())
                 .param("moimType", "join")
                 .param("lastNotificationId", notification3_2.getId() + "")
                 .param("limit", "20"));
@@ -294,7 +305,7 @@ public class NotificationControllerTest extends TestObjectCreator {
         // when
         ResultActions resultAction = mvc.perform(get(PATH_MEMBER_NOTIFICATIONS)
                 .header(HEADER, PREFIX + accessToken)
-                .param("topCategory", MOIM.getValue())
+                .param("topCategory", MOIM.toString())
                 .param("moimType", "manage")
                 .param("limit", "20"));
 
@@ -320,7 +331,7 @@ public class NotificationControllerTest extends TestObjectCreator {
         // when
         ResultActions resultAction = mvc.perform(get(PATH_MEMBER_NOTIFICATIONS)
                 .header(HEADER, PREFIX + accessToken)
-                .param("topCategory", MOIM.getValue())
+                .param("topCategory", MOIM.toString())
                 .param("moimType", "manage")
                 .param("lastNotificationId", notification1_2.getId() + "")
                 .param("limit", "20"));

@@ -32,6 +32,7 @@ public class MoimMemberService {
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
     private final NotificationService notificationService;
+    private final MemberInfoService memberInfoService;
 
 
     // TODO :: curMember 의 권한에 따른 분리는 Client 단에서 구분?
@@ -65,11 +66,8 @@ public class MoimMemberService {
         // 둘 관계가 맺어진 적이 있는지 확인한다
         MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElse(null);
 
-        // moimMemberPs 가 존재하지 않는다면 새로 가입하는 멤버, curMember 에 판단이 들어갈 것이므로, 영속화시켜줘야 한다 (Security 에서 온 객체)
-//        if(moimMemberPs == null) {
-//            curMember = persistSecurityMember(curMember.getId());
-//        }
-
+        Long memberId = curMember.getId();
+        curMember = memberInfoService.getMemberWithMemberInfo(memberId);
         moimPs.judgeMemberJoinByRule(moimMemberPs, curMember);
 
         // 알람 형성을 위해 모임의 Manager 를 조회한다

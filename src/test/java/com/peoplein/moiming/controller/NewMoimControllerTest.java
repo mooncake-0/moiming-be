@@ -8,6 +8,7 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.security.token.JwtParams;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static com.peoplein.moiming.domain.enums.AreaValue.*;
@@ -58,11 +60,11 @@ public class NewMoimControllerTest extends TestObjectCreator {
     private String moim5Name = "프로그래밍 스터디";
 
 
-    private Area moim1Area = new Area(STATE_SEOUL.getName(), CITY_GANGNAM.getName());
-    private Area moim2Area = new Area(STATE_SEOUL.getName(), CITY_GANGDONG.getName());
-    private Area moim3Area = new Area(STATE_SEOUL.getName(), CITY_GANGNAM.getName());
-    private Area moim4Area = new Area(STATE_SEOUL.getName(), CITY_GANGDONG.getName());
-    private Area moim5Area = new Area(STATE_SEOUL.getName(), CITY_GANGNAM.getName());
+    private Area moim1Area = new Area(STATE_SEOUL, CITY_GANGNAM);
+    private Area moim2Area = new Area(STATE_SEOUL, CITY_GANGDONG);
+    private Area moim3Area = new Area(STATE_SEOUL, CITY_GANGNAM);
+    private Area moim4Area = new Area(STATE_SEOUL, CITY_GANGDONG);
+    private Area moim5Area = new Area(STATE_SEOUL, CITY_GANGNAM);
 
     // 실패 - offset 다른 값으로 조절
     @Test
@@ -146,6 +148,14 @@ public class NewMoimControllerTest extends TestObjectCreator {
         em.persist(member2);
         em.persist(member3);
 
+        // 가입조건에 부합하게 생성될 수 있도록 지정
+        MemberInfo member1Info = makeMemberInfo(member1, memberGender, memberBirth);
+        em.persist(member1Info);
+        MemberInfo member2Info = makeMemberInfo(member2, MemberGender.F, LocalDate.of(2000, 1,1));
+        em.persist(member2Info);
+        MemberInfo member3Info = makeMemberInfo(member3, memberGender, memberBirth);
+        em.persist(member3Info);
+
         Category testCategory1 = new Category(1L, fromValue(DANCE.getValue()), 0, null);
         Category testCategory1_1 = new Category(2L, fromValue(LATIN_DANCE.getValue()), 1, testCategory1);
         Category testCategory2 = new Category(3L, fromValue(OUTDOOR.getValue()), 0, null);
@@ -161,37 +171,27 @@ public class NewMoimControllerTest extends TestObjectCreator {
         List<Category> moim4Category = List.of(testCategory1, testCategory1_1);
         List<Category> moim5Category = List.of(testCategory1, testCategory1_1);
 
-        moim1 = makeTestMoim(moim1Name, 10, moim1Area.getState(), moim1Area.getCity(), moim1Category, member1);
-        moim2 = makeTestMoim(moim2Name, 10, moim2Area.getState(), moim2Area.getCity(), moim2Category, member2);
-        moim3 = makeTestMoim(moim3Name, 10, moim3Area.getState(), moim3Area.getCity(), moim3Category, member3);
-        moim4 = makeTestMoim(moim4Name, 10, moim4Area.getState(), moim4Area.getCity(), moim4Category, member1);
-        moim5 = makeTestMoim(moim5Name, 10, moim5Area.getState(), moim5Area.getCity(), moim5Category, member3);
+        moim1 = makeTestMoim(moim1Name, 10, moim1Area, moim1Category, member1, 1974, 1999, MemberGender.N);
+        moim2 = makeTestMoim(moim2Name, 10, moim2Area, moim2Category, member2, 1984, 2004, MemberGender.F);
+        moim3 = makeTestMoim(moim3Name, 10, moim3Area, moim3Category, member3, -1, -1, MemberGender.N);
+        moim4 = makeTestMoim(moim4Name, 10, moim4Area, moim4Category, member1, 1984, 2004, MemberGender.N);
+        moim5 = makeTestMoim(moim5Name, 10, moim5Area, moim5Category, member3, -1, -1, MemberGender.N);
 
-        MoimJoinRule joinRule1 = makeTestMoimJoinRule(true, 50, 25, MemberGender.N);
-        MoimJoinRule joinRule2 = makeTestMoimJoinRule(true, 40, 20, MemberGender.F);
-        MoimJoinRule joinRule3 = makeTestMoimJoinRule(true, 25, 18, MemberGender.N);
-
-        moim1.setMoimJoinRule(joinRule1);
-        moim2.setMoimJoinRule(joinRule2);
-        moim4.setMoimJoinRule(joinRule2);
 
         // FLUSH 를 통해 생성 순서 지정 (1>5>2>4>3
         em.persist(moim1);
-        em.persist(joinRule1);
         em.flush();
 
         em.persist(moim5);
         em.flush();
 
         em.persist(moim2);
-        em.persist(joinRule2);
         em.flush();
 
         em.persist(moim4);
         em.flush();
 
         em.persist(moim3);
-        em.persist(joinRule3);
 
         em.flush();
         em.clear();

@@ -146,11 +146,14 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
         // Member moimMember, moimCreator
         Role testRole = makeTestRole(RoleType.USER);
         moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
-        moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
-
-        notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         em.persist(testRole);
         em.persist(moimCreator);
+
+        MemberInfo curMemberInfo = makeMemberInfo(moimCreator, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+
+        moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         em.persist(moimMember);
         em.persist(notMoimMember);
 
@@ -160,7 +163,7 @@ public class PostCommentServiceIntegratedTest extends TestObjectCreator {
         em.persist(testCategory1);
         em.persist(testCategory1_1);
 
-        testMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), moimCreator);
+        testMoim = makeTestMoim(moimName, maxMember, moimArea, List.of(testCategory1, testCategory1_1), moimCreator, -1, -1, MemberGender.N);
         MoimMember.memberJoinMoim(moimMember, testMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         em.persist(testMoim);
 

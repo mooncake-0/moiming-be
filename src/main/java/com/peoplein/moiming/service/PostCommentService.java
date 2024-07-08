@@ -165,9 +165,11 @@ public class PostCommentService {
                 throw new MoimingApiException(MOIM_POST_COMMENT_NOT_PARENT);
             }
 
+            // depth 가 1 인데 parentId 가 NULL 이명 매핑이 잘못된 상황
         } else if (depth != 0 || parentId != null) {
-
-            throw new MoimingApiException(COMMON_INVALID_SITUATION); // 부모 & 자식 관계 매핑 오류, 잘못된 요청
+            String issue = "depth = 1 인데, parentId 가 Null 로 전달되었습니다";
+            log.info("{}, getParentCommentByReqDto :: {}", this.getClass().getName(), issue);
+            throw new MoimingApiException(COMMON_INVALID_SITUATION, issue); // 부모 & 자식 관계 매핑 오류, 잘못된 요청
         }
 
         return parentComment; // 나머진 Null 로 배치된다

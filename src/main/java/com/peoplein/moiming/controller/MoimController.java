@@ -9,6 +9,7 @@ import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
 import com.peoplein.moiming.exception.MoimingApiException;
+import com.peoplein.moiming.exception.MoimingValidationException;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.MoimCategoryMapperDto;
 import com.peoplein.moiming.model.dto.response.MemberRespDto;
@@ -27,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -171,7 +173,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 가입 조건 수정 - 모임 허용 인원 (maxMember 는 UI 상 이 요청에서 처리, maxMember 제외하고 수정 상관없이 현재 필드 모두 보낸다, hasAgeRule 이 false 면 ageMin/Max -1 로 전달)")
+    @ApiOperation("모임 가입 조건 수정 - maxMember 는 수정할 때만 보내면 된다. 조건 수정시에는 editingJoinRule 을 True 로 해주고, maxAge, minAge, memberGender 모두 보내줘야 한다 (수정하지 않는 것도 현재 필드 전달)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -184,6 +186,15 @@ public class MoimController {
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
+        // JoinRuleReqDto 에 대한 Validation 추가
+        if (requestDto.getEditingJoinRule()) {
+            if (requestDto.getMemberGender() == null || requestDto.getAgeMin() == null || requestDto.getAgeMax() == null) {
+                Map<String, String> errMap = new HashMap<>();
+                errMap.put("gender, min, max 중 null 존재", "가입 조건 수정시에는 all field 현재값으로라도 전달 필수");
+                throw new MoimingValidationException(COMMON_REQUEST_VALIDATION, errMap);
+            }
+        }
+
         Moim moim = moimService.updateMoimJoinRule(requestDto, principal.getMember());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 가입 조건 수정 성공", new MoimJoinRuleUpdateRespDto(
                 moim.getMaxMember(), moim.getMoimJoinRule()
@@ -192,7 +203,8 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 삭제")
+    // v0.1.2 - Deprecated
+//    @ApiOperation("모임 삭제 ")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -203,9 +215,10 @@ public class MoimController {
     @DeleteMapping(PATH_MOIM_DELETE) // Moim 삭제시 정말 기록 남기지 않고 삭제한다
     public ResponseEntity<?> deleteMoim(@PathVariable Long moimId
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("-1", "모임 삭제 API 는 제공되지 않습니다", null));
 
-        moimService.deleteMoim(moimId, principal.getMember());
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 및 모든 모임 정보 삭제 성공", null));
+//        moimService.deleteMoim(moimId, principal.getMember());
+//        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "모임 및 모든 모임 정보 삭제 성공", null));
     }
 
 
@@ -245,7 +258,8 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 추천 검색 - 이번 달 기준 조회수 가장 많은 모임들 (offset=0 필수, limit 은 원하는 갯수 (Top 20 이면 20 지정))")
+
+    @ApiOperation("모임 추천 검색 - 이번 달 기준 조회수 가장 많은 모임들 (offset=0 필수, limit 은 원하는 갯수 (Top 20 이면 20 지정)) (현재 필터는 요구사항에 없음)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })

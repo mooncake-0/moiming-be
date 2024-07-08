@@ -2,6 +2,7 @@ package com.peoplein.moiming.support;
 
 
 import com.peoplein.moiming.domain.embeddable.Area;
+import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import org.springframework.context.annotation.Profile;
 
@@ -86,7 +87,7 @@ public abstract class TestParams {
     public static String moimName = "모이밍 모임";
     public static String moimInfo = "모이밍 앱 MVP를 만들어 나가는 사람들의 모임입니다";
     public static int maxMember = 10;
-    public static Area moimArea = new Area("서울시", "중구");
+    public static Area moimArea = new Area(AreaValue.STATE_SEOUL, AreaValue.CITY_SEOUL_JUNG);
     public static String depth1SampleCategory = "운동/스포츠";
     public static String depth2SampleCategory = "골프";
 
@@ -95,21 +96,9 @@ public abstract class TestParams {
     public static String moimName2 = "디지몬어드벤쳐";
     public static String moimInfo2 = "선택받은 아이들의 모임입니다";
     public static int maxMember2 = 20;
-    public static Area moimArea2 = new Area("성남시", "분당구");
+    public static Area moimArea2 = new Area(AreaValue.STATE_GYEONGGI, AreaValue.CITY_SEONGNAM);
     public static String depth1SampleCategory2 = "댄스/무용";
     public static String depth2SampleCategory2 = "재즈댄스";
 
-
-    // MoimJoinRule Set1
-    public static boolean hasAgeRule1 = false;
-    public static int ageMax1 = 100; // -1 로 변해서 저장
-    public static int ageMin1 = 15; // -1 로 변해서 저장
-    public static MemberGender genderRule1 = MemberGender.N;
-
-    // MoimJoinRule Set2
-    public static boolean hasAgeRule2 = true;
-    public static int ageMax2 = 40;
-    public static int ageMin2 = 20;
-    public static MemberGender genderRule2 = MemberGender.N;
 
 }

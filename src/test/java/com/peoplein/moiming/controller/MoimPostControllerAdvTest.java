@@ -83,19 +83,29 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         Role testRole = makeTestRole(USER);
         em.persist(testRole);
 
+        // data su 상 moim creator 만 member info 가 있으면 된다
+        // 사실 댓글 생성 등도 영향이 있어야 하지만, 인 앱 로직 생성자 입장 상 test 에도 영향을 끼지는게 moim 생성 뿐이라서, 나머지는 무시한다
         moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
-        moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
-        notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
-        ibwMember = makeTestMember(memberPhone4, nickname4, ci4, testRole);
-        ibfMember = makeTestMember(memberPhone5, nickname5, ci5, testRole);
-        dormantMember = makeTestMember(memberPhone6, nickname6, ci6, testRole);
-        deleteMember = makeTestMember(memberPhone7, nickname7, ci7, testRole);
         em.persist(moimCreator);
+        MemberInfo curMemberInfo = makeMemberInfo(moimCreator, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+
+        moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         em.persist(moimMember);
+
+        notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         em.persist(notMoimMember);
+
+        ibwMember = makeTestMember(memberPhone4, nickname4, ci4, testRole);
         em.persist(ibwMember);
+
+        ibfMember = makeTestMember(memberPhone5, nickname5, ci5, testRole);
         em.persist(ibfMember);
+
+        dormantMember = makeTestMember(memberPhone6, nickname6, ci6, testRole);
         em.persist(dormantMember);
+
+        deleteMember = makeTestMember(memberPhone7, nickname7, ci7, testRole);
         em.persist(deleteMember);
 
         // Moim 만들기
@@ -104,7 +114,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         em.persist(testCategory1);
         em.persist(testCategory1_1);
 
-        createdMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), moimCreator);
+        createdMoim = makeTestMoim(moimName, maxMember, moimArea, List.of(testCategory1, testCategory1_1), moimCreator, -1, -1, MemberGender.N);
         em.persist(createdMoim);
 
         // MoimMember 만들기
@@ -274,7 +284,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     // 성공 :: 나간 유저의 게시물 요청
     @Test
-    void getMoimPostDetail_shouldReturn200WithResponse_whenReqIBWPrivatePostByMoimMember_byMoimingApiException() throws Exception {
+    void getMoimPostDetail_shouldReturn200WithResponse_whenReqIBWPrivatePostByMoimMember() throws Exception {
 
         // given
         prepareMoimActivity();
@@ -464,32 +474,33 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
     }
 
 
+    // 2407 - 80 번 테스트와 중복으로 삭제
     // updatePost - 실패 : postId 없음 (Validation)
-    @Test
-    void updatePost_shouldReturn400_whenMoimPostIdNull_byMoimingValidationException() throws Exception {
-
-        // given
-        prepareMoimActivity();
-        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(null, false, null, null, null, null, null, null);
-        String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
-
-        // given - 요청자 개인 정보 등록 완료
-        moimMember = em.find(Member.class, moimMember.getId());
-        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
-
-        // when
-        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
-                .header(HEADER, PREFIX + testAccessToken)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
-
-    }
+//    @Test
+//    void updatePost_shouldReturn400_whenMoimPostIdNull_byMoimingValidationException() throws Exception {
+//
+//        // given
+//        prepareMoimActivity();
+//        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(null, false, null, null, null, null, null, null);
+//        String requestBody = om.writeValueAsString(requestDto);
+//        String testAccessToken = createTestJwtToken(moimMember, 2000);
+//
+//        // given - 요청자 개인 정보 등록 완료
+//        moimMember = em.find(Member.class, moimMember.getId());
+//        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+//
+//        // when
+//        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+//                .header(HEADER, PREFIX + testAccessToken)
+//                .content(requestBody)
+//                .contentType(MediaType.APPLICATION_JSON));
+//
+//        // then
+//        resultActions.andExpect(status().isBadRequest());
+//        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+//        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
+//
+//    }
 
 
     // updatePost - 실패: 일반 모임원의 것을 운영진이 시도
@@ -502,9 +513,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(moimCreator, 2000);
 
-        // given - 요청자 개인 정보 등록 완료
-        moimCreator = em.find(Member.class, moimCreator.getId());
-        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
+        // given - 요청자 개인 정보 등록 완료 - data su 시 등록함
+//        moimCreator = em.find(Member.class, moimCreator.getId());
+//        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
@@ -1052,9 +1063,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         String[] afterParams = {createdMoim.getId() + "", moimMemberPost.getId() + ""};
         String testAccessToken = createTestJwtToken(moimCreator, 2000);
 
-        // given - 개인정보 등록 완료
-        moimCreator = em.find(Member.class, moimCreator.getId());
-        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
+        // given - 개인정보 등록 완료 - data su 에서 진행하는걸로 변경
+//        moimCreator = em.find(Member.class, moimCreator.getId());
+//        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_POST_DELETE, beforeParams, afterParams))

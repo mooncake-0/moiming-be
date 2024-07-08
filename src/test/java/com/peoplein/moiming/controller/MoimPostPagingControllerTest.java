@@ -5,6 +5,7 @@ import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.ExceptionValue;
@@ -62,11 +63,16 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
     private void dataSu() {
 
         Role testRole = makeTestRole(RoleType.USER);
+        em.persist(testRole);
+
         moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
+        em.persist(moimCreator);
+
+        MemberInfo creatorInfo = makeMemberInfo(moimCreator, memberGender, memberBirth);
+        em.persist(creatorInfo);
+
         moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
-        em.persist(testRole);
-        em.persist(moimCreator);
         em.persist(moimMember);
         em.persist(notMoimMember);
 
@@ -77,7 +83,7 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
         em.persist(testCategory1_1);
 
         // Moim 준비
-        moim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), moimCreator);
+        moim = makeTestMoim(moimName, maxMember, moimArea, List.of(testCategory1, testCategory1_1), moimCreator, -1,-1, MemberGender.N);
         MoimMember.memberJoinMoim(moimMember, moim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         MoimMember.memberJoinMoim(notMoimMember, moim, MoimMemberRoleType.NORMAL, MoimMemberState.IBF);
         em.persist(moim);
@@ -396,7 +402,7 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
     }
 
 
-    // 멤버의 페이징 요청 - 우선 5개 요청후, 뒤에 20개 요청
+    // 모임원 아닌 멤버의 페이징 요청 - 우선 5개 요청후, 뒤에 20개 요청
     @Test
     void getMoimPosts_shouldReturn200WithResponse_whenReqFirst5ByNotMoimMember() throws Exception {
 

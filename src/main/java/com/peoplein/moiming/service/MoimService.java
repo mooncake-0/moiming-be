@@ -42,6 +42,7 @@ public class MoimService {
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
     private final CategoryService categoryService;
+    private final MemberInfoService memberInfoService;
 
 
     private final MoimCategoryLinkerRepository moimCategoryLinkerRepository;
@@ -124,14 +125,11 @@ public class MoimService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        curMember.isMemberInfoRegistered();
+
         // Member Info 확인을 위한 조회 및 재영속화
         Long memberId = curMember.getId();
-        curMember = memberRepository.findWithMemberInfoById(memberId).orElseThrow(() -> {
-                    log.info("{}, createMoim :: {}", this.getClass().getName(), "id: [" + memberId + "] 생성 요청자를 찾을 수 없습니다");
-                    return new MoimingApiException(STORAGE_FILE_NOT_FOUND);
-                }
-        );
-        curMember.isMemberInfoRegistered();
+        curMember = memberInfoService.getMemberWithMemberInfo(memberId);
 
         // 1. 카테고리를 준비한다 (같이 생성 필요)
         List<Category> categories = categoryService.generateCategoryList(requestDto.getCategoryNameValues());
@@ -274,7 +272,12 @@ public class MoimService {
             moim.updateMaxMember(requestDto.getMaxMember(), member.getId());
         }
 
-        moim.getMoimJoinRule().changeJoinRule(requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+        // 가입하는 유저에 대한 개인 정보가 필요하므로 Persisting 이 필요하다
+        if (requestDto.getEditingJoinRule()) {
+            Long memberId = member.getId();
+            member = memberInfoService.getMemberWithMemberInfo(memberId);
+            moim.getMoimJoinRule().changeJoinRule(requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender(), member);
+        }
 
         return moim;
     }
@@ -396,7 +399,7 @@ public class MoimService {
      */
     private Area convertValuesToArea(String areaStateStr, String areaCityStr) {
 
-        AreaValue areaState = AreaValue.fromName(areaCityStr);
+        AreaValue areaState = AreaValue.fromName(areaStateStr);
         AreaValue areaCity = areaState.getCityFromStateCities(areaCityStr);
 
         return new Area(areaState, areaCity);

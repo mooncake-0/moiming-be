@@ -43,6 +43,9 @@ public class Area {
     }
 
 
+    // 24.07 Update
+    // - 수정이 되어도 위에 생성자를 타기 때문에 최종 점검이 진행된다
+    // - 자신의 State 내부 City 에서 수정되도록 변경
     public Area checkAndIssueNewArea(String areaState, String areaCity) {
 
         AreaValue newAreaState = null;
@@ -57,21 +60,21 @@ public class Area {
             newAreaState = reqAreaState;
         }
 
+        if (newAreaState == null) {
+            newAreaState = AreaValue.fromName(this.state);
+        }
+
+        // 순서 변경, areaCity 매핑을 위함
         if (areaCity != null) {
-            AreaValue reqAreaCity = AreaValue.fromName(areaCity);
+            AreaValue reqAreaCity = newAreaState.getCityFromStateCities(areaCity);
             if (reqAreaCity.getDepth() != 1) {
                 throw new MoimingApiException(MOIM_CREATE_INFO_UNAVAILABLE, "City 간 Depth 관계 부적합");
             }
             newAreaCity = reqAreaCity;
         }
 
-        // 비어있는게 있다면 수정 대상이 아닌 항목으로, 기존 것으로 끼워서 넣어준다
-        if (newAreaState == null) {
-            newAreaState = AreaValue.fromName(this.state);
-        }
-
         if (newAreaCity == null) {
-            newAreaCity = AreaValue.fromName(this.city);
+            newAreaCity = newAreaState.getCityFromStateCities(this.city);
         }
 
         return new Area(newAreaState, newAreaCity);

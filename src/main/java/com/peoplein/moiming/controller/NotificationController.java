@@ -54,7 +54,12 @@ public class NotificationController {
             throw new MoimingApiException(ExceptionValue.COMMON_INVALID_REQUEST_PARAM);
         }
 
-        NotificationTopCategory category = NotificationTopCategory.fromValue(topCategory);
+        NotificationTopCategory category = null;
+        try {
+            category = NotificationTopCategory.fromValue(topCategory);
+        }catch (MoimingApiException exception){ // 에러 변환
+            throw new MoimingApiException(ExceptionValue.COMMON_INVALID_REQUEST_PARAM);
+        }
         List<Notification> memberNotifications = notificationService.getMemberNotification(principal.getMember(), category, moimType, lastNotificationId, limit);
         List<MemberNotificationRespDto> responseBody = memberNotifications.stream().map(MemberNotificationRespDto::new).collect(Collectors.toList());
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "알림 일반 조회 성공", responseBody));

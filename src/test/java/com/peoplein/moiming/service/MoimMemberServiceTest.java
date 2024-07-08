@@ -46,6 +46,9 @@ public class MoimMemberServiceTest {
     @Mock
     private MemberRepository memberRepository;
 
+    @Mock
+    private MemberInfoService memberInfoService;
+
     // getMoimMembers Test
     // 1. 모임원 반환
     @Test
@@ -115,6 +118,7 @@ public class MoimMemberServiceTest {
         // given - stub
         when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.ofNullable(moim));
         when(memberRepository.findById(any())).thenReturn(Optional.of(curManager));
+        when(memberInfoService.getMemberWithMemberInfo(any())).thenReturn(member); // 후속으로 .getNickname 호출로 인한 mock 필요, 재지정이므로 위에 curMember 가 Null 로 교체되기 때문
 
         // when
         moimMemberService.joinMoim(requestDto, member);

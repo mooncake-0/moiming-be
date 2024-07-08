@@ -42,7 +42,7 @@ public class TestObjectCreator {
 
 
     protected MemberInfo makeMemberInfo(Member member, MemberGender gender, LocalDate memberBirth) {
-        return MemberInfo.saveMemberInfo(member, "", memberGender, memberBirth);
+        return MemberInfo.saveMemberInfo(member, "", gender, memberBirth);
     }
 
 
@@ -58,14 +58,16 @@ public class TestObjectCreator {
     }
 
 
-    // 카테고리가 저장된 상태여야 하기 떄문에 그냥 저장 후 값을 전달
-    protected Moim makeTestMoim(String name, int mMember, String state, String city, List<Category> categories, Member curMember) {
-        return Moim.createMoim(name, moimInfo, mMember, new Area(state, city), categories, curMember);
-    }
+    // 2407 Update
+    //  - Moim 이 생성되면 JoinRule 도 자동 생성된다
+    //  - 카테고리가 저장된 상태여야 하기 떄문에 그냥 저장 후 값을 전달
+    protected Moim makeTestMoim(String name, int mMember, Area area, List<Category> categories, Member curMember
+        ,int max, int min, MemberGender gender) {
 
-
-    protected MoimJoinRule makeTestMoimJoinRule(boolean flag, int max, int min, MemberGender gender) {
-        return MoimJoinRule.createMoimJoinRule(flag, max, min, gender);
+        Moim moim = Moim.createMoim(name, moimInfo, mMember, area, categories, curMember);
+        MoimJoinRule joinRule = MoimJoinRule.createMoimJoinRule(max, min, gender, curMember);
+        moim.initJoinRule(joinRule); // CASCADE 로 인한 Join Rule 도 Persist
+        return moim;
     }
 
 
@@ -83,24 +85,20 @@ public class TestObjectCreator {
     }
 
 
-    protected MoimCreateReqDto makeMoimReqDtoNoJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
+    protected MoimCreateReqDto makeMoimReqDto(String mName, String state, String city, int mMember
+            , String category1, String category2
+            , int ageMax, int ageMin, MemberGender gender) {
+        JoinRuleCreateReqDto joinRuleCreateDto = new JoinRuleCreateReqDto(ageMax, ageMin, gender);
         return new MoimCreateReqDto(
-                mName, moimInfo, state, city, mMember, false, null, null, List.of(category1, category2)
-        );
-    }
-
-    protected MoimCreateReqDto makeMoimReqDtoWithJoinRule(String mName, String state, String city, int mMember, String category1, String category2) {
-        JoinRuleCreateReqDto joinRuleCreateDto = new JoinRuleCreateReqDto(true, 40, 20, MemberGender.M);
-        return new MoimCreateReqDto(
-                mName, moimInfo, state, city, mMember, true, joinRuleCreateDto, null, List.of(category1, category2)
+                mName, moimInfo, state, city, mMember, joinRuleCreateDto, null, List.of(category1, category2)
         );
     }
 
 
     // moimInfo, moimAreaCity 는 변경하지 않는다고 가정
-    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, Integer mMember, String state, String category1, String category2) {
+    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, String state, String city,  String category1, String category2) {
 //        return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
-        return new MoimUpdateReqDto(moimId, mName, null, state, null, List.of(category1, category2));
+        return new MoimUpdateReqDto(moimId, mName, null, state, city, List.of(category1, category2));
     }
 
 

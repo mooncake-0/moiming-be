@@ -390,6 +390,10 @@ public enum AreaValue {
      */
     public AreaValue getCityFromStateCities(String areaCityName) {
 
+        if (this.getDepth() == 1) { // Validation 추가 필요
+            return null; // 전달된 녀석이 State 여야 하는데 City 일 경우
+        }
+
         AreaValue areaCity = null;
 
         List<AreaValue> stateCities = this.getStateCities();
