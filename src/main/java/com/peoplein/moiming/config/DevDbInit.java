@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
-@Profile(value = {"dev", "local"})
+@Profile(value = "local") // 개발용 서버에는 직접 넣는 것으로 변경
 @Configuration
 @RequiredArgsConstructor
 public class DevDbInit {
