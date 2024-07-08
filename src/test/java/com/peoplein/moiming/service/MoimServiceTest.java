@@ -51,6 +51,9 @@ public class MoimServiceTest {
     private StorageService storageService;
 
     @Mock
+    private MemberInfoService memberInfoService;
+
+    @Mock
     private FileJpaRepository fileJpaRepository;
 
 
@@ -342,58 +345,61 @@ public class MoimServiceTest {
 
 
     // 가입 조건 수정
-    // 성공 : 가입 조건이 이미 있을 때
+    // 성공 : 조건을 수정하려는 요청시
     @Test
-    void updateMoimJoinRule_shouldPass_whenMoimWithJoinRulePassed() {
+    void updateMoimJoinRule_shouldPassAndVerifyJoinRuleCalled_whenMoimJoinRuleModifyPassed() {
 
         // given
         MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
         Member member = mock(Member.class);
-        MoimMember moimMember = mock(MoimMember.class);
         Moim moim = mock(Moim.class);
+        MoimMember moimMember = mock(MoimMember.class);
         MoimJoinRule joinRule = mock(MoimJoinRule.class);
 
         // given - stub
         when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasPermissionOfManager()).thenReturn(true);
+        when(reqDto.getEditingJoinRule()).thenReturn(true); // 이하로는 조건 수정을 위한 요청일 경우 처리
         when(moim.getMoimJoinRule()).thenReturn(joinRule);
+        when(reqDto.getMaxMember()).thenReturn(null); // MEMO :: Mock 의 Getter 들은 NULL 을 반환하지 않는다!!
+//        when(memberInfoService.getMemberWithMemberInfo(any())).thenReturn(member); // 이게 필요가 없는 부분 : 이 함수에서는 반환한 member 가 적합한지는 신경쓰지 않기 때문
 
         // when
         moimService.updateMoimJoinRule(reqDto, member);
 
         // then
-        verify(joinRule, times(1)).changeJoinRule(anyBoolean(), anyInt(), anyInt(), any());
+        verify(joinRule, times(1)).changeJoinRule(anyInt(), anyInt(), any(), any());
+        verify(moim, times(0)).updateMaxMember(anyInt(), any());
 
     }
 
 
     // 가입 조건 수정
-    // 성공 : 가입 조건이 이미 있을 때
+    // 성공 : 가입 조건 수정을 요청하지 않고, maxMember 만 수정 요청하려 할 때
     @Test
-    void updateMoimJoinRule_shouldPass_whenMoimWithNoJoinRulePassed() {
+    void updateMoimJoinRule_shouldPassAndVerifyUpdateMaxMember_whenMoimJoinRuleNotModifyPassed() {
 
-        try (MockedStatic<MoimJoinRule> mocker = mockStatic(MoimJoinRule.class)) {
-            // given
-            MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
-            Member member = mock(Member.class);
-            MoimMember moimMember = mock(MoimMember.class);
-            Moim moim = mock(Moim.class);
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
+        Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        MoimJoinRule joinRule = mock(MoimJoinRule.class);
 
-            // given - stub
-            when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-            when(moimMember.hasPermissionOfManager()).thenReturn(true);
-            when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
-            mocker.when(() -> MoimJoinRule.createMoimJoinRule(anyBoolean(), anyInt(), anyInt(), any()))
-                    .thenReturn(null); // 해당 함수는 호출만 하고, 결과는 상관 없다
+        // given - stub
+        when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasPermissionOfManager()).thenReturn(true);
+        when(reqDto.getEditingJoinRule()).thenReturn(false); // 이하로는 조건 수정을 위한 요청일 경우 처리
+        when(reqDto.getMaxMember()).thenReturn(100); // NULL 이 아님
 
-            // when
-            moimService.updateMoimJoinRule(reqDto, member);
+        // when
+        moimService.updateMoimJoinRule(reqDto, member);
 
-            // then
-            verify(moim, times(1)).setMoimJoinRule(any());
-
-        }
+        // then
+        verify(joinRule, times(0)).changeJoinRule(anyInt(), anyInt(), any(), any());
+        verify(moim, times(1)).updateMaxMember(anyInt(), any());
 
     }
 

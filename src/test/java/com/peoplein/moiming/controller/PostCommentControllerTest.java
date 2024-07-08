@@ -487,7 +487,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     }
 
 
-    // 댓글 수정 실패 - 모임 생성자
+    // 댓글 수정 실패 - 모임 생성자가 일반 모임원의 댓글 수정 시도
     @Test
     void updateComment_shouldReturn403_whenRequestByMoimCreator_byMoimingApiException() throws Exception {
 
@@ -498,8 +498,8 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String accessToken = createTestJwtToken(moimCreator, 2000);
 
         // given - 요청자 개인 정보 기입
-        moimCreator = em.find(Member.class, moimCreator.getId());
-        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
+//        moimCreator = em.find(Member.class, moimCreator.getId());
+//        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
@@ -594,7 +594,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
     // commentId null validation
     @Test
-    void updateComment_shouldReturn403_whenCommentIdNull_byMoimingValidationException() throws Exception {
+    void updateComment_shouldReturn400_whenCommentIdNull_byMoimingValidationException() throws Exception {
 
         // given
         createPostComment();
@@ -752,8 +752,8 @@ public class PostCommentControllerTest extends TestObjectCreator {
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
 
         // given - 요청자 개인 정보 기입
-        moimCreator = em.find(Member.class, moimCreator.getId());
-        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
+//        moimCreator = em.find(Member.class, moimCreator.getId());
+//        insertTestMemberInfo(moimCreator, memberGender, memberBirth);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -958,12 +958,17 @@ public class PostCommentControllerTest extends TestObjectCreator {
         // Member moimMember, moimCreator
         Role testRole = makeTestRole(RoleType.USER);
         moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
+        em.persist(testRole);
+        em.persist(moimCreator);
+
+        MemberInfo curMemberInfo = makeMemberInfo(moimCreator, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+
         moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         moimMember2 = makeTestMember(memberPhone5, nickname5, ci5, testRole);
         notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         inactiveMember = makeTestMember(memberPhone4, nickname4, ci4, testRole);
-        em.persist(testRole);
-        em.persist(moimCreator);
+
         em.persist(moimMember);
         em.persist(moimMember2);
         em.persist(notMoimMember);
@@ -976,7 +981,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
         em.persist(testCategory1_1);
 
 
-        testMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), moimCreator);
+        testMoim = makeTestMoim(moimName, maxMember, moimArea, List.of(testCategory1, testCategory1_1), moimCreator, -1, -1, MemberGender.N);
         MoimMember.memberJoinMoim(moimMember, testMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         MoimMember.memberJoinMoim(moimMember2, testMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         MoimMember.memberJoinMoim(inactiveMember, testMoim, MoimMemberRoleType.NORMAL, MoimMemberState.IBF);

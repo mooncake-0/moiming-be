@@ -7,6 +7,7 @@ import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.exception.ExceptionValue;
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,16 +63,16 @@ public class SearchControllerTest extends TestObjectCreator {
     private String moim9Name = "우리는 누구의 사람들이 사는가";
     private String moim10Name = "집에 너무 가고 싶은 사람들";
 
-    private Area moim1Area = new Area(STATE_SEOUL.getName(), CITY_GANGNAM.getName());
-    private Area moim2Area = new Area(STATE_SEOUL.getName(), CITY_GANGDONG.getName());
-    private Area moim3Area = new Area(STATE_SEOUL.getName(), CITY_GANGNAM.getName());
-    private Area moim4Area = new Area(STATE_SEOUL.getName(), CITY_GANGSEO.getName());
-    private Area moim5Area = new Area(STATE_SEOUL.getName(), CITY_GWANAK.getName());
-    private Area moim6Area = new Area(STATE_SEOUL.getName(), CITY_GWANGJIN.getName());
-    private Area moim7Area = new Area(STATE_SEOUL.getName(), CITY_GURO.getName());
-    private Area moim8Area = new Area(STATE_SEOUL.getName(), CITY_GEUMCHEON.getName());
-    private Area moim9Area = new Area(STATE_SEOUL.getName(), CITY_NOWON.getName());
-    private Area moim10Area = new Area(STATE_SEOUL.getName(), CITY_DOBONG.getName());
+    private Area moim1Area = new Area(STATE_SEOUL, CITY_GANGNAM);
+    private Area moim2Area = new Area(STATE_SEOUL, CITY_GANGDONG);
+    private Area moim3Area = new Area(STATE_SEOUL, CITY_GANGNAM);
+    private Area moim4Area = new Area(STATE_SEOUL, CITY_SEOUL_GANGSEO);
+    private Area moim5Area = new Area(STATE_SEOUL, CITY_GWANAK);
+    private Area moim6Area = new Area(STATE_SEOUL, CITY_GWANGJIN);
+    private Area moim7Area = new Area(STATE_SEOUL, CITY_GURO);
+    private Area moim8Area = new Area(STATE_SEOUL, CITY_GEUMCHEON);
+    private Area moim9Area = new Area(STATE_SEOUL, CITY_NOWON);
+    private Area moim10Area = new Area(STATE_SEOUL, CITY_DOBONG);
 
 
     // 실패 테스트
@@ -735,7 +737,7 @@ public class SearchControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
                 .param("keyword", "사람")
-                .param("areaFilter", "서울시")
+                .param("areaFilter", "서울")
                 .param("categoryFilter", "강아지")
 //                .param("offset", "0")
                 .header(HEADER, PREFIX + accessToken));
@@ -848,6 +850,19 @@ public class SearchControllerTest extends TestObjectCreator {
         em.persist(member4);
         em.persist(member5);
 
+
+        // 가입조건에 부합하게 생성될 수 있도록 지정
+        MemberInfo member1Info = makeMemberInfo(member1, memberGender, memberBirth);
+        em.persist(member1Info);
+        MemberInfo member2Info = makeMemberInfo(member2, MemberGender.F, LocalDate.of(2000, 1, 1));
+        em.persist(member2Info);
+        MemberInfo member3Info = makeMemberInfo(member3, memberGender, LocalDate.of(2000, 1, 1));
+        em.persist(member3Info);
+        MemberInfo member4Info = makeMemberInfo(member4, MemberGender.F, LocalDate.of(2000, 1, 1));
+        em.persist(member4Info);
+        MemberInfo member5Info = makeMemberInfo(member5, memberGender, memberBirth);
+        em.persist(member5Info);
+
         Category testCategory1 = new Category(1L, fromValue(DANCE.getValue()), 0, null);
         Category testCategory1_1 = new Category(2L, fromValue(LATIN_DANCE.getValue()), 1, testCategory1);
         Category testCategory2 = new Category(3L, fromValue(OUTDOOR.getValue()), 0, null);
@@ -886,16 +901,16 @@ public class SearchControllerTest extends TestObjectCreator {
         List<Category> moim10Category = List.of(testCategory6, testCategory6_1);
 
 
-        moim1 = makeTestMoim(moim1Name, 10, moim1Area.getState(), moim1Area.getCity(), moim1Category, member1);
-        moim2 = makeTestMoim(moim2Name, 10, moim2Area.getState(), moim2Area.getCity(), moim2Category, member2);
-        moim3 = makeTestMoim(moim3Name, 10, moim3Area.getState(), moim3Area.getCity(), moim3Category, member3);
-        moim4 = makeTestMoim(moim4Name, 10, moim4Area.getState(), moim4Area.getCity(), moim4Category, member4);
-        moim5 = makeTestMoim(moim5Name, 10, moim5Area.getState(), moim5Area.getCity(), moim5Category, member5);
-        moim6 = makeTestMoim(moim6Name, 10, moim6Area.getState(), moim6Area.getCity(), moim6Category, member1);
-        moim7 = makeTestMoim(moim7Name, 10, moim7Area.getState(), moim7Area.getCity(), moim7Category, member2);
-        moim8 = makeTestMoim(moim8Name, 10, moim8Area.getState(), moim8Area.getCity(), moim8Category, member3);
-        moim9 = makeTestMoim(moim9Name, 10, moim9Area.getState(), moim9Area.getCity(), moim9Category, member4);
-        moim10 = makeTestMoim(moim10Name, 10, moim10Area.getState(), moim10Area.getCity(), moim10Category, member5);
+        moim1 = makeTestMoim(moim1Name, 10, moim1Area, moim1Category, member1, 1974, 2004, MemberGender.N); //1
+        moim2 = makeTestMoim(moim2Name, 10, moim2Area, moim2Category, member2, 1984, 2004, MemberGender.F); //2
+        moim3 = makeTestMoim(moim3Name, 10, moim3Area, moim3Category, member3, -1, -1, MemberGender.N);
+        moim4 = makeTestMoim(moim4Name, 10, moim4Area, moim4Category, member4, 1984, 2004, MemberGender.F); // 2
+        moim5 = makeTestMoim(moim5Name, 10, moim5Area, moim5Category, member5, -1, -1, MemberGender.N);
+        moim6 = makeTestMoim(moim6Name, 10, moim6Area, moim6Category, member1, -1, -1, MemberGender.N);
+        moim7 = makeTestMoim(moim7Name, 10, moim7Area, moim7Category, member2, 1999, 2006, MemberGender.N); //3
+        moim8 = makeTestMoim(moim8Name, 10, moim8Area, moim8Category, member3, 1999, 2006, MemberGender.N); //3
+        moim9 = makeTestMoim(moim9Name, 10, moim9Area, moim9Category, member4, -1, -1, MemberGender.N);
+        moim10 = makeTestMoim(moim10Name, 10, moim10Area, moim10Category, member5, -1, -1, MemberGender.N);
 
         em.persist(moim1);
         em.persist(moim2);
@@ -907,20 +922,6 @@ public class SearchControllerTest extends TestObjectCreator {
         em.persist(moim8);
         em.persist(moim9);
         em.persist(moim10);
-
-
-        MoimJoinRule joinRule1 = makeTestMoimJoinRule(true, 50, 25, MemberGender.N);
-        MoimJoinRule joinRule2 = makeTestMoimJoinRule(true, 40, 20, MemberGender.F);
-        MoimJoinRule joinRule3 = makeTestMoimJoinRule(true, 25, 18, MemberGender.N);
-        em.persist(joinRule1);
-        em.persist(joinRule2);
-        em.persist(joinRule3);
-
-        moim1.setMoimJoinRule(joinRule1);
-        moim2.setMoimJoinRule(joinRule2);
-        moim4.setMoimJoinRule(joinRule2);
-        moim7.setMoimJoinRule(joinRule3);
-        moim8.setMoimJoinRule(joinRule3);
 
         em.flush();
         em.clear();

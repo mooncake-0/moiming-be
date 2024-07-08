@@ -12,9 +12,9 @@ public class DeepLinkManager {
             throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
         }
         String PREFIX = "moiming://";
-        String anw = PREFIX + "topCategory/" + topCategoryId;
+        String anw = PREFIX + "/topCategory/" + topCategoryId;
         if (subCategoryId != null && subCategoryId != 0L) {
-            anw += "subCategory/" + subCategoryId;
+            anw += "/subCategory/" + subCategoryId;
         }
         return anw;
     }

@@ -53,9 +53,8 @@ public class SearchRespDto {
             this.createdAt = moim.getCreatedAt() + "";
             this.updatedAt = moim.getUpdatedAt() + "";
             this.categories = MoimCategoryLinker.convertLinkersToNameValues(categoryLinkers);
-            if (!Objects.isNull(moim.getMoimJoinRule())) { // Join Rule 이 없는 모임일 수 있다
-                this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
-            }
+            this.moimJoinRuleDto = new MoimJoinRuleDto(moim.getMoimJoinRule());
+
         }
 
 
@@ -63,14 +62,11 @@ public class SearchRespDto {
         @Setter
         @NoArgsConstructor
         public static class MoimJoinRuleDto {
-
-            private boolean hasAgeRule;
             private int ageMax;
             private int ageMin;
             private MemberGender memberGender;
 
             public MoimJoinRuleDto(MoimJoinRule moimJoinRule) {
-                this.hasAgeRule = moimJoinRule.isHasAgeRule();
                 this.ageMax = moimJoinRule.getAgeMax();
                 this.ageMin = moimJoinRule.getAgeMin();
                 this.memberGender = moimJoinRule.getMemberGender();

@@ -20,6 +20,19 @@ public class MemberInfoService {
 
     private final MemberRepository memberRepository;
 
+
+    @Transactional(readOnly = true)
+    public Member getMemberWithMemberInfo(Long memberId) {
+
+        return memberRepository.findWithMemberInfoById(memberId).orElseThrow(() -> {
+                    log.info("{}, getMemberWithMemberInfo :: {}", this.getClass().getName(), "id: [" + memberId + "] 생성 요청자를 찾을 수 없습니다");
+                    return new MoimingApiException(MEMBER_NOT_FOUND);
+                }
+        );
+    }
+
+
+
     @Transactional
     public void registerMemberInfo(MemberInfoCreateReqDto requestDto, Member member) {
 

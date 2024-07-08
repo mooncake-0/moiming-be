@@ -33,7 +33,7 @@ import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 public class Moim extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "moim_id")
     private Long id;
 
@@ -63,7 +63,7 @@ public class Moim extends BaseEntity {
 
     private LocalDateTime deletedAt;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST) // ID 매핑과 동시에 Persist 를 걸어 set 시점에 자동으로 persist 시켜준다
     @JoinColumn(name = "moim_join_rule_id")
     private MoimJoinRule moimJoinRule;
 
@@ -122,13 +122,11 @@ public class Moim extends BaseEntity {
 
     public void judgeMemberJoinByRule(MoimMember moimMember, Member curMember) {
 
-        if (this.moimJoinRule != null) { // 없으면 바로 가입 시도이다
-            this.moimJoinRule.judgeByRule(curMember);
-        }
+        this.moimJoinRule.judgeByRule(curMember); // 가입시도를 진행한다 / 성공하면 하기 플로우를 진행한다
 
-        if (moimMember != null) {
+        if (moimMember != null) { // moimMember 가 있었던 상태면 ACTIVE 변환
             moimMember.changeMemberState(ACTIVE);
-        } else {
+        } else { // 없었던 상태면 새로 생성, PERSIST 되어 있기 때문에 따로 전달 불필요
             MoimMember.memberJoinMoim(curMember, this, MoimMemberRoleType.NORMAL, ACTIVE);
         }
     }
@@ -149,18 +147,10 @@ public class Moim extends BaseEntity {
             this.setMoimInfo(requestDto.getMoimInfo());
         }
 
-//        if (requestDto.getMaxMember() != null) {
-//            if (requestDto.getMaxMember() < curMemberCount) { // 현존하는 회원 수보다 적게 수정하려 시도
-//                throw new MoimingApiException(ExceptionValue.MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER);
-//            }
-//            isChanged = true;
-//            this.setMaxMember(requestDto.getMaxMember());
-//        }
-
         if (requestDto.getAreaState() != null || requestDto.getAreaCity() != null) {
             // 둘 중 적어도 하나는 바뀌므로, 새 Area 필요
             isChanged = true;
-            this.setMoimArea(this.moimArea.checkToIssueNewArea(requestDto.getAreaState(), requestDto.getAreaCity()));
+            this.setMoimArea(this.moimArea.checkAndIssueNewArea(requestDto.getAreaState(), requestDto.getAreaCity()));
         }
 
         if (!categories.isEmpty()) {
@@ -228,7 +218,10 @@ public class Moim extends BaseEntity {
     }
 
 
-    public void setMoimJoinRule(MoimJoinRule moimJoinRule) {
+    /*
+     Moim 이 Persist 되어 있다면 자동으로 JoinRule 도 반영된다
+     */
+    public void initJoinRule(MoimJoinRule moimJoinRule) {
         this.moimJoinRule = moimJoinRule;
     }
 
@@ -256,20 +249,8 @@ public class Moim extends BaseEntity {
     }
 
 
-    // WARN: ID 변경은 MOCK 용: 호출된 곳이 test Pckg 인지 확인
-    public void changeMockObjectIdForTest(Long mockObjectId, URL classUrl) {
-
-        try {
-            URI uri = classUrl.toURI();
-            java.io.File file = new java.io.File(uri);
-            String absolutePath = file.getAbsolutePath();
-
-            if (absolutePath.contains("test")) { // 빌드 Class 경로가 test 내부일경우
-                this.id = mockObjectId;
-            }
-
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+    // Sample 혹은 필요시 사용
+    public void changeMoimCreatedTimeInNeed(LocalDateTime neededChangeCreatedAt) {
+        changeCreatedAtInNeed(neededChangeCreatedAt);
     }
 }

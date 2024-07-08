@@ -19,11 +19,11 @@ public enum NotificationSubCategory {
     ;
 
     private final NotificationTopCategory topCategory;
-    private final String value;
+    private final String name;
 
-    NotificationSubCategory(NotificationTopCategory topCategory, String value) {
+    NotificationSubCategory(NotificationTopCategory topCategory, String name) {
         this.topCategory = topCategory;
-        this.value = value;
+        this.name = name;
     }
 
 }

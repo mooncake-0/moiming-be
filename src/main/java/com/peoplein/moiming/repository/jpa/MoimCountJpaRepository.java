@@ -80,10 +80,11 @@ public class MoimCountJpaRepository implements MoimCountRepository {
 
         // SELECT 문에서 대상 테이블에서 가져오면 자동으로 INNER JOIN 이 발생한다
         // LEFT OUTER JOIN 처럼 따로 관리가 되게 하려면 직접 JOIN 문을 만들고 알리아스만 주면 된다
+        // 240630 Update - MJR Inner Join 변경
         String jpql = "SELECT m, mjr, SUM(mmc.monthlyCount) AS totalCount " +
                 "FROM MoimMonthlyCount mmc " +
                 "INNER JOIN Moim m ON mmc.moim.id = m.id " +
-                "LEFT OUTER JOIN MoimJoinRule mjr ON m.moimJoinRule.id = mjr.id " +
+                "INNER JOIN MoimJoinRule mjr ON m.moimJoinRule.id = mjr.id " +
                 "WHERE mmc.countDate IN :givenDates ";
 
         if (areaFilter != null) {

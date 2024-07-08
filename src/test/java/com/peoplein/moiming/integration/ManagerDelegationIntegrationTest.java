@@ -84,7 +84,7 @@ public class ManagerDelegationIntegrationTest extends TestObjectCreator {
 
         testMoimCategories = List.of(testCategory1, testCategory1_1);
 
-        testMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), testMoimCategories, testMember1);
+        testMoim = makeTestMoim(moimName, maxMember, moimArea, testMoimCategories, testMember1, -1, -1, MemberGender.N);
         em.persist(testMoim);
 
         MoimMember.memberJoinMoim(testMember3, testMoim, NORMAL, ACTIVE);
@@ -114,7 +114,7 @@ public class ManagerDelegationIntegrationTest extends TestObjectCreator {
 
         // given
         dataSu();
-        Moim deleteTargetMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), testMoimCategories, testMember1);
+        Moim deleteTargetMoim = makeTestMoim(moimName, maxMember, moimArea, testMoimCategories, testMember1, -1, -1, MemberGender.N);
         em.persist(deleteTargetMoim);
         em.flush();
         em.clear();

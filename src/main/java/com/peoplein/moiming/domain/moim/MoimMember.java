@@ -155,7 +155,7 @@ public class MoimMember extends BaseEntity {
                 this.memberRoleType = MoimMemberRoleType.FORMER_MANAGER;
             }
             this.moim.addCurMemberCount();
-            this.resetCreatedAtInNeed();
+            this.changeCreatedAtInNeed(LocalDateTime.now()); // 관계 형성 시점을 재기입
         } else if (memberState == IBF) { // 불가능 CASE
             throw new MoimingApiException(MOIM_MEMBER_STATE_CHANGE_FAIL);
         }

@@ -20,14 +20,14 @@ public enum CategoryName {
 
     // 1차
     DANCE("댄스/무용", 0),
-    OUTDOOR("아웃도어/액티비티", 0),
+    OUTDOOR("아웃도어/여행", 0),
     EXERCISE("운동/스포츠", 0),
     BOOK("인문학/책/글", 0),
     JOB("업종/직무", 0),
-    LANGUAGE("외국/언어", 0),
+    LANGUAGE("언어", 0),
     CULTURAL("문화/공연/축제", 0),
     MUSIC("음악", 0),
-    CRAFTS("공예", 0),
+    CRAFTS("공예/만들기", 0),
     COOK("요리/제조", 0),
     PET("반려동물", 0),
     AMITY("친목/모임", 0),
@@ -81,7 +81,7 @@ public enum CategoryName {
     HORSEBACK_RIDING("승마", 1),
     FENCING("펜싱", 1),
     BOXING("복싱", 1),
-    TAEKWONDO("태퀀도/유도", 1),
+    TAEKWONDO("태권도/유도", 1),
     KENDO("검도", 1),
     MARTIAL_ARTS("무술/주짓수", 1),
     SKATING("스케이트/인라인", 1),
@@ -105,8 +105,8 @@ public enum CategoryName {
     BUSINESS("사업/창업", 1),
     CAREER("커리어", 1),
     STUDY("스터디", 1),
-    FREELANCE("프리랜서", 1),
     N_JOB("N잡", 1),
+    FREELANCE("프리랜서", 1),
 
     // 2차_LANGUAGE
     ENGLISH("영어", 1),
@@ -122,8 +122,8 @@ public enum CategoryName {
     SHOW("공연/연극", 1),
     MOVIE("영화", 1),
     EXHIBITION("전시회", 1),
-    SHOW_PRODUCE("연기/공연 제작", 1),
-    CULTURAL_HERITAGE("고궁/문화재 탐방", 1),
+    SHOW_PRODUCE("연기/공연제작", 1),
+    CULTURAL_HERITAGE("고궁/문화재탐방", 1),
     FESTIVAL("파티/페스티벌", 1),
 
     // 2차_MUSIC
@@ -165,12 +165,10 @@ public enum CategoryName {
     // 2차_COOK
     KOREAN_FOOD("한식", 1),
     WESTERN_FOOD("양식", 1),
-    JAPANESE_FOOD("일식", 1),
     CHINESE_FOOD("중식", 1),
-    BAKING("제과/제빵", 1),
+    JAPANESE_FOOD("일식", 1),
+    BAKING("베이킹/제과", 1),
     HAND_DRIP("핸드드립", 1),
-    WINE("소믈리에/와인", 1),
-    LIQUOR_MAKE("주류제조/칵테일", 1),
 
     // 2차_PET
     DOG("강아지", 1),
@@ -183,7 +181,6 @@ public enum CategoryName {
     // 2차_AMITY
     MUST_GO_RESTAURANT("맛집", 1),
     CAFE("카페", 1),
-    LIQUOR("술(19세)", 1),
     DINING("다이닝", 1),
     PEER("또래", 1),
     NEIGHBORHOOD("동네", 1),

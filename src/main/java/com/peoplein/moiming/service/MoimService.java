@@ -38,9 +38,11 @@ public class MoimService {
     private final StorageService storageService;
     private final FileJpaRepository fileJpaRepository;
 
+    private final MemberRepository memberRepository;
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
     private final CategoryService categoryService;
+    private final MemberInfoService memberInfoService;
 
 
     private final MoimCategoryLinkerRepository moimCategoryLinkerRepository;
@@ -73,8 +75,12 @@ public class MoimService {
                 throw new MoimingApiException(MEMBER_NOT_AUTHORIZED);
             }
 
-            storageService.deleteMoimImg(moim.getImgFileId());
-            moim.deleteImg();
+            if (moim.getImgFileId() != null) { // 새로 등록하는게 아닐 경우에만 수정되면 된다
+                storageService.deleteMoimImg(moim.getImgFileId());
+                moim.deleteImg();
+            }
+
+            // 새로 등록하는 경우는 그냥 delete 없이 넣어주면 된다
             moim.changeImg(file);
         }
 
@@ -121,24 +127,28 @@ public class MoimService {
 
         curMember.isMemberInfoRegistered();
 
-        // 생성 자격에 대해서 논할 필요는 없음
+        // Member Info 확인을 위한 조회 및 재영속화
+        Long memberId = curMember.getId();
+        curMember = memberInfoService.getMemberWithMemberInfo(memberId);
+
         // 1. 카테고리를 준비한다 (같이 생성 필요)
-        // Category 가 완성된걸 추가만 한다
         List<Category> categories = categoryService.generateCategoryList(requestDto.getCategoryNameValues());
 
         // 2.생성 Trial
         Moim moim = Moim.createMoim(requestDto.getMoimName(), requestDto.getMoimInfo(), requestDto.getMaxMember()
-                , new Area(requestDto.getAreaState(), requestDto.getAreaCity()), categories, curMember);
+                , convertValuesToArea(requestDto.getAreaState(), requestDto.getAreaCity())
+                , categories, curMember);
 
-        // 가입조건 있을시 SU
-        if (requestDto.getHasJoinRule()) {
-            moim.setMoimJoinRule(generateJoinRule(requestDto.getJoinRuleDto()));
-        }
+
+        // 모임 조건 필수 생성
+        JoinRuleCreateReqDto ruleDto = requestDto.getJoinRuleDto();
+        MoimJoinRule joinRule = MoimJoinRule.createMoimJoinRule(ruleDto.getAgeMax(), ruleDto.getAgeMin(), ruleDto.getMemberGender(), curMember);
+        moim.initJoinRule(joinRule);
 
         // 프로필 사진이 있을시 SU
         if (requestDto.getImgFileId() != null) {
             File file = fileJpaRepository.findById(requestDto.getImgFileId()).orElseThrow(() -> {
-                log.error("{}, createMoim :: {}", this.getClass().getName(), "id: [" + requestDto.getImgFileId() + "] 의 파일을 찾을 수 없습니다");
+                log.info("{}, createMoim :: {}", this.getClass().getName(), "id: [" + requestDto.getImgFileId() + "] 의 파일을 찾을 수 없습니다");
                 return new MoimingApiException(STORAGE_FILE_NOT_FOUND);
             });
             moim.changeImg(file);
@@ -151,9 +161,8 @@ public class MoimService {
     }
 
 
-
     // 컨디션에 따른 해당 멤버의 모임 조회 결과 List<Moim> 으로 반환
-    // 사용영역 > Home 화면 및 마이페이지 화면에서 사용될 예정
+// 사용영역 > Home 화면 및 마이페이지 화면에서 사용될 예정
     @Transactional(readOnly = true)
     public MoimCategoryMapperDto getMemberMoims(Long lastMoimId, boolean isManagerReq, int limit, Member curMember) {
 
@@ -203,7 +212,6 @@ public class MoimService {
 
         moimCountService.processMoimCounting(member, moim);
 
-
         return managerMember;
     }
 
@@ -245,7 +253,6 @@ public class MoimService {
 
         member.isMemberInfoRegistered();
 
-        // 가입조건이 있든 없든 요청 들어온 조건을 만들어서 갈아 끼워준다
         Moim moim = moimRepository.findWithJoinRuleById(requestDto.getMoimId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
@@ -265,11 +272,11 @@ public class MoimService {
             moim.updateMaxMember(requestDto.getMaxMember(), member.getId());
         }
 
-        if (moim.getMoimJoinRule() == null) {
-            MoimJoinRule joinRule = MoimJoinRule.createMoimJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
-            moim.setMoimJoinRule(joinRule);
-        } else {
-            moim.getMoimJoinRule().changeJoinRule(requestDto.getHasAgeRule(), requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender());
+        // 가입하는 유저에 대한 개인 정보가 필요하므로 Persisting 이 필요하다
+        if (requestDto.getEditingJoinRule()) {
+            Long memberId = member.getId();
+            member = memberInfoService.getMemberWithMemberInfo(memberId);
+            moim.getMoimJoinRule().changeJoinRule(requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender(), member);
         }
 
         return moim;
@@ -277,9 +284,9 @@ public class MoimService {
 
 
     // TODO :: MVP 에선 삭제한다. 실제 데이터를
-    //         원래 데이터 삭제는 드문 일임을 알아두자
-    //         MoimPost 를 제외하고는 모두 조회는 필요 없음
-    // 모임 삭제 (MANAGER 권한)
+//         원래 데이터 삭제는 드문 일임을 알아두자
+//         MoimPost 를 제외하고는 모두 조회는 필요 없음
+// 모임 삭제 (MANAGER 권한)
     @Transactional
     public void deleteMoim(Long moimId, Member member) {
 
@@ -336,12 +343,6 @@ public class MoimService {
     }
 
 
-    // Entity 에 DTO 누수하지 않기 위함
-    private MoimJoinRule generateJoinRule(JoinRuleCreateReqDto ruleDto) {
-        return MoimJoinRule.createMoimJoinRule(ruleDto.getHasAgeRule(), ruleDto.getAgeMax(), ruleDto.getAgeMin(), ruleDto.getMemberGender());
-    }
-
-
     @Transactional
     public MoimCategoryMapperDto getNewMoim(int offset, int limit) {
 
@@ -389,5 +390,18 @@ public class MoimService {
         }
         return new MoimCategoryMapperDto(targetMoims, categoryLinkers);
 
+    }
+
+
+    /*
+     전달받은 각각의 name 들을 우선 조회한 State 안에서 City 를 찾는 방식으로 진행한다
+     중구, 남구 등 중복되는 City Name 들이 존재하기 때문
+     */
+    private Area convertValuesToArea(String areaStateStr, String areaCityStr) {
+
+        AreaValue areaState = AreaValue.fromName(areaStateStr);
+        AreaValue areaCity = areaState.getCityFromStateCities(areaCityStr);
+
+        return new Area(areaState, areaCity);
     }
 }

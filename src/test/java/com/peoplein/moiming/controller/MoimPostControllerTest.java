@@ -80,11 +80,16 @@ public class MoimPostControllerTest extends TestObjectCreator {
     void be() {
 
         Role testRole = makeTestRole(RoleType.USER);
+        em.persist(testRole);
+
         moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
+        em.persist(moimCreator);
+
+        MemberInfo curMemberInfo = makeMemberInfo(moimCreator, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+
         moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
         notMoimMember = makeTestMember(memberPhone3, nickname3, ci3, testRole);
-        em.persist(testRole);
-        em.persist(moimCreator);
         em.persist(moimMember);
         em.persist(notMoimMember);
 
@@ -95,7 +100,7 @@ public class MoimPostControllerTest extends TestObjectCreator {
         em.persist(testCategory1_1);
 
         // Moim 준비
-        testMoim = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), List.of(testCategory1, testCategory1_1), moimCreator);
+        testMoim = makeTestMoim(moimName, maxMember, moimArea, List.of(testCategory1, testCategory1_1), moimCreator, -1, -1, MemberGender.N);
         MoimMember.memberJoinMoim(moimMember, testMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
         em.persist(testMoim);
 
@@ -428,34 +433,35 @@ public class MoimPostControllerTest extends TestObjectCreator {
         assertThat(relatedFiles.get(1).getFile().getId()).isEqualTo(file1.getId());
     }
 
-
-    // moimId Null 이면 Exception (뒤에서 발생함)
-    @Test
-    void getMoimPosts_shouldReturn400_whenMoimIdNullURL_byMoimingApiException() throws Exception {
-
-        // given - 다른 상황 때문이 아님을 검증하기 위해 동일하게 SU
-        String testToken = createTestJwtToken(moimMember, 3000);
-        MoimPostCategory category = GREETING;
-        MoimPost samplePost = MoimPost.createMoimPost(normalPostTitle, normalPostcontent, category, false, false, testMoim, moimCreator);
-        int limit = 10;
-        em.persist(samplePost);
-        em.flush();
-        em.clear();
-
-        String[] params = {"moimId"};
-        String[] vals = {" "};
-
-        // when
-        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals)) // " " 으로 moimId 제공
-                .param("lastPostId", samplePost.getId() + "") // 해당값 이후로 출력한다
-                .param("category", category.getValue())
-                .param("limit", limit + "")
-                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        System.out.println("responseBody = " + responseBody);
-
-        //then
-        resultActions.andExpect(status().isInternalServerError());
-    }
+    // 2407 - 104 테스트 삭제, Paging Controller Test 에서 세밀하게 진행함
+//
+//    // moimId Null 이면 Exception (뒤에서 발생함)
+//    @Test
+//    void getMoimPosts_shouldReturn400_whenMoimIdNullURL_byMoimingApiException() throws Exception {
+//
+//        // given - 다른 상황 때문이 아님을 검증하기 위해 동일하게 SU
+//        String testToken = createTestJwtToken(moimMember, 3000);
+//        MoimPostCategory category = GREETING;
+//        MoimPost samplePost = MoimPost.createMoimPost(normalPostTitle, normalPostcontent, category, false, false, testMoim, moimCreator);
+//        int limit = 10;
+//        em.persist(samplePost);
+//        em.flush();
+//        em.clear();
+//
+//        String[] params = {"moimId"};
+//        String[] vals = {" "};
+//
+//        // when
+//        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals)) // " " 으로 moimId 제공
+//                .param("lastPostId", samplePost.getId() + "") // 해당값 이후로 출력한다
+//                .param("category", category.getValue())
+//                .param("limit", limit + "")
+//                .header(JwtParams.HEADER, JwtParams.PREFIX + testToken));
+//        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+//        System.out.println("responseBody = " + responseBody);
+//
+//        //then
+//        resultActions.andExpect(status().isInternalServerError());
+//    }
 
 }

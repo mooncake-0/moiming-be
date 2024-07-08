@@ -56,7 +56,8 @@ public enum ReportReason {
                 }
             }
         }
+
         log.error("{}, findReason :: {}", "ReportReason", "[" + target + ", " + index + "] 에 해당하는 객체를 찾을 수 없습니다");
-        throw new MoimingApiException(ExceptionValue.COMMON_MAPPABLE_ENUM_VALUE);
+        throw new MoimingApiException(ExceptionValue.COMMON_MAPPABLE_ENUM_VALUE, "전달 받은 신고 사유가 식별되지 않습니다");
     }
 }

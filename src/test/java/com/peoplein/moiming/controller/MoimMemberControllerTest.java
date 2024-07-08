@@ -69,6 +69,10 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     private Moim testMoim1;
     private List<Category> testMoimCategories;
 
+    /*
+     testMember1 은 모임 생성
+     testMember2 는 모임 가입을 위한 개인정보 기입까지 진행
+     */
     @BeforeEach
     void be() { // 상황 SU 하기
 
@@ -76,11 +80,18 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         em.persist(testRole);
 
         testMember1 = makeTestMember(memberPhone, nickname, ci, testRole);
+        em.persist(testMember1);
+        MemberInfo curMemberInfo = makeMemberInfo(testMember1, memberGender, memberBirth);
+        em.persist(curMemberInfo);
+
         testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        em.persist(testMember2);
+
+        MemberInfo curMemberInfo2 = makeMemberInfo(testMember2, memberGender, memberBirth);
+        em.persist(curMemberInfo2);
+
         testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         testMember = makeTestMember(memberPhone4, nickname4, ci4, testRole);
-        em.persist(testMember1);
-        em.persist(testMember2);
         em.persist(testMember3);
         em.persist(testMember);
 
@@ -92,7 +103,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
         testMoimCategories = List.of(testCategory1, testCategory1_1);
 
-        testMoim1 = makeTestMoim(moimName, maxMember, moimArea.getState(), moimArea.getCity(), testMoimCategories, testMember1);
+        testMoim1 = makeTestMoim(moimName, maxMember, moimArea, testMoimCategories, testMember1, -1, -1, MemberGender.N);
         em.persist(testMoim1);
 
         MoimMember.memberJoinMoim(testMember2, testMoim1, NORMAL, ACTIVE);
@@ -101,8 +112,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         em.clear();
     }
 
-//    moimCreator = makeTestMember(memberPhone, nickname, ci, testRole);
-//    moimMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+
     void insertTestMemberInfo(Member member, MemberGender memberGender, LocalDate memberBirth) {
         // given - 개인정보 기입완료
         MemberInfo curMemberInfo = makeMemberInfo(member, memberGender, memberBirth);
@@ -178,7 +188,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     // 실패 CASE 작성
     // CASE1 moimId 안들어옴 // 에러 난다
     @Test
-    void getActiveMoimMember_shouldReturn404_whenMoimIdNotPassed() throws Exception {
+    void getActiveMoimMember_shouldReturn500_whenMoimIdNotPassed() throws Exception {
 
         // given
         String testAccessToken = createTestJwtToken(testMember2, 2000);
@@ -243,6 +253,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
+    // 관계없는 member3 의 시도, 가입 조건 미기입
     @Test
     void joinMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception { // Moim1 에 Member3 가 가입요청 진행
 
@@ -434,12 +445,12 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void joinMoim_shouldReturn403_whenMemberJoinFullMoim_byMoimingApiException() throws Exception {
 
-        // given - 요청자 개인 정보 입력 완
+        // given - 요청자 개인 정보 입력 완 (data Su 시 개인정보 미기입되었던 유저)
         testMember = em.find(Member.class, testMember.getId());
         insertTestMemberInfo(testMember, memberGender, memberBirth);
 
         // given - data su
-        Moim testMoim = makeTestMoim(moimName2, 3, moimArea.getState(), moimArea.getCity(), testMoimCategories, testMember1);
+        Moim testMoim = makeTestMoim(moimName2, 3, moimArea, testMoimCategories, testMember1, -1, -1, MemberGender.N);
         MoimMember.memberJoinMoim(testMember2, testMoim, NORMAL, ACTIVE);
         MoimMember.memberJoinMoim(testMember3, testMoim, NORMAL, ACTIVE);
         em.persist(testMoim);
@@ -467,10 +478,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void joinMoim_shouldReturn409_whenAlreadyMoimMember_byMoimingApiException() throws Exception {
 
-        // given - 요청자 개인 정보 입력 완
-        testMember2 = em.find(Member.class, testMember2.getId());
-        insertTestMemberInfo(testMember2, memberGender2, memberBirth2);
-
         // given
         MoimMemberJoinReqDto requestDto = new MoimMemberJoinReqDto(testMoim1.getId());
         String requestBody = om.writeValueAsString(requestDto);
@@ -488,14 +495,13 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
+    // Join Rule 불일치가 가입을 시도함
+
+
     // leaveMoim() - 모임 나가기
     // 성공 - 성공 후 DB 도 확인하면 좋을 듯
     @Test
     void leaveMoim_shouldReturn200_whenSuccessful() throws Exception { // testMember2 가 나가려고 한다
-
-        // given - 요청자 개인 정보 입력 완
-        testMember2 = em.find(Member.class, testMember2.getId());
-        insertTestMemberInfo(testMember2, memberGender2, memberBirth2);
 
         // given
         MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
@@ -526,14 +532,11 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         assertNotNull(notification);
     }
 
+
     // 실패 CASE 작성
     // 해당 모임에 있는 모임원을 찾지 못함 - Moim 혹은 Member 어느쪽이 잘못되었는지는 모름
     @Test
     void leaveMoim_shouldReturn404_whenMoimMemberNotFound_byMoimingApiException() throws Exception {
-
-        // given - 요청자 개인 정보 입력 완
-        testMember2 = em.find(Member.class, testMember2.getId());
-        insertTestMemberInfo(testMember2, memberGender2, memberBirth2);
 
         // given
         Long wrongMoimId = 1000L;
@@ -554,25 +557,26 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     }
 
 
-    // 실패 : 개인 정보 없는 회원의 탈퇴 요청
-    @Test
-    void leaveMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception { // testMember2 가 나가려고 한다
-
-        // given
-        MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
-        String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(testMember2, 2000);
-
-        // when
-        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
-                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
-                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
-
-        // then
-        resultActions.andExpect(status().isForbidden());
-        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
-
-    }
+    // 정황상 불가능하며, Test 설계도 어려우므로 삭제
+//    // 실패 : 개인 정보 없는 회원의 탈퇴 요청
+//    @Test
+//    void leaveMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception { // testMember2 가 나가려고 한다
+//
+//        // given
+//        MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
+//        String requestBody = om.writeValueAsString(requestDto);
+//        String testAccessToken = createTestJwtToken(testMember2, 2000);
+//
+//        // when
+//        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
+//                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
+//                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+//
+//        // then
+//        resultActions.andExpect(status().isForbidden());
+//        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
+//
+//    }
 
 
     // BODY 가 비어있다 // TODO :: ResponseBody 도 정규 응답이 없음 - 그냥 400만 Controller 매핑 단에서 스프링이 처리해주는 상황 (위 404와 동일)
@@ -617,10 +621,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     // 성공 - 성공 후 DB 도 확인하면 좋을 듯
     @Test
     void expelMember_shouldReturn200_whenSuccessful() throws Exception { // testMember1 이 Member2 를 강퇴한다
-
-        // given - 요청자 개인 정보 개입 완
-        testMember1 = em.find(Member.class, testMember1.getId());
-        insertTestMemberInfo(testMember1, memberGender, memberBirth);
 
         // given
         String inactiveReason = "너가 모임을 못하는 이유는";
@@ -683,6 +683,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
 
     // 성공 - 실패 - 요청자가 개인정보 기입을 안함
+    // 이거 역시 약간 이상하게 진행 - testMember3 가 요청한다고 하면, 권한보다 개인정보 미기입 이슈가 먼저 발생한다
     @Test
     void expelMember_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception { // testMember1 이 Member2 를 강퇴한다
 
@@ -690,7 +691,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         String inactiveReason = "너가 모임을 못하는 이유는";
         MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember2.getId(), inactiveReason);
         String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(testMember1, 2000);
+        String testAccessToken = createTestJwtToken(testMember3, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
@@ -739,10 +740,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
     @Test
     void expelMember_shouldReturn422_whenAttemptToNoMoimMember_byMoimingApiException() throws Exception {
 
-        // given - 요청자 개인 정보 개입 완
-        testMember1 = em.find(Member.class, testMember1.getId());
-        insertTestMemberInfo(testMember1, memberGender, memberBirth);
-
         // given
         MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember3.getId(), ""); // 가입되어 있지 않은 유저
         String requestBody = om.writeValueAsString(requestDto);
@@ -762,9 +759,9 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     // 누군가를 강퇴하는 요청을 보낸 유저가 가입한적 없는 모임이다 // 이걸 먼저 판별하기 때문에 운영자에서 안걸러진다 - 가입한적 없는 유저의 요청
     @Test
-    void expelMember_shouldReturn422_whenAttemptByNoMoimMember_byMoimingApiException() throws Exception {
+    void expelMember_shouldReturn404_whenAttemptByNoMoimMember_byMoimingApiException() throws Exception {
 
-        // given - 요청자 개인 정보 개입 완
+        // given - 요청자 개인 정보 개입 완 (data SU 시 미기입이였던 유저)
         testMember3 = em.find(Member.class, testMember3.getId());
         insertTestMemberInfo(testMember3, memberGender3, memberBirth3);
 
@@ -825,6 +822,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
 
     // BODY 필드가 Validate 실패한다2 - inactiveReason 은 공백 입력값이여도 된다 (NULL금지)
+    //                            - 그래서 inactiveReason 은 제외하고 나머지 두개의 에러를 감지한다
     @Test
     void expelMoim_shouldReturn400_whenValidationFailsWithoutInactiveReason_byMoimingValidationException() throws Exception {
 
@@ -833,7 +831,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         requestDto.setInactiveReason("");
         String requestBody = om.writeValueAsString(requestDto);
         String testAccessToken = createTestJwtToken(testMember1, 2000);
-
+        System.out.println(requestBody);
         // when
         ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON)
@@ -842,7 +840,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data.inactiveReason").doesNotExist()); // 공백으로 요청되는건 상관 없다
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2)));
 
     }
 

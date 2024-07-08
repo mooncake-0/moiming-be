@@ -64,6 +64,10 @@ public class FcmService {
 
     private String buildMessage(NotificationTopCategory topCategory, NotificationSubCategory subCategory, String receiverToken, String title, String body, String deepLink) throws JsonProcessingException {
 
+        if (title == null) {
+            title = "";
+        }
+
         FcmMessageDto.Notification notification = FcmMessageDto.Notification.builder()
                 .title(title)
                 .body(body)
@@ -90,45 +94,32 @@ public class FcmService {
     }
 
 
+    /*
+     Single Message Send 함수
+     */
     public void sendSingleMessage(Member receiver
             , NotificationTopCategory topCategory, NotificationSubCategory subCategory
             , String receiverFcmToken, String title, String body
             , Long topCategoryId, Long subCategoryId) {
 
-        System.out.println("FCM LOG:: PASSED 1");
 
         if (!memberSettingService.isMemberNotifyAllowed(receiver, topCategory)) { // 허용되어 있지 않다면 보내지 않는다
-            System.out.println("FCM LOG:: PASSED 2");
             return;
         }
 
-        System.out.println("FCM LOG:: PASSED 3");
         // fcmToken 이 없을 경우엔 처리하지 않는다
         if (!StringUtils.hasText(receiverFcmToken)) {
-            System.out.println("FCM LOG:: PASSED 4");
             return;
         }
-
-        System.out.println("FCM LOG:: PASSED 5");
 
         try {
 
             String accessToken = initAccessToken();
-            System.out.println("FCM LOG:: PASSED 6");
-
             String deepLink = createDeepLink(topCategoryId, subCategoryId);
-            System.out.println("FCM LOG:: PASSED 7");
-
             String message = buildMessage(topCategory, subCategory, receiverFcmToken, title, body, deepLink);
-            System.out.println("FCM LOG:: PASSED 8");
-
-            System.out.println(message);
 
             OkHttpClient client = new OkHttpClient();
             RequestBody requestBody = RequestBody.create(message, MediaType.get("application/json; charset=utf-8"));
-
-            System.out.println("FCM LOG:: PASSED 9");
-
 
             Request request = new Request.Builder()
                     .url(API_URL)
@@ -137,21 +128,18 @@ public class FcmService {
                     .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
                     .build();
 
-            System.out.println("FCM LOG:: PASSED 10");
-
             reqSender.sendAsynchronousMessage(request);
-
-            System.out.println("FCM LOG:: PASSED 11");
 
         } catch (IOException exception) {
 
             log.error("CREATE FCM ERROR :: {}", exception.getMessage());
-            System.out.println("FCM LOG:: PASSED 12");
-
         }
     }
 
 
+    /*
+     Batch FCM Message Send 함수
+     */
     public void sendMultiMessage(List<Member> receivers
             , NotificationTopCategory topCategory, NotificationSubCategory subCategory
             , String title, String body
@@ -168,8 +156,8 @@ public class FcmService {
 
         MulticastMessage multicastMessage = MulticastMessage.builder()
                 .setNotification(notification)
-                .putData("topCategory", topCategory.getValue().toLowerCase())
-                .putData("subCategory", subCategory.getValue().toLowerCase())
+                .putData("topCategory", topCategory.toString().toLowerCase())
+                .putData("subCategory", subCategory.toString().toLowerCase())
                 .putData("deepLink", deepLink)
                 .addAllTokens(receiversToken)
                 .build();
@@ -177,18 +165,28 @@ public class FcmService {
         ApiFuture<BatchResponse> response = FirebaseMessaging.getInstance().sendEachForMulticastAsync(multicastMessage);
 
         try {
+
+            if (response.get() != null) {
+                log.error("CREATE FCM ERROR From Multi Sending :: body :{}, deeplink: {} ", body, deepLink);
+                return;
+            }
+
             if (response.get().getFailureCount() < 0) {
-                log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + body + "] 의 Multi Message 전송 실패 내역이 존재합니다" );
+                log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + body + "] 의 Multi Message 전송 실패 내역이 존재합니다");
             }
 
             List<SendResponse> responses = response.get().getResponses();
-            for (SendResponse resp : responses) {
-                log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + body + "] 의 메세지 전송 내역이" +
-                        "[" + resp.getException().getMessage() + "] 의 사유로 전송에 실패했습니다");
+            if (responses != null) {
+                for (SendResponse resp : responses) {
+                    if (resp.getException() != null) { // 예외가 발생해서 내역이 출력 가능한 상태
+                        log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + body + "] 의 메세지 전송 내역이" +
+                                "[" + resp.getException().getMessage() + "] 의 사유로 전송에 실패했습니다");
+                    }
+                }
             }
 
         } catch (InterruptedException | ExecutionException e) {
-            log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + e.getMessage() + "] 의 사유로 BatchResponse 해독에 실패했습니다" );
+            log.warn("{}, sendMultiMessage :: {}", this.getClass().getName(), "[" + e.getMessage() + "] 의 사유로 BatchResponse 해독에 실패했습니다");
         }
 
     }
