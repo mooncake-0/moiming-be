@@ -143,7 +143,18 @@ public abstract class AppUrlPath {
 
     public final static String PATH_CREATE_REPORT = API_SERVER + "/v0" + "/report";
 
-    public final static String PATH_FIXED_VALUES = API_SERVER + "/v0" + "/fixed";
+    // 고정 값들
+    public final static String PATH_FIXED_VALUE = API_SERVER + "/v0" + "/fixed";
+    public final static String PATH_FIXED_VALUES_MOIM_AREA = PATH_FIXED_VALUE + "/area";
+    public final static String PATH_FIXED_VALUES_MOIM_CATEGORY = PATH_FIXED_VALUE + "/moimCategory";
+    public final static String PATH_FIXED_VALUES_POST_CATEGORY = PATH_FIXED_VALUE + "/postCategory";
+    public final static String PATH_FIXED_VALUES_REPORT_INFO = PATH_FIXED_VALUE + "/reportInfo";
+
+
+    // 서비스 상태 관련
+    public final static String API_DOMAIN_SERVICE_STATUS = "/serviceStatus";
+    public final static String PATH_GET_PLATFORM_VERSION = API_SERVER + "/v0" + API_DOMAIN_SERVICE_STATUS + "/version";
+    public final static String PATH_GET_SERVICE_STATUS = API_SERVER + "/v0" + API_DOMAIN_SERVICE_STATUS;
 
 
     // 이하로는 점검되지 않은 URL

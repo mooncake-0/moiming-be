@@ -66,6 +66,7 @@ public class AuthRespDto {
         private String nickname;
         private String fcmToken;
         private String createdAt;
+        private String memberPfImgUrl;
         private TokenRespDto tokenInfo;
 
         // 로그인시 FCM Token 은 따로 참조가 필요하다
@@ -77,8 +78,9 @@ public class AuthRespDto {
             }
             this.memberPhone = member.getMemberPhone();
             this.nickname = member.getNickname();
-            this.fcmToken = member.getFcmToken();
+            this.fcmToken = fcmToken; // Member 그냥 정보만 담긴 객체라 fcm token 변경을 안함
             this.createdAt = member.getCreatedAt() + "";
+            this.memberPfImgUrl = member.getPfImgUrl();
             this.tokenInfo = tokenRespDto;
 
         }

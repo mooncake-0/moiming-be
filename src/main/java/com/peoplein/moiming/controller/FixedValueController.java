@@ -2,6 +2,7 @@ package com.peoplein.moiming.controller;
 
 
 import com.peoplein.moiming.domain.enums.AreaValue;
+import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.enums.ReportReason;
 import com.peoplein.moiming.model.ResponseBodyDto;
 import com.peoplein.moiming.model.dto.inner.AppCategoryDto;
@@ -18,7 +19,8 @@ import java.util.List;
 
 import static com.peoplein.moiming.config.AppUrlPath.*;
 import static com.peoplein.moiming.model.dto.response.FixedInfoRespDto.*;
-import static com.peoplein.moiming.model.dto.response.FixedInfoRespDto.ReportTargetDetailDto.*;
+import static com.peoplein.moiming.model.dto.response.FixedInfoRespDto.FixedReportInfoRespDto.*;
+import static com.peoplein.moiming.model.dto.response.FixedInfoRespDto.FixedReportInfoRespDto.ReportTargetDetailDto.*;
 
 @RestController
 @Api(tags = "고정 값 요청 (인증 불필요)")
@@ -27,22 +29,69 @@ public class FixedValueController {
 
     private final CategoryService categoryService;
 
-    @ApiOperation("인 앱 고정 정보 조회 (지역 / 카테고리 / 게시물 카테고리 / 신고 사유 본문) - 앱 기동중에는 변하지 않을 정보 - 저장 후 사용 권장")
+    @ApiOperation("모임 카테고리 고정 정보 조회")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "인 앱 고정 정보 조회 성공"),
+            @ApiResponse(code = 200, message = "인 앱 고정 정보 조회 성공", response = FixedMoimCategoryRespDto.class),
             @ApiResponse(code = 400, message = "인 앱 고정 정보 조회 실패")
     })
-    @GetMapping(PATH_FIXED_VALUES)
-    public ResponseEntity<?> getFixedInfo() {
-
-        // 지역 조회
-        List<AreaValue> areaState = getAreaStates();
+    @GetMapping(PATH_FIXED_VALUES_MOIM_CATEGORY)
+    public ResponseEntity<?> getFixedMoimCategories() {
 
         // Category All 조회
         AppCategoryDto allCategories = categoryService.getAllCategories();
 
-        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "인 앱 고정 정보 조회 성공",
-                new FixedInfoRespDto(areaState, allCategories.getParentCategories(), allCategories.getChildCategoriesMap(), getReportReasons())
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "조회 성공",
+                new FixedMoimCategoryRespDto(allCategories.getParentCategories(), allCategories.getChildCategoriesMap())
+        ));
+    }
+
+
+    @ApiOperation("모임 지역 고정 정보 조회")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "인 앱 고정 정보 조회 성공", response = FixedAreaRespDto.class),
+            @ApiResponse(code = 400, message = "인 앱 고정 정보 조회 실패")
+    })
+    @GetMapping(PATH_FIXED_VALUES_MOIM_AREA)
+    public ResponseEntity<?> getFixedMoimAreas() {
+
+        // 지역 조회
+        List<AreaValue> areaState = getAreaStates();
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "조회 성공",
+                new FixedAreaRespDto(areaState)
+        ));
+    }
+
+
+    @ApiOperation("게시물 카테고리 고정 정보 조회")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "인 앱 고정 정보 조회 성공", response = FixedPostCategoryRespDto.class),
+            @ApiResponse(code = 400, message = "인 앱 고정 정보 조회 실패")
+    })
+    @GetMapping(PATH_FIXED_VALUES_POST_CATEGORY)
+    public ResponseEntity<?> getFixedPostCategories() {
+
+        List<String> moimPostCategories = new ArrayList<>();
+
+        for (MoimPostCategory mpc : MoimPostCategory.values()) {
+            moimPostCategories.add(mpc.getValue());
+        }
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "조회 성공",
+                new FixedPostCategoryRespDto(moimPostCategories)
+        ));
+    }
+
+
+    @ApiOperation("서비스 신고 사유 본문 조회")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "인 앱 고정 정보 조회 성공", response = FixedReportInfoRespDto.class),
+            @ApiResponse(code = 400, message = "인 앱 고정 정보 조회 실패")
+    })
+    @GetMapping(PATH_FIXED_VALUES_REPORT_INFO)
+    public ResponseEntity<?> getFixedInfo() {
+
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "조회 성공",
+                new FixedReportInfoRespDto(getReportReasons())
         ));
     }
 
@@ -59,7 +108,6 @@ public class FixedValueController {
 
         return areaState;
     }
-
 
 
     private List<ReportTargetDetailDto> getReportReasons() {

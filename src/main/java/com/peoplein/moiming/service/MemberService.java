@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,9 @@ public class MemberService {
         // LOGOUT 처리 토큰으로 등재한다
         Date expireAt = moimingTokenProvider.verifyExpireAt(MoimingTokenType.JWT_AT, accessToken);
         logoutTokenManager.saveLogoutToken(accessToken, expireAt);
+
+        log.info("{}, logout :: {}", this.getClass().getName(), "["+ member.getMemberPhone() + "] 의 유저가 " +
+                "[" + LocalDateTime.now() + "]의 시간에 성공적으로 로그아웃 처리 되었습니다");
 
     }
 

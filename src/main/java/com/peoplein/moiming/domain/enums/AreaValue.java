@@ -391,7 +391,8 @@ public enum AreaValue {
     public AreaValue getCityFromStateCities(String areaCityName) {
 
         if (this.getDepth() == 1) { // Validation 추가 필요
-            return null; // 전달된 녀석이 State 여야 하는데 City 일 경우
+            log.warn("{}, getCityFromStateCities :: {}", this.getClass().getName(), "[" + this.getName() + "] 은 City 객체로, State 인 객체만 호출해야 하는 함수를 호출했습니다");
+            throw new MoimingApiException(COMMON_INVALID_SITUATION, "[" + this.getName() + "] 해당 객체는 City 객체입니다");
         }
 
         AreaValue areaCity = null;

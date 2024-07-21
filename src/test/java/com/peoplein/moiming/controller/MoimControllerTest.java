@@ -1662,16 +1662,5 @@ public class MoimControllerTest extends TestObjectCreator {
 //    }
 
 
-    // 고정 값 요청 - 별다른 인증 없이도 성공
-    @Test
-    void getFixedInfo_shouldReturn200_whenReqWithoutAuthentication() throws Exception {
-
-        // given
-        // when
-        ResultActions resultActions = mvc.perform(get(PATH_FIXED_VALUES));
-
-        // then
-        resultActions.andExpect(status().isOk());
-    }
 
 }

@@ -1,5 +1,7 @@
 package com.peoplein.moiming.config;
 
+import com.peoplein.moiming.domain.admin.ServiceStatus;
+import com.peoplein.moiming.domain.admin.ServiceVersion;
 import com.peoplein.moiming.domain.embeddable.Area;
 import com.peoplein.moiming.domain.enums.AreaValue;
 import com.peoplein.moiming.domain.enums.CategoryName;
@@ -27,6 +29,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,7 +40,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DevDbInit {
 
-
+    private final EntityManager em;
     private final CategoryRepository categoryRepository;
     private final MemberRepository memberRepository;
     private final MoimRepository moimRepository;
@@ -49,6 +52,27 @@ public class DevDbInit {
 
     private int ageToYearConverter(int age) {
         return LocalDate.now().getYear() - age;
+    }
+
+
+    @Order(3)
+    @Transactional
+    @EventListener(ApplicationReadyEvent.class)
+    public void initServiceStatus() {
+
+        log.info("{}, initServiceStatus :: {}", this.getClass().getName(), "현재 서비스 데이터 입력");
+
+        ServiceVersion svAos = new ServiceVersion("aos", "0.0.0", LocalDate.of(2024, 8, 1));
+        ServiceVersion svIos = new ServiceVersion("ios", "0.0.0", LocalDate.of(2024, 8, 1));
+        ServiceVersion svServer = new ServiceVersion("server", "0.0.0", LocalDate.of(2024, 8, 1));
+
+        em.persist(svAos);
+        em.persist(svIos);
+        em.persist(svServer);
+
+        ServiceStatus serverStatus = new ServiceStatus(false, null, null, "첫 배포 진행 완료", 1L);
+        em.persist(serverStatus);
+
     }
 
 
