@@ -1,5 +1,6 @@
 package com.peoplein.moiming.security.auth.model;
 
+import com.amazonaws.services.s3.model.Grant;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.member.MemberRole;
 import com.peoplein.moiming.domain.enums.RoleType;
@@ -22,9 +23,26 @@ public class SecurityMember implements UserDetails {
     private final Member member;
     private final Collection<? extends GrantedAuthority> authorities;
 
+    /*
+     로그인시 사용
+     */
     public SecurityMember(Member member) {
         this.member = member;
         this.authorities = convertRoles();
+    }
+
+    /*
+     일반 API 요청시
+     가인증 객체를 만들기 위해 사용
+     */
+    public SecurityMember(Member member, List<String> roles) {
+        this.member = member;
+
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        for (String role : roles) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+        }
+        this.authorities = authorities;
     }
 
     /*

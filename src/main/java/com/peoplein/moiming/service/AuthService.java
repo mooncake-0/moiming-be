@@ -144,6 +144,7 @@ public class AuthService {
         policyAgreeService.createPolicyAgree(signUpMember, requestDto.getPolicyDtos());
 
         // Refresh 토큰 발급 & Response Data 생성
+        // Role 지정 되어 있음
         TokenRespDto tokenRespDto = issueTokensAndUpdateColumns(true, signUpMember, null);
 
         return new AuthSignUpRespDto(signUpMember, tokenRespDto);
@@ -179,6 +180,7 @@ public class AuthService {
         policyAgreeService.createPolicyAgree(signUpMember, requestDto.getPolicyDtos());
 
         // Refresh 토큰 발급 & Response Data 생성
+        // 개발용, Role 지정 되어 있음
         TokenRespDto tokenRespDto = issueTokensAndUpdateColumns(true, signUpMember, null);
 
         return new AuthSignUpRespDto(signUpMember, tokenRespDto);
@@ -200,21 +202,27 @@ public class AuthService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        /*
+         2407 Update - Token 에 이제 진짜 memberId 가 저장된다 - findWithRolesByI 로 변경
+                     - Token 에 권한주기 위해 Role Fetch Join 필요
+         */
         String curRefreshToken = requestDto.getToken();
-        String rtId = verifyMemberId(JWT_RT, curRefreshToken);
+        Long rtMemberId = verifyMemberId(JWT_RT, curRefreshToken);
 
-        Member memberPs = memberRepository.findByMemberPhone(rtId).orElseThrow(() -> {
+        Member memberPs = memberRepository.findWithRolesById(rtMemberId).orElseThrow(() -> {
             log.error("Class {} : {}", getClass().getName(), MEMBER_NOT_FOUND.getErrMsg());
             return new MoimingApiException(MEMBER_NOT_FOUND);
         });
 
 
         if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(curRefreshToken)) {
-            log.error("Class {} : {}", getClass().getName(), AUTH_REFRESH_TOKEN_NOT_MATCH.getErrMsg());
+            log.error("Class {} : {}", getClass().getName(), "MemberId - [" + rtMemberId + "] :: " + AUTH_REFRESH_TOKEN_NOT_MATCH.getErrMsg());
             memberPs.changeRefreshToken(""); // RefreshToken 을 삭제한다
             throw new MoimingAuthNoRollbackException(AUTH_REFRESH_TOKEN_NOT_MATCH);
         }
 
+        // 토큰 재발급시, 토큰 재발급 후 칼럼들 update 용도, refresh token 으로 확인함
+        // Role Persisted
         return issueTokensAndUpdateColumns(true, memberPs, null);
     }
 
@@ -243,13 +251,12 @@ public class AuthService {
      토큰 발급 로직
      사용 로직 : 로그인 / 회원가입 / (위에 있음) 토큰 재발급 로직
                유저에 대한 인증, 갱신 토큰을 발급한다
-
      */
     @Transactional
     public TokenRespDto issueTokensAndUpdateColumns(boolean persisted, Member member, String fcmToken) {
 
         if (!persisted) { // 새로운 객체 참조하므로 호출하는 기존 객체와의 연관성을 잃는다
-            member = memberRepository.findById(member.getId()).orElseThrow(
+            member = memberRepository.findWithRolesById(member.getId()).orElseThrow(
                     () -> new MoimingApiException(ExceptionValue.MEMBER_NOT_FOUND)
             );
         }
@@ -281,25 +288,11 @@ public class AuthService {
       사용 로직 : 모든 요청 인증 / 갱신 토큰 인증
       TokenProvider 를 사용해서 Knox Id 를 반환한다
      */
-    public String verifyMemberId(MoimingTokenType type, String jwtToken) {
-        return tokenProvider.verifyMemberId(type, jwtToken);
-    }
-
-
     /*
-     사용 로직 : 모든 요청 인증
-     모든 요청은 인증될 시, member 를 persist 해서 로그인 날짜를 최신화해준다
-    */
-    @Transactional
-    public void updateLoginAt(boolean persisted, Member member) {
-        if (!persisted) { // update 를 위한 persist
-            member = memberRepository.findById(member.getId()).orElseThrow(() ->
-//                     TODO :: 인 앱 예외 구체화 필요
-                            new RuntimeException("해당 인원을 찾을 수 없습니다")
-            );
-        }
-
-        member.changeLastLoginAt();
+     2407 Update - 이젠 진짜 memberId 를 반환한다
+     */
+    public Long verifyMemberId(MoimingTokenType type, String jwtToken) {
+        return tokenProvider.verifyMemberId(type, jwtToken);
     }
 
 

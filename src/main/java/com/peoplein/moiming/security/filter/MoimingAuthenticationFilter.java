@@ -9,11 +9,13 @@ import com.peoplein.moiming.security.auth.model.SecurityMember;
 import com.peoplein.moiming.security.exception.AuthExceptionValue;
 import com.peoplein.moiming.security.exception.LogoutTokenTrialException;
 import com.peoplein.moiming.security.token.JwtParams;
+import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.service.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.StringUtils;
@@ -33,16 +35,19 @@ public class MoimingAuthenticationFilter extends BasicAuthenticationFilter {
 
     private final UserDetailsService userDetailsService;
     private final AuthService authService;
+    private final MoimingTokenProvider tokenProvider;
 
     private ObjectMapper om = new ObjectMapper();
 
     public MoimingAuthenticationFilter(AuthenticationManager authenticationManager, UserDetailsService userDetailsService
-            , AuthService authService) {
+            , AuthService authService, MoimingTokenProvider tokenProvider) {
 
         super(authenticationManager);
         this.userDetailsService = userDetailsService;
         this.authService = authService;
+        this.tokenProvider = tokenProvider;
     }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -57,13 +62,11 @@ public class MoimingAuthenticationFilter extends BasicAuthenticationFilter {
                     throw new LogoutTokenTrialException(""); // 예외를 발생시킨다
                 }
 
-                String verifiedMemberId = authService.verifyMemberId(MoimingTokenType.JWT_AT, accessToken);
-                SecurityMember securityMember = (SecurityMember) userDetailsService.loadUserByUsername(verifiedMemberId);
-                authService.updateLoginAt(false, securityMember.getMember());
+                UserDetails userDetails = tokenProvider.verifyAndCreateAuthUser(MoimingTokenType.JWT_AT, accessToken);
 
                 // 이 객체의 FCM 토큰은 오직 로그인시 전달용으로만 사용되고, 후속에 사용되지 않는다
                 SecurityContextHolder.getContext().setAuthentication(
-                        new JwtAuthenticationToken(securityMember, null, null, securityMember.getAuthorities())
+                        new JwtAuthenticationToken(userDetails, null, null, userDetails.getAuthorities())
                 );
 
             } catch (JWTVerificationException exception) {

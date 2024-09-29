@@ -15,6 +15,8 @@ import java.util.Optional;
 
 import static com.peoplein.moiming.domain.member.QMember.*;
 import static com.peoplein.moiming.domain.member.QMemberInfo.*;
+import static com.peoplein.moiming.domain.member.QMemberRole.*;
+import static com.peoplein.moiming.domain.fixed.QRole.*;
 
 
 @Repository
@@ -42,6 +44,16 @@ public class MemberJpaRepository implements MemberRepository {
     @Override
     public Optional<Member> findById(Long memberId) {
         return Optional.ofNullable(queryFactory.selectFrom(member)
+                .where(member.id.eq(memberId))
+                .fetchOne()
+        );
+    }
+
+    @Override
+    public Optional<Member> findWithRolesById(Long memberId) {
+        return Optional.ofNullable(queryFactory.selectFrom(member)
+                .join(member.roles, memberRole).fetchJoin()
+                .join(memberRole.role, role).fetchJoin()
                 .where(member.id.eq(memberId))
                 .fetchOne()
         );
