@@ -40,7 +40,7 @@ jobs:
             --build-arg AWS_DEV_S3_BUCKET_NAME=${{ secrets.AWS_DEV_S3_BUCKET_NAME }} \
             --build-arg AWS_IAM_ACCESS_KEY=${{ secrets.AWS_IAM_ACCESS_KEY }} \
             --build-arg AWS_IAM_SECRET_ACCESS_KEY=${{ secrets.AWS_IAM_SECRET_ACCESS_KEY }} \
-            --platform linux/arm64
+            --platform linux/arm64 \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DEV_IMAGE_NAME }} .
 
       - name: Docker Login
@@ -60,7 +60,8 @@ jobs:
       - name: Executing SSH protocols to send script to Moiming Dev Server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.DEV_SERVER_HOST }}
+          #          host: ${{ secrets.DEV_SERVER_RASPBERRY_HOST }}
+          host: 221.141.228.139
           username: ubuntu
           password: ${{ secrets.DEV_SERVER_RASPBERRY_PW }}
           port: 30022
