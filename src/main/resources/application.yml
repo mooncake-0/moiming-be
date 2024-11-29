@@ -6,6 +6,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 5000MB
+      max-request-size: 5100MB
 
 open_api:
   cool_sms_api_key: ${COOL_SMS_API_KEY}

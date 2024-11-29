@@ -95,6 +95,24 @@ public class Member extends BaseEntity {
         return createdMember;
     }
 
+
+    /*
+     2407 Update
+     - 쿼리 없이 유저 인증을 진행해주기 위해서 가짜 인증 객체를 생성하기 위한 Member
+     - 사실 가짜는 아니고, token 만으로 Spring 의 Authentication 을 허용해주기 위한 장치
+     - 사용하는 주체는 오직 Token Provider
+     - 인 앱에서 가객체로 활용하는게 사실상 ID 뿐!!!
+     */
+    private Member(Long id) {
+        this.id = id;
+    }
+
+    public static Member createTokenAuthenticationMember(Long id) {
+        return new Member(id);
+    }
+
+
+
     /*
      연관관계 편의 메소드
      */

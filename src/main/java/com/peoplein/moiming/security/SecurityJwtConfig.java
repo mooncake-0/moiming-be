@@ -10,6 +10,7 @@ import com.peoplein.moiming.security.handler.MoimingLoginFailureHandler;
 import com.peoplein.moiming.security.handler.MoimingLoginSuccessHandler;
 import com.peoplein.moiming.security.auth.MoimingAuthenticationProvider;
 import com.peoplein.moiming.security.service.SecurityMemberService;
+import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,7 @@ public class SecurityJwtConfig {
     private final AuthService authService;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MoimingTokenProvider tokenProvider;
 
     /*
      Security 설정을 위한 Bean 설정
@@ -84,7 +86,7 @@ public class SecurityJwtConfig {
 
     public MoimingAuthenticationFilter jwtAuthenticationFilter(AuthenticationManager authenticationManager) {
 
-        return new MoimingAuthenticationFilter(authenticationManager, userDetailsService(), authService);
+        return new MoimingAuthenticationFilter(authenticationManager, userDetailsService(), authService, tokenProvider);
     }
 
 

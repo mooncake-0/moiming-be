@@ -54,6 +54,7 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
                 "[" + LocalDateTime.now() + "]의 시간에 성공적으로 로그인 하였습니다");
 
         // 위 함수를 통과해도 member 는 update 되지 않는다.
+        // 위에 member 가 issueToken 에 전달되어도,
         ResponseBodyDto<AuthLoginRespDto> responseBody = ResponseBodyDto.createResponse("1", "로그인 성공"
                 , new AuthLoginRespDto(member, tokenRespDto, fcmToken)
         );

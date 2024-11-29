@@ -1,6 +1,8 @@
 package com.peoplein.moiming.security.token;
 
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.security.auth.model.SecurityMember;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Date;
 
@@ -12,6 +14,7 @@ public interface MoimingTokenProvider {
     */
     TokenDto generateToken(MoimingTokenType tokenType, Member member);
 
+    UserDetails verifyAndCreateAuthUser(MoimingTokenType tokenType, String token);
 
     /*
      Token 에 함유된 정보인 username (userEmail) 을 반환한다
@@ -21,7 +24,7 @@ public interface MoimingTokenProvider {
      */
 //    String verifyMemberEmail(MoimingTokenType tokenType, String token);
 
-    String verifyMemberId(MoimingTokenType tokenType, String token);
+    Long verifyMemberId(MoimingTokenType tokenType, String token);
 
     Date verifyExpireAt(MoimingTokenType tokenType, String token);
 }

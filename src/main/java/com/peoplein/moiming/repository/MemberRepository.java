@@ -17,6 +17,8 @@ public interface MemberRepository {
 
     Optional<Member> findById(Long memberId);
 
+    Optional<Member> findWithRolesById(Long memberId);
+
     Optional<Member> findByMemberPhone(String memberPhone); // v0.1 - 회원 Id 조회
 
     Optional<Member> findWithMemberInfoById(Long memberId);
