@@ -60,7 +60,7 @@ jobs:
       - name: Executing SSH protocols to send script to Moiming Dev Server
         uses: appleboy/ssh-action@master
         with:
-          #          host: ${{ secrets.DEV_SERVER_RASPBERRY_HOST }}
+#          host: ${{ secrets.DEV_SERVER_RASPBERRY_HOST }}
           host: 221.141.228.139
           username: ubuntu
           password: ${{ secrets.DEV_SERVER_RASPBERRY_PW }}
