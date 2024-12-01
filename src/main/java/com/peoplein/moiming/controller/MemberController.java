@@ -80,7 +80,7 @@ public class MemberController {
     @GetMapping(PATH_MEMBER_GET_VIEW)
     public ResponseEntity<?> getMember(@AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        Member memberPs = memberService.getCurrentMember(principal.getMember());
+        Member memberPs = memberService.persistMember(principal.getMember(), false);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "멤버 조회 성공"
                 , new MemberViewRespDto(memberPs))
         );
@@ -113,9 +113,8 @@ public class MemberController {
             @ApiResponse(code = 400, message = "개인 정보 내역 확인 실패, ERR MSG 확인")
     })
     @GetMapping(PATH_MEMBER_GET_DETAIL_VIEW)
-    public ResponseEntity<?> getMemberDetail(@PathVariable Long memberId,
-                                             @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-        Member memberPs = memberService.getCurrentMember(principal.getMember());
+    public ResponseEntity<?> getMemberDetail(@AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
+        Member memberPs = memberService.persistMember(principal.getMember(), true);
         return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "개인 정보 내역 확인 성공", new MemberDetailViewRespDto(memberPs)));
     }
 

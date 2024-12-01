@@ -14,12 +14,14 @@ import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
 import com.peoplein.moiming.security.token.JwtParams;
+import com.peoplein.moiming.security.token.MoimingTokenType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.peoplein.moiming.model.dto.request.AuthReqDto.AuthSignUpReqDto.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
@@ -62,7 +64,7 @@ public class TestObjectCreator {
     //  - Moim 이 생성되면 JoinRule 도 자동 생성된다
     //  - 카테고리가 저장된 상태여야 하기 떄문에 그냥 저장 후 값을 전달
     protected Moim makeTestMoim(String name, int mMember, Area area, List<Category> categories, Member curMember
-        ,int max, int min, MemberGender gender) {
+            , int max, int min, MemberGender gender) {
 
         Moim moim = Moim.createMoim(name, moimInfo, mMember, area, categories, curMember);
         MoimJoinRule joinRule = MoimJoinRule.createMoimJoinRule(max, min, gender, curMember);
@@ -96,9 +98,9 @@ public class TestObjectCreator {
 
 
     // moimInfo, moimAreaCity 는 변경하지 않는다고 가정
-    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, String state, String city,  String category1, String category2) {
-//        return new MoimUpdateReqDto(moimId, mName, null, mMember, state, null, List.of(category1, category2));
-        return new MoimUpdateReqDto(moimId, mName, null, state, city, List.of(category1, category2));
+    protected MoimUpdateReqDto makeMoimUpdateReqDto(Long moimId, String mName, String state, String city, Integer maxMember, String category1, String category2) {
+//        String modMemberInfo = "모임 정보에 대한 수정은 따로 확인하지 않습니다";
+        return new MoimUpdateReqDto(moimId, mName, null, state, city, maxMember, List.of(category1, category2));
     }
 
 
@@ -122,11 +124,20 @@ public class TestObjectCreator {
 
         long expiresAt = System.currentTimeMillis() + expiresPlus;
 
+//        List<String> roles = testMember.getRoles().stream().map(memberRole -> memberRole.getRole().getRoleType().toString()).collect(Collectors.toList());
+        // 역할에 대한 input 은 그냥 넣어준다. Role 에 대한 로직은 따로 없음
+        List<String> userRole = List.of(RoleType.USER.toString());
+
         return JWT.create()
                 .withSubject(JwtParams.TEST_JWT_SUBJECT)
                 .withExpiresAt(new Date(expiresAt))
-                .withClaim(JwtParams.CLAIM_KEY_MEMBER_ID_KEY, testMember.getMemberPhone())
+                .withClaim(JwtParams.CLAIM_KEY_MEMBER_ID_KEY, testMember.getId())
+                .withClaim(JwtParams.CLAIM_KEY_TOKEN_TYPE, MoimingTokenType.JWT_AT.toString())
+                .withClaim(JwtParams.CLAIM_KEY_MEMBER_ROLE, userRole)
+                .withClaim(JwtParams.CLAIM_KEY_MEMBER_NICKNAME, testMember.getNickname())
+                .withClaim(JwtParams.CLAIM_KEY_MEMBER_INFO_PROVIDED, testMember.getMemberInfo() != null)
                 .sign(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET));
+
     }
 
 

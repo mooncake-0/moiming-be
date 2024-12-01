@@ -47,7 +47,7 @@ public class MoimMemberServiceTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private MemberInfoService memberInfoService;
+    private MemberService memberService;
 
     // getMoimMembers Test
     // 1. 모임원 반환
@@ -67,23 +67,6 @@ public class MoimMemberServiceTest {
         // then
         assertDoesNotThrow(() -> moimMemberService.getActiveMoimMembers(moimId, member));
     }
-
-
-    // 2. moimMember 를 아무도 찾지 못할 수가 없음
-    //    moim 자체가 있는지의 CASE 와 구분이 안됨 - 일단 그냥 에러 보내지 않는걸로 한다
-//    @Test
-//    void getMoimMembers_shouldThrowException_whenNoMemberFound_byMoimingApiException() {
-//
-//        // given
-//        Long moimId = 1L;
-//
-//        // given - stub
-//        when(moimMemberRepository.findActiveWithMemberAndInfoByMoimId(any())).thenReturn(new ArrayList<>());
-//
-//        // when
-//        // then
-//        assertThatThrownBy(() -> moimMemberService.getActiveMoimMembers(moimId, any())).isInstanceOf(MoimingApiException.class);
-//    }
 
 
     // joinMoim Test
@@ -116,9 +99,9 @@ public class MoimMemberServiceTest {
         Member curManager = mock(Member.class);
 
         // given - stub
-        when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.ofNullable(moim));
+        when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
         when(memberRepository.findById(any())).thenReturn(Optional.of(curManager));
-        when(memberInfoService.getMemberWithMemberInfo(any())).thenReturn(member); // 후속으로 .getNickname 호출로 인한 mock 필요, 재지정이므로 위에 curMember 가 Null 로 교체되기 때문
+        when(memberService.persistMember(any(), anyBoolean())).thenReturn(member);
 
         // when
         moimMemberService.joinMoim(requestDto, member);

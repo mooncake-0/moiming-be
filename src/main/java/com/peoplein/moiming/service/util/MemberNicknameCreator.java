@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class MemberNicknameCreator {
 
-    private final String[] nicknameHead = {"moimer", "ballooner", "balloons", "moiming", "moimlove", "hiballoon", "wemoim"};
+    private final String[] nicknameHead = {"용감한모임", "모이밍만세", "눈이내려요", "즐거운이밍", "오늘모일까", "즐거운하루", "두둠칫두둠"};
 
     public String createNickname() {
 

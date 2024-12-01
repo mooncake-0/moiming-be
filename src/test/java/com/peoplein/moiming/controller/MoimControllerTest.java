@@ -493,7 +493,7 @@ public class MoimControllerTest extends TestObjectCreator {
         curMember = em.find(Member.class, curMember.getId()); // 영속화
 
         // given
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), depth1SampleCategory2, depth2SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -514,7 +514,7 @@ public class MoimControllerTest extends TestObjectCreator {
         Moim moim = em.find(Moim.class, createdMoim.getId());
         assertThat(moim.getMoimName()).isEqualTo(moimName2);
         assertThat(moim.getMoimInfo()).isEqualTo(moimInfo);
-        assertThat(moim.getMaxMember()).isEqualTo(maxMember);
+        assertThat(moim.getMaxMember()).isEqualTo(maxMember2);
         assertThat(moim.getMoimArea().getCity()).isEqualTo(moimArea2.getCity());
         assertThat(moim.getMoimArea().getState()).isEqualTo(moimArea2.getState());
 
@@ -532,7 +532,7 @@ public class MoimControllerTest extends TestObjectCreator {
         Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         em.persist(testMember3);
 
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), depth1SampleCategory2, depth2SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         String requestBody = om.writeValueAsString(reqDto);
         String testMember3AccessToken = createTestJwtToken(testMember3, 2000);
 
@@ -555,7 +555,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(null, moimName2, moimArea2.getState(), moimArea2.getCity(), depth1SampleCategory2, depth2SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(null, moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -578,7 +578,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), "WRNG", null, null, depth1SampleCategory2, depth2SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), "WRNG", null, null, maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -594,24 +594,27 @@ public class MoimControllerTest extends TestObjectCreator {
     }
 
 
-//    // MaxMember Validation 은 JoinRule 수정 API 로 이동됨
-//    // maxMember Validation
-//    @Test
-//    void updateMoim_shouldReturn400_whenMaxMemberWrong_byMoimingValidationException() throws Exception {
-//
-//        // given
-//        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, 101, null, "", ""); // 사실 인 앱으로 안가기 때문에 아무거나 넣어도 될듯
-//        String requestBody = om.writeValueAsString(reqDto);
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
-//                .header(HEADER, PREFIX + testAccessToken));
-//        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
-//
-//        // then
-//        resultActions.andExpect(status().isBadRequest());
-//        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-//    }
+    // MaxMember Validation 은 JoinRule 수정 API 로 이동됨
+    // maxMember Validation
+    @Test
+    void updateMoim_shouldReturn400_whenMaxMemberWrong_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        dataSu(false);
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), 101, depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
+    }
 
 
     // 수정하려는 필드가 없을 경우
@@ -622,7 +625,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, null, null, depth1SampleCategory2, depth1SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), null, null, null, null, depth1SampleCategory2, depth1SampleCategory2);
         reqDto.setCategoryNameValues(null); // Category List 는 이렇게 필드 없음을 명시해야함 - null 통과시 List.of 함수 때문에 NULL 통과 불가
         String requestBody = om.writeValueAsString(reqDto);
 
@@ -645,7 +648,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), depth1SampleCategory2, depth2SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         reqDto.setCategoryNameValues(new ArrayList<>());
         String requestBody = om.writeValueAsString(reqDto);
 
@@ -668,7 +671,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), depth1SampleCategory2, depth2SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         reqDto.setCategoryNameValues(List.of(depth1SampleCategory2));
         String requestBody = om.writeValueAsString(reqDto);
 
@@ -695,7 +698,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), depth1SampleCategory2, depth2SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         String requestBody = om.writeValueAsString(reqDto);
         makeAnotherMember();
         String accessToken = createTestJwtToken(testMember2, 2000);
@@ -733,7 +736,7 @@ public class MoimControllerTest extends TestObjectCreator {
         em.clear();
 
         // given
-        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), depth1SampleCategory2, depth2SampleCategory2);
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
         String requestBody = om.writeValueAsString(reqDto);
         String accessToken = createTestJwtToken(testMember2, 2000);
 
@@ -764,7 +767,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, null, 1984, 2004, MemberGender.M);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 1984, 2004, MemberGender.M);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -775,7 +778,6 @@ public class MoimControllerTest extends TestObjectCreator {
 
         // then
         resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.data.maxMember").value(maxMember)); // 변하지 않음
         resultActions.andExpect(jsonPath("$.data.ageMax").value(1984));
         resultActions.andExpect(jsonPath("$.data.ageMin").value(2004));
         resultActions.andExpect(jsonPath("$.data.memberGender").value(MemberGender.M.toString()));
@@ -785,7 +787,6 @@ public class MoimControllerTest extends TestObjectCreator {
         Moim moim = em.find(Moim.class, createdMoim.getId());
         MoimJoinRule joinRule = moim.getMoimJoinRule();
         assertNotNull(joinRule);
-        assertThat(moim.getMaxMember()).isEqualTo(maxMember); // 변하지 않음
         assertThat(joinRule.getAgeMax()).isEqualTo(1984);
         assertThat(joinRule.getAgeMin()).isEqualTo(2004);
         assertThat(joinRule.getMemberGender()).isEqualTo(MemberGender.M);
@@ -794,39 +795,38 @@ public class MoimControllerTest extends TestObjectCreator {
 
 
     // updateMoimJoinRule - 성공 - maxMember 도 같이 수정 시도시 같이 수정된다
-    @Test
-    void updateMoimJoinRule_shouldReturn200WithResp_whenHasJoinRuleMoim() throws Exception {
-
-        // given - 개인정보 기입완료
-        dataSu(false);
-
-        // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, maxMember2, 1984, 2004, MemberGender.M);
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
-                .header(HEADER, PREFIX + testAccessToken)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.data.maxMember").value(maxMember2)); // 변경됨
-        resultActions.andExpect(jsonPath("$.data.ageMax").value(1984));
-        resultActions.andExpect(jsonPath("$.data.ageMin").value(2004));
-        resultActions.andExpect(jsonPath("$.data.memberGender").value(MemberGender.M.toString()));
-
-        // then - db verify
-        Moim moim = em.find(Moim.class, createdMoim.getId());
-        MoimJoinRule findJoinRule = moim.getMoimJoinRule();
-        assertNotNull(findJoinRule);
-        assertThat(moim.getMaxMember()).isEqualTo(maxMember2);
-        assertThat(findJoinRule.getAgeMax()).isEqualTo(1984);
-        assertThat(findJoinRule.getAgeMin()).isEqualTo(2004);
-        assertThat(findJoinRule.getMemberGender()).isEqualTo(MemberGender.M);
-
-    }
+//    @Test
+//    void updateMoimJoinRule_shouldReturn200WithResp_whenHasJoinRuleMoim() throws Exception {
+//
+//        // given - 개인정보 기입완료
+//        dataSu(false);
+//
+//        // given
+//        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, maxMember2, 1984, 2004, MemberGender.M);
+//        String requestBody = om.writeValueAsString(reqDto);
+//
+//        // when
+//        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+//                .header(HEADER, PREFIX + testAccessToken)
+//                .content(requestBody)
+//                .contentType(MediaType.APPLICATION_JSON));
+//
+//        // then
+//        resultActions.andExpect(status().isOk());
+//        resultActions.andExpect(jsonPath("$.data.ageMax").value(1984));
+//        resultActions.andExpect(jsonPath("$.data.ageMin").value(2004));
+//        resultActions.andExpect(jsonPath("$.data.memberGender").value(MemberGender.M.toString()));
+//
+//        // then - db verify
+//        Moim moim = em.find(Moim.class, createdMoim.getId());
+//        MoimJoinRule findJoinRule = moim.getMoimJoinRule();
+//        assertNotNull(findJoinRule);
+//        assertThat(moim.getMaxMember()).isEqualTo(maxMember2);
+//        assertThat(findJoinRule.getAgeMax()).isEqualTo(1984);
+//        assertThat(findJoinRule.getAgeMin()).isEqualTo(2004);
+//        assertThat(findJoinRule.getMemberGender()).isEqualTo(MemberGender.M);
+//
+//    }
 
 
     // updateMoimJoinRule - 실패 : 개인 정보 없는 회원의 요청
@@ -840,7 +840,7 @@ public class MoimControllerTest extends TestObjectCreator {
         Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
         em.persist(testMember3);
 
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, maxMember2, 1984, 2004, MemberGender.M);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 1984, 2004, MemberGender.M);
         String requestBody = om.writeValueAsString(reqDto);
         String testMember3AccessToken = createTestJwtToken(testMember3, 2000);
 
@@ -858,40 +858,41 @@ public class MoimControllerTest extends TestObjectCreator {
 
 
     // updateMoimJoinRule - 성공 : editingJoinRule 이 false 면 뒤에 무슨 값을 보내도 변경되지 않는다
-    @Test
-    void updateMoimJoinRule_shouldReturn200WithRespAndNoChangeInJoinRule_whenEditingJoinRuleFalse() throws Exception {
-
-        // given - 개인정보 기입완료
-        dataSu(false);
-
-        // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), false, null, 1984, 2004, MemberGender.F);
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
-                .header(HEADER, PREFIX + testAccessToken)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        // then
-        resultActions.andExpect(status().isOk());
-        resultActions.andExpect(jsonPath("$.data.maxMember").value(maxMember)); // 바뀌지 않음
-        resultActions.andExpect(jsonPath("$.data.ageMax").value(-1));
-        resultActions.andExpect(jsonPath("$.data.ageMin").value(-1));
-        resultActions.andExpect(jsonPath("$.data.memberGender").value(MemberGender.N.toString()));// 바뀌지 않음
-
-
-        // then - db verify
-        Moim moim = em.find(Moim.class, createdMoim.getId());
-        MoimJoinRule findJoinRule = moim.getMoimJoinRule();
-        assertNotNull(findJoinRule);
-        assertThat(moim.getMaxMember()).isEqualTo(maxMember);
-        assertThat(findJoinRule.getAgeMax()).isEqualTo(-1);
-        assertThat(findJoinRule.getAgeMin()).isEqualTo(-1);
-        assertThat(findJoinRule.getMemberGender()).isEqualTo(MemberGender.N);
-
-    }
+    // editingRule 은 삭제됨
+//    @Test
+//    void updateMoimJoinRule_shouldReturn200WithRespAndNoChangeInJoinRule_whenEditingJoinRuleFalse() throws Exception {
+//
+//        // given - 개인정보 기입완료
+//        dataSu(false);
+//
+//        // given
+//        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), false, null, 1984, 2004, MemberGender.F);
+//        String requestBody = om.writeValueAsString(reqDto);
+//
+//        // when
+//        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+//                .header(HEADER, PREFIX + testAccessToken)
+//                .content(requestBody)
+//                .contentType(MediaType.APPLICATION_JSON));
+//
+//        // then
+//        resultActions.andExpect(status().isOk());
+//        resultActions.andExpect(jsonPath("$.data.maxMember").value(maxMember)); // 바뀌지 않음
+//        resultActions.andExpect(jsonPath("$.data.ageMax").value(-1));
+//        resultActions.andExpect(jsonPath("$.data.ageMin").value(-1));
+//        resultActions.andExpect(jsonPath("$.data.memberGender").value(MemberGender.N.toString()));// 바뀌지 않음
+//
+//
+//        // then - db verify
+//        Moim moim = em.find(Moim.class, createdMoim.getId());
+//        MoimJoinRule findJoinRule = moim.getMoimJoinRule();
+//        assertNotNull(findJoinRule);
+//        assertThat(moim.getMaxMember()).isEqualTo(maxMember);
+//        assertThat(findJoinRule.getAgeMax()).isEqualTo(-1);
+//        assertThat(findJoinRule.getAgeMin()).isEqualTo(-1);
+//        assertThat(findJoinRule.getMemberGender()).isEqualTo(MemberGender.N);
+//
+//    }
 
 
     // updateMoimJoinRule - 실패 : 가입 조건을 수정하는데 모든 필드가 없으면 error 발생 (가입조건은 현재 상태도 같이 보내줘야 한다)
@@ -902,7 +903,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, null, 1984, 2004, null);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 1984, 2004, null);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -919,7 +920,7 @@ public class MoimControllerTest extends TestObjectCreator {
     }
 
 
-    // updateMoimJoinRule - 실패 : Validation 오류 400, moimId, editingJoinRule 이 NULL
+    // updateMoimJoinRule - 실패 : Validation 오류 400, moimId 이 NULL
     @Test
     void updateMoimJoinRule_shouldReturn400_whenRequestParamWrong_byMoimingValidationException() throws Exception {
 
@@ -927,7 +928,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(null, null, null, 1995, 2005, null);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(null, 1995, 2005, MemberGender.N);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -939,7 +940,7 @@ public class MoimControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isBadRequest());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-        resultActions.andExpect(jsonPath("$.data", aMapWithSize(2)));
+        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
 
     }
 
@@ -952,7 +953,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, null, 2005, 1984, MemberGender.N);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 2005, 1984, MemberGender.N);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -976,7 +977,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, null, 1984, 2020, MemberGender.N);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 984, 2020, MemberGender.N);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -1000,7 +1001,7 @@ public class MoimControllerTest extends TestObjectCreator {
         dataSu(false);
 
         // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(1234L, true, null, 1984, 2004, MemberGender.N);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(1234L, 1984, 2004, MemberGender.N);
         String requestBody = om.writeValueAsString(reqDto);
 
         // when
@@ -1023,7 +1024,7 @@ public class MoimControllerTest extends TestObjectCreator {
         // given
         dataSu(false);
         makeAnotherMember(); // 개인정보 기입 추가
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, null, 1984, 2004, MemberGender.N);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 1984, 2004, MemberGender.N);
         String requestBody = om.writeValueAsString(reqDto);
         String accessToken = createTestJwtToken(testMember2, 2000);
 
@@ -1053,7 +1054,7 @@ public class MoimControllerTest extends TestObjectCreator {
         em.clear();
 
         // given
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, null, 1984, 2004, MemberGender.N);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 1984, 2004, MemberGender.N);
         String requestBody = om.writeValueAsString(reqDto);
         String accessToken = createTestJwtToken(testMember2, 2000);
 
@@ -1066,6 +1067,29 @@ public class MoimControllerTest extends TestObjectCreator {
         // then
         resultActions.andExpect(status().isForbidden());
         resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
+
+    }
+
+
+    // updateMoimJoinRule - 실패 - 수정하려는 관리자의 개인정보와 모임 가입 조건이 부합하지 않음
+    @Test
+    void updateMoimJoinRule_shouldReturn400_whenManagerMemberInfoDoesNotSatisfyUpdatingJoinRule_byMoimingApiException() throws Exception {
+
+        // given
+        dataSu(false);
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 1996, 2004, MemberGender.F);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(MOIM_CREATE_FAIL_BY_UNAVAILABLE_JOIN_RULE.getErrCode()));
 
     }
 
@@ -1105,30 +1129,6 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.managerInfo.nickname").value(curMember.getNickname()));
 
     }
-
-
-    // updateMoimJoinRule - 실패 - 수정하려는 관리자의 개인정보와 모임 가입 조건이 부합하지 않음
-    @Test
-    void updateMoimJoinRule_shouldReturn400_whenManagerMemberInfoDoesNotSatisfyUpdatingJoinRule_byMoimingApiException() throws Exception {
-
-        // given
-        dataSu(false);
-        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, maxMember2, 1996, 2004, MemberGender.F);
-        String requestBody = om.writeValueAsString(reqDto);
-
-        // when
-        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
-                .header(HEADER, PREFIX + testAccessToken)
-                .content(requestBody)
-                .contentType(MediaType.APPLICATION_JSON));
-
-
-        // then
-        resultActions.andExpect(status().isBadRequest());
-        resultActions.andExpect(jsonPath("$.code").value(MOIM_CREATE_FAIL_BY_UNAVAILABLE_JOIN_RULE.getErrCode()));
-
-    }
-
 
     // getMoimDetail - 해당 모임의 모임원이 아니여도 조회 가능
     @Test
@@ -1660,7 +1660,6 @@ public class MoimControllerTest extends TestObjectCreator {
 //        em.clear();
 //        assertNotNull(em.find(Moim.class, createdMoim.getId()));
 //    }
-
 
 
 }

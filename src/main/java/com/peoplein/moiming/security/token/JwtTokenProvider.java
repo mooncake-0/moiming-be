@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.member.MemberInfo;
 import com.peoplein.moiming.security.auth.model.SecurityMember;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,9 +42,11 @@ public class JwtTokenProvider implements MoimingTokenProvider {
         String jwtToken = JWT.create()
                 .withSubject(JwtParams.TEST_JWT_SUBJECT)
                 .withExpiresAt(expDate)
+                .withClaim(JwtParams.CLAIM_KEY_TOKEN_TYPE, tokenType.toString())
                 .withClaim(JwtParams.CLAIM_KEY_MEMBER_ID_KEY, member.getId())
                 .withClaim(JwtParams.CLAIM_KEY_MEMBER_ROLE, roles)
-//                .withClaim(JwtParams.CLAIM_KEY_MEMBER_ID_KEY, member.getMemberPhone()) // Member Phone 은 사용되지 않는다
+                .withClaim(JwtParams.CLAIM_KEY_MEMBER_NICKNAME, member.getNickname())
+                .withClaim(JwtParams.CLAIM_KEY_MEMBER_INFO_PROVIDED, member.getMemberInfo() != null)
                 .sign(Algorithm.HMAC512(JwtParams.TEST_JWT_SECRET));
 
         return new TokenDto(jwtToken, expDate.getTime());
@@ -59,7 +62,14 @@ public class JwtTokenProvider implements MoimingTokenProvider {
 
         Long memberId = decoded.getClaim(JwtParams.CLAIM_KEY_MEMBER_ID_KEY).asLong();
         List<String> roles = decoded.getClaim(JwtParams.CLAIM_KEY_MEMBER_ROLE).asList(String.class);
-        Member fakeAuthMember = Member.createTokenAuthenticationMember(memberId);
+        String nickname = decoded.getClaim(JwtParams.CLAIM_KEY_MEMBER_NICKNAME).asString();
+
+        Member fakeAuthMember = Member.createTokenAuthenticationMember(memberId, nickname);
+        Boolean hasMemberInfo = decoded.getClaim(JwtParams.CLAIM_KEY_MEMBER_INFO_PROVIDED).asBoolean();
+        if (hasMemberInfo) {
+            MemberInfo fakeMemberInfo = MemberInfo.createTokenAuthenticationMemberInfo(memberId);
+            fakeAuthMember.saveMemberInfo(fakeMemberInfo);
+        }
 
         return new SecurityMember(fakeAuthMember, roles);
     }

@@ -112,8 +112,12 @@ public class MoimJoinRule extends BaseEntity {
 
 
     private void validateAge(int ageMax, int ageMin) {
-        // 1995 = 2024 - 29
-        // x = 2024 - 15
+
+        // -1 이 아닌 상황에서 1000 보다 작을 경우는 잘못 들어온 상황
+        if ((ageMax != -1 && ageMax < 1000) || (ageMax != -1 && ageMin < 1000)) {
+            throw new MoimingApiException(MOIM_RULE_AGE_NOT_VALID, "v0.1.5 부터 나이값이 아닌 년생으로 변경되었습니다");
+        }
+
         int year = LocalDate.now().getYear(); // 현재를 기준으로 15살을 계산하라
         int appMaxAge = year - 100; // 100 살
         int appMinAge = year - 15; // 2005

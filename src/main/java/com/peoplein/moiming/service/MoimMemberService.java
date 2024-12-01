@@ -32,7 +32,7 @@ public class MoimMemberService {
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
     private final NotificationService notificationService;
-    private final MemberInfoService memberInfoService;
+    private final MemberService memberService;
 
 
     // TODO :: curMember 의 권한에 따른 분리는 Client 단에서 구분?
@@ -66,8 +66,8 @@ public class MoimMemberService {
         // 둘 관계가 맺어진 적이 있는지 확인한다
         MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElse(null);
 
-        Long memberId = curMember.getId();
-        curMember = memberInfoService.getMemberWithMemberInfo(memberId);
+        // 적합성 판단을 위해 개인정보 조회
+        curMember = memberService.persistMember(curMember, true);
         moimPs.judgeMemberJoinByRule(moimMemberPs, curMember);
 
         // 알람 형성을 위해 모임의 Manager 를 조회한다
@@ -165,7 +165,7 @@ public class MoimMemberService {
         );
 
         // 알림을 발생시킨다
-        String notiBody = expelMoimMember.getMoim().getMoimName() + "에서 " + requestDto.getInactiveReason() + "의 이유로 탈퇴 처리 되었습니다";
+        String notiBody = expelMoimMember.getMoim().getMoimName() + "에서 \"" + requestDto.getInactiveReason() + "\"의 이유로 탈퇴 처리 되었습니다";
         notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_IBF, NotificationType.INFORM
                 , expelMember, "", notiBody, expelMoimMember.getMoim().getId(), null);
 

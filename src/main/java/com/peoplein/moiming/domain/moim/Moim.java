@@ -12,6 +12,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 import java.net.URI;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.peoplein.moiming.domain.enums.MoimMemberState.ACTIVE;
-import static com.peoplein.moiming.exception.ExceptionValue.COMMON_INVALID_SITUATION;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 import static com.peoplein.moiming.model.dto.request.MoimReqDto.*;
 
 @Slf4j
@@ -92,6 +93,25 @@ public class Moim extends BaseEntity {
 
 
     private Moim(String moimName, String moimInfo, int maxMember, Area moimArea, Long creatorId) {
+
+        if (!StringUtils.hasText(moimName) || moimName.length() < 5 || moimName.length() > 30) {
+            String s = "모임 이름은 5자 ~ 30자";
+            log.info("Moim Constructor :: {}, {}", moimName, s);
+            throw new MoimingApiException(COMMON_CONSTRAINT_INVALID, s);
+        }
+
+        if (!StringUtils.hasText(moimInfo) || moimInfo.length() < 10 || moimInfo.length() > 2000) {
+            String s = "모임 내용은 10자 ~ 2000자";
+            log.info("Moim Constructor :: {}, {}", moimInfo, s);
+            throw new MoimingApiException(COMMON_CONSTRAINT_INVALID, s);
+        }
+
+        if (maxMember < 3 || maxMember > 100) { // 인원은 최소 3명, 최대 100명
+            String s = "모임 회원은 최소 3명 ~ 100명";
+            log.info("Moim Constructor :: {}, {}", maxMember, s);
+            throw new MoimingApiException(COMMON_CONSTRAINT_INVALID, s);
+        }
+
         this.moimName = moimName;
         this.moimInfo = moimInfo;
         this.maxMember = maxMember;
@@ -153,6 +173,12 @@ public class Moim extends BaseEntity {
             this.setMoimArea(this.moimArea.checkAndIssueNewArea(requestDto.getAreaState(), requestDto.getAreaCity()));
         }
 
+        //updateMoim 중 아래 추가
+        if (requestDto.getMaxMember() != null) {
+            isChanged = true;
+            this.setMaxMember(requestDto.getMaxMember());
+        }
+
         if (!categories.isEmpty()) {
             isChanged = true;
             for (Category newCategory : categories) {
@@ -170,39 +196,49 @@ public class Moim extends BaseEntity {
     }
 
 
-    // MEMO :: Max Member 정보만 가입 조건 UI 에 있어서, 해당 플로우에서 요청이 날라오기 때문에 다로 빼줌
-    public void updateMaxMember(int maxMember, Long updaterId) {
-        if (maxMember < this.curMemberCount) { // 현존하는 회원 수보다 적게 수정하려 시도
-            throw new MoimingApiException(ExceptionValue.MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER);
-        }
-        this.setMaxMember(maxMember);
-        this.updaterId = updaterId;
-    }
-
     /*
      private 하게 바꿀 수 있도록 해서, update 함수 외에는 실행할 수 없게 한다
      update() 함수로 오는 과정에선 충분히 validation 거침
      */
     private void setMoimName(String moimName) {
+
+        if (!StringUtils.hasText(moimName) || moimName.length() < 5 || moimName.length() > 30) {
+            String s = "모임 이름은 5자 ~ 30자";
+            log.info("Moim Constructor :: {}, {}", moimName, s);
+            throw new MoimingApiException(COMMON_CONSTRAINT_INVALID, s);
+        }
+
         this.moimName = moimName;
     }
 
     private void setMoimInfo(String moimInfo) {
+
+        if (!StringUtils.hasText(moimInfo) || moimInfo.length() < 10 || moimInfo.length() > 2000) {
+            String s = "모임 내용은 10자 ~ 2000자";
+            log.info("Moim Constructor :: {}, {}", moimInfo, s);
+            throw new MoimingApiException(COMMON_CONSTRAINT_INVALID, s);
+        }
+
         this.moimInfo = moimInfo;
     }
 
     private void setMaxMember(int maxMember) {
+
+        if (maxMember < this.curMemberCount) { // 현존하는 회원 수보다 적게 수정하려 시도
+            throw new MoimingApiException(ExceptionValue.MOIM_UPDATE_FAIL_BY_EXCEED_CUR_MEMBER);
+        }
+
+        if (maxMember < 3 || maxMember > 100) { // 인원은 최소 3명, 최대 100명
+            String s = "모임 회원은 최소 3명 ~ 100명";
+            log.info("Moim Constructor :: {}, {}", maxMember, s);
+            throw new MoimingApiException(COMMON_CONSTRAINT_INVALID, s);
+        }
+
         this.maxMember = maxMember;
     }
 
     private void setMoimArea(Area moimArea) {
         this.moimArea = moimArea;
-    }
-
-    private void changeCategory(List<Category> categories) {
-        for (Category category : categories) {
-            MoimCategoryLinker.addMoimCategory(this, category);
-        }
     }
 
 

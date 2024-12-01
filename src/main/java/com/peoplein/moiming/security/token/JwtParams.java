@@ -12,6 +12,10 @@ public abstract class JwtParams {
 //    public static String CLAIM_KEY_MEMBER_EMAIL = "EMAIL";
     public static String CLAIM_KEY_MEMBER_ID_KEY = "ID";
     public static String CLAIM_KEY_MEMBER_ROLE = "ROLES";
+    public static String CLAIM_KEY_MEMBER_NICKNAME = "NICKNAME";
+    public static String CLAIM_KEY_TOKEN_TYPE = "TOKEN_TYPE";
+    public static String CLAIM_KEY_MEMBER_INFO_PROVIDED = "HAS_MEMBER_INFO";
+
 
     public static String HEADER = "Authorization";
     public static String PREFIX = "Bearer ";

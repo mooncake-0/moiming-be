@@ -172,9 +172,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
     void getMoimPostDetail_shouldReturn200WithResponse_whenReqPublicPostByMoimMember() throws Exception {
         // given
         prepareMoimActivity();
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", creatorPost.getId() + ""};
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
@@ -201,9 +201,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", moimMemberPost.getId() + ""};
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
@@ -230,9 +230,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        String testAccessToken = createTestJwtToken(ibfMember, 2000);
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", creatorPost.getId() + ""};
+        String testAccessToken = createTestJwtToken(ibfMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
@@ -265,9 +265,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        String testAccessToken = createTestJwtToken(ibfMember, 2000);
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", moimMemberPost.getId() + ""};
+        String testAccessToken = createTestJwtToken(ibfMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
@@ -288,9 +288,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", ibwMemberPost.getId() + ""};
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
@@ -319,9 +319,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", deleteMemberPost.getId() + ""};
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
@@ -350,9 +350,9 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
         // given
         prepareMoimActivity();
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", 12345L + ""};
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
@@ -375,11 +375,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 요청자 개인 정보 등록 완료
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
@@ -445,11 +445,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), false, null, null, null, null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 요청자 개인 정보 등록 완료
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
@@ -472,35 +472,6 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         assertThat(moimPost.getMoimPostCategory()).isEqualTo(moimMemberPost.getMoimPostCategory());
 
     }
-
-
-    // 2407 - 80 번 테스트와 중복으로 삭제
-    // updatePost - 실패 : postId 없음 (Validation)
-//    @Test
-//    void updatePost_shouldReturn400_whenMoimPostIdNull_byMoimingValidationException() throws Exception {
-//
-//        // given
-//        prepareMoimActivity();
-//        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(null, false, null, null, null, null, null, null);
-//        String requestBody = om.writeValueAsString(requestDto);
-//        String testAccessToken = createTestJwtToken(moimMember, 2000);
-//
-//        // given - 요청자 개인 정보 등록 완료
-//        moimMember = em.find(Member.class, moimMember.getId());
-//        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
-//                .header(HEADER, PREFIX + testAccessToken)
-//                .content(requestBody)
-//                .contentType(MediaType.APPLICATION_JSON));
-//
-//        // then
-//        resultActions.andExpect(status().isBadRequest());
-//        resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
-//        resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
-//
-//    }
 
 
     // updatePost - 실패: 일반 모임원의 것을 운영진이 시도
@@ -538,11 +509,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(moimMemberPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(notMoimMember, 2000);
 
         // given - 요청자 개인 정보 등록 완료
         notMoimMember = em.find(Member.class, notMoimMember.getId());
         insertTestMemberInfo(notMoimMember, memberGender3, memberBirth3);
+        String testAccessToken = createTestJwtToken(notMoimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
@@ -565,11 +536,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(ibwMemberPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(ibwMember, 2000);
 
         // given - 요청자 개인 정보 등록
         ibwMember = em.find(Member.class, ibwMember.getId());
         insertTestMemberInfo(ibwMember, memberGender4, memberBirth4);
+        String testAccessToken = createTestJwtToken(ibwMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
@@ -591,11 +562,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(12345L, false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 개인정보 등록 완료
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
@@ -620,11 +591,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(null, null, "새로운", "내용", null, null, null, null);
         String requestBody = om.writeValueAsString(requestDto);
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 개인정보 등록 완료
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
@@ -1003,11 +974,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", moimMemberPost.getId() + ""};
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 개인정보 등록 완료
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_POST_DELETE, beforeParams, afterParams))
@@ -1097,11 +1068,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", creatorPost.getId() + ""};
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 개인정보 등록 완료
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_POST_DELETE, beforeParams, afterParams))
@@ -1127,11 +1098,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", moimMemberPost.getId() + ""};
-        String testAccessToken = createTestJwtToken(notMoimMember, 2000);
 
         // given - 요청자 개인 정보 입력
         notMoimMember = em.find(Member.class, notMoimMember.getId());
         insertTestMemberInfo(notMoimMember, memberGender3, memberBirth3);
+        String testAccessToken = createTestJwtToken(notMoimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_POST_DELETE, beforeParams, afterParams))
@@ -1157,11 +1128,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", ibfMemberPost.getId() + ""};
-        String testAccessToken = createTestJwtToken(ibfMember, 2000);
 
         // given - 요청자 개인 정보 입력
         ibfMember = em.find(Member.class, ibfMember.getId());
         insertTestMemberInfo(ibfMember, memberGender5, memberBirth5);
+        String testAccessToken = createTestJwtToken(ibfMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_POST_DELETE, beforeParams, afterParams))
@@ -1187,11 +1158,11 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         prepareMoimActivity();
         String[] beforeParams = {"moimId", "moimPostId"};
         String[] afterParams = {createdMoim.getId() + "", 12345L + ""};
-        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 요청자 개인 정보 입력
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_POST_DELETE, beforeParams, afterParams))

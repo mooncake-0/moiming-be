@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public abstract class TestParams {
 
     // Member Test 공통
-    public static String password = "1234";
+    public static String password = "1234qwer";
     public static MemberGender memberGender = MemberGender.M;
     public static LocalDate memberBirth = LocalDate.of(1995, 12, 18);
     public static String memberBirthStringFormat = "1995-12-18";

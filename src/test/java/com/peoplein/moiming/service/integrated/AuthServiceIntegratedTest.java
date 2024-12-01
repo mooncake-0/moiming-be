@@ -51,6 +51,10 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
         // given - prep
         SmsVerification smsVerification = makeTestSmsVerification(true, null, memberPhone, VerificationType.SIGN_UP);
         em.persist(smsVerification);
+
+        Role userRole = makeTestRole(RoleType.USER);
+        em.persist(userRole);
+
         em.flush();
         em.clear();
 
@@ -65,7 +69,6 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
         // when
         AuthSignUpRespDto responseDto = authService.signUp(reqDto);
-
 
         // then - Return Val Confirm
         assertThat(responseDto.getMemberId()).isNotNull();
@@ -119,11 +122,14 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
         // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
         Role testRole = makeTestRole(RoleType.USER);
+        em.persist(testRole);
+
         Member testMember = makeTestMember(memberPhone, nickname, ci, testRole);// 저장할 Member 를 만든다.
+        em.persist(testMember);
+
         String preRefreshToken = createTestJwtToken(testMember, 2000);// 해당 멤버에 Refresh Token 을 저장해준다
         testMember.changeRefreshToken(preRefreshToken);
-        em.persist(testRole);
-        em.persist(testMember);
+
         em.flush();
         em.clear();
 
@@ -152,11 +158,14 @@ public class AuthServiceIntegratedTest extends TestObjectCreator {
 
         // given - su data - 위 signIn 함수를 쓰고 싶지만, 완전한 Test 분리를 위해 사용하지 않는다
         Role testRole = makeTestRole(RoleType.USER);
+        em.persist(testRole);
+
         Member testMember = makeTestMember(memberPhone, nickname, ci, testRole);// 저장할 Member 를 만든다.
+        em.persist(testMember);
+
         String preRefreshToken = createTestJwtToken(testMember, 2000);// 해당 멤버에 Refresh Token 을 저장해준다
         testMember.changeRefreshToken("WRONG_REFRESH_TOKEN");
-        em.persist(testRole);
-        em.persist(testMember);
+
         em.flush();
         em.clear();
 

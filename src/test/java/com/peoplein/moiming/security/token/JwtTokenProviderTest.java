@@ -57,10 +57,10 @@ public class JwtTokenProviderTest extends TestObjectCreator {
         String testJwtToken = createTestJwtToken(testMember, 1000);
 
         // when
-        String verifiedMemberId = tokenProvider.verifyMemberId(MoimingTokenType.JWT_AT, testJwtToken);
+        Long verifiedMemberId = tokenProvider.verifyMemberId(MoimingTokenType.JWT_AT, testJwtToken);
 
         // then
-        assertThat(verifiedMemberId).isEqualTo(testMember.getMemberPhone());
+        assertThat(verifiedMemberId).isEqualTo(testMember.getId());
     }
 
 

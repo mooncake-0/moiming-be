@@ -63,6 +63,7 @@ public class MemberRespDto {
         private String createdAt;
         private String updatedAt;
         private String lastLoginAt;
+        private String pfImgUrl;
         @JsonProperty("memberInfo")
         private MemberInfoDto memberInfoDto;
 
@@ -74,6 +75,10 @@ public class MemberRespDto {
             this.createdAt = member.getCreatedAt() + "";
             this.updatedAt = member.getUpdatedAt() + "";
             this.lastLoginAt = member.getLastLoginAt() + "";
+            this.pfImgUrl = DEFAULT_MEMBER_PF_IMG_PATH;
+            if(StringUtils.hasText(member.getPfImgUrl())) {
+                this.pfImgUrl = member.getPfImgUrl();
+            }
             if (member.getMemberInfo() != null) {
                 this.hasMemberInfo = true;
                 this.memberInfoDto = new MemberInfoDto(member.getMemberInfo());

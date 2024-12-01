@@ -13,6 +13,7 @@ import com.peoplein.moiming.exception.MoimingAuthNoRollbackException;
 import com.peoplein.moiming.model.dto.response.TokenRespDto;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
+import com.peoplein.moiming.security.token.JwtParams;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.security.token.TokenDto;
@@ -206,8 +207,7 @@ public class AuthService {
          2407 Update - Token 에 이제 진짜 memberId 가 저장된다 - findWithRolesByI 로 변경
                      - Token 에 권한주기 위해 Role Fetch Join 필요
          */
-        String curRefreshToken = requestDto.getToken();
-        Long rtMemberId = verifyMemberId(JWT_RT, curRefreshToken);
+        Long rtMemberId = tokenProvider.verifyMemberId(JWT_RT, requestDto.getToken());
 
         Member memberPs = memberRepository.findWithRolesById(rtMemberId).orElseThrow(() -> {
             log.error("Class {} : {}", getClass().getName(), MEMBER_NOT_FOUND.getErrMsg());
@@ -215,7 +215,7 @@ public class AuthService {
         });
 
 
-        if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(curRefreshToken)) {
+        if (!StringUtils.hasText(memberPs.getRefreshToken()) || !memberPs.getRefreshToken().equals(requestDto.getToken())) {
             log.error("Class {} : {}", getClass().getName(), "MemberId - [" + rtMemberId + "] :: " + AUTH_REFRESH_TOKEN_NOT_MATCH.getErrMsg());
             memberPs.changeRefreshToken(""); // RefreshToken 을 삭제한다
             throw new MoimingAuthNoRollbackException(AUTH_REFRESH_TOKEN_NOT_MATCH);
@@ -281,18 +281,6 @@ public class AuthService {
      */
     public boolean isLogoutToken(String accessToken) {
         return logoutTokenManager.isUnusableToken(accessToken);
-    }
-
-
-    /*
-      사용 로직 : 모든 요청 인증 / 갱신 토큰 인증
-      TokenProvider 를 사용해서 Knox Id 를 반환한다
-     */
-    /*
-     2407 Update - 이젠 진짜 memberId 를 반환한다
-     */
-    public Long verifyMemberId(MoimingTokenType type, String jwtToken) {
-        return tokenProvider.verifyMemberId(type, jwtToken);
     }
 
 

@@ -51,7 +51,7 @@ public class MoimServiceTest {
     private StorageService storageService;
 
     @Mock
-    private MemberInfoService memberInfoService;
+    private MemberService memberService;
 
     @Mock
     private FileJpaRepository fileJpaRepository;
@@ -360,49 +360,16 @@ public class MoimServiceTest {
         when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasPermissionOfManager()).thenReturn(true);
-        when(reqDto.getEditingJoinRule()).thenReturn(true); // 이하로는 조건 수정을 위한 요청일 경우 처리
         when(moim.getMoimJoinRule()).thenReturn(joinRule);
-        when(reqDto.getMaxMember()).thenReturn(null); // MEMO :: Mock 의 Getter 들은 NULL 을 반환하지 않는다!!
-//        when(memberInfoService.getMemberWithMemberInfo(any())).thenReturn(member); // 이게 필요가 없는 부분 : 이 함수에서는 반환한 member 가 적합한지는 신경쓰지 않기 때문
+        when(memberService.persistMember(any(), anyBoolean())).thenReturn(member);
 
         // when
         moimService.updateMoimJoinRule(reqDto, member);
 
         // then
         verify(joinRule, times(1)).changeJoinRule(anyInt(), anyInt(), any(), any());
-        verify(moim, times(0)).updateMaxMember(anyInt(), any());
 
     }
-
-
-    // 가입 조건 수정
-    // 성공 : 가입 조건 수정을 요청하지 않고, maxMember 만 수정 요청하려 할 때
-    @Test
-    void updateMoimJoinRule_shouldPassAndVerifyUpdateMaxMember_whenMoimJoinRuleNotModifyPassed() {
-
-        // given
-        MoimJoinRuleUpdateReqDto reqDto = mock(MoimJoinRuleUpdateReqDto.class);
-        Member member = mock(Member.class);
-        Moim moim = mock(Moim.class);
-        MoimMember moimMember = mock(MoimMember.class);
-        MoimJoinRule joinRule = mock(MoimJoinRule.class);
-
-        // given - stub
-        when(moimRepository.findWithJoinRuleById(any())).thenReturn(Optional.of(moim));
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-        when(moimMember.hasPermissionOfManager()).thenReturn(true);
-        when(reqDto.getEditingJoinRule()).thenReturn(false); // 이하로는 조건 수정을 위한 요청일 경우 처리
-        when(reqDto.getMaxMember()).thenReturn(100); // NULL 이 아님
-
-        // when
-        moimService.updateMoimJoinRule(reqDto, member);
-
-        // then
-        verify(joinRule, times(0)).changeJoinRule(anyInt(), anyInt(), any(), any());
-        verify(moim, times(1)).updateMaxMember(anyInt(), any());
-
-    }
-
 
     // updateMoimJoinRule - 실패 : INVALID PARAM
     @Test

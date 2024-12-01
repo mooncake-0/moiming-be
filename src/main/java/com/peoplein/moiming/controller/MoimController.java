@@ -83,7 +83,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 생성 (이미지 없으면 imgFileId 비우기), (요구사항 변경으로 모임 가입조건은 항상 존재, hasJoinRule=true 로 하시면 됩니다, 성별은 M/F/N)")
+    @ApiOperation("모임 생성 (이미지 없으면 imgFileId 비우기), (모임 가입조건은 항상 존재, 없을시 age 값들은 -1, 성별은 N)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -153,7 +153,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 정보 수정 - 수정된 필드만 보낸다 (요청 UI가 분리되어 있음)")
+    @ApiOperation("모임 정보 수정 - 수정되는 필드만 선택적으로 전송")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -173,7 +173,7 @@ public class MoimController {
     }
 
 
-    @ApiOperation("모임 가입 조건 수정 - maxMember 는 수정할 때만 보내면 된다. 조건 수정시에는 editingJoinRule 을 True 로 해주고, maxAge, minAge, memberGender 모두 보내줘야 한다 (수정하지 않는 것도 현재 필드 전달)")
+    @ApiOperation("모임 가입 조건 수정 - 조건 수정시 maxAge, minAge, memberGender 모두 보내줘야 한다 (수정하지 않는 것도 현재 필드 전달), 해제시 -1 과 N 활용")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Bearer {JWT_ACCESS_TOKEN}", required = true, paramType = "header")
     })
@@ -186,13 +186,10 @@ public class MoimController {
             , BindingResult br
             , @AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
 
-        // JoinRuleReqDto 에 대한 Validation 추가
-        if (requestDto.getEditingJoinRule()) {
-            if (requestDto.getMemberGender() == null || requestDto.getAgeMin() == null || requestDto.getAgeMax() == null) {
-                Map<String, String> errMap = new HashMap<>();
-                errMap.put("gender, min, max 중 null 존재", "가입 조건 수정시에는 all field 현재값으로라도 전달 필수");
-                throw new MoimingValidationException(COMMON_REQUEST_VALIDATION, errMap);
-            }
+        if (requestDto.getMemberGender() == null || requestDto.getAgeMin() == null || requestDto.getAgeMax() == null) {
+            Map<String, String> errMap = new HashMap<>();
+            errMap.put("gender, min, max 중 null 존재", "가입 조건 수정시에는 all field 현재값으로라도 전달 필수");
+            throw new MoimingValidationException(COMMON_REQUEST_VALIDATION, errMap);
         }
 
         Moim moim = moimService.updateMoimJoinRule(requestDto, principal.getMember());

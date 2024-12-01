@@ -36,18 +36,24 @@ public class MemberService {
     private final LogoutTokenManager logoutTokenManager;
 
 
-    @Transactional(readOnly = true)
-    public Member getCurrentMember(Member member) {
+    public Member persistMember(Member member, boolean joinInfo) {
 
         if (member == null) {
             log.info("{}, getCurrentMember ::{}", this.getClass().getName(), "인증 후 Member Null 감지");
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
 
-        member = memberRepository.findWithMemberInfoById(member.getId()).orElseThrow(()->{
-            log.info("{}, getCurrentMember :: {}", this.getClass().getName(), " Member 찾을 수 없습니다");
-            return new MoimingApiException(MEMBER_NOT_FOUND);
-        });
+        if (joinInfo) {
+            member = memberRepository.findWithMemberInfoById(member.getId()).orElseThrow(() -> {
+                log.info("{}, persistMember with Info:: {}", this.getClass().getName(), " Member 찾을 수 없습니다");
+                return new MoimingApiException(MEMBER_NOT_FOUND);
+            });
+        } else {
+            member = memberRepository.findById(member.getId()).orElseThrow(() -> {
+                log.info("{}, persistMember :: {}", this.getClass().getName(), " Member 찾을 수 없습니다");
+                return new MoimingApiException(MEMBER_NOT_FOUND);
+            });
+        }
 
         return member;
     }
@@ -59,7 +65,7 @@ public class MemberService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        member = persistSecurityMember(member.getId());
+        member = persistMember(member, false);
         member.changeRefreshToken(null);
         member.changeFcmToken(null);
 
@@ -67,7 +73,7 @@ public class MemberService {
         Date expireAt = moimingTokenProvider.verifyExpireAt(MoimingTokenType.JWT_AT, accessToken);
         logoutTokenManager.saveLogoutToken(accessToken, expireAt);
 
-        log.info("{}, logout :: {}", this.getClass().getName(), "["+ member.getMemberPhone() + "] 의 유저가 " +
+        log.info("{}, logout :: {}", this.getClass().getName(), "[" + member.getMemberPhone() + "] 의 유저가 " +
                 "[" + LocalDateTime.now() + "]의 시간에 성공적으로 로그아웃 처리 되었습니다");
 
     }
@@ -92,9 +98,13 @@ public class MemberService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        // 비밀번호 조회
+        member = persistMember(member, false);
+
         if (!passwordEncoder.matches(password, member.getPassword())) {
             log.error("{}, confirmPw :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 비밀번호 오류");
             throw new MoimingApiException(MEMBER_PW_INCORRECT);
+
         }
     }
 
@@ -106,7 +116,7 @@ public class MemberService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        member = persistSecurityMember(member.getId());
+        member = persistMember(member, false);
 
         if (member.getNickname().equals(nickname)) {
             throw new MoimingApiException(MEMBER_NICKNAME_UNAVAILABLE); // 현재와 동일한 닉네임 수정 불가
@@ -129,7 +139,7 @@ public class MemberService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
-        member = persistSecurityMember(member.getId());
+        member = persistMember(member, false);
 
         if (!passwordEncoder.matches(prePw, member.getPassword())) {
             log.error("{}, changePw :: {}", this.getClass().getName(), "[" + member.getId() + "] 의 유저의 비밀번호 변경 시도, 이전 비밀번호 불일치 발생");
@@ -142,10 +152,4 @@ public class MemberService {
     }
 
 
-    private Member persistSecurityMember(Long memberId) {
-        return memberRepository.findById(memberId).orElseThrow(() -> {
-            log.error("{}, persistSecurityMember :: {}", this.getClass().getName(), "Member 영속화 중 Id [" + memberId + "] 조회 불가 예외 발생");
-            return new MoimingApiException(MEMBER_NOT_FOUND);
-        });
-    }
 }

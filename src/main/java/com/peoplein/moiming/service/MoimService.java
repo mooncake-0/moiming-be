@@ -42,7 +42,7 @@ public class MoimService {
     private final MoimRepository moimRepository;
     private final MoimMemberRepository moimMemberRepository;
     private final CategoryService categoryService;
-    private final MemberInfoService memberInfoService;
+    private final MemberService memberService;
 
 
     private final MoimCategoryLinkerRepository moimCategoryLinkerRepository;
@@ -128,8 +128,7 @@ public class MoimService {
         curMember.isMemberInfoRegistered();
 
         // Member Info 확인을 위한 조회 및 재영속화
-        Long memberId = curMember.getId();
-        curMember = memberInfoService.getMemberWithMemberInfo(memberId);
+        curMember = memberService.persistMember(curMember, true); // 개인 정보의 부합 여부 판단 필요
 
         // 1. 카테고리를 준비한다 (같이 생성 필요)
         List<Category> categories = categoryService.generateCategoryList(requestDto.getCategoryNameValues());
@@ -141,6 +140,10 @@ public class MoimService {
 
 
         // 모임 조건 필수 생성
+        if (requestDto.getJoinRuleDto() == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM, "생성시 가입 조건이 전달되지 않았습니다");
+        }
+
         JoinRuleCreateReqDto ruleDto = requestDto.getJoinRuleDto();
         MoimJoinRule joinRule = MoimJoinRule.createMoimJoinRule(ruleDto.getAgeMax(), ruleDto.getAgeMin(), ruleDto.getMemberGender(), curMember);
         moim.initJoinRule(joinRule);
@@ -162,7 +165,7 @@ public class MoimService {
 
 
     // 컨디션에 따른 해당 멤버의 모임 조회 결과 List<Moim> 으로 반환
-// 사용영역 > Home 화면 및 마이페이지 화면에서 사용될 예정
+    // 사용영역 > Home 화면 및 마이페이지 화면에서 사용될 예정
     @Transactional(readOnly = true)
     public MoimCategoryMapperDto getMemberMoims(Long lastMoimId, boolean isManagerReq, int limit, Member curMember) {
 
@@ -254,7 +257,7 @@ public class MoimService {
         member.isMemberInfoRegistered();
 
         Moim moim = moimRepository.findWithJoinRuleById(requestDto.getMoimId()).orElseThrow(() ->
-                new MoimingApiException(MOIM_NOT_FOUND)
+                new MoimingApiException(MOIM_NOT_FOUND, "[" + requestDto.getMoimId() + "] 모임이 없거나 혹은 가입조건이 없는 모임 발견")
         );
 
         // MoimMember 조회,
@@ -267,17 +270,9 @@ public class MoimService {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
-        // 모임 허용 인원 수 수정이 있다면 수정한다
-        if (requestDto.getMaxMember() != null) {
-            moim.updateMaxMember(requestDto.getMaxMember(), member.getId());
-        }
-
-        // 가입하는 유저에 대한 개인 정보가 필요하므로 Persisting 이 필요하다
-        if (requestDto.getEditingJoinRule()) {
-            Long memberId = member.getId();
-            member = memberInfoService.getMemberWithMemberInfo(memberId);
-            moim.getMoimJoinRule().changeJoinRule(requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender(), member);
-        }
+        // 변경하는 운영자에 대한 개인 정보 확인이 필요하므로 Persisting 이 필요하다
+        member = memberService.persistMember(member, true);
+        moim.getMoimJoinRule().changeJoinRule(requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender(), member);
 
         return moim;
     }

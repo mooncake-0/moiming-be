@@ -208,7 +208,7 @@ public class MemberControllerTest extends TestObjectCreator {
 
         // given
         prepareMember();
-        String newNickname = nickname + "_new";
+        String newNickname = "NEW_NICK";
         MemberChangeNicknameReqDto requestDto = new MemberChangeNicknameReqDto(newNickname);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(preMember, 2000);

@@ -433,11 +433,11 @@ public class PostCommentControllerTest extends TestObjectCreator {
         createPostComment();
         PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
         String requestBody = om.writeValueAsString(requestDto);
-        String accessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 요청자 개인 정보 기입
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String accessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
@@ -521,11 +521,11 @@ public class PostCommentControllerTest extends TestObjectCreator {
         createPostComment();
         PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
         String requestBody = om.writeValueAsString(requestDto);
-        String accessToken = createTestJwtToken(moimMember2, 2000);
 
         // given - 요청자 개인 정보 기입
         moimMember2 = em.find(Member.class, moimMember2.getId());
         insertTestMemberInfo(moimMember2, memberGender5, memberBirth5);
+        String accessToken = createTestJwtToken(moimMember2, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
@@ -547,11 +547,11 @@ public class PostCommentControllerTest extends TestObjectCreator {
         createPostComment();
         PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
         String requestBody = om.writeValueAsString(requestDto);
-        String accessToken = createTestJwtToken(notMoimMember, 2000);
 
         // given - 요청자 개인 정보 기입
         notMoimMember = em.find(Member.class, notMoimMember.getId());
         insertTestMemberInfo(notMoimMember, memberGender3, memberBirth3);
+        String accessToken = createTestJwtToken(notMoimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
@@ -574,11 +574,11 @@ public class PostCommentControllerTest extends TestObjectCreator {
         createPostComment();
         PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(prePostComment.getId());
         String requestBody = om.writeValueAsString(requestDto);
-        String accessToken = createTestJwtToken(inactiveMember, 2000);
 
         // given - 요청자 개인 정보 기입
         inactiveMember = em.find(Member.class, inactiveMember.getId());
         insertTestMemberInfo(inactiveMember, memberGender4, memberBirth4);
+        String accessToken = createTestJwtToken(inactiveMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
@@ -671,11 +671,11 @@ public class PostCommentControllerTest extends TestObjectCreator {
         createPostComment();
         PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(1827L);
         String requestBody = om.writeValueAsString(requestDto);
-        String accessToken = createTestJwtToken(moimMember, 2000);
 
         // given - 요청자 개인 정보 기입
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String accessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
@@ -696,13 +696,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(moimMember, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
 
         // given - 요청자 개인 정보 기입
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String accessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -726,9 +726,9 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(moimMember, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+        String accessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -747,9 +747,9 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(moimCreator, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+        String accessToken = createTestJwtToken(moimCreator, 2000);
 
         // given - 요청자 개인 정보 기입
 //        moimCreator = em.find(Member.class, moimCreator.getId());
@@ -777,13 +777,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(moimMember2, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
 
         // given - 요청자 개인 정보 기입
         moimMember2 = em.find(Member.class, moimMember2.getId());
         insertTestMemberInfo(moimMember2, memberGender5, memberBirth5);
+        String accessToken = createTestJwtToken(moimMember2, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -808,13 +808,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(notMoimMember, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
 
         // given - 요청자 개인 정보 기입
         notMoimMember = em.find(Member.class, notMoimMember.getId());
         insertTestMemberInfo(notMoimMember, memberGender3, memberBirth3);
+        String accessToken = createTestJwtToken(notMoimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -839,13 +839,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(inactiveMember, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
 
         // given - 요청자 개인 정보 기입
         inactiveMember = em.find(Member.class, inactiveMember.getId());
         insertTestMemberInfo(inactiveMember, memberGender4, memberBirth4);
+        String accessToken = createTestJwtToken(inactiveMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -870,9 +870,9 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(inactiveMember, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", ""};
+        String accessToken = createTestJwtToken(inactiveMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -898,9 +898,9 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(inactiveMember, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {"", "", prePostComment.getId() + ""};
+        String accessToken = createTestJwtToken(inactiveMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
@@ -925,13 +925,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // given
         createPostComment();
-        String accessToken = createTestJwtToken(moimMember, 2000);
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", 18384 + ""};
 
         // given - 요청자 개인 정보 기입
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String accessToken = createTestJwtToken(moimMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))

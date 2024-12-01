@@ -18,19 +18,8 @@ import static com.peoplein.moiming.model.dto.request.MemberInfoReqDto.*;
 @RequiredArgsConstructor
 public class MemberInfoService {
 
+    private final MemberService memberService;
     private final MemberRepository memberRepository;
-
-
-    @Transactional(readOnly = true)
-    public Member getMemberWithMemberInfo(Long memberId) {
-
-        return memberRepository.findWithMemberInfoById(memberId).orElseThrow(() -> {
-                    log.info("{}, getMemberWithMemberInfo :: {}", this.getClass().getName(), "id: [" + memberId + "] 생성 요청자를 찾을 수 없습니다");
-                    return new MoimingApiException(MEMBER_NOT_FOUND);
-                }
-        );
-    }
-
 
 
     @Transactional
@@ -40,21 +29,15 @@ public class MemberInfoService {
             throw new MoimingApiException(COMMON_INVALID_PARAM);
         }
 
+        // Token Member 가 아닌 실제 Member 의 정보 활용 필요, 영속화하여 변경 사항 저장 필요
+        member = memberService.persistMember(member, false);
+
         if (member.getMemberInfo() != null) {
             throw new MoimingApiException(MEMBER_INFO_ALREADY_REGISTERED);
         }
 
-        member = persistSecurityMember(member.getId()); // 영속화하여 변경사항이 저장되도록 한다
         MemberInfo memberInfo = MemberInfo.saveMemberInfo(member, "", requestDto.getMemberGender(), requestDto.getMemberBirth());
         memberRepository.saveMemberInfo(memberInfo);
-
-    }
-
-    private Member persistSecurityMember(Long memberId) {
-        return memberRepository.findById(memberId).orElseThrow(() -> {
-            log.error("{}, persistSecurityMember :: {}", this.getClass().getName(), "Member 영속화 중 Id [" + memberId + "] 조회 불가 예외 발생, 불가능 상황");
-            return new MoimingApiException(COMMON_INVALID_SITUATION);
-        });
 
     }
 }

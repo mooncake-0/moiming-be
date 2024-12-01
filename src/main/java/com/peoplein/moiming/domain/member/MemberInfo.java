@@ -54,4 +54,11 @@ public class MemberInfo extends BaseEntity {
         return todayYear - birthYear;
     }
 
+    private MemberInfo(Long id) {
+        this.id = id;
+    }
+
+    public static MemberInfo createTokenAuthenticationMemberInfo(Long id) {
+        return new MemberInfo(id);
+    }
 }

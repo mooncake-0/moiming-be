@@ -7,6 +7,7 @@ import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.exception.MoimingAuthApiException;
+import com.peoplein.moiming.exception.MoimingAuthNoRollbackException;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.repository.MemberRepository;
@@ -117,67 +118,67 @@ public class AuthServiceTest extends TestObjectCreator {
     @Test
     void reissueToken_shouldReissueToken_whenRightInfoPassed() {
 
-        // given
-        Member member = mock(Member.class);
+        // given - rtMemberId 같은 경우 stub 안해도 0 으로 들어감
         AuthTokenReqDto reqDto = mock(AuthTokenReqDto.class);
-        String preRefreshToken = "SAVED_REFRESH_TOKEN";
+        Member rtMember = mock(Member.class);
+        String rtValue = "REFRESH_TOKEN";
 
         // given - stub
-        when(reqDto.getToken()).thenReturn(preRefreshToken); // 리프레시 토큰 통과
-        when(memberRepository.findByMemberPhone(any())).thenReturn(Optional.of(member)); // 조회되는 유저 Id
-        when(member.getRefreshToken()).thenReturn(preRefreshToken); // 리프레시 토큰 일치
+        when(reqDto.getToken()).thenReturn(rtValue); // 같음
+        when(memberRepository.findWithRolesById(any())).thenReturn(Optional.of(rtMember));
+        when(rtMember.getRefreshToken()).thenReturn(rtValue); // 같음
 
-        // 현재 함수는 이 함수와 분리되어야 한다
+        // given - spy : 해당 함수는 test 동작과 무관
         doReturn(null).when(authService).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
-        //when
+        // when
         authService.reissueToken(reqDto);
 
         // then
+        verify(rtMember, times(0)).changeRefreshToken(any()); // RT 초기화는 이루어지지 않는다 (사실 이루어지긴 하는데, issue 함수를 배제했을 경우이기 때문)
+        verify(tokenProvider, times(1)).verifyMemberId(any(), any());
         verify(authService, times(1)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
     }
-
 
     @Test
     void reissueToken_shouldThrowException_whenUserNotFound_byMoimingApiException() {
 
         // given
-        AuthTokenReqDto reqDto = new AuthTokenReqDto();
-        reqDto.setGrantType("REFRESH_TOKEN");
-        reqDto.setToken(refreshToken);
+        AuthTokenReqDto reqDto = mock(AuthTokenReqDto.class);
 
         // given - stub
-        when(tokenProvider.verifyMemberId(eq(JWT_RT), any())).thenReturn(memberPhone);
-        when(memberRepository.findByMemberPhone(any())).thenReturn(Optional.empty()); // 아무 유저도 찾지 못했을 경우
+        when(memberRepository.findWithRolesById(any())).thenReturn(Optional.empty());
 
         // when
-        // then // Exception 이 제대로 터지는지 확인한다
         assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingApiException.class);
 
-    }
+        // then
+        verify(tokenProvider, times(1)).verifyMemberId(any(), any());
+        verify(authService, times(0)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
+    }
 
     @Test
     void reissueToken_shouldRemoveSavedTokenAndThrowException_whenTokenNotMatch_byMoimingAuthApiException() {
 
         // given
-        Role testRole = makeTestRole(RoleType.USER);
-        Member testMember = makeTestMember(memberPhone, nickname, ci, testRole);
-        testMember.changeRefreshToken(refreshToken);
-
-        AuthTokenReqDto reqDto = new AuthTokenReqDto();
-        reqDto.setGrantType("REFRESH_TOKEN");
-        reqDto.setToken("DIFF_" + refreshToken); // 다른 Refresh Token 으로 요청한다
+        AuthTokenReqDto reqDto = mock(AuthTokenReqDto.class);
+        Member rtMember = mock(Member.class);
+        String rtValue = "REFRESH_TOKEN";
 
         // given - stub
-        when(tokenProvider.verifyMemberId(eq(JWT_RT), any())).thenReturn(memberPhone);
-        when(memberRepository.findByMemberPhone(any())).thenReturn(Optional.of(testMember)); // Mocked Member 반환
+        when(reqDto.getToken()).thenReturn(rtValue); // 같음
+        when(memberRepository.findWithRolesById(any())).thenReturn(Optional.of(rtMember));
+        when(rtMember.getRefreshToken()).thenReturn("NOT_SAME_TOKEN_SAVED"); // 같음
 
         // when
+        assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingAuthNoRollbackException.class);
+
         // then
-        assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingAuthApiException.class);
-        assertThat(testMember.getRefreshToken()).isEmpty(); // REFRESH TOKEN 값을 삭제했음을 검증한다
+        verify(rtMember, times(1)).changeRefreshToken(any());
+        verify(tokenProvider, times(1)).verifyMemberId(any(), any());
+        verify(authService, times(0)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
     }
 
@@ -186,22 +187,22 @@ public class AuthServiceTest extends TestObjectCreator {
     void reissueToken_shouldThrowException_whenMemberNotHaveToken_byMoimingAuthApiException() {
 
         // given
-        Role testRole = makeTestRole(RoleType.USER);
-        Member testMember = makeTestMember(memberPhone, nickname, ci, testRole);
-        testMember.changeRefreshToken(""); // Member에 저장된 RT가 없음
-
-        AuthTokenReqDto reqDto = new AuthTokenReqDto();
-        reqDto.setGrantType("REFRESH_TOKEN");
-        reqDto.setToken(refreshToken); // 다른 Refresh Token 으로 요청한다
+        AuthTokenReqDto reqDto = mock(AuthTokenReqDto.class);
+        Member rtMember = mock(Member.class);
+        String rtValue = "REFRESH_TOKEN";
 
         // given - stub
-        when(tokenProvider.verifyMemberId(eq(JWT_RT), any())).thenReturn(memberPhone);
-        when(memberRepository.findByMemberPhone(any())).thenReturn(Optional.of(testMember)); // Mocked Member 반환
+        when(reqDto.getToken()).thenReturn(rtValue); // 같음
+        when(memberRepository.findWithRolesById(any())).thenReturn(Optional.of(rtMember));
+        when(rtMember.getRefreshToken()).thenReturn("NOT_SAME_TOKEN_SAVED"); // 같음
 
         // when
+        assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingAuthNoRollbackException.class);
+
         // then
-        assertThatThrownBy(() -> authService.reissueToken(reqDto)).isInstanceOf(MoimingAuthApiException.class);
-        assertThat(testMember.getRefreshToken()).isEmpty();
+        verify(rtMember, times(1)).changeRefreshToken(any());
+        verify(tokenProvider, times(1)).verifyMemberId(any(), any());
+        verify(authService, times(0)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
 
     }
 

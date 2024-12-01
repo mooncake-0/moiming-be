@@ -191,7 +191,7 @@ public class DevDbInit {
                 , 30, new Area(AreaValue.STATE_GWANGJU, AreaValue.CITY_GWANGJU_BUK), List.of(cAMITY, PARENTING)
                 , member2, LocalDateTime.of(2024, 4, 23, 0, 0, 0), ageToYearConverter(50), ageToYearConverter(25), MemberGender.F, 16, 3);
 
-        createMoimLogic("모이밍", "모이밍을 만드는 이상한 사람들의 모임입니다. 될 때까지 하는 모이밍 화이팅!"
+        createMoimLogic("모임의 시작과 끝까지, 모이밍", "모이밍을 만드는 이상한 사람들의 모임입니다. 될 때까지 하는 모이밍 화이팅!"
                 , 10, new Area(AreaValue.STATE_SEOUL, AreaValue.CITY_GANGNAM), List.of(cJOB, BUSINESS)
                 , member, LocalDateTime.of(2024, 5, 1, 0, 0, 0), ageToYearConverter(40), ageToYearConverter(25), MemberGender.N, 50, 8);
 

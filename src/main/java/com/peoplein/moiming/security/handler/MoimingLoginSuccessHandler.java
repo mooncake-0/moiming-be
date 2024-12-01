@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -43,9 +44,13 @@ public class MoimingLoginSuccessHandler implements AuthenticationSuccessHandler 
 
         Member member = ((SecurityMember) authentication.getPrincipal()).getMember();
 
-        String fcmToken = "";
+        // 응답용 FCM Token 을 전달한다 (의미 없지만 확인용)
+        String fcmToken = member.getFcmToken();
         if (authentication instanceof JwtAuthenticationToken) {
-            fcmToken = ((JwtAuthenticationToken) authentication).getFcmToken();
+            String loginFcmToken = ((JwtAuthenticationToken) authentication).getFcmToken();
+            if (StringUtils.hasText(loginFcmToken)) { // fcm token 이 로그인시 전달되었을 경우 전달된다
+                fcmToken = loginFcmToken;
+            }
         }
 
         TokenRespDto tokenRespDto = authService.issueTokensAndUpdateColumns(false, member, fcmToken);

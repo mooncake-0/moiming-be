@@ -27,7 +27,7 @@ public class MoimReqDto {
         private String moimName;
 
         @NotEmpty
-        @Size(min = 10, max = 5000)
+        @Size(min = 10, max = 2000)
         private String moimInfo;
 
         @NotEmpty
@@ -40,6 +40,7 @@ public class MoimReqDto {
         @Max(100)
         private int maxMember;
 
+        @NotNull
         @JsonProperty("joinRule")
         private JoinRuleCreateReqDto joinRuleDto;
 
@@ -58,11 +59,9 @@ public class MoimReqDto {
         public static class JoinRuleCreateReqDto {
 
             @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
-            @Min(value = 1000, message = "v0.1.5 - 나이값이 아닌 년생으로 변경")
             private Integer ageMax;
 
             @NotNull(message = "빈 값 금지, ageRule=false 시 -1 로 전달")
-            @Min(value = 1000, message = "v0.1.5 - 나이값이 아닌 년생으로 변경")
             private Integer ageMin;
 
             @NotNull
@@ -88,12 +87,16 @@ public class MoimReqDto {
         @Size(min = 5, max = 50)
         private String moimName;
 
-        @Size(min = 10, max = 5000)
+        @Size(min = 10, max = 2000)
         private String moimInfo;
 
         private String areaState;
 
         private String areaCity;
+
+        @Min(3)
+        @Max(100)
+        private Integer maxMember;
 
         @Size(min = 2, max = 2, message = "카테고리는 수정될때도 부모/자식 두 개의 값이 들어와야 합니다")
         @JsonProperty("categories")
@@ -116,18 +119,12 @@ public class MoimReqDto {
         private Long moimId;
 
         @NotNull
-        private Boolean editingJoinRule;
-
-        @Min(3)
-        @Max(100)
-        private Integer maxMember;
-
-        @Min(value = 1000, message = "v0.1.5 - 나이값이 아닌 년생으로 변경")
         private Integer ageMax;
 
-        @Min(value = 1000, message = "v0.1.5 - 나이값이 아닌 년생으로 변경")
+        @NotNull
         private Integer ageMin;
 
+        @NotNull
         private MemberGender memberGender;
 
     }

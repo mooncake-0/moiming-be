@@ -60,9 +60,6 @@ public class AuthControllerTest extends TestObjectCreator {
     private EntityManager em;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private MemberRepository memberRepository;
 
     private Member testMember;
@@ -74,12 +71,13 @@ public class AuthControllerTest extends TestObjectCreator {
     void dataSu() {
 
         Role testRole = makeTestRole(RoleType.USER);
-        testMember = makeTestMember(memberPhone, nickname, ci, testRole);
-        savedToken = createTestJwtToken(testMember, 2000);
-        testMember.changeRefreshToken(savedToken); // reissue 단 test 를 위해 Test token 을 주입해둔다
+        em.persist(testRole);
 
-        roleRepository.save(testRole);
-        memberRepository.save(testMember);
+        testMember = makeTestMember(memberPhone, nickname, ci, testRole);
+        em.persist(testMember);
+
+        savedToken = createTestJwtToken(testMember, 3000);
+        testMember.changeRefreshToken(savedToken); // reissue 단 test 를 위해 Test token 을 주입해둔다
 
         em.flush();
         em.clear();
@@ -437,7 +435,6 @@ public class AuthControllerTest extends TestObjectCreator {
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN)
                 .content(requestBody).contentType(MediaType.APPLICATION_JSON));
 
-
         // then
         resultActions.andExpect(status().isOk());
         resultActions.andExpect(jsonPath("$.data.accessToken").exists());
@@ -457,7 +454,6 @@ public class AuthControllerTest extends TestObjectCreator {
         reqDto.setGrantType("REFRESH_TOKEN");
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
         String requestBody = om.writeValueAsString(reqDto);
-
 
         // when
         ResultActions resultActions = mvc.perform(post(PATH_AUTH_REISSUE_TOKEN).content(requestBody).contentType(MediaType.APPLICATION_JSON));
@@ -482,7 +478,7 @@ public class AuthControllerTest extends TestObjectCreator {
         reqDto.setToken(savedToken); // 기존 토큰을 가지고 간다
 
         String requestData = om.writeValueAsString(reqDto);
-        Thread.sleep(3000); // 토큰을 만료시키자 (가끔 만료 안돼서 오류나서, 충분한 시간을 줌)
+        Thread.sleep(4000); // 토큰을 만료시키자 (가끔 만료 안돼서 오류나서, 충분한 시간을 줌)
 
 
         // when

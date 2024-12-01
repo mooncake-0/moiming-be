@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class MemberServiceTest {
 
+    @Spy
     @InjectMocks
     private MemberService memberService;
 
@@ -40,6 +42,7 @@ public class MemberServiceTest {
 
         // given - stub
         when(encoder.matches(any(), any())).thenReturn(true);
+        doReturn(member).when(memberService).persistMember(any(), anyBoolean()); // 동작에 큰 영향 없어야 함
 
         // when
         memberService.confirmPw(password, member);
@@ -70,6 +73,7 @@ public class MemberServiceTest {
         Member member = mock(Member.class);
 
         // given - stub
+        doReturn(member).when(memberService).persistMember(any(), anyBoolean()); // 동작에 큰 영향 없어야 함
         when(encoder.matches(any(), any())).thenReturn(false);
 
         // when
