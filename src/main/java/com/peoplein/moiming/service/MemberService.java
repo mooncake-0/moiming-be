@@ -9,6 +9,7 @@ import com.peoplein.moiming.repository.MoimMemberRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.security.token.logout.LogoutTokenManager;
+import com.peoplein.moiming.service.util.MemberPasswordManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -34,6 +35,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final MoimingTokenProvider moimingTokenProvider;
     private final LogoutTokenManager logoutTokenManager;
+    private final MemberPasswordManager pwManager;
 
 
     public Member persistMember(Member member, boolean joinInfo) {
@@ -146,7 +148,7 @@ public class MemberService {
             throw new MoimingApiException(MEMBER_PW_INCORRECT); // 현재 비밀번호가 맞는지 확인
         }
 
-        String encodedPw = passwordEncoder.encode(newPw);
+        String encodedPw = pwManager.encodePwWhenUpdate(newPw, member.getPassword());
         member.changePassword(encodedPw);
 
     }

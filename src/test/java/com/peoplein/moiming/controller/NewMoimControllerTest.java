@@ -136,7 +136,7 @@ public class NewMoimControllerTest extends TestObjectCreator {
     }
 
 
-    void suData() {
+    void suData() throws Exception {
 
         Role role = makeTestRole(RoleType.USER);
         em.persist(role);
@@ -181,18 +181,21 @@ public class NewMoimControllerTest extends TestObjectCreator {
         // FLUSH 를 통해 생성 순서 지정 (1>5>2>4>3
         em.persist(moim1);
         em.flush();
+        Thread.sleep(100);
 
         em.persist(moim5);
         em.flush();
+        Thread.sleep(100);
 
         em.persist(moim2);
         em.flush();
+        Thread.sleep(100);
 
         em.persist(moim4);
         em.flush();
+        Thread.sleep(100);
 
         em.persist(moim3);
-
         em.flush();
         em.clear();
     }

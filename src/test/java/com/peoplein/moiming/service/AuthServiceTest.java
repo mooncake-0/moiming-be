@@ -12,6 +12,7 @@ import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.RoleRepository;
+import com.peoplein.moiming.service.util.MemberPasswordManager;
 import com.peoplein.moiming.support.TestObjectCreator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +48,7 @@ public class AuthServiceTest extends TestObjectCreator {
     private AuthService authService;
 
     @Mock
-    private BCryptPasswordEncoder passwordEncoder;
+    private MemberPasswordManager pwManager;
 
     @Mock
     private RoleRepository roleRepository;
@@ -89,6 +90,7 @@ public class AuthServiceTest extends TestObjectCreator {
         verify(memberRepository, times(1)).saveMemberSetting(any());
         verify(policyAgreeService, times(1)).createPolicyAgree(any(), any());
         verify(authService, times(1)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
+        verify(pwManager, times(1)).encodePwWhenCreate(any());
 
     }
 
@@ -111,6 +113,7 @@ public class AuthServiceTest extends TestObjectCreator {
         verify(memberRepository, times(0)).save(any());
         verify(policyAgreeService, times(0)).createPolicyAgree(any(), any());
         verify(authService, times(0)).issueTokensAndUpdateColumns(anyBoolean(), any(), any());
+        verify(pwManager, times(1)).encodePwWhenCreate(any());
 
     }
 
@@ -302,7 +305,7 @@ public class AuthServiceTest extends TestObjectCreator {
         authService.resetPassword(reqDto);
 
         // then
-        verify(passwordEncoder, times(1)).encode(any());
+        verify(pwManager, times(1)).encodePwWhenUpdate(any(), any());
         verify(member, times(1)).changePassword(any());
 
     }
@@ -323,6 +326,7 @@ public class AuthServiceTest extends TestObjectCreator {
         // when
         // then
         assertThatThrownBy(() -> authService.resetPassword(reqDto)).isInstanceOf(MoimingApiException.class);
+        verify(pwManager, times(0)).encodePwWhenUpdate(any(), any());
 
     }
 

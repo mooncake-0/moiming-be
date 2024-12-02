@@ -632,7 +632,7 @@ public class AuthControllerTest extends TestObjectCreator {
         SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
         String verificationNumber = smsVerification.getVerificationNumber();
         em.persist(smsVerification);
-        String newPassword = "NEW_PASSWORD";
+        String newPassword = "2345qwer";
         AuthResetPwReqDto reqDto = new AuthResetPwReqDto(smsVerification.getId(), newPassword);
         String requestBody = om.writeValueAsString(reqDto);
 
@@ -670,7 +670,7 @@ public class AuthControllerTest extends TestObjectCreator {
         SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
         String verificationNumber = smsVerification.getVerificationNumber();
         em.persist(smsVerification);
-        String newPassword = "NEW_PASSWORD";
+        String newPassword = "2345qwer";
         AuthResetPwReqDto reqDto = new AuthResetPwReqDto(1234L, newPassword);
         String requestBody = om.writeValueAsString(reqDto);
 
@@ -700,7 +700,6 @@ public class AuthControllerTest extends TestObjectCreator {
         SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
         String verificationNumber = smsVerification.getVerificationNumber();
         em.persist(smsVerification);
-        String newPassword = "NEW_PASSWORD";
         AuthResetPwReqDto reqDto = new AuthResetPwReqDto(null, "");
         String requestBody = om.writeValueAsString(reqDto);
 
@@ -734,7 +733,7 @@ public class AuthControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
-        String newPassword = "NEW_PASSWORD";
+        String newPassword = "2345qwer";
         AuthResetPwReqDto reqDto = new AuthResetPwReqDto(smsVerification.getId(), newPassword);
         String requestBody = om.writeValueAsString(reqDto);
 
@@ -749,7 +748,77 @@ public class AuthControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(AUTH_SMS_NOT_VERIFIED.getErrCode()));
     }
 
+    // 실패 - 비밀번호 형식 오류
+    @Test
+    void resetPassword_shouldReturn400_whenPwFormatNotMatch() throws Exception {
 
-    // TODO :: 실패 - 비밀번호 형식 오류
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        String newPassword = "ONLY_ENGLISH_PW";
+        AuthResetPwReqDto reqDto = new AuthResetPwReqDto(smsVerification.getId(), newPassword);
+        String requestBody = om.writeValueAsString(reqDto);
 
+        // given - SMS 가 인증되어야 한다
+        smsVerification.confirmVerification(VerificationType.FIND_PW, verificationNumber);
+        em.flush();
+        em.clear();
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_CONSTRAINT_INVALID.getErrCode()));
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        Member member = em.find(Member.class, testMember.getId());
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        boolean matches = encoder.matches(password, member.getPassword()); // 기존 비밀번호인 것 확인
+        assertTrue(matches);
+
+    }
+
+    // 실패 - 비밀번호 이전 것과 동일
+    @Test
+    void resetPassword_shouldReturn400_whenPwSameAsBefore() throws Exception {
+
+        // given
+        SmsVerification smsVerification = SmsVerification.createSmsVerification(testMember.getId(), memberPhone, VerificationType.FIND_PW);
+        String verificationNumber = smsVerification.getVerificationNumber();
+        em.persist(smsVerification);
+        String newPassword = password;
+        AuthResetPwReqDto reqDto = new AuthResetPwReqDto(smsVerification.getId(), newPassword);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // given - SMS 가 인증되어야 한다
+        smsVerification.confirmVerification(VerificationType.FIND_PW, verificationNumber);
+        em.flush();
+        em.clear();
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_AUTH_RESET_PW)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_SITUATION.getErrCode()));
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        Member member = em.find(Member.class, testMember.getId());
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        boolean matches = encoder.matches(password, member.getPassword()); // 기존 비밀번호인 것 확인
+        assertTrue(matches);
+
+    }
 }

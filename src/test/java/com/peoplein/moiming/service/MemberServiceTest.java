@@ -4,6 +4,7 @@ package com.peoplein.moiming.service;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MemberRepository;
+import com.peoplein.moiming.service.util.MemberPasswordManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,9 @@ public class MemberServiceTest {
 
     @Mock
     private MemberRepository memberRepository;
+
+    @Mock
+    private MemberPasswordManager pwManager;
 
 
     @Test
@@ -166,13 +170,13 @@ public class MemberServiceTest {
         // given - stub
         when(memberRepository.findById(any())).thenReturn(Optional.of(member));
         when(encoder.matches(any(), any())).thenReturn(true);
-        when(encoder.encode(any())).thenReturn("ANY");
 
         // when
         memberService.changePw(prePw, newPw, member);
 
         // then
-        verify(member, times(1)).changePassword(anyString());
+        verify(pwManager, times(1)).encodePwWhenUpdate(any(), any());
+        verify(member, times(1)).changePassword(any());
 
     }
 
@@ -208,6 +212,8 @@ public class MemberServiceTest {
         // when
         // then
         assertThatThrownBy(() -> memberService.changePw(prePw, newPw, member)).isInstanceOf(MoimingApiException.class);
+        verify(pwManager, times(0)).encodePwWhenUpdate(any(), any());
+        verify(member, times(0)).changePassword(any());
 
     }
 }

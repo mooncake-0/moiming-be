@@ -19,6 +19,7 @@ import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.security.token.TokenDto;
 import com.peoplein.moiming.security.token.logout.LogoutTokenManager;
 import com.peoplein.moiming.service.util.MemberNicknameCreator;
+import com.peoplein.moiming.service.util.MemberPasswordManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -51,7 +52,7 @@ public class AuthService {
     private final PolicyAgreeService policyAgreeService;
     private final SmsVerificationService smsVerificationService;
 
-    private final PasswordEncoder passwordEncoder;
+    private final MemberPasswordManager pwManager;
     private final MoimingTokenProvider tokenProvider;
     private final LogoutTokenManager logoutTokenManager;
 
@@ -106,7 +107,7 @@ public class AuthService {
         );
 
         // member 비밀번호를 변경한다
-        String encodedPw = passwordEncoder.encode(requestDto.getChangePassword());
+        String encodedPw = pwManager.encodePwWhenUpdate(requestDto.getChangePassword(), member.getPassword());
         member.changePassword(encodedPw);
 
     }
@@ -122,7 +123,7 @@ public class AuthService {
 
         SmsVerification smsVerification = smsVerificationService.confirmAndGetValidSmsVerification(SIGN_UP, requestDto.getSmsVerificationId());
 
-        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        String encodedPassword = pwManager.encodePwWhenCreate(requestDto.getPassword());
         Role roleUser = roleRepository.findByRoleType(RoleType.USER);
 
         if (!smsVerification.getMemberPhoneNumber().equals(requestDto.getMemberPhone())) {
@@ -166,7 +167,7 @@ public class AuthService {
         }
 
 
-        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+        String encodedPassword = pwManager.encodePwWhenCreate(requestDto.getPassword());
         Role roleUser = roleRepository.findByRoleType(RoleType.USER);
         Member signUpMember = Member.createMember(requestDto.getMemberPhone(), encodedPassword, requestDto.getFcmToken(), null, roleUser);
 
