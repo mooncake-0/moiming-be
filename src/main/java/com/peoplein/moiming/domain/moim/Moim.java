@@ -62,6 +62,7 @@ public class Moim extends BaseEntity {
 
     private String imgUrl;
 
+    private boolean reported;
     private LocalDateTime deletedAt;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST) // ID 매핑과 동시에 Persist 를 걸어 set 시점에 자동으로 persist 시켜준다

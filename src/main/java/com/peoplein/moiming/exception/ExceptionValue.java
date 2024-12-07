@@ -1,5 +1,5 @@
 package com.peoplein.moiming.exception;
-import com.google.api.Http;
+
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -12,6 +12,8 @@ public enum ExceptionValue {
     COMMON_FORBIDDEN_WORDS_FOUND(HttpStatus.BAD_REQUEST.value(), "C003", "허용되지 않은 용어가 포함되어 있습니다"),
     COMMON_MAPPABLE_ENUM_VALUE(HttpStatus.BAD_REQUEST.value(), "C004", "인 앱에서 활용중인 고정값을 매핑할 수 없습니다"),
     COMMON_CONSTRAINT_INVALID(HttpStatus.BAD_REQUEST.value(), "C005", "데이터 저장 시도시 위반된 제약 존재"),
+    COMMON_DELETED_RESOURCE(HttpStatus.GONE.value(), "C006", "삭제된 데이터 입니다"),
+    COMMON_REPORTED_CONTENT(HttpStatus.UNPROCESSABLE_ENTITY.value(), "C007", "신고 처리가 완료된 데이터입니다"),
     COMMON_INVALID_SITUATION(HttpStatus.UNPROCESSABLE_ENTITY.value(), "C999", "잘못된 상황이 발생했습니다. 서버 측 로그 확인 필요"),
 
     // SEARCH DOMAIN
@@ -80,7 +82,7 @@ public enum ExceptionValue {
     private String errCode;
     private String errMsg;
 
-    ExceptionValue(int status, String errCode, String errMsg){
+    ExceptionValue(int status, String errCode, String errMsg) {
         this.status = status;
         this.errCode = errCode;
         this.errMsg = errMsg;

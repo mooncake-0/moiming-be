@@ -1,5 +1,6 @@
 package com.peoplein.moiming.domain;
 
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.file.RelatedFile;
 import com.peoplein.moiming.domain.member.Member;
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.peoplein.moiming.exception.ExceptionValue.MOIM_ACT_NOT_AUTHORIZED;
+import static com.peoplein.moiming.exception.ExceptionValue.*;
 
 @Entity
 @Getter
@@ -40,6 +41,8 @@ public class MoimPost extends BaseEntity {
     private boolean hasFiles;
     private int commentCnt;
     private Long updaterId;
+    private ContentStatus contentStatus; // 초기화는 ACTIVE 로
+    private boolean hasDeleted;
 
     /*
      연관관계
@@ -62,9 +65,6 @@ public class MoimPost extends BaseEntity {
 
     private MoimPost(String postTitle, String postContent, MoimPostCategory moimPostCategory, boolean hasPrivateVisibility, boolean hasFiles, Moim moim, Member member) {
 
-        checkIllegalObjectArguments(moimPostCategory, moim, member);
-        checkIllegalStringArguments(postTitle, postContent);
-
         this.postTitle = postTitle;
         this.postContent = postContent;
         this.moimPostCategory = moimPostCategory;
@@ -77,6 +77,8 @@ public class MoimPost extends BaseEntity {
 
         // 초기화.
         this.commentCnt = 0;
+        this.contentStatus = ContentStatus.ACTIVE;
+        this.hasDeleted = false;
     }
 
     public void addPostComment(PostComment postComment) {
@@ -122,17 +124,14 @@ public class MoimPost extends BaseEntity {
 
 
     private void changePostTitle(String postTitle) {
-        checkWrongParam(postTitle);
         this.postTitle = postTitle;
     }
 
     private void changePostContent(String postContent) {
-        checkWrongParam(postContent);
         this.postContent = postContent;
     }
 
     private void changePostCategory(MoimPostCategory moimPostCategory) {
-        checkWrongParam(moimPostCategory);
         this.moimPostCategory = moimPostCategory;
     }
 
@@ -159,7 +158,6 @@ public class MoimPost extends BaseEntity {
 
     }
 
-
     public void addCommentCnt() {
         this.commentCnt += 1;
     }
@@ -168,30 +166,30 @@ public class MoimPost extends BaseEntity {
         this.commentCnt -= 1;
     }
 
-    private void checkWrongParam(Object obj) {
-        if (obj == null) {
-            throw new MoimingApiException(ExceptionValue.COMMON_INVALID_PARAM);
-        }
 
+    public void deletePost(Long deleterId) {
+        this.hasDeleted = true;
+        this.updaterId = deleterId;
     }
 
-    // Attribute - Class 내 포함 변수
-    // Parameter - String name 같은 전달할 녀석들을 의미
-    // Arguments - 실제 Code 에서 전달되는 값을 말한다. name = "Test" 면 "Test" 를 말함
-    private void checkIllegalObjectArguments(Object... objs) {
-        for (int i = 0; i < objs.length; i++) {
-            if (objs[i] == null) {
-                throw new IllegalArgumentException(i + 1 + "번째 값이 잘못되었습니다");
-            }
+    public void checkInactivePost() { // checkDeleted 변경
+
+        if (this.contentStatus == ContentStatus.HIDDEN) {
+            String l = "[" + this.id + "] 는 신고 처리가 완료된 게시물입니다";
+            log.warn("{} checkInactivePost :: {}", this.getClass().getName(), l);
+            throw new MoimingApiException(COMMON_REPORTED_CONTENT, l);
+        }
+
+        if (this.hasDeleted) {
+            String l = "[" + this.id + "] 는 삭제된 게시물입니다";
+            log.warn("{} checkInactivePost :: {}", this.getClass().getName(), l);
+            throw new MoimingApiException(COMMON_DELETED_RESOURCE, l);
         }
     }
 
-    private void checkIllegalStringArguments(String... strs) {
-        for (int i = 0; i < strs.length; i++) {
-            if (!StringUtils.hasText(strs[i])) {
-                throw new IllegalArgumentException(i + 1 + "번째 값이 잘못되었습니다");
-            }
-        }
+    public void changeContentStatus(ContentStatus contentStatus, Long updaterId) {
+        this.contentStatus = contentStatus;
+        this.updaterId = updaterId;
     }
 
 }

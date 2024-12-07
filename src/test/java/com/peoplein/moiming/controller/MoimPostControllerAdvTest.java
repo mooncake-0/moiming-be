@@ -194,6 +194,104 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     }
 
+    // 성공 :: MoimMember 가 조회를 요청하는데 삭제된 댓글들이 포함되어 있음
+    @Test
+    void getMoimPostDetail_shouldReturn200WithResponse_whenSomeCommentsAreDeleted() throws Exception {
+
+        // given
+        prepareMoimActivity();
+        String[] beforeParams = {"moimId", "moimPostId"};
+        String[] afterParams = {createdMoim.getId() + "", creatorPost.getId() + ""};
+
+        // given - 삭제된 댓글 데이터 준비 (2개는 정상, 2개는 삭제)
+        creatorPost = em.find(MoimPost.class, creatorPost.getId()); // comment count 반영
+        int preCmtCnt = creatorPost.getCommentCnt();
+        PostComment deletedComment = makePostComment(moimMember, creatorPost, 0, null);
+        PostComment deletedCommentBaby = makePostComment(moimMember, creatorPost, 1, deletedComment);
+        PostComment normalComment = makePostComment(moimMember, creatorPost, 0, null);
+        PostComment normalCommentBabyDel = makePostComment(moimMember, creatorPost, 1, normalComment);
+
+        em.persist(deletedComment);
+        em.persist(deletedCommentBaby);
+        em.persist(normalComment);
+        em.persist(normalCommentBabyDel);
+
+        deletedComment.deleteComment(100L);
+        normalCommentBabyDel.deleteComment(100L);
+
+        em.flush();
+        em.clear();
+
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(creatorPost.isHasPrivateVisibility()));
+        resultActions.andExpect(jsonPath("$.data.postCategory").value(creatorPost.getMoimPostCategory().getValue()));
+        resultActions.andExpect(jsonPath("$.data.commentCnt").value((preCmtCnt + 4 - 2))); // 원래 7개, 4개의 댓글이 추가됨,  2개의 댓글은 삭제됨
+        resultActions.andExpect(jsonPath("$.data.postComments").isArray());
+        resultActions.andExpect(jsonPath("$.data.postComments", hasSize(5))); // 부모 댓글이 두 개 추가됨!
+
+    }
+
+    // 성공 :: MoimMember 가 요청한 게시물에 삭제된 댓글 / 신고 처리된 댓글들 존재
+    @Test
+    void getMoimPostDetail_shouldReturn200_whenDeletedOrHiddenCommentsInPost() throws Exception {
+
+        // given
+        prepareMoimActivity();
+        String[] beforeParams = {"moimId", "moimPostId"};
+        String[] afterParams = {createdMoim.getId() + "", creatorPost.getId() + ""};
+
+        // given - 삭제된 댓글 데이터 준비 (삭제, 정상, 정상, 삭제, 정상, 신고숨김)
+        creatorPost = em.find(MoimPost.class, creatorPost.getId()); // comment count 반영
+        PostComment deletedComment = makePostComment(moimMember, creatorPost, 0, null);
+        PostComment deletedCommentBaby = makePostComment(moimMember, creatorPost, 1, deletedComment);
+        PostComment normalComment = makePostComment(moimMember, creatorPost, 0, null);
+        PostComment normalCommentBabyDel = makePostComment(moimMember, creatorPost, 1, normalComment);
+        PostComment normalComment2 = makePostComment(moimMember, creatorPost, 0, null);
+        PostComment normalComment2BabyHidden = makePostComment(moimMember, creatorPost, 1, normalComment2);
+
+        em.persist(deletedComment);
+        em.persist(deletedCommentBaby);
+        em.persist(normalComment);
+        em.persist(normalCommentBabyDel);
+        em.persist(normalComment2);
+        em.persist(normalComment2BabyHidden);
+
+        deletedComment.deleteComment(100L);
+        normalCommentBabyDel.deleteComment(100L);
+        normalComment2BabyHidden.changeContentStatus(ContentStatus.HIDDEN, 100L);
+
+        em.flush();
+        em.clear();
+
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("result = " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data.hasPrivateVisibility").value(creatorPost.isHasPrivateVisibility()));
+        resultActions.andExpect(jsonPath("$.data.postCategory").value(creatorPost.getMoimPostCategory().getValue()));
+        resultActions.andExpect(jsonPath("$.data.commentCnt").value(7 + 6 - 3));
+        resultActions.andExpect(jsonPath("$.data.postComments").isArray());
+        resultActions.andExpect(jsonPath("$.data.postComments", hasSize(6))); // 부모 댓글이 세 개 추가됨!
+        resultActions.andExpect(jsonPath("$.data.postComments[?(@.parentCommentId == " + deletedComment.getId() + ")].deleted").value(true));
+        resultActions.andExpect(jsonPath("$.data.postComments[?(@.parentCommentId == " + deletedComment.getId() + ")].content").value(PostComment.DELETED_CONTENT_DISPLAY));
+        resultActions.andExpect(jsonPath("$.data.postComments[?(@.parentCommentId == " + normalComment.getId() + ")].childComments[0].deleted").value(true));
+        resultActions.andExpect(jsonPath("$.data.postComments[?(@.parentCommentId == " + normalComment.getId() + ")].childComments[0].content").value("모임 관리자 혹은 작성자로 인해 삭제처리된 댓글입니다"));
+        resultActions.andExpect(jsonPath("$.data.postComments[?(@.parentCommentId == " + normalComment2.getId() + ")].childComments[0].reportHidden").value(true));
+        resultActions.andExpect(jsonPath("$.data.postComments[?(@.parentCommentId == " + normalComment2.getId() + ")].childComments[0].content").value(PostComment.REPORTED_CONTENT_DISPLAY));
+
+    }
 
     // 성공 :: MoimMember 가 private 한 게시물을 요청
     @Test
@@ -223,6 +321,31 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     }
 
+    // 실패 :: MoimMember 가 신고 처리 완료된 게시물을 요청
+    @Test
+    void getMoimPostDetail_shouldReturn422_whenReportHiddenPost() throws Exception {
+
+        // given
+        prepareMoimActivity();
+        MoimPost anyPost = makeMoimPost(createdMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.persist(anyPost);
+        em.flush();
+        em.clear();
+
+        String[] beforeParams = {"moimId", "moimPostId"};
+        String[] afterParams = {createdMoim.getId() + "", anyPost.getId() + ""};
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then - 데이터 모두 그대로임을 확인
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // 성공 :: IBF 가 공개된 게시물 요청
     @Test
@@ -258,6 +381,31 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     }
 
+    // 실패 :: MoimMember 가 삭제된 게시물 조회 요청
+    @Test
+    void getMoimPostDetail_shouldReturn410_whenDeletedPost() throws Exception {
+
+        // given
+        prepareMoimActivity();
+        MoimPost anyPost = makeMoimPost(createdMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost.deletePost(1000L); // 상관없음
+        em.persist(anyPost);
+        em.flush();
+        em.clear();
+
+        String[] beforeParams = {"moimId", "moimPostId"};
+        String[] afterParams = {createdMoim.getId() + "", anyPost.getId() + ""};
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_DETAIL, beforeParams, afterParams))
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then - 데이터 모두 그대로임을 확인
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+    }
 
     // 실패 :: IBF 가 private 한 게시물 요청
     @Test
@@ -413,6 +561,71 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     }
 
+    // updatePost - 실패 : 삭제된 게시물을 수정 시도
+    @Test
+    void updatePost_shouldReturn410_wheDeletedPost() throws Exception {
+
+        // given
+        prepareMoimActivity();
+
+        MoimPost anyPost = makeMoimPost(createdMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost.deletePost(1000L); // 상관없음
+        em.persist(anyPost);
+        em.flush();
+        em.clear();
+
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(anyPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // given - 요청자 개인 정보 등록 완료
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+    }
+
+    // updatePost - 실패 : 신고로 숨김 처리된 게시물 조회 시도
+    @Test
+    void updatePost_shouldReturn422_whenReportHiddenPost() throws Exception {
+
+        // given
+        prepareMoimActivity();
+
+        MoimPost anyPost = makeMoimPost(createdMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.persist(anyPost);
+        em.flush();
+        em.clear();
+
+        MoimPostUpdateReqDto requestDto = new MoimPostUpdateReqDto(anyPost.getId(), false, "새로운 제목", null, MoimPostCategory.REVIEW.getValue(), null, null, null);
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // given - 요청자 개인 정보 등록 완료
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_POST_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // updatePost - 실패 : 개인 정보 미등록 회원의 요청
     @Test
@@ -968,7 +1181,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
     // 삭제 VERIFY 필요
     // deletePost - 성공: 일반 모임원이 자기 것을 시도
     @Test
-    void deletePost_shouldReturn200_whenMoimMemberReqToDeleteOwnPost() throws Exception {
+    void deletePost_shouldReturn200AndMarkDeleted_whenMoimMemberReqToDeleteOwnPost() throws Exception {
 
         // given
         prepareMoimActivity();
@@ -993,11 +1206,12 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         em.clear();
 
         MoimPost moimPost = em.find(MoimPost.class, moimMemberPost.getId());
-        assertNull(moimPost);
+        assertNotNull(moimPost); // 조회가 됨
+        assertThat(moimPost.isHasDeleted()).isEqualTo(true);
         List<PostComment> postComments = em.createQuery("select pc from PostComment pc where pc.moimPost.id = :moimPostId", PostComment.class)
                 .setParameter("moimPostId", moimMemberPost.getId())
                 .getResultList();
-        assertTrue(postComments.isEmpty());
+        assertThat(postComments.size()).isEqualTo(4);  // 댓글들도 삭제되지 않음
 
     }
 
@@ -1026,7 +1240,7 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
 
     // deletePost - 성공: 일반 모임원의 것을 운영진이 시도
     @Test
-    void deletePost_shouldReturn200_whenManagerReqToDeleteOtherMoimMemberPost() throws Exception {
+    void deletePost_shouldReturn200AndMarkDeleted_whenManagerReqToDeleteOtherMoimMemberPost() throws Exception {
 
         // given
         prepareMoimActivity();
@@ -1051,14 +1265,87 @@ public class MoimPostControllerAdvTest extends TestObjectCreator {
         em.clear();
 
         MoimPost moimPost = em.find(MoimPost.class, moimMemberPost.getId());
-        assertNull(moimPost);
+        assertNotNull(moimPost); // 조회가 됨
+        assertThat(moimPost.isHasDeleted()).isEqualTo(true);
         List<PostComment> postComments = em.createQuery("select pc from PostComment pc where pc.moimPost.id = :moimPostId", PostComment.class)
                 .setParameter("moimPostId", moimMemberPost.getId())
                 .getResultList();
-        assertTrue(postComments.isEmpty());
+        assertThat(postComments.size()).isEqualTo(4);  // 댓글들도 삭제되지 않음
 
     }
 
+    // deletePost - 실패 : 삭제된 게시물을 또 삭제하려 함
+    @Test
+    void deletePost_shouldReturn410_whenDeletedPost() throws Exception {
+
+        // given
+        prepareMoimActivity();
+
+        MoimPost anyPost = makeMoimPost(createdMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost.deletePost(1000L); // 상관없음
+        em.persist(anyPost);
+
+        em.flush();
+        em.clear();
+
+        String[] beforeParams = {"moimId", "moimPostId"};
+        String[] afterParams = {createdMoim.getId() + "", anyPost.getId() + ""};
+
+        // given - 개인정보 등록 완료
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_POST_DELETE, beforeParams, afterParams))
+                .header(HEADER, PREFIX + testAccessToken)
+        );
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+        // then - db verify
+        em.flush();
+        em.clear();
+
+        MoimPost moimPost = em.find(MoimPost.class, anyPost.getId());
+        assertThat(moimPost.isHasDeleted()).isEqualTo(true); // 이미 삭제됐기 때문 ㅋㅋ
+
+    }
+
+    // deletePost - 실패 : 신고로 숨김처리된 게시물을 삭제하려 함
+    @Test
+    void deletePost_shouldReturn422_whenReportHiddenPost() throws Exception {
+
+        // given
+        prepareMoimActivity();
+
+        MoimPost anyPost = makeMoimPost(createdMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.persist(anyPost);
+
+        em.flush();
+        em.clear();
+
+        String[] beforeParams = {"moimId", "moimPostId"};
+        String[] afterParams = {createdMoim.getId() + "", anyPost.getId() + ""};
+
+        // given - 개인정보 등록 완료
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+        String testAccessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_POST_DELETE, beforeParams, afterParams))
+                .header(HEADER, PREFIX + testAccessToken)
+        );
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // deletePost - 실패: 운영진(타 모임원)의 것을 일반 모임원이 시도
     @Test

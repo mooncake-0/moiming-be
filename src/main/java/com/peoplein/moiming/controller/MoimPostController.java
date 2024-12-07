@@ -2,6 +2,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.MoimPost;
 import com.peoplein.moiming.domain.PostComment;
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.domain.file.File;
@@ -146,11 +147,11 @@ public class MoimPostController {
 
         // PostComment 쭉 확인
         List<PostComment> parents = moimPostDetail.getParentComments();
-        checkToChangeCommentCreatorInfo(parents, memberStates);
+        checkToChangeCommentDisplayInfo(parents, memberStates);
 
         Map<Long, List<PostComment>> childsMap = moimPostDetail.getChildCommentsMap();
         for (List<PostComment> comments : childsMap.values()) { // 모든 Child 도 돌린다
-            checkToChangeCommentCreatorInfo(comments, memberStates);
+            checkToChangeCommentDisplayInfo(comments, memberStates);
         }
 
         MoimPostDetailViewRespDto responseData = new MoimPostDetailViewRespDto(moimPostDetail.getMoimPostWithFiles(), parents, childsMap);
@@ -214,9 +215,11 @@ public class MoimPostController {
     }
 
 
-    private void checkToChangeCommentCreatorInfo(List<PostComment> comments, Map<Long, MoimMemberState> memberStates) {
+    private void checkToChangeCommentDisplayInfo(List<PostComment> comments, Map<Long, MoimMemberState> memberStates) {
 
         for (PostComment comment : comments) {
+
+            // 회원 권한 관련
             MoimMemberState commentCreatorState = memberStates.get(comment.getMember().getId());
 
             if (commentCreatorState.equals(MoimMemberState.NOTFOUND)) {
@@ -225,7 +228,16 @@ public class MoimPostController {
             if (commentCreatorState.equals(MoimMemberState.IBD)) {
                 comment.changeMember(new DormantMember(comment.getMember()));
             }
-        }
 
+            // 댓글 상태 관련
+            if (comment.getContentStatus().equals(ContentStatus.HIDDEN)) {
+                // 신고처리된 게시물로 내용물 변경
+                comment.displayContentAsHidden();
+            }
+            if (comment.isHasDeleted()) {
+                // 삭제된 게시물로 변경
+                comment.displayContentAsDeleted();
+            }
+        }
     }
 }

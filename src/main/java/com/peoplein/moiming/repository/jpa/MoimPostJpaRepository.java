@@ -1,6 +1,7 @@
 package com.peoplein.moiming.repository.jpa;
 
 import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MoimPostCategory;
 import com.peoplein.moiming.repository.MoimPostRepository;
 import com.querydsl.core.BooleanBuilder;
@@ -101,6 +102,9 @@ public class MoimPostJpaRepository implements MoimPostRepository {
 
      */
 
+    /*
+     2412 Update - 모임 내 게시물 검색 : 삭제되지 않고, 신고로 숨김처리 되지 않은 게시물들 대상
+     */
     @Override
     public List<MoimPost> findWithMemberAndInfoByCategoryAndLastPostOrderByDateDesc(Long moimId, MoimPost lastPost,
                                                                                     MoimPostCategory category, int limit,
@@ -129,7 +133,9 @@ public class MoimPostJpaRepository implements MoimPostRepository {
                 .join(moimPost.moim, moim).fetchJoin()
                 .join(moimPost.member, member).fetchJoin()
                 .leftJoin(member.memberInfo, memberInfo).fetchJoin()
-                .where(moimPost.moim.id.eq(moimId), dynamicBuilder)
+                .where(moimPost.moim.id.eq(moimId), moimPost.hasDeleted.eq(false)
+                        , moimPost.contentStatus.ne(ContentStatus.HIDDEN)
+                        , dynamicBuilder)
                 .orderBy(moimPost.createdAt.desc(), moimPost.id.desc()) // 기본적으로 1차 소팅은 날짜 순, 같을 경우 2차 소팅은 ID로
                 .limit(limit)
                 .fetch();

@@ -52,9 +52,6 @@ public class MoimPostServiceTest {
     private PostCommentService postCommentService;
 
     @Mock
-    private PostCommentRepository postCommentRepository;
-
-    @Mock
     private NotificationService notificationService;
 
     @Mock
@@ -63,138 +60,6 @@ public class MoimPostServiceTest {
     @Mock
     private RelatedFileService relatedFileService;
 
-/*
-    @Test
-    void createMoimPost_shouldPass_whenRightInfoPassed() {
-
-        try (MockedStatic<MoimPost> mocker = mockStatic(MoimPost.class)) {
-
-            // given
-            Member member = mock(Member.class);
-            MoimMember moimMember = mock(MoimMember.class); // 게시물 작성자
-            MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
-            Moim moim = mock(Moim.class);
-            MoimPost createdPost = mock(MoimPost.class);
-
-            // given - stub
-            when(moimMember.getMemberState()).thenReturn(MoimMemberState.ACTIVE);
-            when(moimRepository.findWithActiveMoimMembersById(any())).thenReturn(Optional.of(moim));
-            when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-            when(moim.getMoimMembers()).thenReturn(List.of(moimMember)); // 로직상 게시물 작성자는 있는데, 그 외는 신경 안쓴다
-            when(member.getId()).thenReturn(1L);
-            when(moimMember.getMember()).thenReturn(member); // 게시물 작성자가 모임원임
-            mocker.when(() -> MoimPost.createMoimPost(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
-                    .thenReturn(createdPost); // 목 객체를 생성만 한다
-
-
-            // when
-            moimPostService.createMoimPost(requestDto, member);
-
-            // then
-            verify(moimPostRepository, times(1)).save(any());
-            verify(notificationService, times(1)).createManyNotification(any(), any(), any(), any(), any(), any(), any(), any());
-
-        }
-    }
-
-    // 생성시 requestDto 에서 파일 Validation 이 실패할 경우 - 하나만 함
-    @Test
-    void createMoimPost_shouldThrowException_whenFileExistsValidationFails_byMoimingApiException() {
-
-        try (MockedStatic<MoimPost> mocker = mockStatic(MoimPost.class)) {
-
-            // given
-            Member member = mock(Member.class);
-            MoimMember moimMember = mock(MoimMember.class); // 게시물 작성자
-            MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
-            Moim moim = mock(Moim.class);
-            MoimPost createdPost = mock(MoimPost.class);
-
-            // given - stub
-            when(moimMember.getMemberState()).thenReturn(MoimMemberState.ACTIVE);
-            when(moimRepository.findById(any())).thenReturn(Optional.of(moim));
-            when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-            when(member.getId()).thenReturn(1L);
-            mocker.when(() -> MoimPost.createMoimPost(any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
-                    .thenReturn(createdPost); // 목 객체를 생성만 한다
-            when(requestDto.getImgFileIds()).thenReturn(List.of(1L)); // false 이지만 존재하는 DTO 를 보낸다
-
-            // when
-            // then
-            assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
-            verify(moimPostRepository, times(1)).save(any());
-            verify(notificationService, times(0)).createManyNotification(any(), any(), any(), any(), any(), any(), any(), any());
-
-        }
-    }
-
-
-    @Test
-    void createMoimPost_shouldThrowException_whenRequestDtoNull_byMoimingApiException() {
-
-        // given
-        Member member = mock(Member.class);
-        MoimPostCreateReqDto requestDto = null;
-
-        // when
-        // then
-        assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
-    }
-
-
-    @Test
-    void createMoimPost_shouldThrowException_whenMemberNull_byMoimingApiException() {
-
-        // given
-        Member member = null;
-        MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
-
-
-        // when
-        // then
-        assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
-    }
-
-
-    // 모임원 아닌 상황
-    @Test
-    void createMoimPost_shouldThrowException_whenNotMoimMember_byMoimingApiException() {
-
-        // given
-        Member member = mock(Member.class);
-        MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
-
-        // given - stub
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
-
-        // when
-        // then
-        assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
-    }
-
-
-    // 게시물을 생성할 권한이 없는 상황
-    @Test
-    void createMoimPost_shouldThrowException_whenMoimMemberNotActive() {
-
-        // given
-        Member member = mock(Member.class);
-        MoimMember moimMember = mock(MoimMember.class);
-        MoimPostCreateReqDto requestDto = mock(MoimPostCreateReqDto.class);
-
-        // given - stub
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-        when(moimMember.getMemberState()).thenReturn(MoimMemberState.IBF);
-
-        // when
-        // then
-        assertThatThrownBy(() -> moimPostService.createMoimPost(requestDto, member)).isInstanceOf(MoimingApiException.class);
-
-    }
-*/
 
     // --- getMoimPosts TEST
     // getMoimPosts > MoimPost 정상, moimmember 통과 정상일 경우
@@ -476,8 +341,7 @@ public class MoimPostServiceTest {
         moimPostService.deleteMoimPost(postId, member);
 
         // then
-        verify(postCommentRepository, times(1)).removeAllByMoimPostId(any());
-        verify(moimPostRepository, times(1)).remove(any());
+        verify(moimPost, times(1)).deletePost(any());
 
     }
 
@@ -499,17 +363,13 @@ public class MoimPostServiceTest {
         when(moimPost.getMoim()).thenReturn(moim);
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(creatorInfo));
         when(creatorInfo.hasActivePermission()).thenReturn(true);
-        when(creatorInfo.hasPermissionOfManager()).thenReturn(true); // 요청자는 운영자임 // 운영자면 무조건 Pass 라 작성자 다르다는거 비교 안해줘도 됨 (이하들 생략)
-//        when(moimPost.getMember()).thenReturn(postCreator); // 작성자는 다른 멤버임
-//        when(moimCreator.getId()).thenReturn(1L);
-//        when(postCreator.getId()).thenReturn(1234L); // 둘은 다르다
+        when(creatorInfo.hasPermissionOfManager()).thenReturn(true); // 요청자는 운영자임 // 운영자면 무조건 Pass 라 작성자 다르다는 조건문은 없어도 됨 (이하들 생략)
 
         // when
         moimPostService.deleteMoimPost(postId, moimCreator);
 
         // then
-        verify(postCommentRepository, times(1)).removeAllByMoimPostId(any());
-        verify(moimPostRepository, times(1)).remove(any());
+        verify(moimPost, times(1)).deletePost(any());
 
     }
 

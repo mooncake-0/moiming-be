@@ -50,6 +50,8 @@ public class PostCommentService {
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
+        //2412 Update - 삭제/신고된 게시물에 댓글 달기 불가
+        moimPost.checkInactivePost();
         checkActivePermission(member.getId(), moimPost.getMoim().getId());
 
         PostComment comment = PostComment.createPostComment(requestDto.getContent(), member, moimPost,
@@ -95,6 +97,10 @@ public class PostCommentService {
                 new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
         );
 
+        // 2412 Update - 삭제/신고된 댓글 or 삭제/신고된 게시물의 댓글에 대한 수정 불가
+        comment.checkInactiveComment();
+        comment.getMoimPost().checkInactivePost();
+
         checkActivePermission(member.getId(), comment.getMoimPost().getMoim().getId());
 
         comment.updateComment(requestDto, member.getId());
@@ -115,12 +121,29 @@ public class PostCommentService {
                 new MoimingApiException(MOIM_POST_COMMENT_NOT_FOUND)
         );
 
+        // 2412 Update - 삭제/신고된 댓글 or 삭제/신고된 게시물의 댓글에 대한 수정 불가
+        comment.checkInactiveComment();
+        comment.getMoimPost().checkInactivePost();
+
         checkActivePermission(member.getId(), comment.getMoimPost().getMoim().getId());
+
+        // 댓글 삭제 권한 - 모임 운영자, 댓글 작성자가 아니면 삭제할 수 없다
+        Long deleteReqId = member.getId();
+        Long commentWriterId = comment.getMember().getId();
+        Long curManagerId = comment.getMoimPost().getMoim().getCurManagerId();
+
+        if (!deleteReqId.equals(commentWriterId) && !deleteReqId.equals(curManagerId)) {
+            log.error("{}, deleteComment :: {}", this.getClass().getName(), "요청자는 해당 댓글을 삭제할 권한이 없습니다");
+            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
+        }
 
         comment.deleteComment(member.getId());
     }
 
 
+    /*
+     댓글에 한해선 삭제 / 신고된 것도 전달한다
+     */
     public PostCommentDetailsDto getSortedPostComments(Long postId) {
 
         if (postId == null) {

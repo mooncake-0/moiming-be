@@ -533,9 +533,9 @@ public class PostCommentServiceTest {
 
 
     // deleteComment Test
-    // 1. deleteComment - success
+    // 1. deleteComment - success : 삭제하려는 자는 작성자이다
     @Test
-    void deleteComment_shouldPass_whenRightInfoPassed() {
+    void deleteComment_shouldPass_whenTrialByCommentWriter() {
 
         // given
         Long postCommentId = 1L;
@@ -550,14 +550,49 @@ public class PostCommentServiceTest {
 
         // given - stub for private method
         when(member.getId()).thenReturn(1L); // 상관 무
+        when(postComment.getMember()).thenReturn(member); // 작성자는 현재 요청자이다
         when(postComment.getMoimPost()).thenReturn(moimPost);
         when(moimPost.getMoim()).thenReturn(moim);
-        when(moim.getId()).thenReturn(1L);
+        when(moim.getCurManagerId()).thenReturn(2L); // 모임 관리자가 작성자는 아니다
         when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
         when(moimMember.hasActivePermission()).thenReturn(true);
 
         // when
         postCommentService.deleteComment(postCommentId, member);
+
+        // then
+        verify(postComment, times(1)).deleteComment(any());
+
+    }
+
+    // deleteComment - success : 삭제하려는 자는 모임 관리자이다
+    @Test
+    void deleteComment_shouldPass_whenTrialByMoimManager() {
+
+        // given
+        Long postCommentId = 1L;
+        Member moimManagerReq = mock(Member.class);
+        Member commentCreator = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        PostComment postComment = mock(PostComment.class);
+
+        // given - stub
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.of(postComment));
+
+        // given - stub for private method
+        when(moimManagerReq.getId()).thenReturn(1L); // 상관 무
+        when(postComment.getMember()).thenReturn(commentCreator); // 작성자
+        when(commentCreator.getId()).thenReturn(100L); // 작성자는 요청자(모임관리자) 와 다르다
+        when(postComment.getMoimPost()).thenReturn(moimPost);
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getCurManagerId()).thenReturn(1L); // 모임 관리자가 요청자와 동일하다
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+
+        // when
+        postCommentService.deleteComment(postCommentId, moimManagerReq);
 
         // then
         verify(postComment, times(1)).deleteComment(any());
@@ -652,9 +687,38 @@ public class PostCommentServiceTest {
 
     }
 
+    // deleteComment - 실패 : 요청한 사람은 모임 관리자도 아니고, 댓글 작성자도 아니다
+    @Test
+    void deleteComment_shouldThrowException_whenReqIsNotManagerOrCommentWriter() {
 
-    // (생략) requestMember is MoimCreator - 이 서비스단의 검증 역할이 아니다
-    // (생략) requestMember is NotCommentCreator - 이 서비스단의 검증 역할이 아니다
+        // given
+        Long postCommentId = 1L;
+        Member reqMember = mock(Member.class);
+        Member commentWriter = mock(Member.class);
+        Moim moim = mock(Moim.class);
+        MoimPost moimPost = mock(MoimPost.class);
+        MoimMember moimMember = mock(MoimMember.class);
+        PostComment postComment = mock(PostComment.class);
+
+        // given - stub
+        when(postCommentRepository.findWithMemberAndMoimPostById(any())).thenReturn(Optional.of(postComment));
+
+        // given - stub for private method
+        when(reqMember.getId()).thenReturn(1L);
+        when(commentWriter.getId()).thenReturn(100L);
+        when(postComment.getMember()).thenReturn(commentWriter); // 요청한 사람은 댓글 작성자가 아니다
+        when(postComment.getMoimPost()).thenReturn(moimPost);
+        when(moimPost.getMoim()).thenReturn(moim);
+        when(moim.getCurManagerId()).thenReturn(200L); // 요청한 사람은 모임 관리자도 아니다
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
+        when(moimMember.hasActivePermission()).thenReturn(true);
+
+        // when
+        // then
+        assertThatThrownBy(() -> postCommentService.deleteComment(postCommentId, reqMember)).isInstanceOf(MoimingApiException.class);
+        verify(postComment, times(0)).deleteComment(any());
+
+    }
 
 
     // sortedPostComments

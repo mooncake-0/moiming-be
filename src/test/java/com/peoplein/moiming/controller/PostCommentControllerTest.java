@@ -54,7 +54,6 @@ public class PostCommentControllerTest extends TestObjectCreator {
     private Moim testMoim;
     private MoimPost testMoimPost;
     private PostComment prePostComment;
-    private String changedContent = "수정된 내용입니다";
 
     void insertTestMemberInfo(Member member, MemberGender memberGender, LocalDate memberBirth) {
         // given - 개인정보 기입완료
@@ -69,6 +68,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void createComment_shouldReturn200_whenNormalCommentByMoimMember() throws Exception {
 
         // given - 요청자 개인 정보 기입
+        int prePostCmnt = testMoimPost.getCommentCnt();
         moimMember = em.find(Member.class, moimMember.getId());
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
@@ -93,10 +93,17 @@ public class PostCommentControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
 
         // then - Notification 생성 확인 (게시물 생성자에게)
+        em.flush();
+        em.clear();
+
         Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
                 .setParameter("receiverId", testMoimPost.getMember().getId())
                 .getSingleResult();
         assertNotNull(notification);
+
+        // then - db verify
+        MoimPost moimPost = em.find(MoimPost.class, testMoimPost.getId());
+        assertThat(moimPost.getCommentCnt()).isEqualTo(prePostCmnt + 1);
 
     }
 
@@ -120,6 +127,75 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
     }
 
+    // Post Comment 생성 실패 - 삭제된 게시물에 댓글 생성 시도
+    @Test
+    void createComment_shouldReturn410_whenPostDeleted() throws Exception {
+
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // 삭제된 Post 준비
+        MoimPost deletedPost = makeMoimPost(testMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        deletedPost.deletePost(1000L);
+        em.persist(deletedPost);
+
+        em.flush();
+        em.clear();
+
+        // given
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(deletedPost.getId(), null, 0);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_POST_COMMENT_CREATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+        // then - Notification 생성 확인 (게시물 생성자에게)
+        List<Notification> ns = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
+                .setParameter("receiverId", deletedPost.getMember().getId())
+                .getResultList();
+        assertTrue(ns.isEmpty());
+
+    }
+
+    // Post Comment 생성 실패 - 신고로 숨김 처리된 게시물에 댓글 생성 시도
+    @Test
+    void createComment_shouldReturn422_whenReportHiddenPost() throws Exception {
+
+        // given - 요청자 개인 정보 기입
+        moimMember = em.find(Member.class, moimMember.getId());
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // 삭제된 Post 준비
+        MoimPost reportPost = makeMoimPost(testMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        reportPost.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.persist(reportPost);
+
+        em.flush();
+        em.clear();
+
+        // given
+        PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(reportPost.getId(), null, 0);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_POST_COMMENT_CREATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // Post Comment 생성 요청 - Reply Comment
     @Test
@@ -130,11 +206,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
+        testMoimPost = em.find(MoimPost.class, testMoimPost.getId());
         PostComment parentComment = makePostComment(moimCreator, testMoimPost, 0, null);
         em.persist(parentComment);
         em.flush();
         em.clear();
 
+        int prePostCmnt = testMoimPost.getCommentCnt();
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), parentComment.getId(), 1);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
@@ -155,10 +233,18 @@ public class PostCommentControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
 
         // then - Notification 생성 확인 (댓글 생성자에게)
+        em.flush();
+        em.clear();
+
         Notification notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
                 .setParameter("receiverId", parentComment.getMember().getId())
                 .getSingleResult();
         assertNotNull(notification);
+
+
+        // then - db verify
+        MoimPost moimPost = em.find(MoimPost.class, testMoimPost.getId());
+        assertThat(moimPost.getCommentCnt()).isEqualTo(prePostCmnt + 1);
 
     }
 
@@ -177,6 +263,7 @@ public class PostCommentControllerTest extends TestObjectCreator {
         em.flush();
         em.clear();
 
+        int prePostCmnt = inactiveMemberPost.getCommentCnt();
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(inactiveMemberPost.getId(), null, 0);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
@@ -197,10 +284,17 @@ public class PostCommentControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
 
         // then - Notification 생성 확인 (게시물 생성자가 활동중이 아니므로 알림이 발생하지 않음)
+        em.flush();
+        em.clear();
+
         List<Notification> notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
                 .setParameter("receiverId", testMoimPost.getMember().getId())
                 .getResultList();
         assertTrue(notification.isEmpty());
+
+        // then - db verify
+        MoimPost moimPost = em.find(MoimPost.class, inactiveMemberPost.getId());
+        assertThat(moimPost.getCommentCnt()).isEqualTo(prePostCmnt + 1);
 
     }
 
@@ -214,11 +308,13 @@ public class PostCommentControllerTest extends TestObjectCreator {
         insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
 
         // given
+        testMoimPost = em.find(MoimPost.class, testMoimPost.getId());
         PostComment parentComment = makePostComment(inactiveMember, testMoimPost, 0, null); // INACTIVE 한 유저의 댓글
         em.persist(parentComment);
         em.flush();
         em.clear();
 
+        int prePostCmnt = testMoimPost.getCommentCnt();
         PostCommentCreateReqDto requestDto = makeCommentCreateReqDto(testMoimPost.getId(), parentComment.getId(), 1);
         String requestBody = om.writeValueAsString(requestDto);
         String accessToken = createTestJwtToken(moimMember, 2000);
@@ -239,11 +335,17 @@ public class PostCommentControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data.memberInfo.nickname").value(moimMember.getNickname()));
 
         // then - Notification 생성 확인 (댓글 생성자는 비활동중이므로 알림이 발생하지 않음 확인)
+        em.flush();
+        em.clear();
+
         List<Notification> notification = em.createQuery("SELECT n FROM Notification n WHERE n.receiverId = :receiverId", Notification.class)
                 .setParameter("receiverId", parentComment.getMember().getId())
                 .getResultList();
         assertTrue(notification.isEmpty());
 
+        // then - db verify
+        MoimPost moimPost = em.find(MoimPost.class, testMoimPost.getId());
+        assertThat(moimPost.getCommentCnt()).isEqualTo(prePostCmnt + 1);
     }
 
 
@@ -688,16 +790,127 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
     }
 
+    // 댓글 수정 실패 - 삭제된 게시물
+    @Test
+    void updateComment_shouldReturn410_whenPostDeleted() throws Exception {
 
+        // given
+        createPostComment();
+        moimMember = em.find(Member.class, moimMember.getId()); // 요청자 개인 정보 기입
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // 삭제된 Post 준비
+        MoimPost deletedPost = makeMoimPost(testMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        em.persist(deletedPost);
+
+        PostComment existingComment = makePostComment(moimMember, deletedPost, 0, null);
+        em.persist(existingComment);
+
+        deletedPost.deletePost(1000L); // 게시물 삭제 처리
+        em.flush();
+        em.clear();
+
+        // given - 요청 Data 준비 - 자신이 만든 댓글을 수정하려 함
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(existingComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+    }
+
+    // 댓글 수정 실패 - 신고로 숨김 처리된 게시물
+    @Test
+    void updateComment_shouldReturn422_whenReportHiddenPost() throws Exception {
+
+        // given
+        createPostComment();
+        moimMember = em.find(Member.class, moimMember.getId()); // 요청자 개인 정보 기입
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // 삭제된 Post 준비
+        MoimPost reportedPost = makeMoimPost(testMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        em.persist(reportedPost);
+
+        PostComment existingComment = makePostComment(moimMember, reportedPost, 0, null);
+        em.persist(existingComment);
+
+        reportedPost.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.flush();
+        em.clear();
+
+        // given - 요청 Data 준비 - 자신이 만든 댓글을 수정하려 함
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(existingComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
+
+    // 댓글 수정 실패 - 이미 삭제된 댓글 수정 시도
+    @Test
+    void updateComment_shouldReturn410_whenCommentDeleted() throws Exception {
+
+        // given
+        createPostComment();
+        moimMember = em.find(Member.class, moimMember.getId()); // 개인 요청 정보 기입
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // 기존 Post 에 댓글을 생성하고 바로 삭제한다
+        PostComment deletedComment = makePostComment(moimMember, testMoimPost, 0, null);
+        deletedComment.deleteComment(1000L);
+        em.persist(deletedComment);
+        em.flush();
+        em.clear();
+
+        // given - 요청 Data
+        PostCommentUpdateReqDto requestDto = makeCommentUpdateReqDto(deletedComment.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_POST_COMMENT_UPDATE)
+                .header(HEADER, PREFIX + accessToken)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+        // then - db verify - 실패했음에도 삭제된 Comment 임을 확인
+        PostComment cmt = em.find(PostComment.class, deletedComment.getId());
+        assertThat(cmt.getContent()).isEqualTo(deletedComment.getContent());
+        assertTrue(cmt.isHasDeleted());
+
+    }
+
+    // 2412 Update DELETE REQUEST TEST (MoimPost 의 댓글 갯수도 같이 검증)
     // DELETE REQUEST TEST (MoimPost 의 댓글 갯수도 같이 검증)
     // 댓글 삭제 성공 - content 와 hasDeleted 검증 - 댓글 작성자
     @Test
     void deleteComment_shouldReturn200_whenRequestByCommentCreator() throws Exception {
 
         // given
+        testMoimPost = em.find(MoimPost.class, testMoimPost.getId()); // 영속화를 해야 +1 CASCADE 를 먹음
         createPostComment();
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+        int prePostCommentCnt = testMoimPost.getCommentCnt();
 
         // given - 요청자 개인 정보 기입
         moimMember = em.find(Member.class, moimMember.getId());
@@ -713,9 +926,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // then - db verify
         PostComment postComment = em.find(PostComment.class, prePostComment.getId());
-        assertThat(postComment.getContent()).isEqualTo("");
+        assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
         assertThat(postComment.isHasDeleted()).isEqualTo(true);
         assertThat(postComment.getUpdaterId()).isEqualTo(moimMember.getId());
+        assertThat(postComment.getMoimPost().getCommentCnt()).isEqualTo(prePostCommentCnt - 1); // 1개 삭제에 성공함
 
     }
 
@@ -746,9 +960,12 @@ public class PostCommentControllerTest extends TestObjectCreator {
     void deleteComment_shouldReturn200_whenRequestByMoimCreator() throws Exception {
 
         // given
+        testMoimPost = em.find(MoimPost.class, testMoimPost.getId()); // 영속화를 해야 +1 CASCADE 를 먹음
         createPostComment();
         String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
         String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", prePostComment.getId() + ""};
+        int prePostCommentCnt = testMoimPost.getCommentCnt();
+
         String accessToken = createTestJwtToken(moimCreator, 2000);
 
         // given - 요청자 개인 정보 기입
@@ -764,9 +981,10 @@ public class PostCommentControllerTest extends TestObjectCreator {
 
         // then - db verify
         PostComment postComment = em.find(PostComment.class, prePostComment.getId());
-        assertThat(postComment.getContent()).isEqualTo("");
+        assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
         assertThat(postComment.isHasDeleted()).isEqualTo(true);
         assertThat(postComment.getUpdaterId()).isEqualTo(moimCreator.getId());
+        assertThat(postComment.getMoimPost().getCommentCnt()).isEqualTo(prePostCommentCnt - 1); // 1개 삭제에 성공함
 
     }
 
@@ -948,6 +1166,119 @@ public class PostCommentControllerTest extends TestObjectCreator {
         assertThat(postComment.getContent()).isEqualTo(prePostComment.getContent());
         assertThat(postComment.isHasDeleted()).isEqualTo(false);
         assertThat(postComment.getUpdaterId()).isNull();
+
+    }
+
+
+    // 댓글 삭제 실패 - 삭제된 게시물 댓글 삭제 시도
+    @Test
+    void deleteComment_shouldReturn410_whenPostDeleted() throws Exception {
+
+        // given
+        createPostComment();
+        moimMember = em.find(Member.class, moimMember.getId()); // 요청자 개인 정보 기입
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // 삭제된 Post 준비
+        MoimPost deletedPost = makeMoimPost(testMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        em.persist(deletedPost);
+
+        PostComment existingComment = makePostComment(moimMember, deletedPost, 0, null);
+        em.persist(existingComment);
+
+        deletedPost.deletePost(1000L); // 게시물 삭제 처리
+        em.flush();
+        em.clear();
+
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", deletedPost.getId() + "", existingComment.getId() + ""};
+
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+        // then - db verify - 삭제되지 않음
+        PostComment postComment = em.find(PostComment.class, existingComment.getId());
+        assertThat(postComment.isHasDeleted()).isEqualTo(false);
+
+    }
+
+    // 댓글 삭제 실패 - 신고로 숨김처리된 게시물의 댓글 삭제 시도
+    @Test
+    void deleteComment_shouldReturn422_whenReportHiddenPost() throws Exception {
+
+        // given
+        createPostComment();
+        moimMember = em.find(Member.class, moimMember.getId()); // 요청자 개인 정보 기입
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // 삭제된 Post 준비
+        MoimPost reportedPost = makeMoimPost(testMoim, moimCreator, MoimPostCategory.NOTICE, false);
+        em.persist(reportedPost);
+
+        PostComment existingComment = makePostComment(moimMember, reportedPost, 0, null);
+        em.persist(existingComment);
+
+        reportedPost.changeContentStatus(ContentStatus.HIDDEN, 1000L); // 게시물 삭제 처리
+        em.flush();
+        em.clear();
+
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", reportedPost.getId() + "", existingComment.getId() + ""};
+
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+        // then - db verify - 삭제되지 않음
+        PostComment postComment = em.find(PostComment.class, existingComment.getId());
+        assertThat(postComment.isHasDeleted()).isEqualTo(false);
+
+    }
+
+    // 댓글 삭제 실패 - 삭제된 댓글을 삭제 시도
+    @Test
+    void deleteComment_shouldReturn410_whenCommentDeleted() throws Exception {
+
+        // given
+        createPostComment();
+        moimMember = em.find(Member.class, moimMember.getId()); // 개인 정보 기입
+        insertTestMemberInfo(moimMember, memberGender2, memberBirth2);
+
+        // 기존 Post 에 댓글을 생성하고 바로 삭제한다
+        PostComment deletedComment = makePostComment(moimMember, testMoimPost, 0, null);
+        deletedComment.deleteComment(1000L);
+        em.persist(deletedComment);
+        em.flush();
+        em.clear();
+
+        String[] beforeUrlParam = {"moimId", "moimPostId", "postCommentId"};
+        String[] afterUrlParam = {testMoim.getId() + "", testMoimPost.getId() + "", deletedComment.getId() + ""};
+        String accessToken = createTestJwtToken(moimMember, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_POST_COMMENT_DELETE, beforeUrlParam, afterUrlParam))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+        // then - db verify
+        PostComment postComment = em.find(PostComment.class, deletedComment.getId());
+        assertThat(postComment.isHasDeleted()).isEqualTo(true); // 이미 삭제되었기 때문
 
     }
 

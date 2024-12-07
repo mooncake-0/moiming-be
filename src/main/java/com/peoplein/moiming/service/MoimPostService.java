@@ -52,7 +52,6 @@ public class MoimPostService {
     private final MoimMemberRepository moimMemberRepository;
     private final MoimPostRepository moimPostRepository;
     private final MoimRepository moimRepository;
-    private final PostCommentRepository postCommentRepository;
 
 
     @Transactional
@@ -84,6 +83,9 @@ public class MoimPostService {
                         return new MoimingApiException(MOIM_POST_NOT_FOUND);
                     }
             );
+
+            // 2412 Update - 삭제된 게시물에 대한 사진 업데이트 불가
+            moimPost.checkInactivePost();
 
             // moimMember 가 update 권한이 있는지 확인 (작성자가 아니면 안됨)
             if (!moimPost.getMember().getId().equals(member.getId())) {
@@ -158,6 +160,7 @@ public class MoimPostService {
 
     // MEMO :: 아쉬운 부분 : 오직 모임장 ID 와의 일치 정보를 위해 Moim 을 Fetch Join 해야 함
     // 모임의 모든 Post 전달 (필요 정보는 사실상 File 빼고 전부 다)
+    // 2412 Update : 삭제된 게시물은 조회되지 않는다 (JpaRepo 수정)
     @Transactional(readOnly = true)
     public MoimPostViewDto getMoimPosts(Long moimId, Long lastPostId, MoimPostCategory category, int limit, Member member) {
 
@@ -216,6 +219,9 @@ public class MoimPostService {
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
+        // 2412 Update - 신고되거나 삭제된 게시물은 세부 조회 불가
+        moimPost.checkInactivePost();
+
         // 요청자가 게시물 세부 정보를 요청할 수 있는가?
         Optional<MoimMember> moimMemberOp = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId());
         moimPost.checkMemberAccessibility(moimMemberOp);
@@ -250,6 +256,9 @@ public class MoimPostService {
         MoimPost moimPost = moimPostRepository.findWithMoimAndMemberAndInfoById(requestDto.getMoimPostId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
+
+        // 2412 Update - 신고되거나 삭제된 게시물은 세부 조회 불가
+        moimPost.checkInactivePost();
 
         // post 에 저장된 moimId + member 로 moimMember 조회
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId()).orElseThrow(() -> {
@@ -300,6 +309,9 @@ public class MoimPostService {
                 new MoimingApiException(MOIM_POST_NOT_FOUND)
         );
 
+        // 2412 Update - 신고되거나 삭제된 게시물은 세부 조회 불가
+        moimPost.checkInactivePost();
+
         // post 에 저장된 moimId + member 로 moimMember 조회
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimPost.getMoim().getId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
@@ -312,13 +324,15 @@ public class MoimPostService {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
-        // 댓글 삭제 진행
-        postCommentRepository.removeAllByMoimPostId(postId);
+        // TODO :: 신고된 게시물일 경우 보존, 신고된 게시물이 아닐 경우 파일 삭제
 
-        // 게시물 삭제 진행
-        moimPostRepository.remove(moimPost);
+        moimPost.deletePost(member.getId());
 
-        // TODO:: 파일 삭제 진행
+//        // 댓글 삭제 진행
+//        postCommentRepository.removeAllByMoimPostId(postId);
+//
+//        // 게시물 삭제 진행
+//        moimPostRepository.remove(moimPost);
     }
 
 

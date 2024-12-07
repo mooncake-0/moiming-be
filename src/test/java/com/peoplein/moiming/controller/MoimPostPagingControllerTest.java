@@ -198,6 +198,93 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data[9].moimPostId").value(post1.getId()));
     }
 
+    // 멤버의 요청 - 삭제된 게시물 2개 추가됨 : 20개 요청 - 10개만 들고옴 (삭제된건 들고오지 않는다)
+    @Test
+    void getMoimPosts_shouldReturn200WithoutDeletedPosts_whenReqDefault() throws Exception {
+
+        // given
+        dataSu();
+        postSu();
+
+        // given - 삭제 게시물 추가
+        MoimPost anyPost = makeMoimPost(moim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost.deletePost(1000L); // 상관없음
+        em.persist(anyPost);
+
+        MoimPost anyPost2 = makeMoimPost(moim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost2.deletePost(1000L); // 상관없음
+        em.persist(anyPost2);
+
+        em.flush();
+        em.clear();
+
+        String accessToken = createTestJwtToken(moimMember, 2000);
+        String[] params = {"moimId"};
+        String[] vals = {moim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(10)));
+        resultActions.andExpect(jsonPath("$.data[0].moimPostId").value(post10.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimPostId").value(post9.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimPostId").value(post8.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimPostId").value(post7.getId()));
+        resultActions.andExpect(jsonPath("$.data[4].moimPostId").value(post6.getId()));
+        resultActions.andExpect(jsonPath("$.data[5].moimPostId").value(post5.getId()));
+        resultActions.andExpect(jsonPath("$.data[6].moimPostId").value(post4.getId()));
+        resultActions.andExpect(jsonPath("$.data[7].moimPostId").value(post3.getId()));
+        resultActions.andExpect(jsonPath("$.data[8].moimPostId").value(post2.getId()));
+        resultActions.andExpect(jsonPath("$.data[9].moimPostId").value(post1.getId()));
+    }
+
+    // 멤버의 요청 - 신고 1건, 삭제 1건 추가됨 : 20개 요청 - 10개만 들고옴 (신고 or 삭제 건 반환 X)
+    @Test
+    void getMoimPosts_shouldReturn200WithoutDeletedOrReportedPosts_whenReqDefault() throws Exception {
+
+        // given
+        dataSu();
+        postSu();
+
+        // given - 삭제 게시물 추가
+        MoimPost delPost = makeMoimPost(moim, moimCreator, MoimPostCategory.NOTICE, false);
+        delPost.deletePost(1000L); // 상관없음
+        em.persist(delPost);
+
+        MoimPost repPost = makeMoimPost(moim, moimCreator, MoimPostCategory.NOTICE, false);
+        repPost.changeContentStatus(ContentStatus.HIDDEN, 1000L); // 상관없음
+        em.persist(repPost);
+
+        em.flush();
+        em.clear();
+
+        String accessToken = createTestJwtToken(moimMember, 2000);
+        String[] params = {"moimId"};
+        String[] vals = {moim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(10)));
+        resultActions.andExpect(jsonPath("$.data[0].moimPostId").value(post10.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimPostId").value(post9.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimPostId").value(post8.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimPostId").value(post7.getId()));
+        resultActions.andExpect(jsonPath("$.data[4].moimPostId").value(post6.getId()));
+        resultActions.andExpect(jsonPath("$.data[5].moimPostId").value(post5.getId()));
+        resultActions.andExpect(jsonPath("$.data[6].moimPostId").value(post4.getId()));
+        resultActions.andExpect(jsonPath("$.data[7].moimPostId").value(post3.getId()));
+        resultActions.andExpect(jsonPath("$.data[8].moimPostId").value(post2.getId()));
+        resultActions.andExpect(jsonPath("$.data[9].moimPostId").value(post1.getId()));
+    }
 
     // 멤버의 요청 자유글 필터 요청 - 20개 요청 - 3개 들고옴
     @Test
@@ -223,7 +310,6 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data[1].moimPostId").value(post9.getId()));
         resultActions.andExpect(jsonPath("$.data[2].moimPostId").value(post4.getId()));
     }
-
 
     // 멤버의 페이징 요청 - 우선 5개 요청후, 뒤에 20개 요청
     @Test
@@ -252,7 +338,6 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data[4].moimPostId").value(post6.getId()));
     }
 
-
     // 일반 요청시 lastPostId 를 주고 후속 요청 - 앞 테스트 후속 요청으로 잡음
     @Test
     void getMoimPosts_shouldReturn200WithResponse_whenReqWithLastPostId() throws Exception {
@@ -279,7 +364,6 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data[3].moimPostId").value(post2.getId()));
         resultActions.andExpect(jsonPath("$.data[4].moimPostId").value(post1.getId()));
     }
-
 
     // 멤버의 페이징 요청 - 후속 요청 중 새로운 Post 가 발생해도, 정상적으로 뒤에 5개를 반환한다
     @Test
@@ -374,6 +458,88 @@ public class MoimPostPagingControllerTest extends TestObjectCreator {
 
     }
 
+    // 비멤버의 요청 - 20개 요청 - 7개 다 들고옴
+    @Test
+    void getMoimPosts_shouldReturn200WithoutDeletedPosts_whenReqByNotMoimMember() throws Exception {
+
+        // given
+        dataSu();
+        postSu();
+
+        // given - 삭제 게시물 추가
+        MoimPost anyPost = makeMoimPost(moim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost.deletePost(1000L); // 상관없음
+        em.persist(anyPost);
+
+        MoimPost anyPost2 = makeMoimPost(moim, moimCreator, MoimPostCategory.NOTICE, false);
+        anyPost2.deletePost(1000L); // 상관없음
+        em.persist(anyPost2);
+
+        em.flush();
+        em.clear();
+
+        String accessToken = createTestJwtToken(notMoimMember, 2000);
+        String[] params = {"moimId"};
+        String[] vals = {moim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(7)));
+        resultActions.andExpect(jsonPath("$.data[0].moimPostId").value(post9.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimPostId").value(post7.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimPostId").value(post6.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimPostId").value(post5.getId()));
+        resultActions.andExpect(jsonPath("$.data[4].moimPostId").value(post3.getId()));
+        resultActions.andExpect(jsonPath("$.data[5].moimPostId").value(post2.getId()));
+        resultActions.andExpect(jsonPath("$.data[6].moimPostId").value(post1.getId()));
+
+    }
+
+    // 비멤버의 요청 - 신고 1건, 삭제 1건 추가됨 : 20개 요청 - 7개만 들고옴 (신고 or 삭제 건 반환 X)
+    @Test
+    void getMoimPosts_shouldReturn200WithoutDeletedOrReportedPosts_whenReqByNotMoimMember() throws Exception {
+
+        // given
+        dataSu();
+        postSu();
+
+        // given - 삭제 게시물 추가
+        MoimPost delPost = makeMoimPost(moim, moimCreator, MoimPostCategory.NOTICE, false);
+        delPost.deletePost(1000L); // 상관없음
+        em.persist(delPost);
+
+        MoimPost repPost = makeMoimPost(moim, moimCreator, MoimPostCategory.NOTICE, false);
+        repPost.changeContentStatus(ContentStatus.HIDDEN, 1000L); // 상관없음
+        em.persist(repPost);
+
+        em.flush();
+        em.clear();
+
+        String accessToken = createTestJwtToken(notMoimMember, 2000);
+        String[] params = {"moimId"};
+        String[] vals = {moim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_POST_GET_VIEW, params, vals))
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(7)));
+        resultActions.andExpect(jsonPath("$.data[0].moimPostId").value(post9.getId()));
+        resultActions.andExpect(jsonPath("$.data[1].moimPostId").value(post7.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimPostId").value(post6.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimPostId").value(post5.getId()));
+        resultActions.andExpect(jsonPath("$.data[4].moimPostId").value(post3.getId()));
+        resultActions.andExpect(jsonPath("$.data[5].moimPostId").value(post2.getId()));
+        resultActions.andExpect(jsonPath("$.data[6].moimPostId").value(post1.getId()));
+    }
 
     // 비멤버의 요청 자유글 필터 요청 - 20개 요청 - 3개 들고옴
     // GREETING 중에 비공개가 없음 - 다 공개
