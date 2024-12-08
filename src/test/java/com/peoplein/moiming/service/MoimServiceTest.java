@@ -331,10 +331,12 @@ public class MoimServiceTest {
 
         // given
         Member member = mock(Member.class);
+        Moim moim = mock(Moim.class);
         MoimMember moimMember = mock(MoimMember.class);
         MoimUpdateReqDto reqDto = mock(MoimUpdateReqDto.class);
 
         // given - stub
+        when(moimMember.getMoim()).thenReturn(moim);
         when(moimMemberRepository.findWithMoimAndCategoriesByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
 
         // when
@@ -490,103 +492,6 @@ public class MoimServiceTest {
         // when
         // then
         assertThatThrownBy(() -> moimService.getMoimDetail(moimId, member)).isInstanceOf(MoimingApiException.class);
-
-    }
-
-
-    // deleteMoim - 성공 - JoinRule 이 없어도 성공한다. 있으면 있다고 stubbing 필요
-    @Test
-    void deleteMoim_shouldPass_whenRightInfoPassed() {
-
-        // given - Moim 에 MoimPost 가 두 개있다고 가정한다
-        Long moimId = 1L;
-        Member member = mock(Member.class);
-        Moim moim = mock(Moim.class);
-        MoimPost moimPost1 = mock(MoimPost.class);
-        MoimPost moimPost2 = mock(MoimPost.class);
-        MoimMember moimMember = mock(MoimMember.class);
-
-        // given - stub
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-        when(moimMember.hasPermissionOfManager()).thenReturn(true);
-        when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.of(moim));
-        when(moimPostRepository.findByMoimId(any())).thenReturn(List.of(moimPost1, moimPost2));
-
-        // when
-        moimService.deleteMoim(moimId, member);
-
-        // then
-        verify(postCommentRepository, times(2)).removeAllByMoimPostId(any()); // moim 은 Null 아니라 괜찮음
-        verify(moimPostRepository, times(1)).removeAllByMoimId(any());
-        verify(moimCategoryLinkerRepository, times(1)).removeAllByMoimId(any());
-        verify(moimRepository, times(1)).remove(any());
-
-    }
-
-
-    // deleteMoim - 실패 : NULL PARAM
-    @Test
-    void deleteMoim_shouldThrowException_whenParamNull_byMoimingApiException() {
-
-        // given
-        // when
-        // then
-        assertThatThrownBy(() -> moimService.deleteMoim(null, null)).isInstanceOf(MoimingApiException.class);
-
-    }
-
-
-    // deleteMoim - 실패 : MOIM MEMBER NOT FOUND
-    @Test
-    void deleteMoim_shouldThrowException_whenMoimMemberNotFound_byMoimingApiException() {
-
-        // given
-        Long moimId = 1L;
-        Member member = mock(Member.class);
-
-        // when
-        // then
-        assertThatThrownBy(() -> moimService.deleteMoim(moimId, member)).isInstanceOf(MoimingApiException.class);
-
-    }
-
-
-    // deleteMoim - 실패 : MEMBER NOT AUTHORIZED
-    @Test
-    void deleteMoim_shouldThrowException_whenMoimMemberNotManager_byMoimingApiException() {
-
-        // given
-        Long moimId = 1L;
-        Member member = mock(Member.class);
-        Moim moim = mock(Moim.class);
-        MoimMember moimMember = mock(MoimMember.class);
-
-        // given - stub
-        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(moimMember));
-        when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.of(moim));
-
-        // when
-        // then
-        assertThatThrownBy(() -> moimService.deleteMoim(moimId, member)).isInstanceOf(MoimingApiException.class);
-
-    }
-
-
-    // deleteMoim - 실패 : MOIM NOT FOUND
-    @Test
-    void deleteMoim_shouldThrowException_whenMoimNotFound_byMoimingApiException() {
-
-        // given
-        Long moimId = 1L;
-        Member member = mock(Member.class);
-        MoimMember moimMember = mock(MoimMember.class);
-
-        // given - stub
-        when(moimRepository.findWithJoinRuleAndCategoriesById(any())).thenReturn(Optional.empty());
-
-        // when
-        // then
-        assertThatThrownBy(() -> moimService.deleteMoim(moimId, member)).isInstanceOf(MoimingApiException.class);
 
     }
 

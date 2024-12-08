@@ -41,6 +41,7 @@ public class MoimPost extends BaseEntity {
     private boolean hasFiles;
     private int commentCnt;
     private Long updaterId;
+    @Enumerated(EnumType.STRING)
     private ContentStatus contentStatus; // 초기화는 ACTIVE 로
     private boolean hasDeleted;
 

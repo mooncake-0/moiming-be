@@ -74,12 +74,16 @@ public class SearchJpaRepository {
         String jpql = "SELECT m FROM Moim m " +
                 "LEFT JOIN FETCH m.moimJoinRule ";
 
+        // AND / OR 의 적용 순서 고려
         String baseWhereQuery = "";
         if (lastSearchedMoim != null) {
             baseWhereQuery = "m.moimName LIKE :keyword AND ((m.createdAt < :lastSearchedMoimCreatedAt) OR (m.createdAt = :lastSearchedMoimCreatedAt AND m.id < :lastMoimId))";
         } else {
             baseWhereQuery = "m.moimName LIKE :keyword";
         }
+
+        // 2412 - 비활성화된 모임은 검색 결과에서 제외한다
+        baseWhereQuery += " AND m.contentStatus <> 'HIDDEN' AND m.curMemberCount > 0";
 
         if (type.equals(BOTH_FILTER_ON) || type.equals(NO_FILTER)) { // 그냥 병렬로 하면 됨
             jpql += "WHERE " + baseWhereQuery + " " +

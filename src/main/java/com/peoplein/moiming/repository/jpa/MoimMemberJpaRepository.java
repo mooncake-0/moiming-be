@@ -1,5 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.member.MemberInfo;
@@ -172,10 +173,14 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
             );
         }
 
+        // 2412 - 비활성화된 모임은 검색 결과에서 제외한다
         return queryFactory.selectFrom(moimMember)
                 .join(moimMember.moim, moim).fetchJoin()
                 .join(moim.moimJoinRule, moimJoinRule).fetchJoin()
-                .where(moimMember.member.id.eq(memberId), dynamicQuery)// 기본 where 외로 and 가 붙는다
+                .where(moimMember.member.id.eq(memberId)
+                        , moim.contentStatus.ne(ContentStatus.HIDDEN)
+                        , moim.curMemberCount.gt(0)
+                        , dynamicQuery)// 기본 where 외로 and 가 붙는다
                 .orderBy(moimMember.moim.createdAt.desc(), moimMember.moim.id.desc())
                 .limit(limit)
                 .fetch();

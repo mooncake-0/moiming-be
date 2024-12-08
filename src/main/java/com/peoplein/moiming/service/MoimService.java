@@ -208,6 +208,8 @@ public class MoimService {
                 new MoimingApiException(MOIM_NOT_FOUND)
         );
 
+        moim.checkInactiveMoim();
+
         MoimMember managerMember = moimMemberRepository.findWithMemberAndInfoByMemberAndMoimId(moim.getCurManagerId(), moim.getId()).orElseThrow(() -> {
             log.error("{}, {}", "모임 생성자 정보를 찾을 수 없음, C999", COMMON_INVALID_SITUATION.getErrMsg());
             return new MoimingApiException(COMMON_INVALID_SITUATION);
@@ -234,6 +236,8 @@ public class MoimService {
                 new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
         );
 
+        moimMemberPs.getMoim().checkInactiveMoim();
+
         if (!moimMemberPs.hasPermissionOfManager()) {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
@@ -256,9 +260,12 @@ public class MoimService {
 
         member.isMemberInfoRegistered();
 
+
         Moim moim = moimRepository.findWithJoinRuleById(requestDto.getMoimId()).orElseThrow(() ->
                 new MoimingApiException(MOIM_NOT_FOUND, "[" + requestDto.getMoimId() + "] 모임이 없거나 혹은 가입조건이 없는 모임 발견")
         );
+
+        moim.checkInactiveMoim();
 
         // MoimMember 조회,
         MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), requestDto.getMoimId()).orElseThrow(() ->
@@ -275,66 +282,6 @@ public class MoimService {
         moim.getMoimJoinRule().changeJoinRule(requestDto.getAgeMax(), requestDto.getAgeMin(), requestDto.getMemberGender(), member);
 
         return moim;
-    }
-
-
-    // TODO :: MVP 에선 삭제한다. 실제 데이터를
-//         원래 데이터 삭제는 드문 일임을 알아두자
-//         MoimPost 를 제외하고는 모두 조회는 필요 없음
-// 모임 삭제 (MANAGER 권한)
-    @Transactional
-    public void deleteMoim(Long moimId, Member member) {
-
-        if (moimId == null || member == null) {
-            throw new MoimingApiException(COMMON_INVALID_PARAM);
-        }
-
-        member.isMemberInfoRegistered();
-
-        // 모임 삭제를 위한 조회를 진행
-        Moim moim = moimRepository.findWithJoinRuleAndCategoriesById(moimId).orElseThrow(() ->
-                new MoimingApiException(MOIM_NOT_FOUND)
-        );
-
-        // 요청한 인원의 존재 여부와 권한을 확인한다
-        MoimMember moimMember = moimMemberRepository.findByMemberAndMoimId(member.getId(), moimId).orElseThrow(() ->
-                new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
-        );
-
-        if (!moimMember.hasPermissionOfManager()) {
-            throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
-        }
-
-        // 게시물 우선 제어를 위해 조회
-        List<MoimPost> moimPosts = moimPostRepository.findByMoimId(moim.getId());
-
-        // MEMO :: JPQL 을 발생시키는건 Flush 를 진행하게 된다 - 영컨을 이용하면 순서가 보장되지 않음, FK 오류 가능, OrphanRemoval, Cascade.REMOVE 옵션은 사용하지 않도록 하자
-        // 1) 모든 Post Comment 삭제 - Moim Post 를 Iterate 하면서 진행
-        //    IN 절을 써서 한번에 삭제하면 풀스캔을 때려서 일일이 하는 것보도 오래 걸릴 것으로 판단됨
-        for (MoimPost moimPost : moimPosts) {
-            postCommentRepository.removeAllByMoimPostId(moimPost.getId()); // 모든 댓글들을 실제로 삭제한다
-        }
-
-        // 2) 모든 MoimPost 삭제
-        moimPostRepository.removeAllByMoimId(moim.getId());
-
-        // 3) 모든 MoimMember 삭제
-        moimMemberRepository.removeAllByMoimId(moim.getId());
-
-        // 4) MoimCategoryLinker 삭제
-        moimCategoryLinkerRepository.removeAllByMoimId(moim.getId());
-
-        // TODO :: 제대로된 정책 필요 (FK 연관 정책 필요)
-        moimCountRepository.removeAllByMoimId(moim.getId());
-
-
-        // 5) Moim 삭제
-        moimRepository.remove(moim.getId());
-
-        // 6) MoimJoinRule 삭제 // MEMO :: Moim 이 JoinRule 과의 연관관계 주인이므로, Moim 을 먼저 삭제한다
-        if (moim.getMoimJoinRule() != null) {
-            moimJoinRuleRepository.removeById(moim.getMoimJoinRule().getId());
-        }
     }
 
 

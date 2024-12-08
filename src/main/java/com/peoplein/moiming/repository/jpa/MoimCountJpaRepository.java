@@ -87,6 +87,9 @@ public class MoimCountJpaRepository implements MoimCountRepository {
                 "INNER JOIN MoimJoinRule mjr ON m.moimJoinRule.id = mjr.id " +
                 "WHERE mmc.countDate IN :givenDates ";
 
+        // 2412 - 비활성화된 모임은 검색 결과에서 제외한다
+        jpql += "AND m.contentStatus <> 'HIDDEN' AND m.curMemberCount > 0 ";
+
         if (areaFilter != null) {
             String areaFilterCondition = "AND ";
             if (areaFilter.getDepth() == 0) { // 1차라면

@@ -1,5 +1,6 @@
 package com.peoplein.moiming.repository.jpa;
 
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.exception.repository.InvalidQueryParameterException;
@@ -98,8 +99,10 @@ public class MoimJpaRepository implements MoimRepository {
     @Override
     public List<Moim> findNewMoims(int offset, int limit) {
 
+        // 2412 - 비활성화된 모임은 검색 결과에서 제외한다
         return queryFactory.selectFrom(moim)
                 .join(moim.moimJoinRule, moimJoinRule).fetchJoin()
+                .where(moim.contentStatus.ne(ContentStatus.HIDDEN), moim.curMemberCount.gt(0))
                 .orderBy(moim.createdAt.desc())
                 .offset(offset)
                 .limit(limit)

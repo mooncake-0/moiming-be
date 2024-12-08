@@ -37,7 +37,9 @@ public class PostComment extends BaseEntity{
 
     private int depth;
 
+    @Enumerated(EnumType.STRING)
     private ContentStatus contentStatus;
+
     private boolean hasDeleted; // 작성자가 직접 삭제한 댓글 여부
 
     private Long updaterId;

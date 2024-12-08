@@ -2,6 +2,7 @@ package com.peoplein.moiming.controller;
 
 
 import com.peoplein.moiming.domain.embeddable.Area;
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
@@ -329,6 +330,53 @@ public class SearchControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data", hasSize(2)));
         resultActions.andExpect(jsonPath("$.data[0].moimId").value(moim7.getId())); // 날짜순 정렬
         resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim1.getId()));
+
+    }
+
+
+    // 1-1 차 테스트 - 검색어 '라틴' - 라틴이라는 이름의 모임이 추가되었으나, 삭제된 모임 하나, 비활성화된 모임 하나, 정상 모임 하나 추가 검색 결과 : moim1 (제목), moim7 (카테고리)
+    @Test
+    void searchMoim_shoulReturnSearchedMoimWithoutDisabledMoims_whenSearchedLatin() throws Exception {
+
+        // given
+        suData();
+
+        // 비활성화된 모임들 추가
+        Category tmpCategory1 = new Category(11L, fromValue(PET.getValue()), 0, null);
+        Category tmpCategory2 = new Category(12L, fromValue(DOG.getValue()), 1, tmpCategory1);
+        List<Category> tmpCategory = List.of(tmpCategory1, tmpCategory2);
+
+        Moim deletedMoim = makeTestMoim("라틴이라는 이름이 포함됨", 10, moim1Area, tmpCategory, member1, 1974, 2004, MemberGender.N); //1
+        deletedMoim.minusCurMemberCount(); // 한 명나가서, 삭제라고 인식하도록 만듬
+        em.persist(deletedMoim);
+
+        Moim hiddenMoim = makeTestMoim("이름에 라틴이 꼭 있음", 10, moim1Area, tmpCategory, member1, 1974, 2004, MemberGender.N); //1
+        hiddenMoim.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.persist(hiddenMoim);
+
+        // 비활성화 때문에 제외되는게 맞는지 확인
+        Moim normalMoim = makeTestMoim("라틴이 있는 정상적인 모임입니다", 10, moim1Area, tmpCategory, member1, 1974, 2004, MemberGender.N); //1
+        em.persist(normalMoim);
+
+        em.flush();
+        em.clear();
+
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_SEARCH_MOIM)
+                .param("keyword", "라틴")
+                .header(HEADER, PREFIX + accessToken));
+
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+
+        // then - 검색에는 여전히 두개만 된다
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(3)));
+        resultActions.andExpect(jsonPath("$.data[0].moimId").value(normalMoim.getId())); // 날짜순 정렬
+        resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim7.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim1.getId()));
 
     }
 

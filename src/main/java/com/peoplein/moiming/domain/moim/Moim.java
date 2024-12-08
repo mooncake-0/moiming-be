@@ -2,6 +2,7 @@ package com.peoplein.moiming.domain.moim;
 
 import com.peoplein.moiming.domain.*;
 import com.peoplein.moiming.domain.embeddable.Area;
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.file.File;
 import com.peoplein.moiming.domain.fixed.Category;
@@ -62,10 +63,13 @@ public class Moim extends BaseEntity {
 
     private String imgUrl;
 
-    private boolean reported;
+    @Enumerated(EnumType.STRING)
+    private ContentStatus contentStatus;
+
     private LocalDateTime deletedAt;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST) // ID 매핑과 동시에 Persist 를 걸어 set 시점에 자동으로 persist 시켜준다
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    // ID 매핑과 동시에 Persist 를 걸어 set 시점에 자동으로 persist 시켜준다
     @JoinColumn(name = "moim_join_rule_id")
     private MoimJoinRule moimJoinRule;
 
@@ -120,6 +124,7 @@ public class Moim extends BaseEntity {
         this.creatorId = creatorId;
         this.curManagerId = creatorId; // 초기에는 동일하다
         this.updaterId = creatorId;
+        this.contentStatus = ContentStatus.ACTIVE;
     }
 
 
@@ -283,6 +288,26 @@ public class Moim extends BaseEntity {
             log.error("{}, Moim Status :: {}", this.getClass().getName(), "Moim 이미지 상태 이상");
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
+    }
+
+    public void checkInactiveMoim() {
+
+        if (this.contentStatus == ContentStatus.HIDDEN) {
+            String l = "[" + this.id + "] 는 신고 처리가 완료된 모임입니다";
+            log.warn("{} checkInactiveMoim :: {}", this.getClass().getName(), l);
+            throw new MoimingApiException(COMMON_REPORTED_CONTENT, l);
+        }
+
+        if (this.curMemberCount == 0) {
+            String l = "[" + this.id + "] 는 삭제된 모임입니다";
+            log.warn("{} checkInactivePost :: {}", this.getClass().getName(), l);
+            throw new MoimingApiException(COMMON_DELETED_RESOURCE, l);
+        }
+    }
+
+    public void changeContentStatus(ContentStatus contentStatus, Long updaterId) {
+        this.contentStatus = contentStatus;
+        this.updaterId = updaterId;
     }
 
 

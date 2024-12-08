@@ -217,11 +217,4 @@ public class MoimMemberService {
 
     }
 
-
-    private Member persistSecurityMember(Long memberId) {
-        return memberRepository.findById(memberId).orElseThrow(() -> {
-            log.error("{}, persistSecurityMember :: {}", this.getClass().getName(), "Member 영속화 중 Id [" + memberId + "] 조회 불가 예외 발생");
-            return new MoimingApiException(MEMBER_NOT_FOUND);
-        });
-    }
 }

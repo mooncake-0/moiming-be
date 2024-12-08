@@ -392,6 +392,54 @@ public class MoimControllerTest extends TestObjectCreator {
         assertThat(arrayNode.size()).isEqualTo(5); // isManagerReq = false 면 자기가 속한 ACTIVE 한 모임 5개만 전달됨
     }
 
+    // 성공
+    // 삭제 / 비활성화 / 정상 모임 3가지 추가 - 정상 모임만 추가로 조회된다
+    @Test
+    void getMemberMoims_shouldReturn200WithSortedMoims_whenDeltedAndHiddenMoimsExists() throws Exception {
+
+        //given
+        dataSu(false);
+        makeAnotherMember();
+        buildManagingMoims(10); // 이 모임들은 testMember1 이 만듬
+        buildOtherMoims(5, 5); // 이 모임들은 testMember2 가 만듬, testMember1 이 같이 가입함
+        em.flush();
+        em.clear();
+
+        // 모임 카테고리 사전생성
+        Category tmpCategory1 = new Category(1L, CategoryName.fromValue(depth1SampleCategory), 0, null);
+        Category tmpCategory2 = new Category(2L, CategoryName.fromValue(depth2SampleCategory), 1, tmpCategory1);
+        List<Category> tmpCategories = List.of(tmpCategory1, tmpCategory2);
+
+        // 비활성화된 모임들 추가
+        Moim deletedMoim = makeTestMoim("가장 조회수 높았던 삭제된 모임", 10, moimArea, tmpCategories, curMember, 1974, 2004, MemberGender.N); //1
+        deletedMoim.minusCurMemberCount(); // 한 명나가서, 삭제라고 인식하도록 만듬
+        em.persist(deletedMoim);
+
+        Moim hiddenMoim = makeTestMoim("가장 조회수 높았던 신고 숨김처리된 모임", 10, moimArea, tmpCategories, curMember, 1974, 2004, MemberGender.N); //1
+        hiddenMoim.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.persist(hiddenMoim);
+
+        // 비활성화 때문에 제외되는게 맞는지 확인하기 위해 정상 추가
+        Moim normalMoim = makeTestMoim("가장 조회수 높은 정상 모임", 10, moimArea, tmpCategories, curMember, 1974, 2004, MemberGender.N); //1
+        em.persist(normalMoim);
+
+        em.flush();
+        em.clear();
+
+        // when - limit 과 isManagerReq 는 false 가 기본으로 들어감, lastMoimId 는 첫 요청이라 없음
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_GET_VIEW)
+                .header(HEADER, PREFIX + testAccessToken)
+                .param("isManagerReq", "true")
+        );
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(1 + 10 + 1))); // 처음에 만든거 1개, ManagingMoim 으로 만든거 10개, 위에서 만든 3개 중 1개만 온다
+        resultActions.andExpect(jsonPath("$.data[?(@.moimId == " + deletedMoim.getId() + ")]").isEmpty()); // 비활성화된 모임은 응답 추가 X
+        resultActions.andExpect(jsonPath("$.data[?(@.moimId == " + hiddenMoim.getId() + ")]").isEmpty()); // 비활성화된 모임은 응답 추가 X
+        resultActions.andExpect(jsonPath("$.data[?(@.moimId == " + normalMoim.getId() + ")]").isNotEmpty()); // 정상으로 추가된 모임은 포함되어 있어야 함
+    }
 
     // 두번의 요청을 연속해서 수행한다 - 정확한 테스트를 위함
     @Test
@@ -584,7 +632,6 @@ public class MoimControllerTest extends TestObjectCreator {
         // when
         ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
                 .header(HEADER, PREFIX + testAccessToken));
-        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
 
         // then
         resultActions.andExpect(status().isBadRequest());
@@ -593,6 +640,60 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
+    // 실패 :: 삭제된 모임에 대한 update 시도
+    @Test
+    void updateMoim_shouldReturn410_whenDeletedMoim_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        dataSu(false);
+
+        // 모임 삭제 처리
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        createdMoim.minusCurMemberCount(); // 한 명 나가서, 삭제로 인식하도록 만듬
+        em.flush();
+        em.clear();
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+    }
+
+    // 실패 :: 신고 처리 완료된 모임에 대한 update 시도
+    @Test
+    void updateMoim_shouldReturn422_whenReportHiddenMoim_byMoimingValidationException() throws Exception {
+
+        // given - 개인정보 기입완료
+        dataSu(false);
+
+        // 모임 신고로 숨김 처리
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        createdMoim.changeContentStatus(ContentStatus.HIDDEN, 1000L); // 숨김 처리로 만듬
+        em.flush();
+        em.clear();
+
+        // given
+        MoimUpdateReqDto reqDto = makeMoimUpdateReqDto(createdMoim.getId(), moimName2, moimArea2.getState(), moimArea2.getCity(), maxMember2, depth1SampleCategory2, depth2SampleCategory2);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATH_MOIM_UPDATE).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(HEADER, PREFIX + testAccessToken));
+        System.out.println("responseBody: " + resultActions.andReturn().getResponse().getContentAsString());
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // MaxMember Validation 은 JoinRule 수정 API 로 이동됨
     // maxMember Validation
@@ -616,7 +717,6 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
     }
 
-
     // 수정하려는 필드가 없을 경우
     @Test
     void updateMoim_shouldReturn200_whenNoValuesEdited() throws Exception {
@@ -639,7 +739,6 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
-
     // Category 가 있는데 비어있음 Validation > 실패 (수정하지 않겠다는 뜻)
     @Test
     void updateMoim_shouldReturn400_whenCategoryNotNullButEmpty_byMoimingValidationException() throws Exception {
@@ -661,7 +760,6 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
     }
-
 
     // Category Num Validation > 잘못됨
     @Test
@@ -688,7 +786,6 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data", aMapWithSize(1)));
 
     }
-
 
     // updateMoim - 실패 : 모임원이 아님
     @Test
@@ -759,7 +856,7 @@ public class MoimControllerTest extends TestObjectCreator {
 
 
     // MJR 수정
-    // updateMoimJoinRule - 성공 - MaxMember 수정없이 요청을 보냈을 때, maxMember 는 수정되지 않는다
+    // updateMoimJoinRule - 성공
     @Test
     void updateMoimJoinRule_shouldReturn200WithResp_whenNoJoinRuleMoimWithNoMaxMemberChangeReq() throws Exception {
 
@@ -793,42 +890,6 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
-
-    // updateMoimJoinRule - 성공 - maxMember 도 같이 수정 시도시 같이 수정된다
-//    @Test
-//    void updateMoimJoinRule_shouldReturn200WithResp_whenHasJoinRuleMoim() throws Exception {
-//
-//        // given - 개인정보 기입완료
-//        dataSu(false);
-//
-//        // given
-//        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), true, maxMember2, 1984, 2004, MemberGender.M);
-//        String requestBody = om.writeValueAsString(reqDto);
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
-//                .header(HEADER, PREFIX + testAccessToken)
-//                .content(requestBody)
-//                .contentType(MediaType.APPLICATION_JSON));
-//
-//        // then
-//        resultActions.andExpect(status().isOk());
-//        resultActions.andExpect(jsonPath("$.data.ageMax").value(1984));
-//        resultActions.andExpect(jsonPath("$.data.ageMin").value(2004));
-//        resultActions.andExpect(jsonPath("$.data.memberGender").value(MemberGender.M.toString()));
-//
-//        // then - db verify
-//        Moim moim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule findJoinRule = moim.getMoimJoinRule();
-//        assertNotNull(findJoinRule);
-//        assertThat(moim.getMaxMember()).isEqualTo(maxMember2);
-//        assertThat(findJoinRule.getAgeMax()).isEqualTo(1984);
-//        assertThat(findJoinRule.getAgeMin()).isEqualTo(2004);
-//        assertThat(findJoinRule.getMemberGender()).isEqualTo(MemberGender.M);
-//
-//    }
-
-
     // updateMoimJoinRule - 실패 : 개인 정보 없는 회원의 요청
     // 권한 확인보다 개인정보 미기입이 먼저 판별되므로, 해당으로 진행
     // 테스트 셋업상 많이 꼬인게 많아서, 이런식으로 진행한다
@@ -855,45 +916,6 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
 
     }
-
-
-    // updateMoimJoinRule - 성공 : editingJoinRule 이 false 면 뒤에 무슨 값을 보내도 변경되지 않는다
-    // editingRule 은 삭제됨
-//    @Test
-//    void updateMoimJoinRule_shouldReturn200WithRespAndNoChangeInJoinRule_whenEditingJoinRuleFalse() throws Exception {
-//
-//        // given - 개인정보 기입완료
-//        dataSu(false);
-//
-//        // given
-//        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), false, null, 1984, 2004, MemberGender.F);
-//        String requestBody = om.writeValueAsString(reqDto);
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
-//                .header(HEADER, PREFIX + testAccessToken)
-//                .content(requestBody)
-//                .contentType(MediaType.APPLICATION_JSON));
-//
-//        // then
-//        resultActions.andExpect(status().isOk());
-//        resultActions.andExpect(jsonPath("$.data.maxMember").value(maxMember)); // 바뀌지 않음
-//        resultActions.andExpect(jsonPath("$.data.ageMax").value(-1));
-//        resultActions.andExpect(jsonPath("$.data.ageMin").value(-1));
-//        resultActions.andExpect(jsonPath("$.data.memberGender").value(MemberGender.N.toString()));// 바뀌지 않음
-//
-//
-//        // then - db verify
-//        Moim moim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule findJoinRule = moim.getMoimJoinRule();
-//        assertNotNull(findJoinRule);
-//        assertThat(moim.getMaxMember()).isEqualTo(maxMember);
-//        assertThat(findJoinRule.getAgeMax()).isEqualTo(-1);
-//        assertThat(findJoinRule.getAgeMin()).isEqualTo(-1);
-//        assertThat(findJoinRule.getMemberGender()).isEqualTo(MemberGender.N);
-//
-//    }
-
 
     // updateMoimJoinRule - 실패 : 가입 조건을 수정하는데 모든 필드가 없으면 error 발생 (가입조건은 현재 상태도 같이 보내줘야 한다)
     @Test
@@ -944,6 +966,62 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
+    // 실패 - 가입 조건 수정 : 삭제된 모임에 대한 가입 조건 수정 불가
+    @Test
+    void updateMoimJoinRule_shouldReturn410_whenDeletedMoim_byMoimingApiException() throws Exception {
+
+        // given - 개인정보 기입완료
+        dataSu(false);
+
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        createdMoim.minusCurMemberCount(); // 한 명 나가서, 삭제로 인식하도록 만듬
+        em.flush();
+        em.clear();
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 1984, 2004, MemberGender.M);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+    }
+
+    // 실패 - 가입 조건 수정 : 신고 처리 완료된 모임에 대한 가입 조건 수정 불가
+    @Test
+    void updateMoimJoinRule_shouldReturn422_whenReportHiddenMoim_byMoimingApiException() throws Exception {
+
+        // given - 개인정보 기입완료
+        dataSu(false);
+
+        // 모임 신고로 숨김 처리
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        createdMoim.changeContentStatus(ContentStatus.HIDDEN, 1000L); // 숨김 처리로 만듬
+        em.flush();
+        em.clear();
+
+        // given
+        MoimJoinRuleUpdateReqDto reqDto = new MoimJoinRuleUpdateReqDto(createdMoim.getId(), 1984, 2004, MemberGender.M);
+        String requestBody = om.writeValueAsString(reqDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(patch(PATM_MOIM_JOIN_RULE_UPDATE)
+                .header(HEADER, PREFIX + testAccessToken)
+                .content(requestBody)
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // updateMoimJoinRule - 실패 : 수정단 오류 (ageMax > ageMin)
     @Test
@@ -968,7 +1046,6 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
-
     // updateMoimJoinRule - 실패 : 수정단 오류 (ageMax > ageMin)
     @Test
     void updateMoimJoinRule_shouldReturn400_whenAgeValidationFailByMinAgeUnder15_byMoimingApiException() throws Exception {
@@ -991,7 +1068,6 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(MOIM_RULE_AGE_NOT_VALID.getErrCode()));
 
     }
-
 
     // updateMoimJoinRule - 실패 : 모임 없음 404
     @Test
@@ -1016,7 +1092,6 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
-
     // updateMoimJoinRule - 실패 : 비모임원 404
     @Test
     void updateMoimJoinRule_shouldReturn404_whenNotMoimMember_byMoimingApiException() throws Exception {
@@ -1039,7 +1114,6 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
 
     }
-
 
     // updateMoimJoinRule - 실패 : 운영자가 아님 403
     @Test
@@ -1070,7 +1144,6 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
-
     // updateMoimJoinRule - 실패 - 수정하려는 관리자의 개인정보와 모임 가입 조건이 부합하지 않음
     @Test
     void updateMoimJoinRule_shouldReturn400_whenManagerMemberInfoDoesNotSatisfyUpdatingJoinRule_byMoimingApiException() throws Exception {
@@ -1093,10 +1166,47 @@ public class MoimControllerTest extends TestObjectCreator {
 
     }
 
-
+    // 모임 정보 세부 조회
     // getMoimDetail - 성공, 세부 조회
     @Test
     void getMoimDetail_shouldReturn200WithResponse_whenMoimWithRuleAndRightInfoPassed() throws Exception {
+
+        // given
+        dataSu(false);
+        String[] beforeParam = {"moimId"};
+        String[] afterParam = {createdMoim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_GET_DETAIL, beforeParam, afterParam))
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.code").value(1));
+        resultActions.andExpect(jsonPath("$.data.moimId").value(createdMoim.getId()));
+        resultActions.andExpect(jsonPath("$.data.moimName").value(createdMoim.getMoimName()));
+        resultActions.andExpect(jsonPath("$.data.moimInfo").value(createdMoim.getMoimInfo()));
+        resultActions.andExpect(jsonPath("$.data.curMemberCount").value(createdMoim.getCurMemberCount()));
+        resultActions.andExpect(jsonPath("$.data.maxMember").value(createdMoim.getMaxMember()));
+        resultActions.andExpect(jsonPath("$.data.areaCity").value(createdMoim.getMoimArea().getCity()));
+        resultActions.andExpect(jsonPath("$.data.areaState").value(createdMoim.getMoimArea().getState()));
+        resultActions.andExpect(jsonPath("$.data.createdAt").exists());
+        resultActions.andExpect(jsonPath("$.data.updatedAt").exists());
+        resultActions.andExpect(jsonPath("$.data.categories").isArray());
+        resultActions.andExpect(jsonPath("$.data.categories", hasItems(testCategory1.getCategoryName().getValue(), testCategory1_1.getCategoryName().getValue())));
+        resultActions.andExpect(jsonPath("$.data.joinRule").exists());
+        resultActions.andExpect(jsonPath("$.data.joinRule.ageMax").value(-1));
+        resultActions.andExpect(jsonPath("$.data.joinRule.ageMin").value(-1));
+        resultActions.andExpect(jsonPath("$.data.joinRule.memberGender").value(MemberGender.N + ""));
+        resultActions.andExpect(jsonPath("$.data.managerInfo.memberId").value(curMember.getId()));
+        resultActions.andExpect(jsonPath("$.data.managerInfo.nickname").value(curMember.getNickname()));
+
+    }
+
+    // 모임 정보 세부 조회 (memberInfo 없는 유저가 조회해도 성공한다)
+    // getMoimDetail - 성공, 세부 조회
+    @Test
+    void getMoimDetail_shouldReturn200WithResponse_whenMemberNotHaveInfoMoimWithRuleAndRightInfoPassed() throws Exception {
 
         // given
         dataSu(false);
@@ -1136,10 +1246,16 @@ public class MoimControllerTest extends TestObjectCreator {
 
         // given
         dataSu(false);
-        makeAnotherMember();
+
+        // 개인정보 등록 안한 유저의 조회
+        Member noInfoMember = makeTestMember(memberPhone2, nickname2, ci2, testRole);
+        em.persist(noInfoMember);
+        em.flush();
+        em.clear();
+
         String[] beforeParam = {"moimId"};
         String[] afterParam = {createdMoim.getId() + ""};
-        String accessToken2 = createTestJwtToken(testMember2, 2000);
+        String accessToken2 = createTestJwtToken(noInfoMember, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_GET_DETAIL, beforeParam, afterParam))
@@ -1189,477 +1305,57 @@ public class MoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(MOIM_NOT_FOUND.getErrCode()));
     }
 
+    // getMoimDetail - 실패 - 삭제된 모임 세부 조회 불가
+    @Test
+    void getMoimDetail_shouldReturn410_whenDeletedMoim_byMoimingApiException() throws Exception {
+
+        // given
+        dataSu(false);
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        createdMoim.minusCurMemberCount(); // 한 명 나가서, 삭제로 인식하도록 만듬
+        em.flush();
+        em.clear();
+
+        String[] beforeParam = {"moimId"};
+        String[] afterParam = {createdMoim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_GET_DETAIL, beforeParam, afterParam))
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+    }
+
+    // getMoimDetail - 실패 - 신고 처리 완료된 모임 세부 조회 불가
+    @Test
+    void getMoimDetail_shouldReturn422_whenReportHiddenMoim_byMoimingApiException() throws Exception {
+
+        // given
+        dataSu(false);
+
+        // 모임 신고로 숨김 처리
+        createdMoim = em.find(Moim.class, createdMoim.getId());
+        createdMoim.changeContentStatus(ContentStatus.HIDDEN, 1000L); // 숨김 처리로 만듬
+        em.flush();
+        em.clear();
+
+        String[] beforeParam = {"moimId"};
+        String[] afterParam = {createdMoim.getId() + ""};
+
+        // when
+        ResultActions resultActions = mvc.perform(get(setParameter(PATH_MOIM_GET_DETAIL, beforeParam, afterParam))
+                .header(HEADER, PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     ////////////////////////////////////////////////////////
-    // MEMO :: v0.1.3 - 모임 삭제 API Deprecated
-    // deleteMoim - 성공 : 모임만 있음
-//    @Test
-//    void deleteMoim_shouldReturn200_whenSuccessfulWithOnlyMoim() throws Exception {
-//
-//        // given - 개인정보 기입완료
-//        curMember = em.find(Member.class, curMember.getId()); // 영속화
-//        makeTestMemberInfo(curMember, memberGender, memberBirth);
-//
-//        // given
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isOk());
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//
-//        Moim moim = em.find(Moim.class, createdMoim.getId());
-//        assertNull(moim);
-//
-//    }
-//
-//
-//    // deleteMoim - 성공 : 모임만 있음
-//    @Test
-//    void deleteMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception {
-//
-//        // given
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isForbidden());
-//        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
-//
-//    }
-//
-//
-//    // deleteMoim - 성공 : 모임만 있음 + 가입 조건 있음
-//    @Test
-//    void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRule() throws Exception {
-//
-//        // given - 개인정보 기입완료
-//        curMember = em.find(Member.class, curMember.getId()); // 영속화
-//        makeTestMemberInfo(curMember, memberGender, memberBirth);
-//
-//        // given
-//        createdMoim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
-//        createdMoim.setMoimJoinRule(joinRule);
-//        em.flush();
-//        em.clear();
-//
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isOk());
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//        Moim moim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule moimJoinRule = em.find(MoimJoinRule.class, joinRule.getId());
-//        assertNull(moim);
-//        assertNull(moimJoinRule);
-//
-//    }
-//
-//
-//    // deleteMoim - 성공 : 모임만 있음 + 가입 조건 있음 + 게시물 있음
-//    @Test
-//    void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRuleAndPost() throws Exception {
-//
-//        // given - 개인정보 기입완료
-//        curMember = em.find(Member.class, curMember.getId()); // 영속화
-//        makeTestMemberInfo(curMember, memberGender, memberBirth);
-//
-//        // given - join Rule
-//        createdMoim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
-//        createdMoim.setMoimJoinRule(joinRule);
-//
-//        // given - post
-//        MoimPost post1 = makeMoimPost(createdMoim, curMember, MoimPostCategory.GREETING, false);
-//        em.persist(post1);
-//
-//        em.flush();
-//        em.clear();
-//
-//
-//        // given start
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isOk());
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//        Moim moim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule moimJoinRule = em.find(MoimJoinRule.class, joinRule.getId());
-//        MoimPost dPost1 = em.find(MoimPost.class, post1.getId());
-//        assertNull(moim);
-//        assertNull(moimJoinRule);
-//        assertNull(dPost1);
-//
-//    }
-//
-//
-//    // deleteMoim - 성공 : 모임만 있음 + 가입 조건 있음 + 게시물 있음 + 모임원 2명 추가됨
-//    @Test
-//    void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRuleAndPostAndMembers() throws Exception {
-//
-//        // given - 개인정보 기입완료
-//        curMember = em.find(Member.class, curMember.getId()); // 영속화
-//        makeTestMemberInfo(curMember, memberGender, memberBirth);
-//
-//        // given - join Rule
-//        createdMoim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
-//        createdMoim.setMoimJoinRule(joinRule);
-//
-//        // given - post
-//        MoimPost post1 = makeMoimPost(createdMoim, curMember, MoimPostCategory.GREETING, false);
-//        em.persist(post1);
-//
-//        // given - MoimMembers
-//        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
-//        Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
-//
-//        MoimMember moimMember2 = MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        MoimMember moimMember3 = MoimMember.memberJoinMoim(testMember3, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        em.persist(testMember2);
-//        em.persist(testMember3);
-//
-//        em.flush();
-//        em.clear();
-//
-//        // db 중간 checking
-////        createdMoim = em.find(Moim.class, createdMoim.getId());
-////        List<MoimMember> moimMembers = createdMoim.getMoimMembers();
-////        for (MoimMember moimMember : moimMembers) {
-////            System.out.println("moimMember.getMember().getNickname() = " + moimMember.getMember().getNickname());
-////        }
-////        System.out.println("createdMoim = " + createdMoim.getCurMemberCount());
-//
-//
-//        // given start
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isOk());
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//        assertNull(em.find(Moim.class, createdMoim.getId()));
-//        assertNull(em.find(MoimJoinRule.class, joinRule.getId()));
-//        assertNull(em.find(MoimPost.class, post1.getId()));
-//        assertNull(em.find(MoimMember.class, moimMember2.getId()));
-//        assertNull(em.find(MoimMember.class, moimMember3.getId()));
-//
-//    }
-//
-//
-//    // deleteMoim - 성공 : 모임만 있음 + 가입 조건 있음 + 게시물 2개 있음 (모임원들이 게시물 생성)
-//    @Test
-//    void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRuleAndPostsOfMembers() throws Exception {
-//
-//        // given - 개인정보 기입완료
-//        curMember = em.find(Member.class, curMember.getId()); // 영속화
-//        makeTestMemberInfo(curMember, memberGender, memberBirth);
-//
-//        // given - join Rule
-//        createdMoim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
-//        createdMoim.setMoimJoinRule(joinRule);
-//
-//        // given - post
-//        MoimPost post1 = makeMoimPost(createdMoim, curMember, MoimPostCategory.GREETING, false);
-//        em.persist(post1);
-//
-//        // given - MoimMembers
-//        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
-//        Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
-//
-//        MoimMember moimMember2 = MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        MoimMember moimMember3 = MoimMember.memberJoinMoim(testMember3, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        em.persist(testMember2);
-//        em.persist(testMember3);
-//
-//        // given - other posts
-//        MoimPost post2 = makeMoimPost(createdMoim, testMember2, MoimPostCategory.EXTRA, false);
-//        MoimPost post3 = makeMoimPost(createdMoim, testMember3, MoimPostCategory.REVIEW, true);
-//        em.persist(post2);
-//        em.persist(post3);
-//
-//        em.flush();
-//        em.clear();
-//
-//        // given start
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isOk());
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//        assertNull(em.find(Moim.class, createdMoim.getId()));
-//        assertNull(em.find(MoimJoinRule.class, joinRule.getId()));
-//        assertNull(em.find(MoimPost.class, post1.getId()));
-//        assertNull(em.find(MoimPost.class, post2.getId()));
-//        assertNull(em.find(MoimPost.class, post3.getId()));
-//        assertNull(em.find(MoimMember.class, moimMember2.getId()));
-//        assertNull(em.find(MoimMember.class, moimMember3.getId()));
-//
-//    }
-//
-//
-//    // deleteMoim - 성공 : 모임만 있음 + 가입 조건 있음 + 게시물 2개 있음 + 각각 댓글들이 있음 (모임원들이 댓글들 생성)
-//    @Test
-//    void deleteMoim_shouldReturn200_whenSuccessfulWithJoinRuleAndPostsOfMembersAndComments() throws Exception {
-//
-//        // given - 개인정보 기입완료
-//        curMember = em.find(Member.class, curMember.getId()); // 영속화
-//        makeTestMemberInfo(curMember, memberGender, memberBirth);
-//
-//        // given - join Rule
-//        createdMoim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
-//        createdMoim.setMoimJoinRule(joinRule);
-//
-//        // given - post
-//        MoimPost post1 = makeMoimPost(createdMoim, curMember, MoimPostCategory.GREETING, false);
-//        em.persist(post1);
-//
-//        // given - MoimMembers
-//        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
-//        Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
-//
-//        MoimMember moimMember2 = MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        MoimMember moimMember3 = MoimMember.memberJoinMoim(testMember3, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        em.persist(testMember2);
-//        em.persist(testMember3);
-//
-//        // given - other posts
-//        MoimPost post2 = makeMoimPost(createdMoim, testMember2, MoimPostCategory.EXTRA, false);
-//        MoimPost post3 = makeMoimPost(createdMoim, testMember3, MoimPostCategory.REVIEW, true);
-//        em.persist(post2);
-//        em.persist(post3);
-//
-//        // given - comments 9 개 추가
-//        // 1 번 게시물에 2 가 댓글, 1이 답글, 3이 댓글, 1이 답글
-//        // 2 번 게시물에 1 이 댓글, 2가 답글
-//        // 3 번 게시물에 1 이 댓글, 2가 댓글, 3이 답글
-//        PostComment comment1 = makePostComment(testMember2, post1, 0, null);
-//        PostComment comment2 = makePostComment(curMember, post1, 1, comment1);
-//        PostComment comment3 = makePostComment(testMember3, post1, 0, null);
-//        PostComment comment4 = makePostComment(curMember, post1, 1, comment3);
-//
-//        PostComment comment5 = makePostComment(curMember, post2, 0, null);
-//        PostComment comment6 = makePostComment(testMember2, post2, 1, comment5);
-//
-//        PostComment comment7 = makePostComment(curMember, post3, 0, null);
-//        PostComment comment8 = makePostComment(testMember2, post3, 0, null);
-//        PostComment comment9 = makePostComment(testMember3, post3, 1, comment8);
-//
-//        em.flush();
-//        em.clear();
-//
-////        MoimPost posta = em.find(MoimPost.class, post1.getId());
-////        MoimPost postb = em.find(MoimPost.class, post2.getId());
-////        MoimPost postc = em.find(MoimPost.class, post3.getId());
-////        List<PostComment> postCommenta = posta.getPostComments();
-////        List<PostComment> postCommentb = postb.getPostComments();
-////        List<PostComment> postCommentc = postc.getPostComments();
-////        for (PostComment comment : postCommenta) {
-////            System.out.println("comment.getDepth() = " + comment.getDepth());
-////            System.out.println("comment.getContent() = " + comment.getContent());
-////        }
-////        for (PostComment comment : postCommentb) {
-////            System.out.println("comment.getDepth() = " + comment.getDepth());
-////            System.out.println("comment.getContent() = " + comment.getContent());
-////        }
-////        for (PostComment comment : postCommentc) {
-////            System.out.println("comment.getDepth() = " + comment.getDepth());
-////            System.out.println("comment.getContent() = " + comment.getContent());
-////        }
-////
-////        System.out.println("posta.getCommentCnt() = " + posta.getCommentCnt());
-////        System.out.println("postb.getCommentCnt() = " + postb.getCommentCnt());
-////        System.out.println("postc.getCommentCnt() = " + postc.getCommentCnt());
-//
-//        // given start
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isOk());
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//        assertNull(em.find(Moim.class, createdMoim.getId()));
-//        assertNull(em.find(MoimJoinRule.class, joinRule.getId()));
-//        assertNull(em.find(MoimPost.class, post1.getId()));
-//        assertNull(em.find(MoimPost.class, post2.getId()));
-//        assertNull(em.find(MoimPost.class, post3.getId()));
-//        assertNull(em.find(MoimMember.class, moimMember2.getId()));
-//        assertNull(em.find(MoimMember.class, moimMember3.getId()));
-//        assertNull(em.find(PostComment.class, comment1.getId()));
-//        assertNull(em.find(PostComment.class, comment2.getId()));
-//        assertNull(em.find(PostComment.class, comment3.getId()));
-//        assertNull(em.find(PostComment.class, comment4.getId()));
-//        assertNull(em.find(PostComment.class, comment5.getId()));
-//        assertNull(em.find(PostComment.class, comment6.getId()));
-//        assertNull(em.find(PostComment.class, comment7.getId()));
-//        assertNull(em.find(PostComment.class, comment8.getId()));
-//        assertNull(em.find(PostComment.class, comment9.getId()));
-//
-//    }
-//
-//
-//    // 실패 : 비모임원 시도
-//    @Test
-//    void deleteMoim_shouldReturn404_whenNotMoimMemberReq_byMoimingApiException() throws Exception {
-//
-//        // given - join Rule
-//        createdMoim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
-//        createdMoim.setMoimJoinRule(joinRule);
-//
-//        // given - MoimMembers
-//        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
-//        Member testMember3 = makeTestMember(memberPhone3, nickname3, ci3, testRole);
-//
-//        MoimMember moimMember2 = MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        em.persist(testMember2);
-//        em.persist(testMember3);
-//
-//        // 요청자 개인정보 기입
-//        makeTestMemberInfo(testMember3, memberGender3, memberBirth3);
-//
-//        em.flush();
-//        em.clear();
-//
-//        // given start
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//        String nonMoimMemberToken = createTestJwtToken(testMember3, 2000);
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + nonMoimMemberToken));
-//
-//        // then
-//        resultActions.andExpect(status().isNotFound());
-//        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//        assertNotNull(em.find(Moim.class, createdMoim.getId()));
-//
-//    }
-//
-//
-//    // 실패 : 일반 모임원 시도
-//    @Test
-//    void deleteMoim_shouldReturn403_whenNormalMoimMemberReq_byMoimingApiException() throws Exception {
-//
-//        // given - join Rule
-//        createdMoim = em.find(Moim.class, createdMoim.getId());
-//        MoimJoinRule joinRule = makeTestMoimJoinRule(true, 40, 20, MemberGender.N);
-//        createdMoim.setMoimJoinRule(joinRule);
-//
-//        // given - MoimMembers
-//        testMember2 = makeTestMember(memberPhone2, nickname2, ci2, testRole);
-//        MoimMember.memberJoinMoim(testMember2, createdMoim, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE);
-//        em.persist(testMember2);
-//
-//        // 요청자 개인정보 기입
-//        makeTestMemberInfo(testMember2, memberGender2, memberBirth2);
-//
-//        em.flush();
-//        em.clear();
-//
-//        // given start
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {createdMoim.getId() + ""};
-//        String normalMoimMemberToken = createTestJwtToken(testMember2, 2000);
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + normalMoimMemberToken));
-//
-//        // then
-//        resultActions.andExpect(status().isForbidden());
-//        resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_AUTHORIZED.getErrCode()));
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//        assertNotNull(em.find(Moim.class, createdMoim.getId()));
-//
-//    }
-//
-//
-//    // 실패 : 모임을 찾을 수 없음
-//    @Test
-//    void deleteMoim_shouldReturn404_whenMoimNotFound_byMoimingApiException() throws Exception {
-//
-//        // given - 요청자 개인정보 기입
-//        curMember = em.find(Member.class, curMember.getId());
-//        makeTestMemberInfo(curMember, memberGender, memberBirth);
-//
-//        // given start
-//        String[] beforeParam = {"moimId"};
-//        String[] afterParam = {12345L + ""};
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(delete(setParameter(PATH_MOIM_DELETE, beforeParam, afterParam))
-//                .header(HEADER, PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isNotFound());
-//        resultActions.andExpect(jsonPath("$.code").value(MOIM_NOT_FOUND.getErrCode()));
-//
-//        // then - db verify
-//        em.flush();
-//        em.clear();
-//        assertNotNull(em.find(Moim.class, createdMoim.getId()));
-//    }
-
+    // MEMO :: v0.1.2 - 모임 삭제 API Deprecated
 
 }

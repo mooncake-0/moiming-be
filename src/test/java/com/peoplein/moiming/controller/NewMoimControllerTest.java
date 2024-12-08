@@ -3,6 +3,7 @@ package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.config.AppUrlPath;
 import com.peoplein.moiming.domain.embeddable.Area;
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
@@ -106,6 +107,57 @@ public class NewMoimControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim2.getId()));
         resultActions.andExpect(jsonPath("$.data[3].moimId").value(moim5.getId()));
         resultActions.andExpect(jsonPath("$.data[4].moimId").value(moim1.getId()));
+
+    }
+
+    // 성공 - 최신 모임들 조회 성공
+    // 단, 가장 인기 높은 모임 3가지 추가 - 삭제된 모임, 비활성화된 모임, 정상 모임 - 2가지는 조회 안되고, 1가지 정상 조회됨을 확인
+    @Test
+    void getNewMoims_shouldReturn200_whenNormalAndDeletedAndHiddenPostExists() throws Exception {
+
+        // given
+        suData();
+
+        // 비활성화된 모임들 추가
+        Category tmpCategory1 = new Category(1L, fromValue(DANCE.getValue()), 0, null);
+        Category tmpCategory2 = new Category(2L, fromValue(LATIN_DANCE.getValue()), 1, tmpCategory1);
+        List<Category> tmpCategories = List.of(tmpCategory1, tmpCategory2);
+
+        Moim deletedMoim = makeTestMoim("가장 최근에 생성된 삭제된 모임", 10, moim1Area, tmpCategories, member1, 1974, 2004, MemberGender.N); //1
+        deletedMoim.minusCurMemberCount(); // 한 명나가서, 삭제라고 인식하도록 만듬
+        em.persist(deletedMoim);
+        em.flush();
+        Thread.sleep(100);
+
+        Moim hiddenMoim = makeTestMoim("가장 최근에 생성된 신고 숨김처리된 모임", 10, moim1Area, tmpCategories, member1, 1974, 2004, MemberGender.N); //1
+        hiddenMoim.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.persist(hiddenMoim);
+        em.flush();
+        Thread.sleep(100);
+
+        // 비활성화 때문에 제외되는게 맞는지 확인하기 위해 정상 추가
+        Moim normalMoim = makeTestMoim("가장 최근에 생성된 정상 모임", 10, moim1Area, tmpCategories, member1, 1974, 2004, MemberGender.N); //1
+        em.persist(normalMoim);
+
+        em.flush();
+        em.clear();
+
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(AppUrlPath.PATH_MOIM_NEW)
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(6))); // 정상만 추가된 채로 조회된다
+        resultActions.andExpect(jsonPath("$.data[0].moimId").value(normalMoim.getId())); // 제일 최근 정상 모임
+        resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim3.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim4.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimId").value(moim2.getId()));
+        resultActions.andExpect(jsonPath("$.data[4].moimId").value(moim5.getId()));
+        resultActions.andExpect(jsonPath("$.data[5].moimId").value(moim1.getId()));
 
     }
 

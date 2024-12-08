@@ -1,6 +1,7 @@
 package com.peoplein.moiming.controller;
 
 import com.peoplein.moiming.domain.embeddable.Area;
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.enums.RoleType;
 import com.peoplein.moiming.domain.fixed.Category;
@@ -235,6 +236,71 @@ public class MoimSuggestControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.data[5].moimId").value(moim8.getId()));
         resultActions.andExpect(jsonPath("$.data[6].moimId").value(moim7.getId()));
         resultActions.andExpect(jsonPath("$.data[7].moimId").value(moim5.getId()));
+
+    }
+
+    // 성공 - 인기순을 불러온다 - Top 10 를 불러온다 - moim9, moim10 가 없음을 확인 순서 확인 - moim1, moim2, moim4, moim3, moim6, moim8, moim7, moim5
+    // 단, 가장 인기 높은 모임 3가지 추가 - 삭제된 모임, 비활성화된 모임, 정상 모임 - 2가지는 조회 안되고, 1가지 정상 조회됨을 확인
+    @Test
+    void getSuggestedMoim_shouldReturn200WithData_whenDeletedAndHiddenMoimExists() throws Exception {
+
+        // given
+        suData();
+        suCounting();
+
+        // 비활성화된 모임들 추가
+        Category tmpCategory1 = new Category(1L, fromValue(DANCE.getValue()), 0, null);
+        Category tmpCategory2 = new Category(2L, fromValue(LATIN_DANCE.getValue()), 1, tmpCategory1);
+        List<Category> tmpCategories = List.of(tmpCategory1, tmpCategory2);
+
+        Moim deletedMoim = makeTestMoim("가장 조회수 높았던 삭제된 모임", 10, moim1Area, tmpCategories, member1, 1974, 2004, MemberGender.N); //1
+        deletedMoim.minusCurMemberCount(); // 한 명나가서, 삭제라고 인식하도록 만듬
+        em.persist(deletedMoim);
+
+        Moim hiddenMoim = makeTestMoim("가장 조회수 높았던 신고 숨김처리된 모임", 10, moim1Area, tmpCategories, member1, 1974, 2004, MemberGender.N); //1
+        hiddenMoim.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+        em.persist(hiddenMoim);
+
+        // 비활성화 때문에 제외되는게 맞는지 확인하기 위해 정상 추가
+        Moim normalMoim = makeTestMoim("가장 조회수 높은 정상 모임", 10, moim1Area, tmpCategories, member1, 1974, 2004, MemberGender.N); //1
+        em.persist(normalMoim);
+
+        // 위 세개의 모임은 가장 조회수가 높다 (높았다)
+        MoimMonthlyCount deletedMoimCount = MoimMonthlyCount.createMoimMonthlyCount(deletedMoim);
+        MoimMonthlyCount hiddenMoimCount = MoimMonthlyCount.createMoimMonthlyCount(hiddenMoim);
+        MoimMonthlyCount normalMoimCount = MoimMonthlyCount.createMoimMonthlyCount(normalMoim);
+        em.persist(deletedMoimCount);
+        em.persist(hiddenMoimCount);
+        em.persist(normalMoimCount);
+
+        increaseMoimMonthCount(deletedMoimCount, 100);
+        increaseMoimMonthCount(hiddenMoimCount, 100);
+        increaseMoimMonthCount(normalMoimCount, 100);
+
+        em.flush();
+        em.clear();
+
+        String accessToken = createTestJwtToken(member1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(get(PATH_MOIM_SUGGESTED)
+                .header(HEADER, PREFIX + accessToken)
+                .param("offset", "0")
+                .param("limit", "10"));
+
+        // then
+        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(jsonPath("$.data").isArray());
+        resultActions.andExpect(jsonPath("$.data", hasSize(9)));
+        resultActions.andExpect(jsonPath("$.data[0].moimId").value(normalMoim.getId())); // 정상 조회
+        resultActions.andExpect(jsonPath("$.data[1].moimId").value(moim1.getId()));
+        resultActions.andExpect(jsonPath("$.data[2].moimId").value(moim2.getId()));
+        resultActions.andExpect(jsonPath("$.data[3].moimId").value(moim4.getId()));
+        resultActions.andExpect(jsonPath("$.data[4].moimId").value(moim3.getId()));
+        resultActions.andExpect(jsonPath("$.data[5].moimId").value(moim6.getId()));
+        resultActions.andExpect(jsonPath("$.data[6].moimId").value(moim8.getId()));
+        resultActions.andExpect(jsonPath("$.data[7].moimId").value(moim7.getId()));
+        resultActions.andExpect(jsonPath("$.data[8].moimId").value(moim5.getId()));
 
     }
 
