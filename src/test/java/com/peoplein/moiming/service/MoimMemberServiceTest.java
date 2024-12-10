@@ -225,35 +225,36 @@ public class MoimMemberServiceTest {
     void expelMember_shouldCallMethods_whenRightInfoPassed() {
 
         // given
-        MoimMemberExpelReqDto requestDto = mock(MoimMemberExpelReqDto.class);
-        MoimMember requestMoimMember = mock(MoimMember.class);
-        Member member = mock(Member.class); // 요청한 멤버
+        MoimMemberExpelReqDto reqDto = mock(MoimMemberExpelReqDto.class);
+        Member curMember = mock(Member.class);
+
+        MoimMember reqMoimMember = mock(MoimMember.class);
+        Moim tgMoim = mock(Moim.class);
+
         MoimMember expelMoimMember = mock(MoimMember.class);
-        Member expelMember = mock(Member.class); // 강퇴 대상 멤버
-        Moim moim = mock(Moim.class); // 대상 모임
-
-        // given - stub1
-        when(member.getId()).thenReturn(1L);
-        when(requestDto.getExpelMemberId()).thenReturn(2L);
-        when(expelMoimMember.getMoim()).thenReturn(moim);
-
+        Member expelMember = mock(Member.class);
 
         // given - stub
-        when(moimMemberRepository.findByMemberAndMoimId(eq(member.getId()), any())).thenReturn(Optional.ofNullable(requestMoimMember));
-        when(requestMoimMember.hasPermissionOfManager()).thenReturn(true);
-        when(moimMemberRepository.findByMemberAndMoimId(eq(requestDto.getExpelMemberId()), any())).thenReturn(Optional.ofNullable(expelMoimMember));
+        when(reqDto.getExpelMemberId()).thenReturn(1L);
+        when(curMember.getId()).thenReturn(2L); // 스스로 강퇴하는 상황이 아님을 명시
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.of(reqMoimMember));
+        when(reqMoimMember.getMoim()).thenReturn(tgMoim);
+        when(reqMoimMember.hasPermissionOfManager()).thenReturn(true);
+
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.of(expelMoimMember));
         when(memberRepository.findById(any())).thenReturn(Optional.of(expelMember));
 
         // when
-        moimMemberService.expelMember(requestDto, member);
+        moimMemberService.expelMember(reqDto, curMember);
 
         // then
+        verify(curMember, times(1)).isMemberInfoRegistered();
+        verify(tgMoim, times(1)).checkInactiveMoim();
         verify(expelMoimMember, times(1)).changeMemberState(any());
         verify(expelMoimMember, times(1)).setInactiveReason(any());
         verify(notificationService, times(1)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
-
 
     // expel MEMBER ERROR THROW
     // CASE 1 : 요청 멤버 정보 못찾음
@@ -261,71 +262,95 @@ public class MoimMemberServiceTest {
     void expelMember_shouldThrowExceptions_whenRequestMoimMemberNotFound_byMoimingApiException() {
 
         // given
-        MoimMemberExpelReqDto requestDto = mock(MoimMemberExpelReqDto.class);
-        Member member = mock(Member.class);
+        MoimMemberExpelReqDto reqDto = mock(MoimMemberExpelReqDto.class);
+        Member curMember = mock(Member.class);
 
-        // given - stub 1
-        when(member.getId()).thenReturn(1L);
-//        when(requestDto.getExpelMemberId()).thenReturn(2L);
+//        MoimMember reqMoimMember = mock(MoimMember.class);
+        Moim tgMoim = mock(Moim.class);
 
-        // given - stub 2
-        when(moimMemberRepository.findByMemberAndMoimId(eq(member.getId()), any())).thenReturn(Optional.empty());
+        MoimMember expelMoimMember = mock(MoimMember.class);
+//        Member expelMember = mock(Member.class);
+
+        // given - stub
+        when(reqDto.getExpelMemberId()).thenReturn(1L);
+        when(curMember.getId()).thenReturn(2L); // 스스로 강퇴하는 상황이 아님을 명시
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
 
         // when
         // then
-        assertThatThrownBy(() -> moimMemberService.expelMember(requestDto, member)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimMemberService.expelMember(reqDto, curMember)).isInstanceOf(MoimingApiException.class);
+        verify(curMember, times(1)).isMemberInfoRegistered();
+        verify(tgMoim, times(0)).checkInactiveMoim();
+        verify(expelMoimMember, times(0)).changeMemberState(any());
+        verify(expelMoimMember, times(0)).setInactiveReason(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
 
-
-    // CASE 2 : 요청 멤버가 운영진이 아님
+    // CASE 2 : 요청 멤버가 권한이 없음
     @Test
-    void expelMember_shouldThrowExceptions_whenRequestMemberNotManager_byMoimingApiException() {
+    void expelMember_shouldThrowExceptions_whenRequestNotAuthorized_byMoimingApiException() {
 
         // given
-        MoimMemberExpelReqDto requestDto = mock(MoimMemberExpelReqDto.class);
-        MoimMember requestingMoimMember = mock(MoimMember.class);
-        Member member = mock(Member.class);
+        MoimMemberExpelReqDto reqDto = mock(MoimMemberExpelReqDto.class);
+        Member curMember = mock(Member.class);
 
-        // given - stub 1
-        when(member.getId()).thenReturn(1L);
-//        when(requestDto.getExpelMemberId()).thenReturn(2L);
+        MoimMember reqMoimMember = mock(MoimMember.class);
+        Moim tgMoim = mock(Moim.class);
 
-        // given - stub 2
-        when(moimMemberRepository.findByMemberAndMoimId(eq(member.getId()), any())).thenReturn(Optional.ofNullable(requestingMoimMember));
-        when(requestingMoimMember.hasPermissionOfManager()).thenReturn(false);
+        MoimMember expelMoimMember = mock(MoimMember.class);
+//        Member expelMember = mock(Member.class);
+
+        // given - stub
+        when(reqDto.getExpelMemberId()).thenReturn(1L);
+        when(curMember.getId()).thenReturn(2L); // 스스로 강퇴하는 상황이 아님을 명시
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.of(reqMoimMember));
+        when(reqMoimMember.getMoim()).thenReturn(tgMoim);
+        when(reqMoimMember.hasPermissionOfManager()).thenReturn(false);
 
         // when
         // then
-        assertThatThrownBy(() -> moimMemberService.expelMember(requestDto, member)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimMemberService.expelMember(reqDto, curMember)).isInstanceOf(MoimingApiException.class);
+        verify(curMember, times(1)).isMemberInfoRegistered();
+        verify(tgMoim, times(1)).checkInactiveMoim();
+        verify(expelMoimMember, times(0)).changeMemberState(any());
+        verify(expelMoimMember, times(0)).setInactiveReason(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
-
 
     // CASE 3 : 대상 멤버 정보 못찾음
     @Test
     void expelMember_shouldThrowExceptions_whenExpelMoimMemberNotFound_byMoimingApiException() {
 
         // given
-        MoimMemberExpelReqDto requestDto = mock(MoimMemberExpelReqDto.class);
-        MoimMember requestingMoimMember = mock(MoimMember.class);
-        Member member = mock(Member.class);
+        MoimMemberExpelReqDto reqDto = mock(MoimMemberExpelReqDto.class);
+        Member curMember = mock(Member.class);
 
-        // given - stub 1
-        when(member.getId()).thenReturn(1L);
-        when(requestDto.getExpelMemberId()).thenReturn(2L);
+        MoimMember reqMoimMember = mock(MoimMember.class);
+        Moim tgMoim = mock(Moim.class);
 
-        // given - stub 2
-        when(moimMemberRepository.findByMemberAndMoimId(eq(member.getId()), any())).thenReturn(Optional.ofNullable(requestingMoimMember));
-        when(requestingMoimMember.hasPermissionOfManager()).thenReturn(true);
-        when(moimMemberRepository.findByMemberAndMoimId(eq(requestDto.getExpelMemberId()), any())).thenReturn(Optional.empty());
+        MoimMember expelMoimMember = mock(MoimMember.class);
+
+        // given - stub
+        when(reqDto.getExpelMemberId()).thenReturn(1L);
+        when(curMember.getId()).thenReturn(2L); // 스스로 강퇴하는 상황이 아님을 명시
+        when(moimMemberRepository.findWithMoimByMemberAndMoimId(any(), any())).thenReturn(Optional.of(reqMoimMember));
+        when(reqMoimMember.getMoim()).thenReturn(tgMoim);
+        when(reqMoimMember.hasPermissionOfManager()).thenReturn(true);
+
+        when(moimMemberRepository.findByMemberAndMoimId(any(), any())).thenReturn(Optional.empty());
 
         // when
         // then
-        assertThatThrownBy(() -> moimMemberService.expelMember(requestDto, member)).isInstanceOf(MoimingApiException.class);
+        assertThatThrownBy(() -> moimMemberService.expelMember(reqDto, curMember)).isInstanceOf(MoimingApiException.class);
+        verify(curMember, times(1)).isMemberInfoRegistered();
+        verify(tgMoim, times(1)).checkInactiveMoim();
+        verify(expelMoimMember, times(0)).changeMemberState(any());
+        verify(expelMoimMember, times(0)).setInactiveReason(any());
+        verify(notificationService, times(0)).createNotification(any(), any(), any(), any(), any(), any(), any(), any());
 
     }
-
 
     // CASE 4 : 스스로 강퇴를 요청함
     @Test

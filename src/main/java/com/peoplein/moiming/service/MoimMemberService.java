@@ -46,7 +46,7 @@ public class MoimMemberService {
         List<MoimMember> moimMembers = moimMemberRepository.findActiveWithMemberByMoimId(moimId);
 
         if (moimMembers.isEmpty()) {
-            throw new MoimingApiException(MOIM_NOT_FOUND);
+            throw new MoimingApiException(MOIM_NOT_FOUND, "활동중인 회원이 없으므로, 삭제된 모임입니다");
         }
 
         return moimMembers;
@@ -62,6 +62,9 @@ public class MoimMemberService {
         Moim moimPs = moimRepository.findWithJoinRuleById(requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException(MOIM_NOT_FOUND)
         );
+
+        // 2412 - 비활성화된 모임 가입 불가
+        moimPs.checkInactiveMoim();
 
         // 둘 관계가 맺어진 적이 있는지 확인한다
         MoimMember moimMemberPs = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElse(null);
@@ -97,7 +100,9 @@ public class MoimMemberService {
                 () -> new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
         );
 
+        // 2412 - 비활성화된 모임 나가기 불가
         Moim moim = moimMember.getMoim();
+        moim.checkInactiveMoim();
 
         if (!moimMember.hasActivePermission()) { // ACTIVE 하지 않으면 수행할 수 없음
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
@@ -133,6 +138,10 @@ public class MoimMemberService {
     //    스스로 강퇴 불가
     public void expelMember(MoimMemberExpelReqDto requestDto, Member curMember) {
 
+        if (requestDto == null || curMember == null) {
+            throw new MoimingApiException(COMMON_INVALID_PARAM);
+        }
+
         if (requestDto.getExpelMemberId().equals(curMember.getId())) {
             log.error("{}, {}", "스스로를 강퇴하려 합니다, C999", COMMON_INVALID_SITUATION.getErrMsg());
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
@@ -140,11 +149,14 @@ public class MoimMemberService {
 
         curMember.isMemberInfoRegistered();
 
-        MoimMember requestMoimMember = moimMemberRepository.findByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
+        // 2412 Update - moim 상태 확인을 위한 Join Query 로 변경, 비활성화된 모임에서 강퇴요청 불가
+        MoimMember reqMoimMember = moimMemberRepository.findWithMoimByMemberAndMoimId(curMember.getId(), requestDto.getMoimId()).orElseThrow(
                 () -> new MoimingApiException(MOIM_MEMBER_NOT_FOUND)
         );
+        Moim targetMoim = reqMoimMember.getMoim();
+        targetMoim.checkInactiveMoim();
 
-        if (!requestMoimMember.hasPermissionOfManager()) {
+        if (!reqMoimMember.hasPermissionOfManager()) {
             throw new MoimingApiException(MOIM_MEMBER_NOT_AUTHORIZED);
         }
 
@@ -155,7 +167,6 @@ public class MoimMemberService {
                 }
         );
 
-
         expelMoimMember.changeMemberState(IBF);
         expelMoimMember.setInactiveReason(requestDto.getInactiveReason());
 
@@ -165,9 +176,9 @@ public class MoimMemberService {
         );
 
         // 알림을 발생시킨다
-        String notiBody = expelMoimMember.getMoim().getMoimName() + "에서 \"" + requestDto.getInactiveReason() + "\"의 이유로 탈퇴 처리 되었습니다";
+        String notiBody = targetMoim.getMoimName() + "에서 \"" + requestDto.getInactiveReason() + "\"의 이유로 탈퇴 처리 되었습니다";
         notificationService.createNotification(NotificationTopCategory.MOIM, NotificationSubCategory.MOIM_IBF, NotificationType.INFORM
-                , expelMember, "", notiBody, expelMoimMember.getMoim().getId(), null);
+                , expelMember, "", notiBody, targetMoim.getId(), null);
 
     }
 

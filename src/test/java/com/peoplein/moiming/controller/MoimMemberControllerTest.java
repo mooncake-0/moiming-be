@@ -3,6 +3,7 @@ package com.peoplein.moiming.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.Notification;
+import com.peoplein.moiming.domain.enums.ContentStatus;
 import com.peoplein.moiming.domain.enums.MemberGender;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.enums.CategoryName;
@@ -252,6 +253,66 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isOk());
     }
 
+    // 실패 - 삭제된 모임으로 가입 불가
+    @Test
+    void joinMoim_shouldReturn410_whenDeletedMoim_byMoimingApiException() throws Exception { // Moim1 에 Member3 가 가입요청 진행
+
+        // given - 회원 개인 정보 입력 완료
+        testMember3 = em.find(Member.class, testMember3.getId());
+        insertTestMemberInfo(testMember3, memberGender3, memberBirth3);
+
+        // 대상 모임 : 삭제된 모임 처리 (회원 수를 0 으로 만든다)
+        testMoim1 = em.find(Moim.class, testMoim1.getId());
+        testMoim1.minusCurMemberCount(); // 2번 회원
+        testMoim1.minusCurMemberCount(); // 1번 회원
+
+        em.flush();
+        em.clear();
+
+        // given
+        MoimMemberJoinReqDto requestDto = new MoimMemberJoinReqDto(testMoim1.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(testMember3, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+    }
+
+    // 실패 - 신고로 숨김 처리된 모임으로 가입 불가
+    @Test
+    void joinMoim_shouldReturn422_whenReportHiddenMoim_byMoimingApiException() throws Exception { // Moim1 에 Member3 가 가입요청 진행
+
+        // given - 회원 개인 정보 입력 완료
+        testMember3 = em.find(Member.class, testMember3.getId());
+        insertTestMemberInfo(testMember3, memberGender3, memberBirth3);
+
+        // 신고된 모임처리
+        testMoim1 = em.find(Moim.class, testMoim1.getId());
+        testMoim1.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+
+        em.flush();
+        em.clear();
+
+        // given
+        MoimMemberJoinReqDto requestDto = new MoimMemberJoinReqDto(testMoim1.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(testMember3, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_JOIN).content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // 관계없는 member3 의 시도, 가입 조건 미기입
     @Test
@@ -271,7 +332,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
 
     }
-
 
     // 휴면복구 유저가 join 시도 (IBD 의 시도)
     @Test
@@ -317,7 +377,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     }
 
-
     // 스스로 나감이 join 시도 (IBW 의 시도)
     @Test
     void joinMoim_shouldReturn200_whenIBWMemberJoinSuccessful() throws Exception {
@@ -359,7 +418,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         assertNotNull(notification);
     }
 
-
     // 실패 CASE 작성
     // BODY 가 비어있음 // TODO :: ResponseBody 도 정규 응답이 없음 - 그냥 400 만 Controller 매핑 단에서 스프링이 처리해주는 상황 (위 404와 동일)
     @Test
@@ -377,7 +435,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isBadRequest());
 
     }
-
 
     // BODY 안의 json 내부 필수 필드가 없음
     @Test
@@ -399,7 +456,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
-
 
     // 강퇴가 join 시도
     @Test
@@ -439,7 +495,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     }
 
-
     // 정원 가득찬 모임 (DB상 최소 정원은 3이다)
     // 모든 테스트에서 testMoim 이 필요하진 않으니, 상황에 맞춰서 생성하고 가입시켜 준다
     @Test
@@ -473,7 +528,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     }
 
-
     // 이미 가입되어 있는 사람이 가입하려 함 -> 같은 상태로의 전환 요청은 예외처리된다
     @Test
     void joinMoim_shouldReturn409_whenAlreadyMoimMember_byMoimingApiException() throws Exception {
@@ -494,9 +548,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     }
 
-
     // Join Rule 불일치가 가입을 시도함
-
 
     // leaveMoim() - 모임 나가기
     // 성공 - 성공 후 DB 도 확인하면 좋을 듯
@@ -532,6 +584,60 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         assertNotNull(notification);
     }
 
+    // 실패 - 삭제된 모임으로 나가기 불가 (사실상 불가능, 삭제 자체가 이미 회원이 없다는 뜻) - 삭제해도 되는 test
+    @Test
+    void leaveMoim_shouldReturn410_whenDeletedMoimButImpossibleSituation_byMoimingApiException() throws Exception { // Moim1 에 Member3 가 가입요청 진행
+
+        // 대상 모임 : 삭제된 모임 처리 (회원 수를 0 으로 만든다)
+        testMoim1 = em.find(Moim.class, testMoim1.getId());
+        testMoim1.minusCurMemberCount(); // 2번 회원
+        testMoim1.minusCurMemberCount(); // 1번 회원
+
+        em.flush();
+        em.clear();
+
+        // given
+        MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(testMember2, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isGone());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_DELETED_RESOURCE.getErrCode()));
+
+    }
+
+    // 실패 - 신고로 숨김 처리된 모임으로 나가기 불가 (논리적으로 가능하나, UI 가 없어서 불가능하긴 함)
+    @Test
+    void leaveMoim_shouldReturn422_whenReportHiddenMoim_byMoimingApiException() throws Exception { // Moim1 에 Member3 가 가입요청 진행
+
+        // 신고된 모임처리
+        testMoim1 = em.find(Moim.class, testMoim1.getId());
+        testMoim1.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+
+        em.flush();
+        em.clear();
+
+        // given
+        MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(testMember2, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // 실패 CASE 작성
     // 해당 모임에 있는 모임원을 찾지 못함 - Moim 혹은 Member 어느쪽이 잘못되었는지는 모름
@@ -553,31 +659,7 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isNotFound());
         resultActions.andExpect(jsonPath("$.code").value(MOIM_MEMBER_NOT_FOUND.getErrCode()));
 
-
     }
-
-
-    // 정황상 불가능하며, Test 설계도 어려우므로 삭제
-//    // 실패 : 개인 정보 없는 회원의 탈퇴 요청
-//    @Test
-//    void leaveMoim_shouldReturn403_whenNoMemberInfoReq_byMoimingApiException() throws Exception { // testMember2 가 나가려고 한다
-//
-//        // given
-//        MoimMemberLeaveReqDto requestDto = new MoimMemberLeaveReqDto(testMoim1.getId());
-//        String requestBody = om.writeValueAsString(requestDto);
-//        String testAccessToken = createTestJwtToken(testMember2, 2000);
-//
-//        // when
-//        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_LEAVE)
-//                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
-//                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
-//
-//        // then
-//        resultActions.andExpect(status().isForbidden());
-//        resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
-//
-//    }
-
 
     // BODY 가 비어있다 // TODO :: ResponseBody 도 정규 응답이 없음 - 그냥 400만 Controller 매핑 단에서 스프링이 처리해주는 상황 (위 404와 동일)
     @Test
@@ -594,7 +676,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isBadRequest());
 
     }
-
 
     // BODY 필드가 Validate 실패한다
     @Test
@@ -660,6 +741,34 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     }
 
+    // 실패 - 삭제된 모임으로 강퇴 불가 (사실상 불가능, 삭제 자체가 이미 회원이 없다는 뜻, 걍 PASS 한다..)
+    // 실패 - 신고로 숨김 처리된 모임으로 강퇴 요청 불가 (논리적으로 가능하나, UI 가 없어서 불가능하긴 함)
+    @Test
+    void expelMember_shouldReturn422_whenReportHiddenMoim_byMoimingApiException() throws Exception { // Moim1 에 Member3 가 가입요청 진행
+
+        // 신고된 모임처리
+        testMoim1 = em.find(Moim.class, testMoim1.getId());
+        testMoim1.changeContentStatus(ContentStatus.HIDDEN, 1000L);
+
+        em.flush();
+        em.clear();
+
+        // given
+        String inactiveReason = "너가 모임을 못하는 이유는";
+        MoimMemberExpelReqDto requestDto = new MoimMemberExpelReqDto(testMoim1.getId(), testMember2.getId(), inactiveReason);
+        String requestBody = om.writeValueAsString(requestDto);
+        String testAccessToken = createTestJwtToken(testMember1, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_MOIM_MEMBER_EXPEL)
+                .content(requestBody).contentType(MediaType.APPLICATION_JSON)
+                .header(JwtParams.HEADER, JwtParams.PREFIX + testAccessToken));
+
+        // then
+        resultActions.andExpect(status().isUnprocessableEntity());
+        resultActions.andExpect(jsonPath("$.code").value(COMMON_REPORTED_CONTENT.getErrCode()));
+
+    }
 
     // 실패 CASE 작성
     // 스스로는 강퇴할 수 없음
@@ -680,7 +789,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isUnprocessableEntity());
         resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_SITUATION.getErrCode()));
     }
-
 
     // 성공 - 실패 - 요청자가 개인정보 기입을 안함
     // 이거 역시 약간 이상하게 진행 - testMember3 가 요청한다고 하면, 권한보다 개인정보 미기입 이슈가 먼저 발생한다
@@ -703,7 +811,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(MEMBER_INFO_NOT_REGISTERED.getErrCode()));
 
     }
-
 
     // 비운영자가 강퇴를 시도함
     @Test
@@ -735,7 +842,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     }
 
-
     // 모임에 없는 멤버를 강퇴하려고 한다
     @Test
     void expelMember_shouldReturn422_whenAttemptToNoMoimMember_byMoimingApiException() throws Exception {
@@ -755,7 +861,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(COMMON_INVALID_SITUATION.getErrCode()));
 
     }
-
 
     // 누군가를 강퇴하는 요청을 보낸 유저가 가입한적 없는 모임이다 // 이걸 먼저 판별하기 때문에 운영자에서 안걸러진다 - 가입한적 없는 유저의 요청
     @Test
@@ -781,7 +886,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
 
     }
 
-
     // BODY 가 비어있다 // TODO :: ResponseBody 도 정규 응답이 없음 - 그냥 400 만 Controller 매핑 단에서 스프링이 처리해주는 상황 (위 404와 동일)
     @Test
     void expelMember_shouldReturn400_whenBodyEmpty() throws Exception {
@@ -797,7 +901,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(status().isBadRequest());
 
     }
-
 
     // BODY 필드가 Validate 실패한다
     @Test
@@ -819,7 +922,6 @@ public class MoimMemberControllerTest extends TestObjectCreator {
         resultActions.andExpect(jsonPath("$.code").value(COMMON_REQUEST_VALIDATION.getErrCode()));
 
     }
-
 
     // BODY 필드가 Validate 실패한다2 - inactiveReason 은 공백 입력값이여도 된다 (NULL금지)
     //                            - 그래서 inactiveReason 은 제외하고 나머지 두개의 에러를 감지한다

@@ -2,6 +2,7 @@ package com.peoplein.moiming.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.Report;
 import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.file.File;
@@ -90,6 +91,7 @@ public class ReportControllerTest extends TestObjectCreator {
 
     // 각각 DB 확인 진행
     // 성공 - member 가 member2 를 신고
+    // TODO - USER 신고 로직 처리 도입 후 세부 처리 필요
     @Test
     void report_shouldReturn201_whenMemberReportsOtherMember() throws Exception {
 
@@ -132,8 +134,8 @@ public class ReportControllerTest extends TestObjectCreator {
         dataSu();
         ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
         ReportCreateReqDto requestDto = new ReportCreateReqDto(MOIM, moim.getId(), targetReason.getIndex(), false, null);
-        String accessToken = createTestJwtToken(member, 2000);
         String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(member, 2000);
 
         // when
         ResultActions resultActions = mvc.perform(post(PATH_CREATE_REPORT)
@@ -156,8 +158,42 @@ public class ReportControllerTest extends TestObjectCreator {
         assertThat(report.getTargetId()).isEqualTo(moim.getId());
         assertThat(report.getReason()).isEqualTo(targetReason.getInfo());
 
+        Moim findMoim = em.find(Moim.class, moim.getId());
+        assertThat(findMoim.getContentStatus()).isEqualTo(ContentStatus.REPORTED);
+
     }
 
+    // 실패 - member 가 moim 을 신고했으나, 찾을 수 없는 자원 에러 ([찾을 수 없는 상황] 은 대표로 TEST)
+    @Test
+    void report_shouldReturn404_whenReportedContentNotFound_byMoimingApiException() throws Exception {
+
+        // given
+        dataSu();
+        ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(MOIM, 1000L, targetReason.getIndex(), false, null);
+        String requestBody = om.writeValueAsString(requestDto);
+        String accessToken = createTestJwtToken(member, 2000);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_CREATE_REPORT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(jsonPath("$.code").value(REPORT_TG_NOT_FOUND.getErrCode()));
+
+        // then - db verify (그냥 저장됐는지만 확인하면 됨)
+        em.flush();
+        em.clear();
+
+        List<Report> report = em.createQuery("SELECT r FROM Report r WHERE r.reporterId = :memberId", Report.class)
+                .setParameter("memberId", member.getId())
+                .getResultList();
+        assertTrue(report.isEmpty());
+
+    }
 
     // 성공 - member 가 post 를 신고
     @Test
@@ -191,8 +227,64 @@ public class ReportControllerTest extends TestObjectCreator {
         assertThat(report.getTargetId()).isEqualTo(moimPost.getId());
         assertThat(report.getReason()).isEqualTo(targetReason.getInfo());
 
+        Moim findMoim = em.find(Moim.class, moim.getId());
+        assertThat(findMoim.getContentStatus()).isEqualTo(ContentStatus.ACTIVE);
+
+        MoimPost findPost = em.find(MoimPost.class, moimPost.getId());
+        assertThat(findPost.getContentStatus()).isEqualTo(ContentStatus.REPORTED);
     }
 
+    // 성공 - member 가 comment 를 신고
+    @Test
+    void report_shouldReturn201_whenMemberReportsComment() throws Exception {
+
+        // given
+        dataSu();
+
+        // given - 추가로 Comment 를 SU 한다
+        moimPost = em.find(MoimPost.class, moimPost.getId()); // 영속화해서 연관관계 SU
+        PostComment postComment = makePostComment(member, moimPost, 0, null); // 본인이 그냥 쓴 댓글 신고하는거임 - 불가능하지 않음
+        em.persist(postComment);
+        em.flush();
+        em.clear();
+
+        // given - 시작
+        ReportReason targetReason = ReportReason.INAPPROPRIATE_FOR_MINORS;
+        ReportCreateReqDto requestDto = new ReportCreateReqDto(COMMENT, postComment.getId(), targetReason.getIndex(), false, null);
+        String accessToken = createTestJwtToken(member, 2000);
+        String requestBody = om.writeValueAsString(requestDto);
+
+        // when
+        ResultActions resultActions = mvc.perform(post(PATH_CREATE_REPORT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody)
+                .header(HEADER, PREFIX + accessToken));
+
+        // then
+        resultActions.andExpect(status().isCreated());
+
+        // then - db verify (그냥 저장됐는지만 확인하면 됨)
+        em.flush();
+        em.clear();
+
+        Report report = em.createQuery("SELECT r FROM Report r WHERE r.reporterId = :memberId", Report.class)
+                .setParameter("memberId", member.getId())
+                .getSingleResult();
+        assertThat(report.getTarget()).isEqualTo(COMMENT);
+        assertThat(report.getReporterId()).isEqualTo(member.getId());
+        assertThat(report.getTargetId()).isEqualTo(postComment.getId());
+        assertThat(report.getReason()).isEqualTo(targetReason.getInfo());
+
+        Moim findMoim = em.find(Moim.class, moim.getId());
+        assertThat(findMoim.getContentStatus()).isEqualTo(ContentStatus.ACTIVE);
+
+        MoimPost findPost = em.find(MoimPost.class, moimPost.getId());
+        assertThat(findPost.getContentStatus()).isEqualTo(ContentStatus.ACTIVE);
+
+        PostComment findComment = em.find(PostComment.class, postComment.getId());
+        assertThat(findComment.getContentStatus()).isEqualTo(ContentStatus.REPORTED);
+
+    }
 
     // 실패 - 신고 Request Validation
     @Test
@@ -299,8 +391,7 @@ public class ReportControllerTest extends TestObjectCreator {
 
     }
 
-
-    // 사진과 함께 신고 성공
+    // 사진과 함께 신고 성공 - 사진과 함께 신고한 CASE 의 대표 TEST
     @Test
     void report_shouldReturn201_whenMemberReportsPostWithSavedFiles() throws Exception {
 
