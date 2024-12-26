@@ -18,7 +18,7 @@ public class RelatedFile {
 
     @Id
     @Column(name = "related_file_id")
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private int sequence;

@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class MoimDailyCount {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "moim_daily_count_id")
     private Long id;
 

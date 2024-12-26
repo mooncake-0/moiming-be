@@ -22,7 +22,7 @@ public class PolicyAgree extends BaseEntity {
     public static final int CUR_MOIMING_REQ_POLICY_CNT = PolicyType.values().length;
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "policy_agree_id")
     private Long id;
 

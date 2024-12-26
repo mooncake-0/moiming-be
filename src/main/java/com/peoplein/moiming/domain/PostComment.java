@@ -29,7 +29,7 @@ public class PostComment extends BaseEntity{
     public static final String REPORTED_CONTENT_DISPLAY = "신고로 인해 숨김 처리된 댓글입니다";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_comment_id")
     private Long id;
 

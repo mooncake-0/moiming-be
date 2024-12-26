@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class MemberRole extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_role_id")
     private Long id;
 

@@ -29,7 +29,7 @@ import static com.peoplein.moiming.exception.ExceptionValue.*;
 public class MoimPost extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "moim_post_id")
     private Long id;
 

@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class MoimMonthlyCount {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "moim_monthly_count_id")
     private Long id;
 
