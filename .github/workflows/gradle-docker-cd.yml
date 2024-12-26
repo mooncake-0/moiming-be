@@ -61,7 +61,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
 #          host: ${{ secrets.DEV_SERVER_RASPBERRY_HOST }}
-          host: 221.141.228.139
+          host: 180.66.147.88
           username: ubuntu
           password: ${{ secrets.DEV_SERVER_RASPBERRY_PW }}
           port: 30022
