@@ -65,7 +65,8 @@ public class MemberController {
     })
     @PostMapping(PATH_MEMBER_DELETE)
     public ResponseEntity<?> delete(@AuthenticationPrincipal @ApiIgnore SecurityMember principal) {
-        return null;
+        memberService.delete(principal.getMember());
+        return ResponseEntity.ok(ResponseBodyDto.createResponse("1", "회원 탈퇴 성공, Client 저장 토큰 초기화 필수", null));
     }
 
 

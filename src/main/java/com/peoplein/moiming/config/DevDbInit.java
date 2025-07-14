@@ -1,18 +1,19 @@
 package com.peoplein.moiming.config;
 
+import com.peoplein.moiming.domain.MoimPost;
+import com.peoplein.moiming.domain.PostComment;
 import com.peoplein.moiming.domain.admin.ServiceStatus;
 import com.peoplein.moiming.domain.admin.ServiceVersion;
 import com.peoplein.moiming.domain.embeddable.Area;
-import com.peoplein.moiming.domain.enums.AreaValue;
-import com.peoplein.moiming.domain.enums.CategoryName;
-import com.peoplein.moiming.domain.enums.MemberGender;
-import com.peoplein.moiming.domain.enums.RoleType;
+import com.peoplein.moiming.domain.enums.*;
 import com.peoplein.moiming.domain.fixed.Category;
 import com.peoplein.moiming.domain.fixed.Role;
 import com.peoplein.moiming.domain.member.Member;
 import com.peoplein.moiming.domain.member.MemberInfo;
+import com.peoplein.moiming.domain.member.MemberSetting;
 import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimJoinRule;
+import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.domain.moim.MoimMonthlyCount;
 import com.peoplein.moiming.repository.*;
 import com.peoplein.moiming.service.util.MemberNicknameCreator;
@@ -109,7 +110,7 @@ public class DevDbInit {
         memberRepository.saveMemberInfo(memberInfo2);
 
         // 2 - Moim 생성 .
-        createMoimLogic("서울 산들을 등산으로 정복하자", "서울 지역을 중심으로 등산하는 모임입니다! 서울 산들 뿐만 아니라 다른 지역 산들도 등산하지만, 회식이나 뒷풀이는 보통 서울에서 진행합니다"
+        Moim moim1 = createMoimLogic("서울 산들을 등산으로 정복하자", "서울 지역을 중심으로 등산하는 모임입니다! 서울 산들 뿐만 아니라 다른 지역 산들도 등산하지만, 회식이나 뒷풀이는 보통 서울에서 진행합니다"
                 , 30, new Area(AreaValue.STATE_SEOUL, AreaValue.CITY_GWANAK), List.of(cOUTDOOR, HIKING)
                 , member, LocalDateTime.of(2022, 6, 3, 0, 0, 0), ageToYearConverter(40), ageToYearConverter(20), MemberGender.N, 33, 7);
 
@@ -197,9 +198,45 @@ public class DevDbInit {
 
         // 여기까지..
 
+        // 2- Member3 생성
+        Member member3 = Member.createMember("01076537473", encrypted, "fcmToken", null, roleUser);
+        member3.changeNickname("험난한 인생");
+        memberRepository.save(member3);
+
+        // 2 - Member Info 생성
+        MemberInfo memberInfo3 = MemberInfo.saveMemberInfo(member3, "숑숑바", MemberGender.M, LocalDate.of(1992, 1, 1));
+        memberRepository.saveMemberInfo(memberInfo3);
+
+        // 1번 모임에 2, 3번 멤버 가입
+        em.persist(MoimMember.memberJoinMoim(member2, moim1, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE));
+        em.persist(MoimMember.memberJoinMoim(member3, moim1, MoimMemberRoleType.NORMAL, MoimMemberState.ACTIVE));
+
+        // 1번 모임에 1번 유저가 게시글 작성
+        MoimPost post1 = MoimPost.createMoimPost("이런 게시글도 달 수 있습니다", "게시물 내ㅛㅇ 게시물 내용 게시물 내용 게시물 내용", MoimPostCategory.GREETING, false, false, moim1, member);
+        em.persist(post1);
+
+        // 1번 모임에 2번 유저 2 번 게시글 작성
+        MoimPost post2 = MoimPost.createMoimPost("내가 등장했다 엄청나지?", "그냥 가입해봤습니다. 재미없어보이는 모임이네요 ㅋ", MoimPostCategory.GREETING, false, false, moim1, member2);
+        em.persist(post2);
+
+        // 1번 게시글에  2,3번 유저 댓글담
+        em.persist(PostComment.createPostComment("방장님 ㅎㅇㅎㅇ", member2, post1, 0, null));
+        em.persist(PostComment.createPostComment("알겠습니다 방장님~", member3, post1, 0, null));
+
+        // 2번 게시글에 1번 댓글 담. 댓글에 대댓글까지 담
+        PostComment pc1 = PostComment.createPostComment("이런 내용의 게시물은 허용할 수 없습니다", member, post2, 0, null);
+        em.persist(pc1);
+        em.persist(PostComment.createPostComment("당장 지우시는게 신상에 좋을겁니다", member, post2, 1, pc1));
+        em.persist(PostComment.createPostComment("제 마음인데용~?", member2, post2, 1, pc1));
+        em.persist(PostComment.createPostComment("싸움 직관이다 유후유후", member3, post2, 0, null));
+
+        em.persist(MemberSetting.saveMemberSetting(member));
+        em.persist(MemberSetting.saveMemberSetting(member2));
+        em.persist(MemberSetting.saveMemberSetting(member3));
+
     }
 
-    private void createMoimLogic(String name, String info, int maxMember, Area area, List<Category> categories, Member member
+    private Moim createMoimLogic(String name, String info, int maxMember, Area area, List<Category> categories, Member member
             , LocalDateTime createdAt, int ageMax, int ageMin, MemberGender gender, int lastCnt, int thisCnt) {
 
         Moim moim = Moim.createMoim(name, info, maxMember, area, categories, member);
@@ -216,6 +253,7 @@ public class DevDbInit {
         moimCountRepository.save(lastMonth);
         moimCountRepository.save(thisMonth);
 
+        return moim;
     }
 
 

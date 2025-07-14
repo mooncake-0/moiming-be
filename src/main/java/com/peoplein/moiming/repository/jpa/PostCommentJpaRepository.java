@@ -147,4 +147,14 @@ public class PostCommentJpaRepository implements PostCommentRepository {
 
     }
 
+    @Override
+    public List<PostComment> findWithPostByMemberId(Long memberId) {
+
+        return queryFactory.selectFrom(postComment)
+                .join(postComment.moimPost, moimPost).fetchJoin()
+                .where(postComment.member.id.eq(memberId))
+                .fetch();
+
+    }
+
 }

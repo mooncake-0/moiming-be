@@ -37,8 +37,8 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
 
     //
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    testRuntimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'mysql:mysql-connector-java'
+    testRuntimeOnly 'mysql:mysql-connector-java'
 
     // LOMBOK
     compileOnly 'org.projectlombok:lombok'
@@ -85,6 +85,8 @@ dependencies {
 
     // Thymeleaf for NICE
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    implementation("org.kohsuke:github-api:1.326")
 
 }
 

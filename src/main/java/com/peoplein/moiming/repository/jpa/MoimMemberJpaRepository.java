@@ -187,6 +187,15 @@ public class MoimMemberJpaRepository implements MoimMemberRepository {
     }
 
     @Override
+    public List<MoimMember> findByMemberId(Long memberId) {
+
+        return queryFactory.selectFrom(moimMember)
+                .join(moimMember.moim, moim).fetchJoin()
+                .where(moimMember.member.id.eq(memberId))
+                .fetch();
+    }
+
+    @Override
     public void removeAllByMoimId(Long moimId) {
         queryFactory.delete(moimMember).where(moimMember.moim.id.eq(moimId)).execute();
     }

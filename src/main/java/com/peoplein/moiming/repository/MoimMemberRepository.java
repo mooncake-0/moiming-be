@@ -17,6 +17,7 @@ public interface MoimMemberRepository {
     List<MoimMember> findByMoimIdAndMemberIds(Long moimId, List<Long> memberIds); // 특정 모임내에서 지정 멤버들의 상태 조회 (Post 세부조회 등에서 사용)
     Optional<MoimMember> findLongestNormalActiveMemberByMoimId(Long moimId);
     List<MoimMember> findMemberMoimsWithCursorConditions(Long memberId, boolean isActiveReq, boolean isManagerReq, Moim lastMoim, int limit);
+    List<MoimMember> findByMemberId(Long memberId);
     void removeAllByMoimId(Long moimId);
 
 }

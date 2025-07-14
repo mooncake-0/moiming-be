@@ -108,6 +108,13 @@ public class Member extends BaseEntity {
         return createdMember;
     }
 
+    public void deleteMember() {
+        this.nickname = "(삭제 유저)" + nickname;
+        this.refreshToken = "";
+        this.fcmToken = "";
+        this.hasDeleted = true;
+    }
+
 
     /*
      2407 Update

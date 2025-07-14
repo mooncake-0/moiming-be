@@ -18,6 +18,8 @@ public interface PostCommentRepository {
 
     List<PostComment> findWithMemberAndInfoByMoimPostInDepthAndCreatedOrder(Long moimPostId);
 
+    List<PostComment> findWithPostByMemberId(Long memberId);
+
     void removeAllByMoimPostId(Long moimPostId);
 
 }

@@ -31,6 +31,11 @@ public class SecurityMemberService implements UserDetailsService {
                 }
         );
 
+        if (memberPs.isHasDeleted()) {
+            log.error("["+ memberPs.getId() + ", " + memberPhone + "]의 유저는 삭제된 유저입니다, 재가입 7일 방지 정책 존재");
+            throw new LoginAttemptException(AuthExceptionValue.AUTH_LOGIN_MEMBER_DELETED);
+        }
+
         return new SecurityMember(memberPs);
     }
 

@@ -1,11 +1,16 @@
 package com.peoplein.moiming.service;
 
+import com.peoplein.moiming.domain.PostComment;
+import com.peoplein.moiming.domain.enums.MoimMemberRoleType;
 import com.peoplein.moiming.domain.enums.MoimMemberState;
 import com.peoplein.moiming.domain.member.Member;
+import com.peoplein.moiming.domain.moim.Moim;
 import com.peoplein.moiming.domain.moim.MoimMember;
 import com.peoplein.moiming.exception.MoimingApiException;
 import com.peoplein.moiming.repository.MemberRepository;
 import com.peoplein.moiming.repository.MoimMemberRepository;
+import com.peoplein.moiming.repository.MoimPostRepository;
+import com.peoplein.moiming.repository.PostCommentRepository;
 import com.peoplein.moiming.security.token.MoimingTokenProvider;
 import com.peoplein.moiming.security.token.MoimingTokenType;
 import com.peoplein.moiming.security.token.logout.LogoutTokenManager;
@@ -22,6 +27,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static com.peoplein.moiming.domain.enums.MoimMemberRoleType.*;
+import static com.peoplein.moiming.domain.enums.MoimMemberState.*;
 import static com.peoplein.moiming.exception.ExceptionValue.*;
 
 @Service
@@ -41,7 +48,7 @@ public class MemberService {
     public Member persistMember(Member member, boolean joinInfo) {
 
         if (member == null) {
-            log.info("{}, getCurrentMember ::{}", this.getClass().getName(), "인증 후 Member Null 감지");
+            log.info("{}, persistMember ::{}", this.getClass().getName(), "인증 후 Member Null 감지");
             throw new MoimingApiException(COMMON_INVALID_SITUATION);
         }
 
@@ -56,6 +63,12 @@ public class MemberService {
                 return new MoimingApiException(MEMBER_NOT_FOUND);
             });
         }
+
+        if (member.isHasDeleted()) {
+            log.warn("{}, persistMember ::{}", this.getClass().getName(), "삭제된 유저의 조회 접근");
+            throw new MoimingApiException(COMMON_INVALID_SITUATION, "삭제된 유저로 접근할 수 없습니다. This incident will be reported");
+        }
+
 
         return member;
     }
@@ -81,14 +94,47 @@ public class MemberService {
     }
 
 
-    public void delete() {
+    private final MemberServiceMediator moimMemberServiceMed;
+    @Transactional
+    public void delete(Member member) {
+
+
+        member = persistMember(member, false);
 
         // 탈퇴 처리된다면 7일까지 재가입 방지를 위해 보관한다 (번복은 불가)
-        // refreshToken, fcmToken 제외 모두 유지
-        // MemberInfo 테이블은 모두 삭제 (현재 이건 Pending.. ) > 법적으로는 즉시 삭제 필요
-        // 7 일 뒤 모두 삭제
-        // PK 값은 유지, hasDeleted = true 로만 유지 한다. nickname, ci, memberEmail 모두 삭제처리
-        // 필수값들은 삭제처리가 아닌 dummy 값으로 보관된다
+        // 1 - 작성한 댓글, 작성한 게시물들
+        //   - 이거만 로직 판단하고 짜자
+        //   - 댓글, 게시물은 유지됨. 유저만 "삭제된 유저라고 전달되는거임"
+        //   - 생서자도 안바꿔줘도 됨. that user - marked deleted
+        //   - 댓글 / 게시물은 아무것도 할 필요가 없음
+
+
+        // 2 - 가입된 모임 및 관계들
+        //   - 모든 모임 관계를 NOTFOUND 로 변경, 모임장인 모임은 delegate 진행
+        List<MoimMember> moimMembers = moimMemberRepository.findByMemberId(member.getId());
+        for (MoimMember moimMember : moimMembers) {
+            // 만약 MANAGER 가 요청한 것이라면, alternative flow 가 실행된다
+            if (moimMember.hasPermissionOfManager()) {
+                Moim thisMoim = moimMember.getMoim();
+                if (thisMoim.getCurMemberCount() == 1) { // Moim 삭제 진행
+                    // 후속으로 -1 과 IBW 변환은 진행되므로, moim 삭제 정보만 기록한다
+                    thisMoim.markDeletedTime();
+                    moimMember.changeMemberState(IBW);
+                } else { // 모임장이 나가며, 모임장 승계가 진행된다
+                    moimMemberServiceMed.delegateMoimManager(thisMoim);
+                }
+            }
+            moimMember.changeMemberState(NOTFOUND);
+        }
+
+        // 3 - 발생한 알림들
+        //   - 일괄 삭제 진행하려했는데, 연관관계도 없고 그래서 그냥 냅두자 일단..
+
+        // 4 - 개인 정보 및 회원 상태 처리
+        //   - 일단 일괄 보관, hasDeleted = true 처리
+        //   - refreshToken, fcmToken 제외 모두 유지
+        //   - MemberInfo 테이블은 모두 삭제 (현재 이건 Pending.. ) > 법적으로는 즉시 삭제 필요
+        member.deleteMember();
 
     }
 

@@ -14,6 +14,7 @@ public enum AuthExceptionValue {
     AUTH_LOGIN_PASSWORD_INCORRECT(HttpStatus.UNAUTHORIZED.value(), "AL000", "비밀번호가 일치하지 않습니다"),
     AUTH_LOGIN_REQUEST_INVALID(HttpStatus.BAD_REQUEST.value(), "AL001", "요청을 읽을 수 없습니다"),
     AUTH_LOGIN_PHONE_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "AL002", "로그인 시도한 휴대폰 번호를 찾을 수 없습니다"),
+    AUTH_LOGIN_MEMBER_DELETED(HttpStatus.FORBIDDEN.value(), "AL003", "회원 탈퇴 후 같은 번호로 7일간 가입할 수 없습니다"),
     AUTH_LOGIN_EXTRA(HttpStatus.UNAUTHORIZED.value(), "AL999", "알 수 없는 이유로 로그인에 실패하였습니다"),
 
 
@@ -35,15 +36,13 @@ public enum AuthExceptionValue {
 
 
     // AUTH_SMS
-    AUTH_SMS_INVALID_NAME_WITH_PHONE(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS000", "핸드폰 번호로 조회한 유저의 이름과 전달받은 이름이 일치하지 않습니다"),
-    AUTH_SMS_INVALID_NAME_WITH_EMAIL(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS001", "핸드폰 번호로 조회한 유저의 이메일과 전달받은 이메일이 일치하지 않습니다"),
-    AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS002", "SMS 인증 번호가 일치하지 않습니다"),
-    AUTH_SMS_VERIFICATION_EXPIRED(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS003", "본인 인증 시도 시간이 만료, 인증 재시도 필요"),
-    AUTH_SMS_VERIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "ASMS004", "본인 인증 시도 내역을 확인할 수 없습니다"),
-    AUTH_SMS_NOT_VERIFIED(HttpStatus.UNAUTHORIZED.value(), "ASMS005", "인증되지 않은 인증 내역은 활용할 수 없습니다"),
-    AUTH_SMS_VERIFY_REQ_DUPLICATE(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS006", "이미 인증된 내역을 재인증 요청할 수 없습니다"),
-    AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH(HttpStatus.CONFLICT.value(), "ASMS007", "시도중인 인증 Type 이 요청 Type 과 일치하지 않습니다"),
-    AUTH_SMS_REQUEST_INFO_NOT_MATCH_REQUESTING_INFO(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS008", "요청 정보와 인증 내역의 전화번호 정보가 일치하지 않습니다"),
+    AUTH_SMS_VERIFICATION_NUMBER_NOT_MATCH(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS000", "SMS 인증 번호가 일치하지 않습니다"),
+    AUTH_SMS_VERIFICATION_EXPIRED(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS001", "본인 인증 시도 시간이 만료, 인증 재시도 필요"),
+    AUTH_SMS_VERIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "ASMS002", "본인 인증 시도 내역을 확인할 수 없습니다"),
+    AUTH_SMS_NOT_VERIFIED(HttpStatus.UNAUTHORIZED.value(), "ASMS003", "인증되지 않은 인증 내역은 활용할 수 없습니다"),
+    AUTH_SMS_VERIFY_REQ_DUPLICATE(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS004", "이미 인증된 내역을 재인증 요청할 수 없습니다"),
+    AUTH_SMS_VERIFICATION_TYPE_NOT_MATCH(HttpStatus.CONFLICT.value(), "ASMS005", "시도중인 인증 Type 이 요청 Type 과 일치하지 않습니다"),
+    AUTH_SMS_REQUEST_INFO_NOT_MATCH_REQUESTING_INFO(HttpStatus.UNPROCESSABLE_ENTITY.value(), "ASMS006", "요청 정보와 인증 내역의 전화번호 정보가 일치하지 않습니다"),
 
     // AUTH_NICE
     AUTH_NICE_RESPONSE_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ANICE000", "NICE 서버와 API 통신 중 오류 발생"),
