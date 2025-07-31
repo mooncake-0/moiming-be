@@ -85,7 +85,7 @@ dependencies {
 
     // Thymeleaf for NICE
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-
+    implementation 'org.apache.lucene:lucene-analysis-common:9.7.0'
     implementation("org.kohsuke:github-api:1.326")
 
 }

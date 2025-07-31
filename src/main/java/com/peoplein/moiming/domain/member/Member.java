@@ -113,6 +113,7 @@ public class Member extends BaseEntity {
         this.refreshToken = "";
         this.fcmToken = "";
         this.hasDeleted = true;
+        this.memberPhone = "del" + memberPhone; // TODO:: 운영계 분리, 매일 00시 한번씩 돌면서 멤버 초기화. 근데 일단 없앰
     }
 
 
